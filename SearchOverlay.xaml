@@ -1,0 +1,51 @@
+<Window x:Class="ZeroSrc.SearchOverlay"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="ZeroSrc Search" Height="90" Width="420" Topmost="True"
+        WindowStyle="None" ResizeMode="NoResize" Background="#F7FAFC"
+        ShowInTaskbar="False" AllowsTransparency="True" Opacity="0" Loaded="Window_Loaded">
+    <Window.Resources>
+        <Storyboard x:Key="FadeInStoryboard">
+            <DoubleAnimation Storyboard.TargetProperty="Opacity" From="0" To="1" Duration="0:0:0.18"/>
+        </Storyboard>
+        <Storyboard x:Key="FadeOutStoryboard">
+            <DoubleAnimation Storyboard.TargetProperty="Opacity" From="1" To="0" Duration="0:0:0.12"/>
+        </Storyboard>
+        <DropShadowEffect x:Key="Shadow" BlurRadius="16" ShadowDepth="0" Color="#33000000"/>
+
+        <!-- ✅ Pindah ke sini -->
+        <LinearGradientBrush x:Key="ZGradient" StartPoint="0,0" EndPoint="1,1">
+            <GradientStop Color="#4285F4" Offset="0.0"/>
+            <GradientStop Color="#34A853" Offset="0.33"/>
+            <GradientStop Color="#FBBC05" Offset="0.66"/>
+            <GradientStop Color="#EA4335" Offset="1.0"/>
+        </LinearGradientBrush>
+    </Window.Resources>
+
+    <Border CornerRadius="16" Background="#F7FAFC" Padding="0" Effect="{StaticResource Shadow}" Margin="10">
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="50"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <Viewbox Grid.Column="0" Margin="10,0,0,0" VerticalAlignment="Center" Height="40" Width="40">
+                <Canvas Width="32" Height="32">
+                    <!-- ✅ Gunakan StaticResource -->
+                    <Path Data="M 4,6 L 28,6 L 4,26 L 28,26"
+                          StrokeThickness="5"
+                          Stroke="{StaticResource ZGradient}"
+                          StrokeLineJoin="Round"
+                          StrokeStartLineCap="Round"
+                          StrokeEndLineCap="Round"/>
+                </Canvas>
+            </Viewbox>
+
+            <TextBox Name="SearchBox" Grid.Column="1" FontSize="20" Margin="0,16,16,16" Height="40"
+                     VerticalContentAlignment="Center" KeyDown="SearchBox_KeyDown"
+                     Background="#FFF" BorderThickness="0" Padding="16,0,8,0" 
+                     Foreground="#2D3748" FontWeight="SemiBold"
+                     Style="{x:Null}"/>
+        </Grid>
+    </Border>
+</Window>
