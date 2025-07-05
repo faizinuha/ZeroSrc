@@ -20,3 +20,4 @@ C:\ZeroSrc\obj\Debug\net9.0-windows\refint\ZeroSrc.dll
 C:\ZeroSrc\obj\Debug\net9.0-windows\ZeroSrc.pdb
 C:\ZeroSrc\obj\Debug\net9.0-windows\ZeroSrc.genruntimeconfig.cache
 C:\ZeroSrc\obj\Debug\net9.0-windows\ref\ZeroSrc.dll
+C:\ZeroSrc\obj\Debug\net9.0-windows\ZeroSrc.sourcelink.json

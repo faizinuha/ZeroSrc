@@ -43,9 +43,9 @@
 
             <TextBox Name="SearchBox" Grid.Column="1" FontSize="20" Margin="0,16,16,16" Height="40"
                      VerticalContentAlignment="Center" KeyDown="SearchBox_KeyDown"
-                     Background="#FFF" BorderThickness="0" Padding="16,0,8,0" 
+                     Background="#FFF" BorderThickness="0" Padding="16,0,8,0"
                      Foreground="#2D3748" FontWeight="SemiBold"
-                     Style="{x:Null}"/>
+                     Style="{x:Null}" />
         </Grid>
     </Border>
 </Window>
