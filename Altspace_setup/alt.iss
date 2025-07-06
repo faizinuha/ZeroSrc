@@ -1,7 +1,7 @@
 ; --- Informasi Aplikasi ---
 [Setup]
 AppName=Google Box
-AppVersion=1.0.5
+AppVersion=1.1.0
 AppVerName=Google-Box
 AppPublisher=Vibes
 AppPublisherURL=https://mardev-v8.vercel.app/
