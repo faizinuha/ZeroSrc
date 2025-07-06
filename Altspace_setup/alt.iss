@@ -2,7 +2,7 @@
 [Setup]
 AppName=Google Box
 AppVersion=1.0.5
-AppVerName=Google-Box 1.0.5
+AppVerName=Google-Box
 AppPublisher=Vibes
 AppPublisherURL=https://mardev-v8.vercel.app/
 AppSupportURL=https://mardev-v8.vercel.app/
@@ -18,7 +18,7 @@ Compression=lzma
 SolidCompression=yes
 DisableProgramGroupPage=yes
 UninstallDisplayIcon={app}\favicon.ico
-WizardImageFile=Log.bmp
+WizardImageFile=Logs.bmp
 
 ; --- File yang akan diinstal ---
 [Files]
@@ -47,9 +47,48 @@ Type: filesandordirs; Name: "{userappdata}\GoogleBox"
 [UninstallRun]
 Filename: "taskkill.exe"; Parameters: "/IM ZeroSrc.exe /F"; StatusMsg: "Menutup aplikasi Google Box..."; Flags: runhidden
 Filename: "cmd.exe"; Parameters: "/C echo Terima kasih telah menggunakan Google Box! && timeout /t 3"; Flags: runhidden
+IconFilename: "{app}\favicon.ico"; Description: "Google Box Uninstaller"; Flags: runhidden
 
+; --- Pesan Instalasi ---
+[Messages]
+InstallTitle=Instalasi Google Box
+InstallMessage=Instalasi Google Box sedang berlangsung. Mohon tunggu...
+InstallMessage2=Proses ini mungkin memakan waktu beberapa menit tergantung pada kecepatan sistem kamu.
+; --- Pesan Uninstall ---
+[UninstallMessages]
+UninstallTitle=Penghapusan Google Box
+UninstallMessage=Penghapusan Google Box sedang berlangsung. Mohon tunggu...
+UninstallMessage2=Proses ini mungkin memakan waktu beberapa menit tergantung pada kecepatan sistem kamu.
+
+
+; --- Pesan Selamat Datang dan Selesai ---
+[Welcome]
+WelcomeTitle=Selamat datang di Google Box Installer
 ; --- Teks Custom Welcome & Selesai ---
 [Messages]
 WelcomeLabel1=Selamat datang di penginstal Google Box!
 WelcomeLabel2=Aplikasi pintar untuk membuka web dan aplikasi desktop dengan cepat.
 FinishedLabel=Google Box berhasil diinstal. Kamu bisa menjalankannya dari desktop atau Start Menu.
+FinishedMessage=Terima kasih telah menggunakan Google Box! Jika ada pertanyaan, kunjungi https://github.com/faizinuha/ZeroSrc/issues.
+FinishedMessage2=Jangan lupa untuk memberikan ulasan di https://github.com/faizinuha/ZeroSrc/issues jika kamu menyukai aplikasi ini!
+; --- Pesan Peringatan ---
+[WarningMessages]
+WarningUninstall=Apakah kamu yakin ingin menghapus Google Box? Semua data akan dihapus.
+WarningUninstallData=Ini akan menghapus semua data aplikasi. Pastikan kamu sudah mencadangkan data penting sebelum melanjutkan.
+; --- Pesan Konfirmasi ---
+[ConfirmationMessages]
+ConfirmationUninstall=Kamu akan menghapus Google Box. Apakah kamu yakin ingin melanjutkan?
+ConfirmationUninstallData=Ini akan menghapus semua data aplikasi. Pastikan kamu sudah mencadangkan data penting sebelum melanjutkan.
+; --- Pesan Informasi Tambahan ---
+[AdditionalInfoMessages]
+AdditionalInfo=Google Box adalah aplikasi peluncur pintar yang memudahkan akses ke aplikasi web dan desktop. Dengan antarmuka yang sederhana, kamu bisa membuka aplikasi favorit dengan cepat.
+AdditionalInfo2=Jika kamu mengalami masalah, kunjungi https://github.com/faizinuha/ZeroSrc/issues untuk mendapatkan bantuan. Kami selalu siap membantu!
+; --- Pesan Penutup ---
+[ClosingMessages]
+ClosingMessage=Terima kasih telah menginstal Google Box! Kami harap kamu menikmati pengalaman menggunakan aplikasi ini.
+ClosingMessage2=Jika kamu menyukai aplikasi ini, jangan lupa untuk memberikan ulasan di https://github.com/faizinuha/ZeroSrc/issues. Umpan balik kamu sangat berarti bagi kami!
+ClosingMessage3=Jangan ragu untuk menghubungi kami di https://github.com/faizinuha/ZeroSrc/issues jika ada pertanyaan atau saran. Kami selalu siap membantu!
+; --- Pesan Pemberitahuan ---
+[NotificationMessages]
+NotificationUpdateAvailable=Versi baru Google Box tersedia! Kunjungi https://github.com/faizinuha/ZeroSrc/issues untuk memperbarui.
+NotificationNewFeature=Fitur baru telah ditambahkan! Cek https://github.com/faizinuha/ZeroSrc/issues untuk informasi lebih lanjut.

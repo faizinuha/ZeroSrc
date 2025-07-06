@@ -1,6 +1,23 @@
 # ZeroSrc
 
+  <div align="center">
+    <img src="./assets/image.png" width="200"  >
+  </div>
+
+![Version](https://img.shields.io/badge/version-1.0.5-blue.svg)
+![Platform](https://img.shields.io/badge/platform-Windows-blueviolet)
+![Built with](https://img.shields.io/badge/.NET-8.0-5C2D91?logo=dotnet)
+![UI](https://img.shields.io/badge/UI-WPF-orange)
+![Installer](https://img.shields.io/badge/Installer-InnoSetup-green)
+![License](https://img.shields.io/github/license/faizinuha/ZeroSrc)
+![Issues](https://img.shields.io/github/issues/faizinuha/ZeroSrc)
+![Download](https://img.shields.io/badge/Download-ZeroSrc-blue?logo=github)
+
+---
+
 Selamat datang di **ZeroSrc**! Panduan ini akan membantu Anda menginstal, menggunakan, dan menghapus aplikasi ZeroSrc dengan mudah.
+
+---
 
 ## 🚀 Fitur Terbaru
 
@@ -56,17 +73,21 @@ Pastikan mengunduh versi terbaru untuk fitur dan perbaikan terbaru.
 > 💡 **Tips:** Pastikan semua instance ZeroSrc tertutup agar aplikasi benar-benar terhapus.
 
 ---
+
 ## 🛠️ Gambar
 <!-- Gambar ini menunjukkan tampilan ZeroSrc -->
 
-<img src="Altspace_setup/favicon.ico" alt="ZeroSrc Screenshot" width="100">
 <div align="center">
+<img src="Altspace_setup/Logs.bmp" alt="ZeroSrc Screenshot" width="100">
+</div>
 
 ---
 
 <img src="assets/Presen.png" alt="ZeroSrc Screenshot" width="600">
 </div>
 
-## Terima Kasih!
+## Terima Kasih
+
 Kami berharap panduan ini membantu Anda dalam menggunakan ZeroSrc. Jika ada pertanyaan atau masalah, silakan buka [issue di GitHub](https://github.com/faizinuha/ZeroSrc/issues).
+
 Terima kasih telah menggunakan ZeroSrc!
