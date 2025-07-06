@@ -1,0 +1,20 @@
+name: Release EXE to GitHub
+
+on:
+  push:
+    tags:
+      - 'v*' # hanya akan jalan kalau push tag v1.0.0 atau v2.3.4
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Upload release asset
+        uses: softprops/action-gh-release@v1
+        with:
+          files: dist/Google-Box.exe
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
