@@ -1,0 +1,56 @@
+--- DISCLAIMER ---
+
+ZeroSrc adalah aplikasi pribadi yang **tidak dipublikasikan secara massal** di platform resmi.  
+Jika Anda tetap ingin menginstal aplikasi ini, silakan klik **"More info"** lalu pilih **"Run anyway"** saat muncul peringatan dari sistem.  
+Gunakan aplikasi ini dengan kesadaran penuh. Segala risiko penggunaan berada di tangan pengguna.
+
+---
+
+--- Terima Kasih Telah Menggunakan ZeroSrc ---
+
+ZeroSrc adalah aplikasi yang dibuat dengan tujuan untuk memudahkan akses ke aplikasi web dan desktop favorit Anda.  
+Dengan ZeroSrc, Anda bisa membuka aplikasi-aplikasi pilihan Anda dengan **lebih cepat, praktis, dan efisien**.
+
+Kami sangat menghargai Anda yang telah meluangkan waktu untuk membaca ini.  
+Semoga aplikasi ini dapat memberikan pengalaman yang menyenangkan dan bermanfaat bagi Anda.
+
+Untuk pertanyaan atau masukan, jangan ragu untuk menghubungi kami melalui situs web resmi atau email dukungan kami.  
+Kami terbuka untuk segala saran, dan sangat menghargai kepercayaan serta dukungan Anda.
+
+---
+
+--- Kebijakan Privasi (Privacry.txt) ---
+
+**Privacry.txt** adalah dokumen yang menjelaskan bagaimana ZeroSrc mengelola dan melindungi data pengguna.  
+Kami berkomitmen untuk menjaga privasi Anda dan memastikan bahwa data pribadi yang dikumpulkan digunakan dengan cara yang transparan dan sesuai dengan hukum yang berlaku.
+
+**Apa yang Kami Kumpulkan:**
+- Informasi yang diperlukan untuk meningkatkan layanan seperti preferensi aplikasi dan pengaturan pengguna.
+
+**Bagaimana Kami Menggunakan Data:**
+- Untuk meningkatkan pengalaman pengguna.
+- Untuk memperbaiki bug dan menambahkan fitur baru.
+- Untuk memahami kebutuhan pengguna secara lebih baik.
+
+**Kami TIDAK akan:**
+- Membagikan data Anda kepada pihak ketiga tanpa izin Anda, kecuali diwajibkan oleh hukum.
+
+**Hak Anda sebagai Pengguna:**
+- Anda dapat mengakses, memperbarui, atau menghapus data pribadi Anda kapan saja melalui pengaturan aplikasi.
+
+**Keamanan Data:**
+- Kami menggunakan enkripsi dan praktik keamanan terbaik untuk melindungi data Anda.
+- Jika terjadi pelanggaran keamanan, kami akan segera memberi tahu Anda.
+
+**Perubahan Kebijakan:**
+- Kebijakan ini dapat berubah sewaktu-waktu.
+- Perubahan akan diberitahukan melalui aplikasi atau situs web resmi.
+
+---
+
+Terima kasih telah membaca kebijakan privasi kami.  
+Kami menghargai kepercayaan Anda dan berkomitmen untuk menjaga keamanan data pribadi Anda.  
+Semoga ZeroSrc bisa membantu Anda mengakses aplikasi dengan lebih nyaman dan cepat.
+
+Salam hangat,  
+Tim ZeroSrc 💻✨
