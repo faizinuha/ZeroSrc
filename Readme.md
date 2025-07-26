@@ -56,6 +56,7 @@ Pastikan mengunduh versi terbaru untuk fitur dan perbaikan terbaru.
 > 💡 **Tips:** Pastikan semua instance ZeroSrc tertutup agar aplikasi benar-benar terhapus.
 
 ---
+
 ## 🛠️ Gambar
 <!-- Gambar ini menunjukkan tampilan ZeroSrc -->
 
@@ -67,6 +68,7 @@ Pastikan mengunduh versi terbaru untuk fitur dan perbaikan terbaru.
 <img src="assets/Presen.png" alt="ZeroSrc Screenshot" width="600">
 </div>
 
-## Terima Kasih!
+## Terima Kasih
+
 Kami berharap panduan ini membantu Anda dalam menggunakan ZeroSrc. Jika ada pertanyaan atau masalah, silakan buka [issue di GitHub](https://github.com/faizinuha/ZeroSrc/issues).
 Terima kasih telah menggunakan ZeroSrc!
