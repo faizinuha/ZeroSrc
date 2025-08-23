@@ -57,7 +57,9 @@
                      Margin="50,0,16,16" MaxHeight="200"
                      Background="Transparent" BorderThickness="0"
                      Visibility="Collapsed"
-                     SelectionChanged="SuggestionList_SelectionChanged">
+                     SelectionChanged="SuggestionList_SelectionChanged"
+                     MouseDoubleClick="SuggestionList_MouseDoubleClick"
+                     KeyDown="SuggestionList_KeyDown">
                 <ListBox.ItemContainerStyle>
                     <Style TargetType="ListBoxItem">
                         <Setter Property="Padding" Value="16,8"/>

@@ -6,7 +6,11 @@ namespace ZeroSrc
     public static class HotkeyManager
     {
         public const int HOTKEY_ID = 9000;
-        private const uint MOD_ALT = 0x0001;
+        public const uint MOD_ALT = 0x0001;
+        public const uint MOD_CONTROL = 0x0002;
+        public const uint MOD_SHIFT = 0x0004;
+        public const uint MOD_WIN = 0x0008;
+        public const uint MOD_NOREPEAT = 0x4000;
         private const uint VK_SPACE = 0x20;
 
         [DllImport("user32.dll")]
@@ -14,15 +18,28 @@ namespace ZeroSrc
 
         [DllImport("user32.dll")]
         private static extern bool UnregisterHotKey(IntPtr hWnd, int id);
-
-        public static void Register(IntPtr handle)
+        public static bool Register(IntPtr handle, uint modifiers)
         {
-            RegisterHotKey(handle, HOTKEY_ID, MOD_ALT, VK_SPACE);
+            try
+            {
+                return RegisterHotKey(handle, HOTKEY_ID, modifiers, VK_SPACE);
+            }
+            catch
+            {
+                return false;
+            }
         }
 
-        public static void Unregister(IntPtr handle)
+        public static bool Unregister(IntPtr handle)
         {
-            UnregisterHotKey(handle, HOTKEY_ID);
+            try
+            {
+                return UnregisterHotKey(handle, HOTKEY_ID);
+            }
+            catch
+            {
+                return false;
+            }
         }
 
         public static bool IsHotkeyRegistered(IntPtr handle)

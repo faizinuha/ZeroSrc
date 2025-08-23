@@ -90,7 +90,53 @@ namespace ZeroSrc
             {
                 searchBox.Text = selectedItem;
                 searchBox.CaretIndex = selectedItem.Length;
-                ExecuteCommand(selectedItem);
+
+                // Jika suggestion berasal dari env operations, tangani khusus
+                switch (selectedItem.ToLower())
+                {
+                    case "task manager":
+                        Process.Start(new ProcessStartInfo("taskmgr") { UseShellExecute = true });
+                        BeginFadeOutAndClose();
+                        return;
+                    case "settings":
+                        Process.Start(new ProcessStartInfo("ms-settings:") { UseShellExecute = true });
+                        BeginFadeOutAndClose();
+                        return;
+                    case "control panel":
+                        Process.Start(new ProcessStartInfo("control") { UseShellExecute = true });
+                        BeginFadeOutAndClose();
+                        return;
+                    case "device manager":
+                        Process.Start(new ProcessStartInfo("devmgmt.msc") { UseShellExecute = true });
+                        BeginFadeOutAndClose();
+                        return;
+                    case "file explorer":
+                        Process.Start(new ProcessStartInfo(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile)) { UseShellExecute = true });
+                        BeginFadeOutAndClose();
+                        return;
+                    default:
+                        ExecuteCommand(selectedItem);
+                        return;
+                }
+            }
+        }
+
+        private void SuggestionList_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+        {
+            var lb = sender as ListBox;
+            if (lb?.SelectedItem is string s)
+            {
+                // reuse existing selection logic
+                SuggestionList_SelectionChanged(lb, new SelectionChangedEventArgs(ListBox.SelectionChangedEvent, new List<string>(), new List<string>()));
+            }
+        }
+
+        private void SuggestionList_KeyDown(object sender, KeyEventArgs e)
+        {
+            var lb = sender as ListBox;
+            if (e.Key == Key.Enter && lb?.SelectedItem is string s)
+            {
+                SuggestionList_SelectionChanged(lb, new SelectionChangedEventArgs(ListBox.SelectionChangedEvent, new List<string>(), new List<string>()));
             }
         }
 
@@ -125,6 +171,20 @@ namespace ZeroSrc
                     Process.Start(new ProcessStartInfo(shortcutPath) { UseShellExecute = true });
                     ShowNotification($"Membuka: {query}", NotificationType.Info);
                     BeginFadeOutAndClose();
+                    return;
+                }
+
+                // Perintah environment / operations
+                if (query == "env" || query == "environment" || query == "operations")
+                {
+                    // Tampilkan daftar aksi yang bisa dijalankan
+                    var suggestionList = this.FindName("SuggestionList") as ListBox;
+                    var ops = new List<string> { "Task Manager", "Settings", "Control Panel", "Device Manager", "File Explorer" };
+                    if (suggestionList != null)
+                    {
+                        suggestionList.ItemsSource = ops;
+                        suggestionList.Visibility = Visibility.Visible;
+                    }
                     return;
                 }
 

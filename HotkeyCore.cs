@@ -21,7 +21,20 @@ namespace ZeroSrc
             base.OnSourceInitialized(e);
             _source = HwndSource.FromHwnd(new WindowInteropHelper(this).Handle);
             _source.AddHook(HwndHook);
-            HotkeyManager.Register(_source.Handle);
+            // Coba daftar Alt+Space, jika gagal coba Ctrl+Space, lalu Win+Space
+            bool ok = HotkeyManager.Register(_source.Handle, HotkeyManager.MOD_ALT | HotkeyManager.MOD_NOREPEAT);
+            if (!ok)
+            {
+                ok = HotkeyManager.Register(_source.Handle, HotkeyManager.MOD_CONTROL | HotkeyManager.MOD_NOREPEAT);
+            }
+            if (!ok)
+            {
+                ok = HotkeyManager.Register(_source.Handle, HotkeyManager.MOD_WIN | HotkeyManager.MOD_NOREPEAT);
+            }
+            if (!ok)
+            {
+                ShowNotification("Gagal mendaftarkan hotkey global. Coba jalankan sebagai administrator atau cek konflik hotkey.", NotificationType.Warning);
+            }
         }
 
         protected override void OnClosed(EventArgs e)
