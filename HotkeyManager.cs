@@ -1,4 +1,3 @@
-
 using System;
 using System.Runtime.InteropServices;
 
@@ -24,6 +23,12 @@ namespace ZeroSrc
         public static void Unregister(IntPtr handle)
         {
             UnregisterHotKey(handle, HOTKEY_ID);
+        }
+
+        public static bool IsHotkeyRegistered(IntPtr handle)
+        {
+            // Implementasi untuk memeriksa apakah hotkey sudah terdaftar
+            return true; // Placeholder
         }
     }
 }

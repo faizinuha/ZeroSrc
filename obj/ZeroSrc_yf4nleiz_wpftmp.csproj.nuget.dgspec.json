@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "c:\\ZeroSrc\\ZeroSrc.csproj": {}
+    "C:\\ZeroSrc\\ZeroSrc.csproj": {}
   },
   "projects": {
-    "c:\\ZeroSrc\\ZeroSrc.csproj": {
+    "C:\\ZeroSrc\\ZeroSrc.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "c:\\ZeroSrc\\ZeroSrc.csproj",
+        "projectUniqueName": "C:\\ZeroSrc\\ZeroSrc.csproj",
         "projectName": "ZeroSrc",
-        "projectPath": "c:\\ZeroSrc\\ZeroSrc.csproj",
+        "projectPath": "C:\\ZeroSrc\\ZeroSrc.csproj",
         "packagesPath": "C:\\Users\\User\\.nuget\\packages\\",
-        "outputPath": "c:\\ZeroSrc\\obj\\",
+        "outputPath": "C:\\ZeroSrc\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "C:\\Users\\User\\AppData\\Roaming\\NuGet\\NuGet.Config"

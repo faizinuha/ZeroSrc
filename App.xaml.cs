@@ -11,7 +11,8 @@ namespace ZeroSrc
         protected override void OnStartup(StartupEventArgs e)
         {
             base.OnStartup(e);
-            new HotkeyCore().Show(); // Ganti nama sesuai class kamu
+            var mainWindow = new MainWindow();
+            mainWindow.Show();
         }
     }
 }

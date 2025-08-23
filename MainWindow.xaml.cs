@@ -1,1 +1,20 @@
-﻿
+﻿using System.Windows;
+
+namespace ZeroSrc
+{
+	public partial class MainWindow : Window
+	{
+		public MainWindow()
+		{
+			InitializeComponent();
+		}
+
+		// Removed automatic overlay display on startup so main window is useful.
+
+		private void OpenOverlay_Click(object sender, RoutedEventArgs e)
+		{
+			var overlay = new SearchOverlay();
+			overlay.Show();
+		}
+	}
+}
