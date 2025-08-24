@@ -1,13 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "8v5Kw0CnZgA=",
+  "dgSpecHash": "Kk+JuqxVayY=",
   "success": true,
-  "projectFilePath": "c:\\ZeroSrc\\ZeroSrc.csproj",
-  "expectedPackageFiles": [
-    "C:\\Users\\User\\.nuget\\packages\\microsoft.net.illink.tasks\\9.0.6\\microsoft.net.illink.tasks.9.0.6.nupkg.sha512",
-    "C:\\Users\\User\\.nuget\\packages\\microsoft.netcore.app.runtime.win-x64\\9.0.6\\microsoft.netcore.app.runtime.win-x64.9.0.6.nupkg.sha512",
-    "C:\\Users\\User\\.nuget\\packages\\microsoft.windowsdesktop.app.runtime.win-x64\\9.0.6\\microsoft.windowsdesktop.app.runtime.win-x64.9.0.6.nupkg.sha512",
-    "C:\\Users\\User\\.nuget\\packages\\microsoft.aspnetcore.app.runtime.win-x64\\9.0.6\\microsoft.aspnetcore.app.runtime.win-x64.9.0.6.nupkg.sha512"
-  ],
+  "projectFilePath": "C:\\ZeroSrc\\ZeroSrc\\ZeroSrc.csproj",
+  "expectedPackageFiles": [],
   "logs": []
 }
