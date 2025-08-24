@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "c:\\ZeroSrc\\ZeroSrc.csproj": {}
+    "C:\\ZeroSrc\\ZeroSrc\\ZeroSrc.csproj": {}
   },
   "projects": {
-    "c:\\ZeroSrc\\ZeroSrc.csproj": {
+    "C:\\ZeroSrc\\ZeroSrc\\ZeroSrc.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "c:\\ZeroSrc\\ZeroSrc.csproj",
+        "projectUniqueName": "C:\\ZeroSrc\\ZeroSrc\\ZeroSrc.csproj",
         "projectName": "ZeroSrc",
-        "projectPath": "c:\\ZeroSrc\\ZeroSrc.csproj",
+        "projectPath": "C:\\ZeroSrc\\ZeroSrc\\ZeroSrc.csproj",
         "packagesPath": "C:\\Users\\User\\.nuget\\packages\\",
-        "outputPath": "c:\\ZeroSrc\\obj\\",
+        "outputPath": "C:\\ZeroSrc\\ZeroSrc\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "C:\\Users\\User\\AppData\\Roaming\\NuGet\\NuGet.Config"
@@ -43,14 +43,6 @@
       "frameworks": {
         "net9.0-windows7.0": {
           "targetAlias": "net9.0-windows",
-          "dependencies": {
-            "Microsoft.NET.ILLink.Tasks": {
-              "suppressParent": "All",
-              "target": "Package",
-              "version": "[9.0.6, )",
-              "autoReferenced": true
-            }
-          },
           "imports": [
             "net461",
             "net462",
@@ -62,20 +54,6 @@
           ],
           "assetTargetFallback": true,
           "warn": true,
-          "downloadDependencies": [
-            {
-              "name": "Microsoft.AspNetCore.App.Runtime.win-x64",
-              "version": "[9.0.6, 9.0.6]"
-            },
-            {
-              "name": "Microsoft.NETCore.App.Runtime.win-x64",
-              "version": "[9.0.6, 9.0.6]"
-            },
-            {
-              "name": "Microsoft.WindowsDesktop.App.Runtime.win-x64",
-              "version": "[9.0.6, 9.0.6]"
-            }
-          ],
           "frameworkReferences": {
             "Microsoft.NETCore.App": {
               "privateAssets": "all"
@@ -85,11 +63,6 @@
             }
           },
           "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.301/PortableRuntimeIdentifierGraph.json"
-        }
-      },
-      "runtimes": {
-        "win-x64": {
-          "#import": []
         }
       }
     }
