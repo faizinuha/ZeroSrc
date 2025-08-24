@@ -1,12 +1,12 @@
 ﻿<Window x:Class="ZeroSrc.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:ZeroSrc"
-        mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
-    <Grid>
-
+        Title="ZeroSrc" Height="200" Width="400">
+    <Grid Background="#F7FAFC">
+        <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Margin="16" >
+            <TextBlock Text="ZeroSrc" FontSize="24" FontWeight="Bold" HorizontalAlignment="Center" Margin="0,0,0,8"/>
+            <Button Width="220" Height="40" Click="OpenOverlay_Click">Open Overlay</Button>
+            <TextBlock Text="Press Alt+Space to open the overlay from anywhere." FontSize="12" Foreground="#555" TextAlignment="Center" Margin="0,8,0,0"/>
+        </StackPanel>
     </Grid>
 </Window>

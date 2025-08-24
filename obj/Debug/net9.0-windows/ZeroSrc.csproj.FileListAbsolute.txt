@@ -1,6 +1,5 @@
 C:\ZeroSrc\obj\Debug\net9.0-windows\MainWindow.g.cs
 C:\ZeroSrc\obj\Debug\net9.0-windows\ZeroSrc_MarkupCompile.cache
-C:\ZeroSrc\obj\Debug\net9.0-windows\ZeroSrc_MarkupCompile.lref
 C:\ZeroSrc\obj\Debug\net9.0-windows\SearchOverlay.baml
 C:\ZeroSrc\obj\Debug\net9.0-windows\SearchOverlay.g.cs
 C:\ZeroSrc\obj\Debug\net9.0-windows\App.g.cs
