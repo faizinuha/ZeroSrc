@@ -21,7 +21,20 @@ namespace ZeroSrc
             base.OnSourceInitialized(e);
             _source = HwndSource.FromHwnd(new WindowInteropHelper(this).Handle);
             _source.AddHook(HwndHook);
-            HotkeyManager.Register(_source.Handle);
+            // Coba daftar Alt+Space, jika gagal coba Ctrl+Space, lalu Win+Space
+            bool ok = HotkeyManager.Register(_source.Handle, HotkeyManager.MOD_ALT | HotkeyManager.MOD_NOREPEAT);
+            if (!ok)
+            {
+                ok = HotkeyManager.Register(_source.Handle, HotkeyManager.MOD_CONTROL | HotkeyManager.MOD_NOREPEAT);
+            }
+            if (!ok)
+            {
+                ok = HotkeyManager.Register(_source.Handle, HotkeyManager.MOD_WIN | HotkeyManager.MOD_NOREPEAT);
+            }
+            if (!ok)
+            {
+                ShowNotification("Gagal mendaftarkan hotkey global. Coba jalankan sebagai administrator atau cek konflik hotkey.", NotificationType.Warning);
+            }
         }
 
         protected override void OnClosed(EventArgs e)
@@ -31,20 +44,38 @@ namespace ZeroSrc
             base.OnClosed(e);
         }
 
+        private void ShowNotification(string message, NotificationType type)
+        {
+            // Implementasi notifikasi untuk pengguna
+            MessageBox.Show(message, type.ToString(), MessageBoxButton.OK, MessageBoxImage.Information);
+        }
+
+        private void HandleHotkey()
+        {
+            if (_overlay == null || !_overlay.IsVisible)
+            {
+                _overlay = new SearchOverlay();
+                _overlay.Closed += (s, e) => _overlay = null;
+                _overlay.Show();
+            }
+            else
+            {
+                _overlay.BeginFadeOutAndCloseByMain();
+            }
+        }
+
         private IntPtr HwndHook(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
         {
             const int WM_HOTKEY = 0x0312;
             if (msg == WM_HOTKEY && wParam.ToInt32() == HotkeyManager.HOTKEY_ID)
             {
-                if (_overlay == null || !_overlay.IsVisible)
+                try
                 {
-                    _overlay = new SearchOverlay();
-                    _overlay.Closed += (s, e) => _overlay = null;
-                    _overlay.Show();
+                    HandleHotkey();
                 }
-                else
+                catch (Exception ex)
                 {
-                    _overlay.BeginFadeOutAndCloseByMain();
+                    ShowNotification("Error handling hotkey: " + ex.Message, NotificationType.Error);
                 }
                 handled = true;
             }

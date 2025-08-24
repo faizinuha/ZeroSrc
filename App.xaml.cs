@@ -11,7 +11,9 @@ namespace ZeroSrc
         protected override void OnStartup(StartupEventArgs e)
         {
             base.OnStartup(e);
-            new HotkeyCore().Show(); // Ganti nama sesuai class kamu
+            // Jalankan HotkeyCore yang mendaftar hotkey global dan menampilkan overlay saat ditekan.
+            var hotkeyCore = new HotkeyCore();
+            hotkeyCore.Show();
         }
     }
 }
