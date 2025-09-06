@@ -2,10 +2,12 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Media.Animation;
 
@@ -17,7 +19,22 @@ namespace ZeroSrc
         Warning,
         Error
     }
+    public class StringToVisibilityConverter : IValueConverter
+    {
+        // Instans tunggal dari konverter
+        public static StringToVisibilityConverter Instance = new StringToVisibilityConverter();
 
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            return string.IsNullOrEmpty(value as string) ? Visibility.Visible : Visibility.Collapsed;
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            return DependencyProperty.UnsetValue;
+        }
+    }
+    
     public partial class SearchOverlay : Window
     {
         private bool _isClosing = false;
@@ -29,7 +46,7 @@ namespace ZeroSrc
             InitializeComponent();
             WindowStartupLocation = WindowStartupLocation.CenterScreen;
             _appShortcuts = GetStartMenuShortcuts();
-            
+
             // Inisialisasi suggestions
             _suggestions.AddRange(new[] {
                 "desktop shortcuts",
@@ -77,8 +94,8 @@ namespace ZeroSrc
                 .ToList();
 
             suggestionList.ItemsSource = filteredSuggestions;
-            suggestionList.Visibility = !string.IsNullOrEmpty(query) && filteredSuggestions.Any() 
-                ? Visibility.Visible 
+            suggestionList.Visibility = !string.IsNullOrEmpty(query) && filteredSuggestions.Any()
+                ? Visibility.Visible
                 : Visibility.Collapsed;
         }
 
