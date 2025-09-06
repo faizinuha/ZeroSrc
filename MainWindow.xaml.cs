@@ -15,6 +15,8 @@ namespace ZeroSrc
 		{
 			var overlay = new SearchOverlay();
 			overlay.Show();
+			// overlay.ShowInTaskbar = false; // Prevent overlay from appearing in taskbar
+			// overlay.WindowStartupLocation = WindowStartupLocation.CenterScreen;
 		}
 	}
 }
