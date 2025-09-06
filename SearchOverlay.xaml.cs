@@ -1,7 +1,11 @@
-using System.Collections.ObjectModel;
+// File: SearchOverlay.xaml.cs
+using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
+using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
@@ -37,42 +41,25 @@ namespace ZeroSrc
         private bool _isClosing = false;
         private readonly Dictionary<string, string> _appShortcuts;
         private readonly List<string> _suggestions = new();
-
-        // Properti yang terikat ke UI
-        public ObservableCollection<string> Suggestions { get; set; } = new ObservableCollection<string>();
-
         private readonly TextBlock _notificationText;
+        private readonly List<string> _allSuggestions = new();
+        private readonly List<string> _filteredSuggestions = new();
 
         public SearchOverlay()
         {
             InitializeComponent();
-            
-            // Mengatur DataContext agar binding ke properti Suggestions berfungsi
-            this.DataContext = this;
-            
             _notificationText = (TextBlock)this.FindName("NotificationText");
 
             WindowStartupLocation = WindowStartupLocation.CenterScreen;
             _appShortcuts = GetStartMenuShortcuts();
 
-            // Inisialisasi suggestions
-            _suggestions.AddRange(new[] {
-                "desktop shortcuts",
-                "open desktop shortcuts",
-                "buka semua shortcut",
-                "task manager",
-                "settings",
-                "control panel",
-                "device manager",
-                "file explorer",
-                "all apps",
-                "installed apps",
-                "installed",
-                "env",
-                "environment",
-                "operations"
-            });
-            _suggestions.AddRange(_appShortcuts.Keys);
+            // Semua suggestion asli (tetap ada di sini)
+            _allSuggestions.AddRange(new[] {
+        "desktop shortcuts",
+        "open desktop shortcuts",
+        "buka semua shortcut"
+    });
+            _allSuggestions.AddRange(_appShortcuts.Keys);
         }
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
@@ -94,7 +81,6 @@ namespace ZeroSrc
 
         private void ShowNotification(string message, NotificationType type = NotificationType.Info)
         {
-            // Tidak menggunakan MessageBox untuk pengalaman yang lebih baik
             _notificationText.Text = message;
             switch (type)
             {
@@ -108,6 +94,10 @@ namespace ZeroSrc
                     _notificationText.Foreground = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Colors.Black);
                     break;
             }
+            MessageBoxImage icon = MessageBoxImage.Information;
+            if (type == NotificationType.Error) icon = MessageBoxImage.Error;
+            else if (type == NotificationType.Warning) icon = MessageBoxImage.Warning;
+            MessageBox.Show(message, type.ToString(), MessageBoxButton.OK, icon);
         }
 
         private void SearchBox_TextChanged(object sender, TextChangedEventArgs e)
@@ -115,29 +105,49 @@ namespace ZeroSrc
             var searchBox = sender as TextBox;
             var suggestionList = this.FindName("SuggestionList") as ListBox;
             if (searchBox == null || suggestionList == null) return;
-            
+
             string query = searchBox.Text.Trim().ToLower();
 
-            // Kosongkan koleksi yang terikat ke UI sebelum mengisi ulang
-            Suggestions.Clear();
-            var filteredSuggestions = _suggestions
+            // filter dari _allSuggestions, jangan hapus sumber aslinya
+            _filteredSuggestions.Clear();
+            var filtered = _allSuggestions
                 .Where(s => s.ToLower().Contains(query))
                 .Take(10)
                 .ToList();
 
-            foreach (var s in filteredSuggestions)
-            {
-                Suggestions.Add(s);
-            }
+            _filteredSuggestions.AddRange(filtered);
+            suggestionList.ItemsSource = _filteredSuggestions;
 
-            if (string.IsNullOrEmpty(query) || !Suggestions.Any())
+            if (_filteredSuggestions.Any())
             {
-                suggestionList.Visibility = Visibility.Collapsed;
+                suggestionList.ItemsSource = _filteredSuggestions.ToList();
+                suggestionList.Visibility = Visibility.Visible;
+                suggestionList.SelectedIndex = 0;
             }
             else
             {
-                suggestionList.Visibility = Visibility.Visible;
+                suggestionList.ItemsSource = null;
+                suggestionList.Visibility = Visibility.Collapsed;
             }
+
+            if (!string.IsNullOrEmpty(query) && _filteredSuggestions.Any())
+            {
+                string first = _filteredSuggestions.First();
+
+                if (first.StartsWith(query, StringComparison.OrdinalIgnoreCase))
+                {
+                    searchBox.TextChanged -= SearchBox_TextChanged; // cegah loop event
+                    searchBox.Text = first;
+                    searchBox.SelectionStart = query.Length; // caret setelah input user
+                    searchBox.SelectionLength = first.Length - query.Length; // highlight sisa
+                    searchBox.TextChanged += SearchBox_TextChanged;
+                    return;
+                }
+            }
+
+            suggestionList.Visibility = _filteredSuggestions.Any()
+                ? Visibility.Visible
+                : Visibility.Collapsed;
         }
 
 
@@ -150,6 +160,7 @@ namespace ZeroSrc
                 searchBox.Text = selectedItem;
                 searchBox.CaretIndex = selectedItem.Length;
 
+                // Jika suggestion berasal dari env operations, tangani khusus
                 switch (selectedItem.ToLower())
                 {
                     case "task manager":
@@ -192,11 +203,24 @@ namespace ZeroSrc
         private void SuggestionList_KeyDown(object sender, KeyEventArgs e)
         {
             var lb = sender as ListBox;
+            var searchBox = this.FindName("SearchBox") as TextBox;
+
             if (e.Key == Key.Enter && lb?.SelectedItem is string s)
             {
-                SuggestionList_SelectionChanged(lb, new SelectionChangedEventArgs(ListBox.SelectionChangedEvent, new List<string>(), new List<string>()));
+                SuggestionList_SelectionChanged(
+                    lb,
+                    new SelectionChangedEventArgs(ListBox.SelectionChangedEvent, new List<string>(), new List<string>())
+                );
+            }
+            else if (e.Key == Key.Up)
+            {
+                if (lb?.SelectedIndex == 0 && searchBox != null)
+                {
+                    searchBox.Focus(); // balik ke textbox kalau sudah di item paling atas
+                }
             }
         }
+
 
         private void ExecuteCommand(string query)
         {
@@ -261,7 +285,7 @@ namespace ZeroSrc
                 ShowNotification($"Gagal menjalankan perintah: {ex.Message}", NotificationType.Error);
             }
         }
-        //  Event Handlers
+        //   Event Handlers
         private void SearchBox_KeyDown(object sender, KeyEventArgs e)
         {
             var searchBox = sender as TextBox;
@@ -328,10 +352,14 @@ namespace ZeroSrc
                 return;
             }
 
-            // Ganti MessageBox dengan ShowNotification
-            ShowNotification($"Mencoba membuka {shortcutFiles.Length} shortcut di Desktop.", NotificationType.Info);
-            
-            // Logika untuk membuka shortcut
+            var result = MessageBox.Show($"Akan membuka {shortcutFiles.Length} shortcut di Desktop. Lanjutkan?", "Konfirmasi", MessageBoxButton.YesNo, MessageBoxImage.Question);
+            if (result != MessageBoxResult.Yes)
+            {
+                // buka folder desktop sebagai alternatif
+                Process.Start(new ProcessStartInfo(desktopPath) { UseShellExecute = true });
+                return;
+            }
+
             foreach (var shortcut in shortcutFiles)
             {
                 try
@@ -347,6 +375,7 @@ namespace ZeroSrc
                     // jangan ganggu loop, hanya catat.
                 }
             }
+            ShowNotification($"Mencoba membuka {shortcutFiles.Length} shortcut.", NotificationType.Info);
         }
 
         private Dictionary<string, string> GetStartMenuShortcuts()
