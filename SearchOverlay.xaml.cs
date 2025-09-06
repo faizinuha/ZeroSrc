@@ -55,10 +55,8 @@ namespace ZeroSrc
 
             // Semua suggestion asli (tetap ada di sini)
             _allSuggestions.AddRange(new[] {
-        "desktop shortcuts",
-        "open desktop shortcuts",
-        "buka semua shortcut"
-    });
+                "https://www.google.com/search?q={Uri.EscapeDataString(query)}"
+            });
             _allSuggestions.AddRange(_appShortcuts.Keys);
         }
 
@@ -100,95 +98,122 @@ namespace ZeroSrc
             MessageBox.Show(message, type.ToString(), MessageBoxButton.OK, icon);
         }
 
+        private bool _isSelectingSuggestion = false;
+
         private void SearchBox_TextChanged(object sender, TextChangedEventArgs e)
         {
+            if (_isSelectingSuggestion) return;
+
             var searchBox = sender as TextBox;
+            string query = searchBox?.Text ?? "";
             var suggestionList = this.FindName("SuggestionList") as ListBox;
-            if (searchBox == null || suggestionList == null) return;
 
-            string query = searchBox.Text.Trim().ToLower();
+            if (string.IsNullOrWhiteSpace(query))
+            {
+                suggestionList.ItemsSource = null;
+                suggestionList.Visibility = Visibility.Collapsed;
+                return;
+            }
 
-            // filter dari _allSuggestions, jangan hapus sumber aslinya
-            _filteredSuggestions.Clear();
+            // cari semua suggestion yang cocok
             var filtered = _allSuggestions
-                .Where(s => s.ToLower().Contains(query))
-                .Take(10)
+                .Where(s => s.StartsWith(query, StringComparison.OrdinalIgnoreCase))
                 .ToList();
 
-            _filteredSuggestions.AddRange(filtered);
-            suggestionList.ItemsSource = _filteredSuggestions;
-
-            if (_filteredSuggestions.Any())
+            if (filtered.Count > 0)
             {
-                suggestionList.ItemsSource = _filteredSuggestions.ToList();
-                suggestionList.Visibility = Visibility.Visible;
-                suggestionList.SelectedIndex = 0;
+                // --- 1. Inline suggestion ---
+                string best = filtered[0];
+                if (best.Length > query.Length)
+                {
+                    _isSelectingSuggestion = true;
+
+                    searchBox.Text = best;
+                    searchBox.SelectionStart = query.Length;
+                    searchBox.SelectionLength = best.Length - query.Length;
+
+                    _isSelectingSuggestion = false;
+                }
+
+                // --- 2. Dropdown suggestion (sisanya) ---
+                if (filtered.Count > 1)
+                {
+                    suggestionList.ItemsSource = filtered.Skip(1).ToList();
+                    suggestionList.Visibility = Visibility.Visible;
+                }
+                else
+                {
+                    suggestionList.ItemsSource = null;
+                    suggestionList.Visibility = Visibility.Collapsed;
+                }
             }
             else
             {
                 suggestionList.ItemsSource = null;
                 suggestionList.Visibility = Visibility.Collapsed;
             }
-
-            if (!string.IsNullOrEmpty(query) && _filteredSuggestions.Any())
-            {
-                string first = _filteredSuggestions.First();
-
-                if (first.StartsWith(query, StringComparison.OrdinalIgnoreCase))
-                {
-                    searchBox.TextChanged -= SearchBox_TextChanged; // cegah loop event
-                    searchBox.Text = first;
-                    searchBox.SelectionStart = query.Length; // caret setelah input user
-                    searchBox.SelectionLength = first.Length - query.Length; // highlight sisa
-                    searchBox.TextChanged += SearchBox_TextChanged;
-                    return;
-                }
-            }
-
-            suggestionList.Visibility = _filteredSuggestions.Any()
-                ? Visibility.Visible
-                : Visibility.Collapsed;
         }
 
 
-        private void SuggestionList_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        private void SuggestionList_SelectionChanged(object sender, SelectionChangedEventArgs? e)
         {
-            var suggestionList = sender as ListBox;
+            var lb = sender as ListBox;
             var searchBox = this.FindName("SearchBox") as TextBox;
-            if (suggestionList?.SelectedItem is string selectedItem && searchBox != null)
-            {
-                searchBox.Text = selectedItem;
-                searchBox.CaretIndex = selectedItem.Length;
 
-                // Jika suggestion berasal dari env operations, tangani khusus
-                switch (selectedItem.ToLower())
-                {
-                    case "task manager":
-                        Process.Start(new ProcessStartInfo("taskmgr") { UseShellExecute = true });
-                        BeginFadeOutAndClose();
-                        return;
-                    case "settings":
-                        Process.Start(new ProcessStartInfo("ms-settings:") { UseShellExecute = true });
-                        BeginFadeOutAndClose();
-                        return;
-                    case "control panel":
-                        Process.Start(new ProcessStartInfo("control") { UseShellExecute = true });
-                        BeginFadeOutAndClose();
-                        return;
-                    case "device manager":
-                        Process.Start(new ProcessStartInfo("devmgmt.msc") { UseShellExecute = true });
-                        BeginFadeOutAndClose();
-                        return;
-                    case "file explorer":
-                        Process.Start(new ProcessStartInfo(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile)) { UseShellExecute = true });
-                        BeginFadeOutAndClose();
-                        return;
-                    default:
-                        ExecuteCommand(selectedItem);
-                        return;
-                }
+            if (lb?.SelectedItem is string selected)
+            {
+                _isSelectingSuggestion = true; // lock biar TextChanged nggak jalan
+                searchBox.Text = selected;
+                searchBox.CaretIndex = selected.Length;
+                _isSelectingSuggestion = false;
+
+                lb.Visibility = Visibility.Collapsed;
             }
         }
+
+        private void SuggestionList_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
+        {
+            SuggestionList_SelectionChanged(sender, null);
+        }
+
+        // private void SuggestionList_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        // {
+        //     var suggestionList = sender as ListBox;
+        //     var searchBox = this.FindName("SearchBox") as TextBox;
+        //     if (suggestionList?.SelectedItem is string selectedItem && searchBox != null)
+        //     {
+        //         searchBox.Text = selectedItem;
+        //         searchBox.CaretIndex = selectedItem.Length;
+
+        //         // Jika suggestion berasal dari env operations, tangani khusus
+        //         switch (selectedItem.ToLower())
+        //         {
+        //             case "task manager":
+        //                 Process.Start(new ProcessStartInfo("taskmgr") { UseShellExecute = true });
+        //                 BeginFadeOutAndClose();
+        //                 return;
+        //             case "settings":
+        //                 Process.Start(new ProcessStartInfo("ms-settings:") { UseShellExecute = true });
+        //                 BeginFadeOutAndClose();
+        //                 return;
+        //             case "control panel":
+        //                 Process.Start(new ProcessStartInfo("control") { UseShellExecute = true });
+        //                 BeginFadeOutAndClose();
+        //                 return;
+        //             case "device manager":
+        //                 Process.Start(new ProcessStartInfo("devmgmt.msc") { UseShellExecute = true });
+        //                 BeginFadeOutAndClose();
+        //                 return;
+        //             case "file explorer":
+        //                 Process.Start(new ProcessStartInfo(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile)) { UseShellExecute = true });
+        //                 BeginFadeOutAndClose();
+        //                 return;
+        //             default:
+        //                 ExecuteCommand(selectedItem);
+        //                 return;
+        //         }
+        //     }
+        // }
 
         private void SuggestionList_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
