@@ -34,7 +34,7 @@ namespace ZeroSrc
             return DependencyProperty.UnsetValue;
         }
     }
-    
+
     public partial class SearchOverlay : Window
     {
         private bool _isClosing = false;
@@ -220,7 +220,7 @@ namespace ZeroSrc
                 ShowNotification($"Gagal menjalankan perintah: {ex.Message}", NotificationType.Error);
             }
         }
-
+        //   Event Handlers
         private void SearchBox_KeyDown(object sender, KeyEventArgs e)
         {
             var searchBox = sender as TextBox;

@@ -92,15 +92,14 @@
                            Foreground="#A0AEC0"
                            FontStyle="Italic"
                            VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
-                           HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
                            IsHitTestVisible="False">
                     <TextBlock.Style>
                         <Style TargetType="{x:Type TextBlock}">
-                            <Setter Property="Visibility" Value="Collapsed"/>
+                            <Setter Property="Visibility" Value="Visible"/>
                             <Style.Triggers>
-                                <DataTrigger Binding="{Binding Text, RelativeSource={RelativeSource TemplatedParent}, Converter={x:Static Member=local:StringToVisibilityConverter.Instance}}"
+                                <DataTrigger Binding="{Binding Text, RelativeSource={RelativeSource TemplatedParent}, Converter={x:Static local:StringToVisibilityConverter.Instance}}"
                                              Value="Collapsed">
-                                    <Setter Property="Visibility" Value="Visible"/>
+                                    <Setter Property="Visibility" Value="Collapsed"/>
                                 </DataTrigger>
                             </Style.Triggers>
                         </Style>
@@ -108,9 +107,38 @@
                 </TextBlock>
             </Grid>
         </ControlTemplate>
+
+        <!-- Style untuk item ListBox -->
+        <Style x:Key="SuggestionItemStyle" TargetType="ListBoxItem">
+            <Setter Property="Padding" Value="16,10"/>
+            <Setter Property="Margin" Value="0,2"/>
+            <Setter Property="Background" Value="#FFF"/>
+            <Setter Property="Foreground" Value="#2D3748"/>
+            <Setter Property="FontWeight" Value="Medium"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ListBoxItem">
+                        <Border x:Name="Border"
+                                Background="{TemplateBinding Background}"
+                                CornerRadius="8"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Border" Property="Background" Value="#E2E8F0"/>
+                            </Trigger>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter TargetName="Border" Property="Background" Value="#E2E8F0"/>
+                                <Setter Property="Foreground" Value="#1A202C"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
     </Window.Resources>
 
-    <!-- Transform untuk animasi Scale -->
     <Window.RenderTransform>
         <ScaleTransform ScaleX="1" ScaleY="1" CenterX="210" CenterY="45"/>
     </Window.RenderTransform>
@@ -123,6 +151,7 @@
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
 
             <Grid Grid.Row="0">
@@ -131,7 +160,6 @@
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
 
-                <!-- Logo ZeroSrc dengan margin yang lebih baik -->
                 <Viewbox Grid.Column="0"
                          Margin="12,0,0,0"
                          VerticalAlignment="Center"
@@ -147,7 +175,6 @@
                     </Canvas>
                 </Viewbox>
 
-                <!-- SearchBox dengan style yang sudah diperbarui -->
                 <TextBox Name="SearchBox"
                          Grid.Column="1"
                          Margin="0,16,16,16"
@@ -157,7 +184,6 @@
                          Template="{StaticResource SearchBoxPlaceholderTemplate}"/>
             </Grid>
 
-            <!-- ListBox dengan style item yang ditingkatkan -->
             <ListBox Name="SuggestionList"
                      Grid.Row="1"
                      Margin="60,0,16,16"
@@ -165,42 +191,19 @@
                      Background="Transparent"
                      BorderThickness="0"
                      Visibility="Collapsed"
+                     ItemsSource="{Binding Suggestions}"
                      SelectionChanged="SuggestionList_SelectionChanged"
                      MouseDoubleClick="SuggestionList_MouseDoubleClick"
-                     KeyDown="SuggestionList_KeyDown">
-                <ListBox.ItemContainerStyle>
-                    <Style TargetType="ListBoxItem">
-                        <Setter Property="Padding" Value="16,10"/>
-                        <Setter Property="Margin" Value="0,2"/>
-                        <Setter Property="Background" Value="#FFF"/>
-                        <Setter Property="Foreground" Value="#2D3748"/>
-                        <Setter Property="FontWeight" Value="Medium"/>
-                        <Setter Property="Template">
-                            <Setter.Value>
-                                <ControlTemplate TargetType="ListBoxItem">
-                                    <Border x:Name="Border"
-                                            Background="{TemplateBinding Background}"
-                                            CornerRadius="8"
-                                            Padding="{TemplateBinding Padding}">
-                                        <ContentPresenter/>
-                                    </Border>
-                                    <ControlTemplate.Triggers>
-                                        <!-- Efek hover yang lebih halus -->
-                                        <Trigger Property="IsMouseOver" Value="True">
-                                            <Setter TargetName="Border" Property="Background" Value="#E2E8F0"/>
-                                        </Trigger>
-                                        <!-- Efek selected yang lebih jelas -->
-                                        <Trigger Property="IsSelected" Value="True">
-                                            <Setter TargetName="Border" Property="Background" Value="#E2E8F0"/>
-                                            <Setter Property="Foreground" Value="#1A202C"/>
-                                        </Trigger>
-                                    </ControlTemplate.Triggers>
-                                </ControlTemplate>
-                            </Setter.Value>
-                        </Setter>
-                    </Style>
-                </ListBox.ItemContainerStyle>
-            </ListBox>
+                     KeyDown="SuggestionList_KeyDown"
+                     ItemContainerStyle="{StaticResource SuggestionItemStyle}"/>
+
+            <TextBlock Name="NotificationText"
+                       Grid.Row="2"
+                       Margin="60,0,16,16"
+                       TextAlignment="Center"
+                       FontWeight="SemiBold"
+                       Foreground="#6B46C1"
+                       Visibility="Collapsed"/>
         </Grid>
     </Border>
 </Window>
