@@ -5,16 +5,13 @@ Selamat datang di **ZeroSrc**! Panduan ini akan membantu Anda menginstal, menggu
 ## 🚀 Fitur Terbaru
 
 - **🔍 Smart Launcher Otomatis**  
-  Ketik nama aplikasi (misal: `notepad`, `vscode`, `youtube`) dan ZeroSrc langsung membukanya tanpa konfigurasi tambahan.
+  Ketik nama aplikasi (misal: `notepad`, `vscode`, `youtube`) dan ZeroMix langsung membukanya tanpa konfigurasi tambahan.
 
 - **🖥️ Deteksi Aplikasi Desktop Otomatis**  
-  ZeroSrc otomatis mendeteksi semua aplikasi dari Start Menu Anda.
+  ZeroMix otomatis mendeteksi semua aplikasi dari Start Menu Anda.
 
 - **💻 Shortcut Desktop Otomatis**  
   Ketik `desktop shortcuts` untuk membuka semua shortcut aplikasi di desktop.
-
-- **🔄 Pembaruan Shortcut Instan**  
-  Tekan `F5` untuk me-refresh daftar aplikasi secara real-time.
 
 ---
 
@@ -24,6 +21,76 @@ Selamat datang di **ZeroSrc**! Panduan ini akan membantu Anda menginstal, menggu
 2. **Ekstrak** file ZIP ke folder tujuan.
 3. **Jalankan** `ZeroSrc.exe` dengan klik dua kali.
 4. Ikuti instruksi di layar untuk mulai menggunakan fitur ZeroSrc.
+
+---
+
+## Changelog
+
+### Versi 1.0.0
+
+- Rilis awal dengan fitur Smart Launcher, deteksi aplikasi otomatis, dan shortcut desktop otomatis.
+
+---
+
+### versi 1.1.0
+
+- Tidak ada Pembarui Segnifikan
+
+---
+
+### versi 1.2.0 - 1.3.0, 1.4.0
+
+- Tidak ada Pembarui Segnifikan
+
+---
+
+### versi 1.5.5
+
+- Perbaikan Bug Minor
+- Peningkatan Performa Aplikasi
+- penambahan Fitur Dark Mode (Cooming soon)
+- peningkatan UI/UX
+
+---
+
+### versi 1.6.0
+
+- ???
+
+---
+
+### versi 1.6.1 - 1.6.5
+
+- ???
+
+---
+
+### versi 1.7.0
+
+- ???
+
+---
+
+### versi 1.7.1 - 1.7.5
+
+- ???
+
+---
+
+## Coming Soon Update
+
+- Menyangkut Semua version di Atas di bawah ini Termasuk Non Segnifikan
+- Penambahan Fitur Pembaruan Otomatis (Coming Soon)
+- Penambahan Fitur Kustomisasi Shortcut (Coming Soon)
+
+## ⚙️ Persyaratan Sistem
+
+- Sistem Operasi: Windows 10 atau lebih baru
+- RAM: Minimal 2GB
+- Ruang Disk: Minimal 100MB
+- .NET Framework: Versi 4.7.2 atau lebih baru
+- Koneksi Internet: Diperlukan untuk pembaruan otomatis(Cooming soon Feature)
+- Izin Administrator: Tidak diperlukan
 
 ---
 
@@ -58,17 +125,22 @@ Pastikan mengunduh versi terbaru untuk fitur dan perbaikan terbaru.
 ---
 
 ## 🛠️ Gambar
-<!-- Gambar ini menunjukkan tampilan ZeroSrc -->
+<!-- Gambar ini menunjukkan tampilan ZeroMix -->
 
-<img src="Altspace_setup/favicon.ico" alt="ZeroSrc Screenshot" width="100">
+<img src="assets/image.png" alt="ZeroMix Screenshot" width="100">
 <div align="center">
 
 ---
 
-<img src="assets/Presen.png" alt="ZeroSrc Screenshot" width="600">
+<img src="assets/Presen.png" alt="ZeroMix Screenshot" width="600">
 </div>
 
 ## Terima Kasih
 
-Kami berharap panduan ini membantu Anda dalam menggunakan ZeroSrc. Jika ada pertanyaan atau masalah, silakan buka [issue di GitHub](https://github.com/faizinuha/ZeroSrc/issues).
-Terima kasih telah menggunakan ZeroSrc!
+Donate untuk mendukung pengembangan ZeroMix:
+
+- [Saweria](saweria.co/MahiroDev)
+- [Ko-Fi](https://ko-fi.com/mahiro885)
+
+Kami berharap panduan ini membantu Anda dalam menggunakan ZeroMix. Jika ada pertanyaan atau masalah, silakan buka [issue di GitHub](https://github.com/faizinuha/ZeroMix/issues).
+Terima kasih telah menggunakan ZeroMix!
