@@ -26,7 +26,7 @@
                              Duration="0:0:0.25">
                 <DoubleAnimation.EasingFunction>
                     <ExponentialEase Exponent="5"
-                            EasingMode="EaseOut"/>
+                                     EasingMode="EaseOut"/>
                 </DoubleAnimation.EasingFunction>
             </DoubleAnimation>
             <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleY)"
@@ -35,7 +35,7 @@
                              Duration="0:0:0.25">
                 <DoubleAnimation.EasingFunction>
                     <ExponentialEase Exponent="5"
-                            EasingMode="EaseOut"/>
+                                     EasingMode="EaseOut"/>
                 </DoubleAnimation.EasingFunction>
             </DoubleAnimation>
         </Storyboard>
@@ -61,18 +61,18 @@
                              StartPoint="0,0"
                              EndPoint="1,1">
             <GradientStop Color="#4285F4"
-                    Offset="0.0"/>
+                          Offset="0.0"/>
             <GradientStop Color="#34A853"
-                    Offset="0.33"/>
+                          Offset="0.33"/>
             <GradientStop Color="#FBBC05"
-                    Offset="0.66"/>
+                          Offset="0.66"/>
             <GradientStop Color="#EA4335"
-                    Offset="1.0"/>
+                          Offset="1.0"/>
         </LinearGradientBrush>
 
         <!-- Style untuk TextBox agar terlihat lebih modern -->
         <Style x:Key="SearchBoxStyle"
-                TargetType="TextBox">
+               TargetType="TextBox">
             <Setter Property="FontSize"
                     Value="20"/>
             <Setter Property="Height"
@@ -95,7 +95,7 @@
 
         <!-- Template untuk Placeholder Text -->
         <ControlTemplate x:Key="SearchBoxPlaceholderTemplate"
-                TargetType="{x:Type TextBox}">
+                         TargetType="{x:Type TextBox}">
             <Grid>
                 <Border x:Name="Border"
                         Background="{TemplateBinding Background}"
@@ -103,7 +103,7 @@
                         BorderThickness="{TemplateBinding BorderThickness}"
                         SnapsToDevicePixels="True"/>
                 <ScrollViewer x:Name="PART_ContentHost"
-                        SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"/>
+                              SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"/>
                 <TextBlock x:Name="Placeholder"
                            Margin="{TemplateBinding Padding}"
                            Text="Type here to search..."
@@ -114,18 +114,23 @@
                     <TextBlock.Style>
                         <Style TargetType="{x:Type TextBlock}">
                             <Setter Property="Visibility"
-                                    Value="{Binding Text, RelativeSource={RelativeSource TemplatedParent},
-                        Converter={x:Static local:StringToVisibilityConverter.Instance}}"/>
+                                    Value="Visible"/>
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding Text, RelativeSource={RelativeSource TemplatedParent}, Converter={x:Static local:StringToVisibilityConverter.Instance}}"
+                                             Value="Collapsed">
+                                    <Setter Property="Visibility"
+                                            Value="Collapsed"/>
+                                </DataTrigger>
+                            </Style.Triggers>
                         </Style>
                     </TextBlock.Style>
-
                 </TextBlock>
             </Grid>
         </ControlTemplate>
 
         <!-- Style untuk item ListBox -->
         <Style x:Key="SuggestionItemStyle"
-                TargetType="ListBoxItem">
+               TargetType="ListBoxItem">
             <Setter Property="Padding"
                     Value="16,10"/>
             <Setter Property="Margin"
@@ -147,13 +152,13 @@
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver"
-                                    Value="True">
+                                     Value="True">
                                 <Setter TargetName="Border"
                                         Property="Background"
                                         Value="#E2E8F0"/>
                             </Trigger>
                             <Trigger Property="IsSelected"
-                                    Value="True">
+                                     Value="True">
                                 <Setter TargetName="Border"
                                         Property="Background"
                                         Value="#E2E8F0"/>
@@ -169,9 +174,9 @@
 
     <Window.RenderTransform>
         <ScaleTransform ScaleX="1"
-                ScaleY="1"
-                CenterX="210"
-                CenterY="45"/>
+                        ScaleY="1"
+                        CenterX="210"
+                        CenterY="45"/>
     </Window.RenderTransform>
 
     <Border CornerRadius="16"
@@ -223,11 +228,12 @@
                      Background="Transparent"
                      BorderThickness="0"
                      Visibility="Collapsed"
-                     ItemsSource="{Binding Suggestions}"
                      SelectionChanged="SuggestionList_SelectionChanged"
                      MouseDoubleClick="SuggestionList_MouseDoubleClick"
                      KeyDown="SuggestionList_KeyDown"
                      ItemContainerStyle="{StaticResource SuggestionItemStyle}"/>
+           
+
 
             <TextBlock Name="NotificationText"
                        Grid.Row="2"
