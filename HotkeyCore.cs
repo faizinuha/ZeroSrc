@@ -1,4 +1,3 @@
-// File: HotkeyCore.cs
 using System;
 using System.Windows;
 using System.Windows.Interop;
@@ -60,6 +59,8 @@ namespace ZeroSrc
             }
             else
             {
+                // This call now works because the SearchOverlay class in the Canvas
+                // contains the BeginFadeOutAndCloseByMain() method.
                 _overlay.BeginFadeOutAndCloseByMain();
             }
         }
