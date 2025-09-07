@@ -15,72 +15,93 @@
         Loaded="Window_Loaded">
 
     <Window.Resources>
-        <!-- Storyboards for fade and scale animations -->
         <Storyboard x:Key="FadeInStoryboard">
             <DoubleAnimation Storyboard.TargetProperty="Opacity"
-                             From="0" To="1" Duration="0:0:0.25"/>
+                             From="0"
+                             To="1"
+                             Duration="0:0:0.25"/>
             <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleX)"
-                             From="0.95" To="1" Duration="0:0:0.25">
+                             From="0.95"
+                             To="1"
+                             Duration="0:0:0.25">
                 <DoubleAnimation.EasingFunction>
-                    <ExponentialEase Exponent="4" EasingMode="EaseOut"/>
+                    <ExponentialEase Exponent="4"
+                                     EasingMode="EaseOut"/>
                 </DoubleAnimation.EasingFunction>
             </DoubleAnimation>
             <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleY)"
-                             From="0.95" To="1" Duration="0:0:0.25">
+                             From="0.95"
+                             To="1"
+                             Duration="0:0:0.25">
                 <DoubleAnimation.EasingFunction>
-                    <ExponentialEase Exponent="4" EasingMode="EaseOut"/>
+                    <ExponentialEase Exponent="4"
+                                     EasingMode="EaseOut"/>
                 </DoubleAnimation.EasingFunction>
             </DoubleAnimation>
         </Storyboard>
 
         <Storyboard x:Key="FadeOutStoryboard">
             <DoubleAnimation Storyboard.TargetProperty="Opacity"
-                             From="1" To="0" Duration="0:0:0.15"/>
+                             From="1"
+                             To="0"
+                             Duration="0:0:0.15"/>
         </Storyboard>
 
-        <!-- Drop shadow effect for the window -->
         <DropShadowEffect x:Key="MacShadow"
                           BlurRadius="30"
                           ShadowDepth="0"
                           Color="#000000"
                           Opacity="0.2"/>
 
-        <!-- Google-themed gradient for the logo -->
         <LinearGradientBrush x:Key="ZGradient"
                              StartPoint="0,0"
                              EndPoint="1,1">
-            <GradientStop Color="#4285F4" Offset="0.0"/>
-            <GradientStop Color="#34A853" Offset="0.33"/>
-            <GradientStop Color="#FBBC05" Offset="0.66"/>
-            <GradientStop Color="#EA4335" Offset="1.0"/>
+            <GradientStop Color="#4285F4"
+                          Offset="0.0"/>
+            <GradientStop Color="#34A853"
+                          Offset="0.33"/>
+            <GradientStop Color="#FBBC05"
+                          Offset="0.66"/>
+            <GradientStop Color="#EA4335"
+                          Offset="1.0"/>
         </LinearGradientBrush>
 
-        <!-- Font style for a clean, modern look -->
         <FontFamily x:Key="MacFont">Segoe UI, -apple-system, BlinkMacSystemFont, 'San Francisco', 'Helvetica Neue', sans-serif</FontFamily>
 
-        <!-- Style for the main search text box -->
-        <Style x:Key="SearchBoxStyle" TargetType="TextBox">
-            <Setter Property="FontSize" Value="20"/>
-            <Setter Property="Height" Value="48"/>
-            <Setter Property="VerticalContentAlignment" Value="Center"/>
-            <Setter Property="Background" Value="Transparent"/>
-            <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="Padding" Value="16,0,8,0"/>
-            <Setter Property="Foreground" Value="#1A1A1A"/>
-            <Setter Property="FontWeight" Value="Normal"/>
-            <Setter Property="FontFamily" Value="{StaticResource MacFont}"/>
-            <Setter Property="CaretBrush" Value="#007AFF"/>
+        <Style x:Key="SearchBoxStyle"
+               TargetType="TextBox">
+            <Setter Property="FontSize"
+                    Value="20"/>
+            <Setter Property="Height"
+                    Value="48"/>
+            <Setter Property="VerticalContentAlignment"
+                    Value="Center"/>
+            <Setter Property="Background"
+                    Value="Transparent"/>
+            <Setter Property="BorderThickness"
+                    Value="0"/>
+            <Setter Property="Padding"
+                    Value="16,0,8,0"/>
+            <Setter Property="Foreground"
+                    Value="#1A1A1A"/>
+            <Setter Property="FontWeight"
+                    Value="Normal"/>
+            <Setter Property="FontFamily"
+                    Value="{StaticResource MacFont}"/>
+            <Setter Property="CaretBrush"
+                    Value="#007AFF"/>
         </Style>
 
-        <!-- Template to add a placeholder to the search box -->
-        <ControlTemplate x:Key="SearchBoxPlaceholderTemplate" TargetType="{x:Type TextBox}">
+        <ControlTemplate x:Key="SearchBoxPlaceholderTemplate"
+                         TargetType="{x:Type TextBox}">
             <Grid>
                 <Border x:Name="Border"
                         Background="{TemplateBinding Background}"
                         BorderBrush="{TemplateBinding BorderBrush}"
                         BorderThickness="{TemplateBinding BorderThickness}"
                         SnapsToDevicePixels="True"/>
-                <ScrollViewer x:Name="PART_ContentHost" SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"/>
+                <ScrollViewer x:Name="PART_ContentHost"
+                              SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"/>
                 <TextBlock x:Name="Placeholder"
                            Margin="{TemplateBinding Padding}"
                            Text="Type here to search..."
@@ -92,12 +113,13 @@
                            IsHitTestVisible="False">
                     <TextBlock.Style>
                         <Style TargetType="{x:Type TextBlock}">
-                            <Setter Property="Visibility" Value="Visible"/>
+                            <Setter Property="Visibility"
+                                    Value="Visible"/>
                             <Style.Triggers>
-                                <!-- This trigger hides the placeholder when there is text in the box -->
                                 <DataTrigger Binding="{Binding Text, RelativeSource={RelativeSource TemplatedParent}, Converter={x:Static local:StringToVisibilityConverter.Instance}}"
                                              Value="Collapsed">
-                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                    <Setter Property="Visibility"
+                                            Value="Collapsed"/>
                                 </DataTrigger>
                             </Style.Triggers>
                         </Style>
@@ -106,14 +128,20 @@
             </Grid>
         </ControlTemplate>
 
-        <!-- Style for the suggestion list items -->
-        <Style x:Key="SuggestionItemStyle" TargetType="ListBoxItem">
-            <Setter Property="Padding" Value="16,12"/>
-            <Setter Property="Margin" Value="0,1"/>
-            <Setter Property="Background" Value="Transparent"/>
-            <Setter Property="Foreground" Value="#1A1A1A"/>
-            <Setter Property="FontWeight" Value="Normal"/>
-            <Setter Property="FontFamily" Value="{StaticResource MacFont}"/>
+        <Style x:Key="SuggestionItemStyle"
+               TargetType="ListBoxItem">
+            <Setter Property="Padding"
+                    Value="16,12"/>
+            <Setter Property="Margin"
+                    Value="0,1"/>
+            <Setter Property="Background"
+                    Value="Transparent"/>
+            <Setter Property="Foreground"
+                    Value="#1A1A1A"/>
+            <Setter Property="FontWeight"
+                    Value="Normal"/>
+            <Setter Property="FontFamily"
+                    Value="{StaticResource MacFont}"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="ListBoxItem">
@@ -124,12 +152,19 @@
                             <ContentPresenter/>
                         </Border>
                         <ControlTemplate.Triggers>
-                            <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="Border" Property="Background" Value="#F2F2F7"/>
+                            <Trigger Property="IsMouseOver"
+                                     Value="True">
+                                <Setter TargetName="Border"
+                                        Property="Background"
+                                        Value="#F2F2F7"/>
                             </Trigger>
-                            <Trigger Property="IsSelected" Value="True">
-                                <Setter TargetName="Border" Property="Background" Value="#E5E5EA"/>
-                                <Setter Property="Foreground" Value="#000000"/>
+                            <Trigger Property="IsSelected"
+                                     Value="True">
+                                <Setter TargetName="Border"
+                                        Property="Background"
+                                        Value="#E5E5EA"/>
+                                <Setter Property="Foreground"
+                                        Value="#000000"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -138,16 +173,16 @@
         </Style>
     </Window.Resources>
 
-    <!-- Render transform for the window's scale animation -->
     <Window.RenderTransform>
-        <ScaleTransform ScaleX="1" ScaleY="1" CenterX="210" CenterY="45"/>
+        <ScaleTransform ScaleX="1"
+                        ScaleY="1"
+                        CenterX="210"
+                        CenterY="45"/>
     </Window.RenderTransform>
 
     <Grid>
-        <!-- The main rounded border container -->
         <Border CornerRadius="18"
-                Background="#F2F2F7"
-                Effect="{StaticResource MacShadow}"
+                Background="#F2F2F7" Effect="{StaticResource MacShadow}"
                 Margin="8">
             <Grid>
                 <Grid.RowDefinitions>
@@ -156,20 +191,19 @@
                     <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
 
-                <!-- Top row for the logo and search box -->
                 <Grid Grid.Row="0">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="60"/>
                         <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
 
-                    <!-- The colored "Z" logo -->
                     <Viewbox Grid.Column="0"
                              Margin="12,0,0,0"
                              VerticalAlignment="Center"
                              Height="40"
                              Width="40">
-                        <Canvas Width="32" Height="32">
+                        <Canvas Width="32"
+                                Height="32">
                             <Path Data="M 4,6 L 28,6 L 4,26 L 28,26"
                                   StrokeThickness="5"
                                   Stroke="{StaticResource ZGradient}"
@@ -179,7 +213,6 @@
                         </Canvas>
                     </Viewbox>
 
-                    <!-- The search box input field -->
                     <TextBox Name="SearchBox"
                              Grid.Column="1"
                              Margin="0,16,16,16"
@@ -189,21 +222,19 @@
                              Template="{StaticResource SearchBoxPlaceholderTemplate}"/>
                 </Grid>
 
-                <!-- Middle row for the suggestion list -->
                 <ListBox Name="SuggestionList"
                          Grid.Row="1"
-                         Margin="12,0,12,16"
+                         Margin="60,0,16,16"
                          MaxHeight="200"
                          Background="Transparent"
                          BorderThickness="0"
                          Visibility="Collapsed"
                          SelectionChanged="SuggestionList_SelectionChanged"
-                         MouseLeftButtonUp="SuggestionList_MouseLeftButtonUp"
+                         MouseDoubleClick="SuggestionList_MouseDoubleClick"
                          KeyDown="SuggestionList_KeyDown"
                          ItemContainerStyle="{StaticResource SuggestionItemStyle}"
                          FontFamily="{StaticResource MacFont}"/>
 
-                <!-- Bottom row for notifications -->
                 <TextBlock Name="NotificationText"
                            Grid.Row="2"
                            Margin="60,0,16,16"
