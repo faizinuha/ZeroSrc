@@ -1,86 +1,170 @@
+
+// File: HotkeyCore.cs
+
 using System;
+
 using System.Windows;
+
 using System.Windows.Interop;
 
+
+
 namespace ZeroSrc
+
 {
+
     public class HotkeyCore : Window
+
     {
+
         private HwndSource? _source;
+
         private SearchOverlay? _overlay;
 
+
+
         public HotkeyCore()
+
         {
+
             this.Visibility = Visibility.Hidden;
+
             this.ShowInTaskbar = false;
+
         }
+
+
 
         protected override void OnSourceInitialized(EventArgs e)
+
         {
+
             base.OnSourceInitialized(e);
+
             _source = HwndSource.FromHwnd(new WindowInteropHelper(this).Handle);
+
             _source.AddHook(HwndHook);
-            // Coba daftar Alt+Space, jika gagal coba Ctrl+Space, lalu Win+Space
-            bool ok = HotkeyManager.Register(_source.Handle, HotkeyManager.MOD_ALT | HotkeyManager.MOD_NOREPEAT);
+
+            // Coba daftar Alt+Space, jika gagal coba Ctrl+Space, lalu Win+Space
+
+            bool ok = HotkeyManager.Register(_source.Handle, HotkeyManager.MOD_ALT | HotkeyManager.MOD_NOREPEAT);
+
             if (!ok)
+
             {
+
                 ok = HotkeyManager.Register(_source.Handle, HotkeyManager.MOD_CONTROL | HotkeyManager.MOD_NOREPEAT);
+
             }
+
             if (!ok)
+
             {
+
                 ok = HotkeyManager.Register(_source.Handle, HotkeyManager.MOD_WIN | HotkeyManager.MOD_NOREPEAT);
+
             }
+
             if (!ok)
+
             {
+
                 ShowNotification("Gagal mendaftarkan hotkey global. Coba jalankan sebagai administrator atau cek konflik hotkey.", NotificationType.Warning);
+
             }
+
         }
+
+
 
         protected override void OnClosed(EventArgs e)
+
         {
+
             if (_source != null)
+
                 HotkeyManager.Unregister(_source.Handle);
+
             base.OnClosed(e);
+
         }
+
+
 
         private void ShowNotification(string message, NotificationType type)
+
         {
-            // Implementasi notifikasi untuk pengguna
-            MessageBox.Show(message, type.ToString(), MessageBoxButton.OK, MessageBoxImage.Information);
+
+            // Implementasi notifikasi untuk pengguna
+
+            MessageBox.Show(message, type.ToString(), MessageBoxButton.OK, MessageBoxImage.Information);
+
         }
+
+
 
         private void HandleHotkey()
+
         {
+
             if (_overlay == null || !_overlay.IsVisible)
+
             {
+
                 _overlay = new SearchOverlay();
+
                 _overlay.Closed += (s, e) => _overlay = null;
+
                 _overlay.Show();
+
             }
+
             else
+
             {
-                // This call now works because the SearchOverlay class in the Canvas
-                // contains the BeginFadeOutAndCloseByMain() method.
+
                 _overlay.BeginFadeOutAndCloseByMain();
+
             }
+
         }
 
+
+
         private IntPtr HwndHook(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
+
         {
+
             const int WM_HOTKEY = 0x0312;
+
             if (msg == WM_HOTKEY && wParam.ToInt32() == HotkeyManager.HOTKEY_ID)
+
             {
+
                 try
+
                 {
+
                     HandleHotkey();
+
                 }
+
                 catch (Exception ex)
+
                 {
+
                     ShowNotification("Error handling hotkey: " + ex.Message, NotificationType.Error);
+
                 }
+
                 handled = true;
+
             }
+
             return IntPtr.Zero;
+
         }
+
     }
+
 }
