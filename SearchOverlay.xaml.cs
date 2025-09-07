@@ -1,5 +1,6 @@
 // File: SearchOverlay.xaml.cs
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
@@ -10,8 +11,6 @@ using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Media.Animation;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace ZeroSrc
 {
@@ -21,8 +20,7 @@ namespace ZeroSrc
         Warning,
         Error
     }
-
-    public class StringToVisibilityConverter : IValueConverter
+     public class StringToVisibilityConverter : IValueConverter
     {
         // Singleton biar bisa dipanggil lewat XAML: local:StringToVisibilityConverter.Instance
         public static readonly StringToVisibilityConverter Instance = new StringToVisibilityConverter();
@@ -43,18 +41,10 @@ namespace ZeroSrc
     {
         private bool _isClosing = false;
         private readonly Dictionary<string, string> _appShortcuts;
-        // Pindahkan ini ke tempat yang tepat untuk digabungkan dengan hasil dari Google
-        // private readonly List<string> _suggestions = new(); 
+        private readonly List<string> _suggestions = new();
         private readonly TextBlock _notificationText;
         private readonly List<string> _allSuggestions = new();
         private readonly List<string> _filteredSuggestions = new();
-        private readonly SuggestionService _suggestionService = new SuggestionService();
-
-        // Variabel untuk debounce dan membatalkan permintaan sebelumnya
-        private CancellationTokenSource _cts = new CancellationTokenSource();
-
-        // Tambahan untuk menyimpan query terakhir agar tidak berulang
-        private string _lastQuery = string.Empty;
 
         public SearchOverlay()
         {
@@ -111,79 +101,46 @@ namespace ZeroSrc
 
         private bool _isSelectingSuggestion = false;
 
-        private async void SearchBox_TextChanged(object sender, TextChangedEventArgs e)
+        private void SearchBox_TextChanged(object sender, TextChangedEventArgs e)
         {
             if (_isSelectingSuggestion) return;
 
             var searchBox = sender as TextBox;
             string query = searchBox?.Text ?? "";
-            
-            // Batalkan permintaan sebelumnya
-            _cts.Cancel();
-            _cts = new CancellationTokenSource();
-
-            // Jalankan logika sugesti asinkron
-            await UpdateSuggestionsAsync(query, _cts.Token);
-        }
-
-        private async Task UpdateSuggestionsAsync(string query, CancellationToken cancellationToken)
-        {
             var suggestionList = this.FindName("SuggestionList") as ListBox;
-            
+
             if (string.IsNullOrWhiteSpace(query))
             {
-                // Tampilkan semua sugesti lokal jika query kosong
-                var allShortcuts = _appShortcuts.Keys.OrderBy(k => k).ToList();
-                suggestionList!.ItemsSource = allShortcuts;
-                suggestionList.Visibility = Visibility.Visible;
+                suggestionList!.ItemsSource = null;
+                suggestionList.Visibility = Visibility.Collapsed;
                 return;
             }
 
-            try
-            {
-                // Tambahkan debounce delay
-                await Task.Delay(300, cancellationToken);
-            }
-            catch (TaskCanceledException)
-            {
-                // Jika task dibatalkan, berarti ada input baru, keluar dari fungsi
-                return;
-            }
-
-            // Gabungkan sugesti lokal dan sugesti dari Google
-            var combinedSuggestions = new List<string>();
-
-            // Sugesti lokal (aplikasi)
-            var localSuggestions = _appShortcuts.Keys
-                .Where(s => s.ToLower().StartsWith(query.ToLower()))
+            // cari semua suggestion yang cocok
+            var filtered = _allSuggestions
+                .Where(s => s.StartsWith(query, StringComparison.OrdinalIgnoreCase))
                 .ToList();
-            combinedSuggestions.AddRange(localSuggestions);
 
-            // Panggil service Google
-            try
+            // Tambahkan opsi search Google
+            filtered.Add($"Search Google for \"{query}\"");
+
+            if (filtered.Count > 0)
             {
-                var googleSuggestions = await _suggestionService.GetSuggestionsAsync(query);
-                foreach (var suggestion in googleSuggestions)
+                // --- 1. Inline suggestion ---
+                string best = filtered[0];
+                if (best.Length > query.Length && !best.StartsWith("Search Google"))
                 {
-                    if (!combinedSuggestions.Contains(suggestion))
-                    {
-                        combinedSuggestions.Add(suggestion);
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"Error fetching Google suggestions: {ex.Message}");
-                // Handle error gracefully, misalnya dengan tidak menampilkan sugesti online
-            }
-            
-            // Tambahkan opsi Search Google
-            combinedSuggestions.Insert(0, $"Search Google for \"{query}\"");
+                    _isSelectingSuggestion = true;
 
-            // Perbarui ListBox
-            if (combinedSuggestions.Count > 0)
-            {
-                suggestionList!.ItemsSource = combinedSuggestions;
+                    searchBox!.Text = best;
+                    searchBox.SelectionStart = query.Length;
+                    searchBox.SelectionLength = best.Length - query.Length;
+
+                    _isSelectingSuggestion = false;
+                }
+
+                // --- 2. Dropdown suggestion ---
+                suggestionList!.ItemsSource = filtered.Skip(1).ToList();
                 suggestionList.Visibility = Visibility.Visible;
             }
             else
@@ -192,6 +149,8 @@ namespace ZeroSrc
                 suggestionList.Visibility = Visibility.Collapsed;
             }
         }
+
+
 
         private void SuggestionList_SelectionChanged(object sender, SelectionChangedEventArgs? e)
         {
@@ -217,10 +176,50 @@ namespace ZeroSrc
             }
         }
 
+
         private void SuggestionList_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
         {
             SuggestionList_SelectionChanged(sender, null);
         }
+
+        // private void SuggestionList_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        // {
+        //     var suggestionList = sender as ListBox;
+        //     var searchBox = this.FindName("SearchBox") as TextBox;
+        //     if (suggestionList?.SelectedItem is string selectedItem && searchBox != null)
+        //     {
+        //         searchBox.Text = selectedItem;
+        //         searchBox.CaretIndex = selectedItem.Length;
+
+        //         // Jika suggestion berasal dari env operations, tangani khusus
+        //         switch (selectedItem.ToLower())
+        //         {
+        //             case "task manager":
+        //                 Process.Start(new ProcessStartInfo("taskmgr") { UseShellExecute = true });
+        //                 BeginFadeOutAndClose();
+        //                 return;
+        //             case "settings":
+        //                 Process.Start(new ProcessStartInfo("ms-settings:") { UseShellExecute = true });
+        //                 BeginFadeOutAndClose();
+        //                 return;
+        //             case "control panel":
+        //                 Process.Start(new ProcessStartInfo("control") { UseShellExecute = true });
+        //                 BeginFadeOutAndClose();
+        //                 return;
+        //             case "device manager":
+        //                 Process.Start(new ProcessStartInfo("devmgmt.msc") { UseShellExecute = true });
+        //                 BeginFadeOutAndClose();
+        //                 return;
+        //             case "file explorer":
+        //                 Process.Start(new ProcessStartInfo(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile)) { UseShellExecute = true });
+        //                 BeginFadeOutAndClose();
+        //                 return;
+        //             default:
+        //                 ExecuteCommand(selectedItem);
+        //                 return;
+        //         }
+        //     }
+        // }
 
         private void SuggestionList_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
@@ -252,6 +251,7 @@ namespace ZeroSrc
                 }
             }
         }
+
 
         private void ExecuteCommand(string query)
         {
@@ -306,7 +306,7 @@ namespace ZeroSrc
                 var suggestion = this.FindName("SuggestionList") as ListBox;
                 if (suggestion != null)
                 {
-                    var items = _allSuggestions.Where(s => s.Contains(query, StringComparison.OrdinalIgnoreCase)).Take(10).ToList();
+                    var items = _suggestions.Where(s => s.Contains(query)).Take(10).ToList();
                     suggestion.ItemsSource = items;
                     suggestion.Visibility = items.Any() ? Visibility.Visible : Visibility.Collapsed;
                 }
@@ -316,8 +316,7 @@ namespace ZeroSrc
                 ShowNotification($"Gagal menjalankan perintah: {ex.Message}", NotificationType.Error);
             }
         }
-
-        //   Event Handlers
+        //   Event Handlers
         private void SearchBox_KeyDown(object sender, KeyEventArgs e)
         {
             var searchBox = sender as TextBox;
