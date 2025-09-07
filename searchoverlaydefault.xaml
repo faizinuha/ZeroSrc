@@ -13,8 +13,8 @@
         ShowInTaskbar="False"
         Opacity="0"
         Loaded="Window_Loaded">
-
     <Window.Resources>
+        <!-- Storyboard untuk efek Fade In dan Pop In yang lebih halus -->
         <Storyboard x:Key="FadeInStoryboard">
             <DoubleAnimation Storyboard.TargetProperty="Opacity"
                              From="0"
@@ -25,7 +25,7 @@
                              To="1"
                              Duration="0:0:0.25">
                 <DoubleAnimation.EasingFunction>
-                    <ExponentialEase Exponent="4"
+                    <ExponentialEase Exponent="5"
                                      EasingMode="EaseOut"/>
                 </DoubleAnimation.EasingFunction>
             </DoubleAnimation>
@@ -34,12 +34,13 @@
                              To="1"
                              Duration="0:0:0.25">
                 <DoubleAnimation.EasingFunction>
-                    <ExponentialEase Exponent="4"
+                    <ExponentialEase Exponent="5"
                                      EasingMode="EaseOut"/>
                 </DoubleAnimation.EasingFunction>
             </DoubleAnimation>
         </Storyboard>
 
+        <!-- Storyboard untuk efek Fade Out yang lebih cepat -->
         <Storyboard x:Key="FadeOutStoryboard">
             <DoubleAnimation Storyboard.TargetProperty="Opacity"
                              From="1"
@@ -47,12 +48,15 @@
                              Duration="0:0:0.15"/>
         </Storyboard>
 
-        <DropShadowEffect x:Key="MacShadow"
-                          BlurRadius="30"
-                          ShadowDepth="0"
-                          Color="#000000"
-                          Opacity="0.2"/>
+        <!-- Efek bayangan yang lebih halus dan modern -->
+        <DropShadowEffect x:Key="Shadow"
+                          BlurRadius="20"
+                          ShadowDepth="4"
+                          Direction="270"
+                          Color="#1E293B"
+                          Opacity="0.1"/>
 
+        <!-- Gradient untuk logo, menggunakan warna yang lebih cerah -->
         <LinearGradientBrush x:Key="ZGradient"
                              StartPoint="0,0"
                              EndPoint="1,1">
@@ -66,8 +70,7 @@
                           Offset="1.0"/>
         </LinearGradientBrush>
 
-        <FontFamily x:Key="MacFont">Segoe UI, -apple-system, BlinkMacSystemFont, 'San Francisco', 'Helvetica Neue', sans-serif</FontFamily>
-
+        <!-- Style untuk TextBox agar terlihat lebih modern -->
         <Style x:Key="SearchBoxStyle"
                TargetType="TextBox">
             <Setter Property="FontSize"
@@ -77,21 +80,20 @@
             <Setter Property="VerticalContentAlignment"
                     Value="Center"/>
             <Setter Property="Background"
-                    Value="Transparent"/>
+                    Value="#FFF"/>
             <Setter Property="BorderThickness"
                     Value="0"/>
             <Setter Property="Padding"
                     Value="16,0,8,0"/>
             <Setter Property="Foreground"
-                    Value="#1A1A1A"/>
+                    Value="#2D3748"/>
             <Setter Property="FontWeight"
-                    Value="Normal"/>
-            <Setter Property="FontFamily"
-                    Value="{StaticResource MacFont}"/>
+                    Value="SemiBold"/>
             <Setter Property="CaretBrush"
-                    Value="#007AFF"/>
+                    Value="#4A5568"/>
         </Style>
 
+        <!-- Template untuk Placeholder Text -->
         <ControlTemplate x:Key="SearchBoxPlaceholderTemplate"
                          TargetType="{x:Type TextBox}">
             <Grid>
@@ -105,10 +107,8 @@
                 <TextBlock x:Name="Placeholder"
                            Margin="{TemplateBinding Padding}"
                            Text="Type here to search..."
-                           Foreground="#8E8E93"
-                           FontStyle="Normal"
-                           FontSize="20"
-                           FontFamily="{StaticResource MacFont}"
+                           Foreground="#A0AEC0"
+                           FontStyle="Italic"
                            VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
                            IsHitTestVisible="False">
                     <TextBlock.Style>
@@ -128,26 +128,25 @@
             </Grid>
         </ControlTemplate>
 
+        <!-- Style untuk item ListBox -->
         <Style x:Key="SuggestionItemStyle"
                TargetType="ListBoxItem">
             <Setter Property="Padding"
-                    Value="16,12"/>
+                    Value="16,10"/>
             <Setter Property="Margin"
-                    Value="0,1"/>
+                    Value="0,2"/>
             <Setter Property="Background"
-                    Value="Transparent"/>
+                    Value="#FFF"/>
             <Setter Property="Foreground"
-                    Value="#1A1A1A"/>
+                    Value="#2D3748"/>
             <Setter Property="FontWeight"
-                    Value="Normal"/>
-            <Setter Property="FontFamily"
-                    Value="{StaticResource MacFont}"/>
+                    Value="Medium"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="ListBoxItem">
                         <Border x:Name="Border"
                                 Background="{TemplateBinding Background}"
-                                CornerRadius="10"
+                                CornerRadius="8"
                                 Padding="{TemplateBinding Padding}">
                             <ContentPresenter/>
                         </Border>
@@ -156,15 +155,15 @@
                                      Value="True">
                                 <Setter TargetName="Border"
                                         Property="Background"
-                                        Value="#F2F2F7"/>
+                                        Value="#E2E8F0"/>
                             </Trigger>
                             <Trigger Property="IsSelected"
                                      Value="True">
                                 <Setter TargetName="Border"
                                         Property="Background"
-                                        Value="#E5E5EA"/>
+                                        Value="#E2E8F0"/>
                                 <Setter Property="Foreground"
-                                        Value="#000000"/>
+                                        Value="#1A202C"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -180,71 +179,69 @@
                         CenterY="45"/>
     </Window.RenderTransform>
 
-    <Grid>
-        <Border CornerRadius="18"
-                Background="#F2F2F7"
-                Effect="{StaticResource MacShadow}"
-                Margin="8">
-            <Grid>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="*"/>
-                    <RowDefinition Height="Auto"/>
-                </Grid.RowDefinitions>
+    <Border CornerRadius="16"
+            Background="#F7FAFC"
+            Effect="{StaticResource Shadow}"
+            Margin="10">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
 
-                <Grid Grid.Row="0">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="60"/>
-                        <ColumnDefinition Width="*"/>
-                    </Grid.ColumnDefinitions>
+            <Grid Grid.Row="0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="60"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
 
-                    <Viewbox Grid.Column="0"
-                             Margin="12,0,0,0"
-                             VerticalAlignment="Center"
-                             Height="40"
-                             Width="40">
-                        <Canvas Width="32"
-                                Height="32">
-                            <Path Data="M 4,6 L 28,6 L 4,26 L 28,26"
-                                  StrokeThickness="5"
-                                  Stroke="{StaticResource ZGradient}"
-                                  StrokeLineJoin="Round"
-                                  StrokeStartLineCap="Round"
-                                  StrokeEndLineCap="Round"/>
-                        </Canvas>
-                    </Viewbox>
+                <Viewbox Grid.Column="0"
+                         Margin="12,0,0,0"
+                         VerticalAlignment="Center"
+                         Height="40"
+                         Width="40">
+                    <Canvas Width="32"
+                            Height="32">
+                        <Path Data="M 4,6 L 28,6 L 4,26 L 28,26"
+                              StrokeThickness="5"
+                              Stroke="{StaticResource ZGradient}"
+                              StrokeLineJoin="Round"
+                              StrokeStartLineCap="Round"
+                              StrokeEndLineCap="Round"/>
+                    </Canvas>
+                </Viewbox>
 
-                    <TextBox Name="SearchBox"
-                             Grid.Column="1"
-                             Margin="0,16,16,16"
-                             KeyDown="SearchBox_KeyDown"
-                             TextChanged="SearchBox_TextChanged"
-                             Style="{StaticResource SearchBoxStyle}"
-                             Template="{StaticResource SearchBoxPlaceholderTemplate}"/>
-                </Grid>
-
-                <ListBox Name="SuggestionList"
-                         Grid.Row="1"
-                         Margin="60,0,16,16"
-                         MaxHeight="200"
-                         Background="Transparent"
-                         BorderThickness="0"
-                         Visibility="Collapsed"
-                         SelectionChanged="SuggestionList_SelectionChanged"
-                         MouseDoubleClick="SuggestionList_MouseDoubleClick"
-                         KeyDown="SuggestionList_KeyDown"
-                         ItemContainerStyle="{StaticResource SuggestionItemStyle}"
-                         FontFamily="{StaticResource MacFont}"/>
-
-                <TextBlock Name="NotificationText"
-                           Grid.Row="2"
-                           Margin="60,0,16,16"
-                           TextAlignment="Center"
-                           FontWeight="Medium"
-                           Foreground="#007AFF"
-                           FontFamily="{StaticResource MacFont}"
-                           Visibility="Collapsed"/>
+                <TextBox Name="SearchBox"
+                         Grid.Column="1"
+                         Margin="0,16,16,16"
+                         KeyDown="SearchBox_KeyDown"
+                         TextChanged="SearchBox_TextChanged"
+                         Style="{StaticResource SearchBoxStyle}"
+                         Template="{StaticResource SearchBoxPlaceholderTemplate}"/>
             </Grid>
-        </Border>
-    </Grid>
+
+            <ListBox Name="SuggestionList"
+                     Grid.Row="1"
+                     Margin="60,0,16,16"
+                     MaxHeight="200"
+                     Background="Transparent"
+                     BorderThickness="0"
+                     Visibility="Collapsed"
+                     SelectionChanged="SuggestionList_SelectionChanged"
+                     MouseDoubleClick="SuggestionList_MouseDoubleClick"
+                     KeyDown="SuggestionList_KeyDown"
+                     ItemContainerStyle="{StaticResource SuggestionItemStyle}"/>
+           
+
+
+            <TextBlock Name="NotificationText"
+                       Grid.Row="2"
+                       Margin="60,0,16,16"
+                       TextAlignment="Center"
+                       FontWeight="SemiBold"
+                       Foreground="#6B46C1"
+                       Visibility="Collapsed"/>
+        </Grid>
+    </Border>
 </Window>
