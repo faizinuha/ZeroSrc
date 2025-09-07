@@ -1,16 +1,17 @@
 ; --- Informasi Aplikasi ---
 [Setup]
-AppName=ZeroSrc
-AppVersion=1.0.0
-AppVerName=ZeroSrc 1.0.0
+AppName=ZeroMix
+AppVersion=1.5.5
+AppVerName=ZeroMix
 AppPublisher=faizinuha
-AppPublisherURL=https://example.invalid/
+AppPublisherURL=Mardve7.vercel.app
 AppCopyright=Copyright (c) 2025
 AppComments=ZeroSrc smart launcher
 DefaultDirName={pf}\ZeroSrc
-DefaultGroupName=ZeroSrc
+DefaultGroupName=ZeroMix  ; Nama di Start Menu
+AllowNoIcons=yes
 OutputDir=.
-OutputBaseFilename=ZeroSrc-Setup
+OutputBaseFilename=ZeroMix-Setup
 SetupIconFile=image.ico
 Compression=lzma
 SolidCompression=yes
@@ -38,8 +39,8 @@ Source: "image.ico"; DestDir: "{app}"; Flags: ignoreversion
 
 ; --- Shortcut ---
 [Icons]
-Name: "{group}\ZeroSrc"; Filename: "{app}\ZeroSrc.exe"; IconFilename: "{app}\image.ico"
-Name: "{commondesktop}\ZeroSrc"; Filename: "{app}\ZeroSrc.exe"; IconFilename: "{app}\image.ico"; Tasks: desktopicon
+Name: "{group}\ZeroMix"; Filename: "{app}\ZeroMix.exe"; IconFilename: "{app}\image.ico"
+Name: "{commondesktop}\ZeroMix"; Filename: "{app}\ZeroMix.exe"; IconFilename: "{app}\image.ico"; Tasks: desktopicon
 
 ; --- Pilihan Tambahan ---
 [Tasks]
@@ -47,7 +48,7 @@ Name: "desktopicon"; Description: "Create a &desktop shortcut"; GroupDescription
 
 ; --- Jalankan aplikasi setelah install ---
 [Run]
-Filename: "{app}\ZeroSrc.exe"; Description: "Jalankan ZeroSrc"; Flags: nowait postinstall skipifsilent
+Filename: "{app}\ZeroMix.exe"; Description: "Jalankan ZeroMix"; Flags: nowait postinstall skipifsilent
 
 ; --- Bersihkan file saat uninstall ---
 [UninstallDelete]
@@ -61,6 +62,6 @@ Filename: "cmd.exe"; Parameters: "/C echo Terima kasih telah menggunakan Google 
 
 ; --- Teks Custom Welcome & Selesai ---
 [Messages]
-WelcomeLabel1=Selamat datang di penginstal ZeroSrc!
+WelcomeLabel1=Selamat datang di penginstal ZeroMix!
 WelcomeLabel2=Aplikasi pintar untuk membuka web dan aplikasi desktop dengan cepat.
-FinishedLabel=ZeroSrc berhasil diinstal. Kamu bisa menjalankannya dari desktop atau Start Menu.
+FinishedLabel=ZeroMix berhasil diinstal. Kamu bisa menjalankannya dari desktop atau Start Menu.
