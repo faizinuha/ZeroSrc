@@ -25,7 +25,8 @@
                              To="1"
                              Duration="0:0:0.25">
                 <DoubleAnimation.EasingFunction>
-                    <ExponentialEase Exponent="5" EasingMode="EaseOut"/>
+                    <ExponentialEase Exponent="5"
+                            EasingMode="EaseOut"/>
                 </DoubleAnimation.EasingFunction>
             </DoubleAnimation>
             <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleY)"
@@ -33,7 +34,8 @@
                              To="1"
                              Duration="0:0:0.25">
                 <DoubleAnimation.EasingFunction>
-                    <ExponentialEase Exponent="5" EasingMode="EaseOut"/>
+                    <ExponentialEase Exponent="5"
+                            EasingMode="EaseOut"/>
                 </DoubleAnimation.EasingFunction>
             </DoubleAnimation>
         </Storyboard>
@@ -58,34 +60,50 @@
         <LinearGradientBrush x:Key="ZGradient"
                              StartPoint="0,0"
                              EndPoint="1,1">
-            <GradientStop Color="#4285F4" Offset="0.0"/>
-            <GradientStop Color="#34A853" Offset="0.33"/>
-            <GradientStop Color="#FBBC05" Offset="0.66"/>
-            <GradientStop Color="#EA4335" Offset="1.0"/>
+            <GradientStop Color="#4285F4"
+                    Offset="0.0"/>
+            <GradientStop Color="#34A853"
+                    Offset="0.33"/>
+            <GradientStop Color="#FBBC05"
+                    Offset="0.66"/>
+            <GradientStop Color="#EA4335"
+                    Offset="1.0"/>
         </LinearGradientBrush>
 
         <!-- Style untuk TextBox agar terlihat lebih modern -->
-        <Style x:Key="SearchBoxStyle" TargetType="TextBox">
-            <Setter Property="FontSize" Value="20"/>
-            <Setter Property="Height" Value="48"/>
-            <Setter Property="VerticalContentAlignment" Value="Center"/>
-            <Setter Property="Background" Value="#FFF"/>
-            <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="Padding" Value="16,0,8,0"/>
-            <Setter Property="Foreground" Value="#2D3748"/>
-            <Setter Property="FontWeight" Value="SemiBold"/>
-            <Setter Property="CaretBrush" Value="#4A5568"/>
+        <Style x:Key="SearchBoxStyle"
+                TargetType="TextBox">
+            <Setter Property="FontSize"
+                    Value="20"/>
+            <Setter Property="Height"
+                    Value="48"/>
+            <Setter Property="VerticalContentAlignment"
+                    Value="Center"/>
+            <Setter Property="Background"
+                    Value="#FFF"/>
+            <Setter Property="BorderThickness"
+                    Value="0"/>
+            <Setter Property="Padding"
+                    Value="16,0,8,0"/>
+            <Setter Property="Foreground"
+                    Value="#2D3748"/>
+            <Setter Property="FontWeight"
+                    Value="SemiBold"/>
+            <Setter Property="CaretBrush"
+                    Value="#4A5568"/>
         </Style>
 
         <!-- Template untuk Placeholder Text -->
-        <ControlTemplate x:Key="SearchBoxPlaceholderTemplate" TargetType="{x:Type TextBox}">
+        <ControlTemplate x:Key="SearchBoxPlaceholderTemplate"
+                TargetType="{x:Type TextBox}">
             <Grid>
                 <Border x:Name="Border"
                         Background="{TemplateBinding Background}"
                         BorderBrush="{TemplateBinding BorderBrush}"
                         BorderThickness="{TemplateBinding BorderThickness}"
                         SnapsToDevicePixels="True"/>
-                <ScrollViewer x:Name="PART_ContentHost" SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"/>
+                <ScrollViewer x:Name="PART_ContentHost"
+                        SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"/>
                 <TextBlock x:Name="Placeholder"
                            Margin="{TemplateBinding Padding}"
                            Text="Type here to search..."
@@ -95,26 +113,29 @@
                            IsHitTestVisible="False">
                     <TextBlock.Style>
                         <Style TargetType="{x:Type TextBlock}">
-                            <Setter Property="Visibility" Value="Visible"/>
-                            <Style.Triggers>
-                                <DataTrigger Binding="{Binding Text, RelativeSource={RelativeSource TemplatedParent}, Converter={x:Static local:StringToVisibilityConverter.Instance}}"
-                                             Value="Collapsed">
-                                    <Setter Property="Visibility" Value="Collapsed"/>
-                                </DataTrigger>
-                            </Style.Triggers>
+                            <Setter Property="Visibility"
+                                    Value="{Binding Text, RelativeSource={RelativeSource TemplatedParent},
+                        Converter={x:Static local:StringToVisibilityConverter.Instance}}"/>
                         </Style>
                     </TextBlock.Style>
+
                 </TextBlock>
             </Grid>
         </ControlTemplate>
 
         <!-- Style untuk item ListBox -->
-        <Style x:Key="SuggestionItemStyle" TargetType="ListBoxItem">
-            <Setter Property="Padding" Value="16,10"/>
-            <Setter Property="Margin" Value="0,2"/>
-            <Setter Property="Background" Value="#FFF"/>
-            <Setter Property="Foreground" Value="#2D3748"/>
-            <Setter Property="FontWeight" Value="Medium"/>
+        <Style x:Key="SuggestionItemStyle"
+                TargetType="ListBoxItem">
+            <Setter Property="Padding"
+                    Value="16,10"/>
+            <Setter Property="Margin"
+                    Value="0,2"/>
+            <Setter Property="Background"
+                    Value="#FFF"/>
+            <Setter Property="Foreground"
+                    Value="#2D3748"/>
+            <Setter Property="FontWeight"
+                    Value="Medium"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="ListBoxItem">
@@ -125,12 +146,19 @@
                             <ContentPresenter/>
                         </Border>
                         <ControlTemplate.Triggers>
-                            <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="Border" Property="Background" Value="#E2E8F0"/>
+                            <Trigger Property="IsMouseOver"
+                                    Value="True">
+                                <Setter TargetName="Border"
+                                        Property="Background"
+                                        Value="#E2E8F0"/>
                             </Trigger>
-                            <Trigger Property="IsSelected" Value="True">
-                                <Setter TargetName="Border" Property="Background" Value="#E2E8F0"/>
-                                <Setter Property="Foreground" Value="#1A202C"/>
+                            <Trigger Property="IsSelected"
+                                    Value="True">
+                                <Setter TargetName="Border"
+                                        Property="Background"
+                                        Value="#E2E8F0"/>
+                                <Setter Property="Foreground"
+                                        Value="#1A202C"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -140,7 +168,10 @@
     </Window.Resources>
 
     <Window.RenderTransform>
-        <ScaleTransform ScaleX="1" ScaleY="1" CenterX="210" CenterY="45"/>
+        <ScaleTransform ScaleX="1"
+                ScaleY="1"
+                CenterX="210"
+                CenterY="45"/>
     </Window.RenderTransform>
 
     <Border CornerRadius="16"
@@ -165,7 +196,8 @@
                          VerticalAlignment="Center"
                          Height="40"
                          Width="40">
-                    <Canvas Width="32" Height="32">
+                    <Canvas Width="32"
+                            Height="32">
                         <Path Data="M 4,6 L 28,6 L 4,26 L 28,26"
                               StrokeThickness="5"
                               Stroke="{StaticResource ZGradient}"

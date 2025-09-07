@@ -22,17 +22,18 @@ namespace ZeroSrc
     }
     public class StringToVisibilityConverter : IValueConverter
     {
-        // Instans tunggal dari konverter
-        public static StringToVisibilityConverter Instance = new StringToVisibilityConverter();
+        // Singleton biar bisa dipanggil lewat XAML: local:StringToVisibilityConverter.Instance
+        public static readonly StringToVisibilityConverter Instance = new StringToVisibilityConverter();
 
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            return string.IsNullOrEmpty(value as string) ? Visibility.Visible : Visibility.Collapsed;
+            var text = value as string;
+            return string.IsNullOrWhiteSpace(text) ? Visibility.Visible : Visibility.Collapsed;
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            return DependencyProperty.UnsetValue;
+            throw new NotImplementedException();
         }
     }
 
