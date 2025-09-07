@@ -41,7 +41,7 @@ namespace ZeroSrc
     {
         private bool _isClosing = false;
         private readonly Dictionary<string, string> _appShortcuts;
-        private readonly List<string> SuggestionList = new();
+        private readonly List<string> _suggestions = new();
         private readonly TextBlock _notificationText;
         private readonly List<string> _allSuggestions = new();
         private readonly List<string> _filteredSuggestions = new();
@@ -306,7 +306,7 @@ namespace ZeroSrc
                 var suggestion = this.FindName("SuggestionList") as ListBox;
                 if (suggestion != null)
                 {
-                    var items = SuggestionList.Where(s => s.Contains(query)).Take(10).ToList();
+                    var items = _suggestions.Where(s => s.Contains(query)).Take(10).ToList();
                     suggestion.ItemsSource = items;
                     suggestion.Visibility = items.Any() ? Visibility.Visible : Visibility.Collapsed;
                 }
