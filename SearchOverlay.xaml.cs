@@ -110,7 +110,7 @@ namespace ZeroSrc
 
             if (string.IsNullOrWhiteSpace(query))
             {
-                suggestionList.ItemsSource = null;
+                suggestionList!.ItemsSource = null;
                 suggestionList.Visibility = Visibility.Collapsed;
                 return;
             }
@@ -120,39 +120,35 @@ namespace ZeroSrc
                 .Where(s => s.StartsWith(query, StringComparison.OrdinalIgnoreCase))
                 .ToList();
 
+            // Tambahkan opsi search Google
+            filtered.Add($"Search Google for \"{query}\"");
+
             if (filtered.Count > 0)
             {
                 // --- 1. Inline suggestion ---
                 string best = filtered[0];
-                if (best.Length > query.Length)
+                if (best.Length > query.Length && !best.StartsWith("Search Google"))
                 {
                     _isSelectingSuggestion = true;
 
-                    searchBox.Text = best;
+                    searchBox!.Text = best;
                     searchBox.SelectionStart = query.Length;
                     searchBox.SelectionLength = best.Length - query.Length;
 
                     _isSelectingSuggestion = false;
                 }
 
-                // --- 2. Dropdown suggestion (sisanya) ---
-                if (filtered.Count > 1)
-                {
-                    suggestionList.ItemsSource = filtered.Skip(1).ToList();
-                    suggestionList.Visibility = Visibility.Visible;
-                }
-                else
-                {
-                    suggestionList.ItemsSource = null;
-                    suggestionList.Visibility = Visibility.Collapsed;
-                }
+                // --- 2. Dropdown suggestion ---
+                suggestionList!.ItemsSource = filtered.Skip(1).ToList();
+                suggestionList.Visibility = Visibility.Visible;
             }
             else
             {
-                suggestionList.ItemsSource = null;
+                suggestionList!.ItemsSource = null;
                 suggestionList.Visibility = Visibility.Collapsed;
             }
         }
+
 
 
         private void SuggestionList_SelectionChanged(object sender, SelectionChangedEventArgs? e)
@@ -162,14 +158,23 @@ namespace ZeroSrc
 
             if (lb?.SelectedItem is string selected)
             {
+                if (selected.StartsWith("Search Google for"))
+                {
+                    string query = searchBox?.Text ?? "";
+                    ExecuteWebSearch(query);
+                    BeginFadeOutAndClose();
+                    return;
+                }
+
                 _isSelectingSuggestion = true; // lock biar TextChanged nggak jalan
-                searchBox.Text = selected;
+                searchBox!.Text = selected;
                 searchBox.CaretIndex = selected.Length;
                 _isSelectingSuggestion = false;
 
                 lb.Visibility = Visibility.Collapsed;
             }
         }
+
 
         private void SuggestionList_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
         {
