@@ -1,35 +1,76 @@
-// background.js
+
 
 chrome.runtime.onInstalled.addListener(() => {
-  chrome.storage.sync.get("shortcut", (data) => {
-    if (!data.shortcut) {
-      // Set default shortcut if not already set
-      chrome.storage.sync.set({ shortcut: ["Control", "Backslash"] });
-    }
-  });
-});
+  try {
+    chrome.storage.sync.get("shortcut", (data) => {
+      if (chrome.runtime.lastError) {
+        console.error("ZeroMix: Error checking existing shortcut:", chrome.runtime.lastError)
+        setDefaultShortcut()
+        return
+      }
 
-// Listener for messages from popup.js or content.js
+      if (!data.shortcut || !Array.isArray(data.shortcut) || data.shortcut.length === 0) {
+        setDefaultShortcut()
+      }
+    })
+  } catch (error) {
+    console.error("ZeroMix: Error in onInstalled listener:", error)
+  }
+})
+
+const setDefaultShortcut = () => {
+  chrome.storage.sync.set({ shortcut: ["Control", "Backslash"] }, () => {
+    if (chrome.runtime.lastError) {
+      console.error("ZeroMix: Error setting default shortcut:", chrome.runtime.lastError)
+    } else {
+      console.log("ZeroMix: Default shortcut set")
+    }
+  })
+}
+
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-  if (request.action === "updateShortcut") {
-    // When the shortcut is updated from the popup,
-    // we might want to inform existing content scripts to reload their listener
-    chrome.tabs.query({}, (tabs) => {
-      tabs.forEach(tab => {
-        if (tab.url && tab.url.startsWith("http")) { // Only inject into web pages
-          chrome.scripting.executeScript({
+  try {
+    if (request.action === "updateShortcut") {
+      updateContentScripts()
+        .then(() => {
+          sendResponse({ status: "shortcut updated and content scripts reloaded" })
+        })
+        .catch((error) => {
+          console.error("ZeroMix: Error updating content scripts:", error)
+          sendResponse({ status: "error", error: error.message })
+        })
+      return true // Indicates an asynchronous response
+    }
+  } catch (error) {
+    console.error("ZeroMix: Error in message listener:", error)
+    sendResponse({ status: "error", error: error.message })
+  }
+})
+
+const updateContentScripts = async () => {
+  try {
+    const tabs = await chrome.tabs.query({})
+    const updatePromises = tabs
+      .filter((tab) => tab.url && (tab.url.startsWith("http://") || tab.url.startsWith("https://")))
+      .map(async (tab) => {
+        try {
+          await chrome.scripting.executeScript({
             target: { tabId: tab.id },
             function: () => {
-              // Re-run the loadAndListen function in content.js
-              if (typeof window.loadAndListen === 'function') {
-                window.loadAndListen();
+              if (typeof window.loadAndListen === "function") {
+                window.loadAndListen()
               }
-            }
-          }).catch(error => console.warn("Failed to inject script into tab:", tab.id, error));
+            },
+          })
+        } catch (error) {
+          console.warn(`ZeroMix: Failed to update tab ${tab.id}:`, error.message)
         }
-      });
-    });
-    sendResponse({ status: "shortcut updated and content scripts reloaded" });
-    return true; // Indicates an asynchronous response
+      })
+
+    await Promise.allSettled(updatePromises)
+    console.log("ZeroMix: Content script update completed")
+  } catch (error) {
+    console.error("ZeroMix: Error in updateContentScripts:", error)
+    throw error
   }
-});
+}
