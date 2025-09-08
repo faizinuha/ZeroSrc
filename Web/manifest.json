@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 {
   "manifest_version": 3,
   "name": "ZeroMix",
@@ -29,3 +30,5 @@
     "service_worker": "background.js"
   }
 }
+=======
+>>>>>>> parent of 0e500f1 (New Program)
