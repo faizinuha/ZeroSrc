@@ -1,43 +1,43 @@
 #zeromix-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.7); /* Semi-transparent dark background */
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 2147483647; /* Ensure it's on top of everything */
-    backdrop-filter: blur(5px); /* Optional: blur the background content */
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.7); /* Semi-transparent dark background */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 2147483647; /* Ensure it's on top of everything */
+  backdrop-filter: blur(5px); /* Optional: blur the background content */
 }
 
 .zeromix-box {
-    background-color: #fff;
-    padding: 20px;
-    border-radius: 10px;
-    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
-    width: 90%;
-    max-width: 500px;
-    box-sizing: border-box;
+  background-color: #fff;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+  width: 90%;
+  max-width: 500px;
+  box-sizing: border-box;
 }
 
 #zeromix-input {
-    width: 100%;
-    padding: 15px;
-    font-size: 1.2em;
-    border: 2px solid #007bff;
-    border-radius: 8px;
-    outline: none;
-    box-sizing: border-box;
-    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  width: 100%;
+  padding: 15px;
+  font-size: 1.2em;
+  border: 2px solid #007bff;
+  border-radius: 8px;
+  outline: none;
+  box-sizing: border-box;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 #zeromix-input:focus {
-    border-color: #0056b3;
-    box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.25);
+  border-color: #0056b3;
+  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.25);
 }
 
 #zeromix-input::placeholder {
-    color: #a0a0a0;
+  color: #a0a0a0;
 }
