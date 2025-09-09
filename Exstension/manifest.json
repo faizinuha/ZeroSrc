@@ -1,0 +1,25 @@
+{
+  "manifest_version": 3,
+  "name": "ZeroMix",
+  "version": "1.0",
+  "description": "ZeroMix Quick Search Bar Extension",
+  "permissions": ["scripting", "activeTab", "tabs", "storage"],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "commands": {
+    "toggle-search": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+Space"
+      },
+      "description": "Toggle search bar"
+    }
+  },
+  "web_accessible_resources": [
+    {
+      "resources": ["content.js"],
+      "matches": ["<all_urls>"]
+    }
+  ]
+  
+}
