@@ -1,25 +1,28 @@
 {
   "manifest_version": 3,
   "name": "ZeroMix",
-  "version": "1.0",
+  "version": "1.2",
   "description": "ZeroMix Quick Search Bar Extension",
-  "permissions": ["scripting", "activeTab", "tabs", "storage"],
+  "permissions": ["storage","scripting","activeTab"],
   "background": {
     "service_worker": "background.js"
   },
+  "host_permissions": [
+    "https://suggestqueries.google.com/*"
+  ],
+  "action": {
+    "default_icon": {
+      "16": "image.png",
+      "48": "image.png",
+      "128": "image.png"
+    }
+  },
   "commands": {
-    "toggle-search": {
+    "toggle-popup": {
       "suggested_key": {
         "default": "Ctrl+Shift+Space"
       },
-      "description": "Toggle search bar"
+      "description": "Open ZeroMix search popup"
     }
-  },
-  "web_accessible_resources": [
-    {
-      "resources": ["content.js"],
-      "matches": ["<all_urls>"]
-    }
-  ]
-  
+  }
 }
