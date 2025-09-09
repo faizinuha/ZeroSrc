@@ -1,180 +1,359 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>ZeroMix – Desktop & Extension</title>
-  <link rel="stylesheet" href="styles.css" />
-  <style>
-    body {
-      margin: 0;
-      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-      background: #0f0f1a;
-      color: #f4f4f9;
-      line-height: 1.6;
-    }
-    header {
-      background: linear-gradient(135deg, #1a1a2e, #16213e);
-      text-align: center;
-      padding: 60px 20px;
-    }
-    header h1 {
-      font-size: 3rem;
-      margin: 0;
-      color: #00d9ff;
-    }
-    header p {
-      font-size: 1.2rem;
-      margin-top: 10px;
-      color: #bbb;
-    }
-    .btn {
-      display: inline-block;
-      margin-top: 20px;
-      padding: 12px 25px;
-      background: #00d9ff;
-      color: #000;
-      font-weight: bold;
-      border-radius: 8px;
-      text-decoration: none;
-      transition: 0.3s;
-    }
-    .btn:hover {
-      background: #00a6c9;
-    }
-    section {
-      padding: 60px 20px;
-      max-width: 1000px;
-      margin: auto;
-    }
-    h2 {
-      text-align: center;
-      margin-bottom: 40px;
-      color: #00d9ff;
-    }
-    .features {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-      gap: 30px;
-    }
-    .card {
-      background: #1e1e2f;
-      padding: 20px;
-      border-radius: 12px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-      transition: 0.3s;
-    }
-    .card:hover {
-      transform: translateY(-5px);
-    }
-    .install-steps {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 30px;
-      justify-content: center;
-    }
-    .install-steps div {
-      background: #1e1e2f;
-      padding: 20px;
-      border-radius: 10px;
-      flex: 1 1 300px;
-    }
-    .screenshots {
-      display: flex;
-      gap: 20px;
-      flex-wrap: wrap;
-      justify-content: center;
-    }
-    .screenshots img {
-      width: 300px;
-      border-radius: 10px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.5);
-    }
-    footer {
-      text-align: center;
-      padding: 30px;
-      background: #111;
-      color: #888;
-      margin-top: 50px;
-    }
-    footer a {
-      color: #00d9ff;
-      text-decoration: none;
-    }
-  </style>
-</head>
-<body>
-  <!-- Hero Section -->
-  <header>
-    <h1>ZeroMix</h1>
-    <p>Aplikasi Desktop & Extension untuk produktivitas tanpa batas 🚀</p>
-    <a href="https://github.com/username/zerosrc" class="btn">Get Started</a>
-  </header>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ZeroMix – Desktop & Extension</title>
+    <style>
+      body {
+        margin: 0;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background: #0f0f1a;
+        color: #f4f4f9;
+        line-height: 1.6;
+      }
+      header {
+        background: linear-gradient(135deg, #1a1a2e, #16213e);
+        text-align: center;
+        padding: 60px 20px;
+      }
+      header h1 {
+        font-size: 3rem;
+        margin: 0;
+        color: #00d9ff;
+      }
+      header p {
+        font-size: 1.2rem;
+        margin-top: 10px;
+        color: #bbb;
+      }
+      .btn {
+        display: inline-block;
+        margin-top: 20px;
+        padding: 12px 25px;
+        background: #00d9ff;
+        color: #000;
+        font-weight: bold;
+        border-radius: 8px;
+        text-decoration: none;
+        transition: 0.3s;
+        cursor: pointer;
+        /* animation: pulse 1.5s infinite; */
+      }
+      .btn:hover {
+        border-radius: 20px;
+        background: #08acd0;
+        color: #fff;
+        transform: scale(1.1);
+      }
+      @keyframes pulse {
+        0% {
+          box-shadow: 0 0 0 0 rgba(0, 217, 255, 0.7);
+        }
+        70% {
+          box-shadow: 0 0 0 20px rgba(0, 217, 255, 0);
+        }
+        100% {
+          box-shadow: 0 0 0 0 rgba(0, 217, 255, 0);
+        }
+      }
+      section {
+        padding: 60px 20px;
+        max-width: 1000px;
+        margin: auto;
+      }
+      h2 {
+        text-align: center;
+        margin-bottom: 40px;
+        color: #00d9ff;
+      }
+      .features {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 30px;
+      }
+      .card {
+        background: #1e1e2f;
+        padding: 20px;
+        border-radius: 12px;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+        transition: 0.3s;
+      }
+      .card:hover {
+        transform: translateY(-5px) scale(1.03);
+        background: #22223c;
+        box-shadow: 0 0 15px #00d9ff;
+      }
+      .install-steps {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 30px;
+        justify-content: center;
+      }
+      .install-steps div {
+        background: #1e1e2f;
+        padding: 20px;
+        border-radius: 10px;
+        flex: 1 1 300px;
+      }
+      .screenshots {
+        display: flex;
+        gap: 20px;
+        flex-wrap: wrap;
+        justify-content: center;
+      }
+      .screenshots img {
+        width: 300px;
+        border-radius: 10px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+      }
+      .download-cards {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 25px;
+        margin-top: 30px;
+      }
+      .download-card {
+        background: #1e1e2f;
+        padding: 25px;
+        border-radius: 12px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+        transition: 0.3s;
+        text-align: center;
+      }
+      .download-card:hover {
+        transform: translateY(-5px) scale(1.02);
+        box-shadow: 0 0 15px #00d9ff;
+      }
+      footer {
+        text-align: center;
+        padding: 30px;
+        background: #111;
+        color: #888;
+        margin-top: 50px;
+      }
+      footer a {
+        color: #00d9ff;
+        text-decoration: none;
+      }
+      footer .easter-egg {
+        margin-top: 15px;
+        font-size: 0.9rem;
+        color: #555;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Hero Section -->
+    <header>
+      <h1>ZeroMix</h1>
+      <p>Selamat Datang Di website Kami Update Ke 1.5.5</p>
+      <p>Aplikasi Desktop & Extension untuk produktivitas tanpa batas 🚀</p>
+      <button onclick="Alert()" class="btn">Get Started</button>
+    </header>
 
-  <!-- Fitur -->
-  <section>
-    <h2>✨ Fitur Utama</h2>
-    <div class="features">
-      <div class="card">
-        <h3>⚡ Cepat & Ringan</h3>
-        <p>ZeroMix dibuat dengan performa tinggi, sehingga tetap ringan di PC maupun browser.</p>
-      </div>
-      <div class="card">
-        <h3>🔗 Sinkronisasi</h3>
-        <p>Gunakan ZeroMix di Desktop & Extension dengan pengalaman yang sama.</p>
-      </div>
-      <div class="card">
-        <h3>🎨 UI Modern</h3>
-        <p>Antarmuka bersih, nyaman, dan bisa disesuaikan dengan kebutuhan kamu.</p>
-      </div>
-      <div class="card">
-        <h3>⚙️ Shortcut Kustom</h3>
-        <p>Sesuaikan pintasan keyboard sesuai workflow kamu, bukan sebaliknya.</p>
-      </div>
-    </div>
-  </section>
+    <script>
+      function Alert() {
+        alert(`
+😅 Oops... fitur ini lagi cuti dulu ya!
+👉 Silakan jalan-jalan ke GitHub buat info lebih lanjut.
+👇 Jangan lupa scroll ke bawah, siapa tau ada harta karun fitur baru! 🏴‍☠️✨
 
-  <!-- Install -->
-  <section>
-    <h2>📥 Cara Install</h2>
-    <div class="install-steps">
-      <div>
-        <h3>💻 Desktop App</h3>
-        <ol>
-          <li>Download <b>ZeroSrc-Setup.exe</b></li>
-          <li>Jalankan installer dan ikuti langkah-langkahnya</li>
-          <li>Selesai! ZeroMix siap dipakai di PC</li>
-        </ol>
-      </div>
-      <div>
-        <h3>🌐 Browser Extension</h3>
-        <ol>
-          <li>Buka browser (Chrome/Edge/Opera)</li>
-          <li>Aktifkan <b>Developer Mode</b></li>
-          <li>Pilih <b>Load unpacked</b> dan arahkan ke folder <code>/Web</code></li>
-          <li>Extension ZeroMix siap digunakan</li>
-        </ol>
-      </div>
-    </div>
-  </section>
+🌍 English Mode Activated!
+🙈 Sorry, this feature is still on vacation...
+📦 But hey, scroll down to download or discover upcoming surprises!
+        `);
+      }
+    </script>
 
-  <!-- Screenshots -->
-  <section>
-    <h2>🖼️ Screenshot</h2>
-    <div class="screenshots">
-      <img src="assets/screenshot1.png" alt="ZeroMix Desktop" />
-      <img src="assets/screenshot2.png" alt="ZeroMix Extension" />
-    </div>
-  </section>
+    <!-- Fitur -->
+    <section>
+      <h2>✨ Fitur Utama</h2>
+      <div class="features">
+        <div class="card">
+          <h3>⚡ Cepat & Ringan</h3>
+          <p>
+            ZeroMix dibuat dengan performa tinggi, sehingga tetap ringan di PC
+            maupun browser.
+          </p>
+        </div>
+        <div class="card">
+          <h3>🔗 Sinkronisasi</h3>
+          <p>
+            Gunakan ZeroMix di Desktop & Extension dengan pengalaman yang sama.
+          </p>
+        </div>
+        <div class="card">
+          <h3>🎨 UI Modern</h3>
+          <p>
+            Antarmuka bersih, nyaman, dan bisa disesuaikan dengan kebutuhan
+            kamu.
+          </p>
+        </div>
+        <div class="card">
+          <h3>⚙️ Suggestion Khusus (Desktop Only)</h3>
+          <p>
+            Fitur canggih yang membantu kamu tetap fokus pada tugas penting
+            dengan saran yang relevan.
+          </p>
+        </div>
+      </div>
+    </section>
 
-  <!-- Footer -->
-  <footer>
-    <p>© 2025 ZeroMix Project – Dibuat dengan ❤️ oleh Sayang Ku</p>
-    <p>
-      <a href="https://github.com/username/zerosrc">GitHub</a> |
-      <a href="#">Docs</a> |
-      <a href="#">Support</a>
-    </p>
-  </footer>
-</body>
+    <!-- Install -->
+    <section>
+      <h2>📥 Cara Install</h2>
+      <div class="install-steps">
+        <div>
+          <h3>💻 Desktop App</h3>
+          <ol>
+            <li>Download <b>ZeroSrc-Setup.exe</b></li>
+            <li>Jalankan installer dan ikuti langkah-langkahnya</li>
+            <li>Selesai! ZeroMix siap dipakai di PC</li>
+          </ol>
+        </div>
+        <div>
+          <h3>🌐 Browser Extension</h3>
+          <ol>
+            <li>Buka browser (Chrome/Edge/Opera)</li>
+            <li>Aktifkan <b>Developer Mode</b></li>
+            <li>
+              Pilih <b>Load unpacked</b> dan arahkan ke folder <code>/Web</code>
+            </li>
+            <li>Extension ZeroMix siap digunakan</li>
+          </ol>
+        </div>
+      </div>
+    </section>
+
+    <!-- Download -->
+    <section>
+      <h2>⬇️ Download ZeroMix</h2>
+      <div class="download-cards">
+        <div class="download-card">
+          <h3>💻 ZeroMix Desktop</h3>
+          <p>Installer untuk Windows – versi terbaru 1.5.5</p>
+          <div class="download-buttons">
+            <a href="../Exe/ZeroSrc-Setup.exe" class="btn-1">Download EXE</a>
+            <a href="#" onclick="NotFound()" class="btn-2">Download ZIP</a>
+            <a
+              href="https://mega.nz/folder/uEdWTbSJ#y1bCKlrXXy93gi3e5zeBXA"
+              target="_blank"
+              class="btn-3"
+              >Link Alternatif</a
+            >
+          </div>
+        </div>
+
+        <div class="download-card">
+          <h3>🌐 ZeroMix Extension</h3>
+          <p>Paket Extension untuk Chrome / Edge / Opera</p>
+          <div class="download-buttons">
+            <a href="../ZeroMixExstesion.zip" class="btn-4">Download ZIP</a>
+            <!-- <a
+              href="https://mega.nz/folder/uEdWTbSJ#y1bCKlrXXy93gi3e5zeBXA"
+              target="_blank"
+              class="btn"
+              >Link Alternatif</a
+            > -->
+          </div>
+        </div>
+      </div>
+    </section>
+    <script>
+      function NotFound() {
+        alert('Aduh Maaf Ya.... belum di Kompress Jadi Zip Hehe....'),
+          alert('Silakan Ke Link Alternatif Ya....');
+      }
+    </script>
+    <style>
+      .download-buttons {
+        display: flex;
+        gap: 15px;
+        flex-wrap: wrap;
+        margin-top: 15px;
+      }
+
+      /* Tombol umum */
+      .download-buttons a {
+        flex: 1;
+        text-align: center;
+        padding: 12px 20px;
+        border-radius: 8px;
+        font-weight: bold;
+        text-decoration: none;
+        transition: 0.3s ease;
+        cursor: pointer;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      }
+
+      /* Tombol utama (EXE) */
+      .btn-1 {
+        background: #00d9ff;
+        color: #000;
+      }
+      .btn-1:hover {
+        background: #08acd0;
+        color: #fff;
+        transform: scale(1.05);
+      }
+
+      /* Tombol ZIP (belum ada file) */
+      .btn-2 {
+        background: #ffcc00;
+        color: #000;
+      }
+      .btn-2:hover {
+        background: #d4aa00;
+        color: #fff;
+        transform: scale(1.05);
+      }
+
+      /* Tombol alternatif (Mega, GDrive, dll) */
+      .btn-3 {
+        background: #ff006a;
+        color: #fff;
+      }
+      .btn-3:hover {
+        background: #cc0055;
+        transform: scale(1.05);
+      }
+
+      /* Extension ZIP */
+      .btn-4 {
+        background: #4caf50;
+        color: #fff;
+      }
+      .btn-4:hover {
+        background: #3e8e41;
+        transform: scale(1.05);
+      }
+    </style>
+
+    <!-- Screenshots -->
+    <section>
+      <h2>🖼️ Screenshot</h2>
+      <div class="screenshots">
+        <img src="../assets/Presen.png" alt="ZeroMix Desktop" />
+        <img src="../assets/image-copy.png" alt="ZeroMix Extension" />
+      </div>
+      <p style="text-align: center">Belum Update gambar ✨</p>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+      <p>© 2025 ZeroMix Project – Dibuat dengan ❤️ oleh Sayang Ku</p>
+      <p>
+        <a href="https://github.com/faizinuha/zerosrc">GitHub</a> |
+        <a href="#">Docs</a> |
+        <!-- <button><a href="main"></a></button> -->
+        <a href="mailto:rozakadm@gmail.com">Email</a> |
+        <a href="https://saweria.co/MahiroDev">Saweria</a> |
+        <a href="https://ko-fi.com/mahiro885">Ko-Fi</a>
+      </p>
+      <div class="easter-egg">
+        🤫 Psst... kamu manis banget udah scroll sampai sini 💖
+      </div>
+    </footer>
+  </body>
 </html>
