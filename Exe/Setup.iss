@@ -8,7 +8,7 @@ AppPublisherURL=Mardve7.vercel.app
 AppCopyright=Copyright (c) 2025
 AppComments=ZeroSrc smart launcher
 DefaultDirName={pf}\ZeroSrc
-DefaultGroupName=ZeroMix  ; Nama di Start Menu
+DefaultGroupName=ZeroMix
 AllowNoIcons=yes
 OutputDir=.
 OutputBaseFilename=ZeroMix-Setup
@@ -48,7 +48,7 @@ Name: "desktopicon"; Description: "Create a &desktop shortcut"; GroupDescription
 
 ; --- Jalankan aplikasi setelah install ---
 [Run]
-Filename: "{app}\ZeroMix.exe"; Description: "Jalankan ZeroMix"; Flags: nowait postinstall skipifsilent
+Filename: "{app}\ZeroSrc.exe"; Description: "Jalankan ZeroMix"; Flags: nowait postinstall skipifsilent
 
 ; --- Bersihkan file saat uninstall ---
 [UninstallDelete]
