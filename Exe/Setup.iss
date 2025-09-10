@@ -34,7 +34,7 @@ WizardImageFile=image.bmp
 ; The Inno Setup compiler resolves relative paths from the script's folder.
 ; To avoid "Source not found" errors, copy your publish output into the Exe\publish\win-x64 folder
 ; (from project root: dotnet publish ... -o ./publish/win-x64), or adjust the path here to the correct publish location.
-; Source: "publish\\win-x64\\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "../../publish\\win-x64\\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "image.ico"; DestDir: "{app}"; Flags: ignoreversion
 
 ; --- Shortcut ---
