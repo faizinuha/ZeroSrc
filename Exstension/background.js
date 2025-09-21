@@ -3,8 +3,8 @@ chrome.commands.onCommand.addListener((command) => {
     chrome.windows.create({
       url: 'searchbar.html',
       type: 'popup',
-      width: 500,
-      height: 600, // Adjusted to fit the new UI
+      width: 540,
+      height: 640, // Adjusted to fit the new UI
       top: 150,
       left: 500,
     });
@@ -41,7 +41,8 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       return false; // No async response needed
     }
 
-    const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:streamGenerateContent?key=${apiKey}`;
+    // Updated API URL and model name
+    const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${apiKey}`;
 
     (async () => {
       try {
@@ -49,46 +50,30 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
+            // The API key is in the URL, so X-goog-api-key header is not needed here
           },
           body: JSON.stringify({
             contents: [{ parts: [{ text: prompt }] }],
           }),
         });
 
-        if (!response.ok) {
-          throw new Error(
-            `API Error: ${response.status} ${response.statusText}`
-          );
+        const data = await response.json();
+
+        if (data.error) {
+          throw new Error(data.error.message);
         }
 
-        const reader = response.body.getReader();
-        const decoder = new TextDecoder();
+        // Extract the text from the non-streaming response
+        const responseText = data.candidates?.[0]?.content?.parts?.[0]?.text;
 
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) {
-            break;
-          }
-          // Decode the chunk and process it
-          const chunk = decoder.decode(value);
-          const lines = chunk.split('\n');
-          for (const line of lines) {
-            if (line.startsWith('data: ')) {
-              try {
-                const jsonStr = line.substring(6); // Remove "data: "
-                const data = JSON.parse(jsonStr);
-                const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
-                if (text) {
-                  chrome.runtime.sendMessage({
-                    type: 'geminiResponseChunk',
-                    chunk: text,
-                  });
-                }
-              } catch (e) {
-                // Ignore parsing errors for incomplete JSON
-              }
-            }
-          }
+        if (responseText) {
+          // Send the full response as a single chunk
+          chrome.runtime.sendMessage({
+            type: 'geminiResponseChunk',
+            chunk: responseText,
+          });
+        } else {
+          throw new Error('No content received from API.');
         }
       } catch (error) {
         chrome.runtime.sendMessage({
@@ -97,6 +82,6 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         });
       }
     })();
-    return true; // Keep the message channel open for async streaming
+    return true; // Keep the message channel open for the async response
   }
 });
