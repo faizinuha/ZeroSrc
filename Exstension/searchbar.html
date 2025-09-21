@@ -20,17 +20,49 @@
     </style>
   </head>
   <body>
-    <div class="overlay">
-      <!-- <img src="image.png" class="img" alt="ZeroMix" copyright="ZeroMix" /> -->
-      <span class="logo-text"> | </span>
+    <div class="container">
+      <!-- Area untuk menampilkan respons dari AI -->
+      <div id="response-container" class="response-container">
+        <div class="placeholder-text">
+          <span class="gemini-icon">✧</span>
+          <p>-> Hai I Can Help You With Gemini...</p>
+          <p>-> Klik Tab End Keyboard To Gemini....</p>
+        </div>
+      </div>
+
+      <!-- Area input di bagian bawah -->
       <div class="search-box">
+        <div id="mode-indicator" class="mode-google">G</div>
         <input
           type="text"
           id="searchInput"
-          placeholder="Silakan ketik untuk mencari..."
+          placeholder="Cari di Google..."
           autofocus
         />
         <div class="suggestions" id="suggestions"></div>
+      </div>
+    </div>
+
+    <!-- Overlay untuk memasukkan API Key -->
+    <div id="api-key-overlay" class="api-key-overlay">
+      <div class="api-key-modal">
+        <h3>Set Gemini API Key</h3>
+        <p>
+          Dapatkan API Key Anda dari<a
+            href="https://aistudio.google.com/app/apikey"
+            target="_blank"
+            >Google AI Studio</a
+          >.
+        </p>
+        <input
+          type="password"
+          id="apiKeyInput"
+          placeholder="Masukkan API Key Anda di sini"
+        />
+        <button id="saveApiKeyButton">Simpan</button>
+        <button id="changeApiKeyButton" class="secondary-button">
+          Ganti API Key
+        </button>
       </div>
     </div>
     <script src="searchbar.js"></script>
