@@ -101,6 +101,7 @@ body {
   padding: 12px 16px;
   border-radius: var(--border-radius-medium);
   line-height: 1.6;
+  position: relative;
   font-size: 15px;
   white-space: pre-wrap;
 }
@@ -126,6 +127,27 @@ body {
   }
 }
 
+.copy-button {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--secondary-text-color);
+  color: var(--primary-text-color);
+  border-radius: 4px;
+  width: 24px;
+  height: 24px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.message-card:hover .copy-button {
+  opacity: 1;
+}
 /* --- Area Input --- */
 .search-box {
   width: 100%;
@@ -179,6 +201,25 @@ body {
   color: var(--input-text-color);
   transition: background 0.3s ease, box-shadow 0.3s ease, transform 0.3s ease;
   border: 1px solid #5f6368;
+}
+
+/* --- Stop Button --- */
+.stop-button {
+  position: absolute;
+  right: 30px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: var(--surface-color);
+  border: 1px solid var(--secondary-text-color);
+  color: var(--primary-text-color);
+  border-radius: 6px;
+  width: 28px;
+  height: 28px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding-bottom: 2px; /* Visual alignment for the square */
 }
 
 /* --- Mode Indicator --- */

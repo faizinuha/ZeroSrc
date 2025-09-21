@@ -6,6 +6,7 @@ const apiKeyOverlay = document.getElementById('api-key-overlay');
 const apiKeyInput = document.getElementById('apiKeyInput');
 const saveApiKeyButton = document.getElementById('saveApiKeyButton');
 const changeApiKeyButton = document.getElementById('changeApiKeyButton');
+const stopGenerationButton = document.getElementById('stop-generation-button');
 
 let currentMode = 'google'; // 'google' atau 'gemini'
 
@@ -43,14 +44,13 @@ async function performSearch(query, mode) {
     // Tampilkan prompt pengguna
     appendChatMessage(query, 'user');
 
-    // Tampilkan indikator loading
-    currentGeminiMessageCard = appendChatMessage('', 'gemini');
-    currentGeminiMessageCard.classList.add('loading');
+    stopGenerationButton.style.display = 'flex'; // Show stop button
     // Kirim prompt ke background script untuk diproses oleh AI
     chrome.runtime.sendMessage({
       type: 'promptGemini',
       prompt: query,
       apiKey: result.geminiApiKey,
+      // We will add abort signal later
     });
     input.value = ''; // Kosongkan input setelah mengirim
   } else {
@@ -89,6 +89,10 @@ apiKeyOverlay.addEventListener('click', (e) => {
   }
 });
 
+stopGenerationButton.addEventListener('click', () => {
+  // Logic to stop generation will be added here. For now, it just hides.
+  stopGenerationButton.style.display = 'none';
+});
 let currentGeminiMessageCard = null;
 
 // Listener untuk menerima respons streaming dari background script
@@ -97,13 +101,18 @@ chrome.runtime.onMessage.addListener((message) => {
     if (!currentGeminiMessageCard) {
       currentGeminiMessageCard = appendChatMessage('', 'gemini');
     }
-    // Hapus loading indicator saat chunk pertama datang
-    currentGeminiMessageCard.classList.remove('loading');
     currentGeminiMessageCard.textContent += message.chunk;
     responseContainer.scrollTop = responseContainer.scrollHeight; // Auto-scroll
   } else if (message.type === 'geminiResponseError') {
-    currentGeminiMessageCard.classList.remove('loading');
-    currentGeminiMessageCard.textContent = `Error: ${message.error}\n\nPastikan API Key Anda benar. Klik Tab lalu Enter untuk mengatur ulang.`;
+    if (!currentGeminiMessageCard) {
+      // This handles the case where an error occurs before any chunk is received.
+      // Create the card only when the error is received.
+      currentGeminiMessageCard = appendChatMessage(
+        `Error: ${message.error}\n\nPastikan API Key Anda benar. Klik Tab lalu Enter untuk mengatur ulang.`,
+        'gemini'
+      );
+    }
+    stopGenerationButton.style.display = 'none';
   } else if (message.type === 'promptGemini') {
     // Reset card saat prompt baru dikirim
     currentGeminiMessageCard = null;
@@ -129,6 +138,22 @@ function appendChatMessage(text, role) {
   messageWrapper.appendChild(icon);
   messageWrapper.appendChild(messageCard);
   responseContainer.appendChild(messageWrapper);
+
+  // Add copy button only for Gemini messages
+  if (role === 'gemini') {
+    const copyButton = document.createElement('button');
+    copyButton.className = 'copy-button';
+    copyButton.textContent = '📋'; // Clipboard emoji
+    copyButton.onclick = () => {
+      navigator.clipboard.writeText(messageCard.textContent).then(() => {
+        copyButton.textContent = '✅'; // Checkmark on success
+        setTimeout(() => {
+          copyButton.textContent = '📋'; // Revert back
+        }, 1500);
+      });
+    };
+    messageCard.appendChild(copyButton);
+  }
 
   responseContainer.scrollTop = responseContainer.scrollHeight;
   return messageCard; // Kembalikan elemen card agar bisa diupdate
