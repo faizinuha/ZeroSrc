@@ -12,6 +12,7 @@ using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Media.Animation;
 
+using System.Net.Http;
 namespace ZeroSrc
 {
     public enum NotificationType
@@ -20,7 +21,7 @@ namespace ZeroSrc
         Warning,
         Error
     }
-     public class StringToVisibilityConverter : IValueConverter
+    public class StringToVisibilityConverter : IValueConverter
     {
         // Singleton biar bisa dipanggil lewat XAML: local:StringToVisibilityConverter.Instance
         public static readonly StringToVisibilityConverter Instance = new StringToVisibilityConverter();
@@ -100,55 +101,83 @@ namespace ZeroSrc
         }
 
         private bool _isSelectingSuggestion = false;
+        private static readonly HttpClient _httpClient = new HttpClient();
 
-        private void SearchBox_TextChanged(object sender, TextChangedEventArgs e)
-        {
-            if (_isSelectingSuggestion) return;
-
-            var searchBox = sender as TextBox;
-            string query = searchBox?.Text ?? "";
-            var suggestionList = this.FindName("SuggestionList") as ListBox;
-
-            if (string.IsNullOrWhiteSpace(query))
-            {
-                suggestionList!.ItemsSource = null;
-                suggestionList.Visibility = Visibility.Collapsed;
-                return;
-            }
-
-            // cari semua suggestion yang cocok
-            var filtered = _allSuggestions
-                .Where(s => s.StartsWith(query, StringComparison.OrdinalIgnoreCase))
-                .ToList();
-
-            // Tambahkan opsi search Google
-            filtered.Add($"Search Google for \"{query}\"");
-
-            if (filtered.Count > 0)
-            {
-                // --- 1. Inline suggestion ---
-                string best = filtered[0];
-                if (best.Length > query.Length && !best.StartsWith("Search Google"))
+                private async void SearchBox_TextChanged(object sender, TextChangedEventArgs e)
                 {
-                    _isSelectingSuggestion = true;
-
-                    searchBox!.Text = best;
-                    searchBox.SelectionStart = query.Length;
-                    searchBox.SelectionLength = best.Length - query.Length;
-
-                    _isSelectingSuggestion = false;
+                    if (_isSelectingSuggestion) return;
+        
+                    var searchBox = sender as TextBox;
+                    string query = searchBox?.Text ?? "";
+                    var suggestionList = this.FindName("SuggestionList") as ListBox;
+        
+                    if (string.IsNullOrWhiteSpace(query))
+                    {
+                        suggestionList!.ItemsSource = null;
+                        suggestionList.Visibility = Visibility.Collapsed;
+                        return;
+                    }
+        
+                    // Ambil saran dari Google
+                    var googleSuggestions = await GetGoogleSuggestionsAsync(query);
+        
+                    // Gabungkan dengan saran lokal
+                    var combinedSuggestions = _allSuggestions
+                        .Where(s => s.StartsWith(query, StringComparison.OrdinalIgnoreCase))
+                        .ToList();
+                    
+                    combinedSuggestions.AddRange(googleSuggestions);
+        
+                    // Tambahkan opsi search Google
+                    combinedSuggestions.Add($"Search Google for \"{query}\"");
+        
+                    if (combinedSuggestions.Count > 0)
+                    {
+                        // --- Dropdown suggestion ---
+                        suggestionList!.ItemsSource = combinedSuggestions.Distinct().ToList();
+                        suggestionList.Visibility = Visibility.Visible;
+                    }
+                    else
+                    {
+                        suggestionList!.ItemsSource = null;
+                        suggestionList.Visibility = Visibility.Collapsed;
+                    }
                 }
+        private async Task<List<string>> GetGoogleSuggestionsAsync(string query)
+        {
+            var suggestions = new List<string>();
+            if (string.IsNullOrWhiteSpace(query))
+                return suggestions;
 
-                // --- 2. Dropdown suggestion ---
-                suggestionList!.ItemsSource = filtered.Skip(1).ToList();
-                suggestionList.Visibility = Visibility.Visible;
-            }
-            else
+            try
             {
-                suggestionList!.ItemsSource = null;
-                suggestionList.Visibility = Visibility.Collapsed;
+                var url = $"https://suggestqueries.google.com/complete/search?client=firefox&q={Uri.EscapeDataString(query)}";
+                var response = await _httpClient.GetAsync(url);
+                response.EnsureSuccessStatusCode();
+                var content = await response.Content.ReadAsStringAsync();
+
+                using (var jsonDoc = System.Text.Json.JsonDocument.Parse(content))
+                {
+                    var root = jsonDoc.RootElement;
+                    if (root.GetArrayLength() > 1)
+                    {
+                        var suggestionsArray = root[1];
+                        foreach (var suggestion in suggestionsArray.EnumerateArray())
+                        {
+                            suggestions.Add(suggestion.GetString());
+                        }
+                    }
+                }
             }
+            catch (Exception ex)
+            {
+                // Bisa ditambahkan logging atau notifikasi jika perlu
+                Debug.WriteLine($"Failed to get Google suggestions: {ex.Message}");
+            }
+
+            return suggestions;
         }
+
 
 
 
