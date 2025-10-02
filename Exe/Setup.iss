@@ -65,3 +65,12 @@ Filename: "cmd.exe"; Parameters: "/C echo Terima kasih telah menggunakan Google 
 WelcomeLabel1=Selamat datang di penginstal ZeroMix!
 WelcomeLabel2=Aplikasi pintar untuk membuka web dan aplikasi desktop dengan cepat.
 FinishedLabel=ZeroMix berhasil diinstal. Kamu bisa menjalankannya dari desktop atau Start Menu.
+
+[Code]
+procedure CurStepChanged(CurStep: TSetupStep);
+begin
+  if CurStep = ssDone then
+  begin
+    MsgBox('Terima kasih sudah menginstall ZeroSrc!' + #13#10 + 'Dukungan Anda sangat berarti bagi kami.', mbInformation, MB_OK);
+  end;
+end;
