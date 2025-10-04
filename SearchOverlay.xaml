@@ -205,7 +205,9 @@
 
     <Grid>
         <Border CornerRadius="18"
-                Background="#F2F2F7" Effect="{StaticResource MacShadow}"
+                Background="#B3FFFFFF"
+                BorderBrush="#20000000"
+                BorderThickness="1" Effect="{StaticResource MacShadow}"
                 Margin="8">
             <Grid>
                 <Grid.RowDefinitions>
