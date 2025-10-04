@@ -7,6 +7,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.ComponentModel;
+using System.Runtime.InteropServices;
 using System.Windows;
 using System.Threading.Tasks;
 using System.Windows.Controls;
@@ -97,6 +98,51 @@ namespace ZeroSrc
             LoadAllSuggestions();
         }
 
+        #region Window Blur Effect
+        [DllImport("user32.dll")]
+        internal static extern int SetWindowCompositionAttribute(IntPtr hwnd, ref WindowCompositionAttributeData data);
+
+        [StructLayout(LayoutKind.Sequential)]
+        internal struct WindowCompositionAttributeData
+        {
+            public WindowCompositionAttribute Attribute;
+            public IntPtr Data;
+            public int SizeOfData;
+        }
+
+        internal enum WindowCompositionAttribute
+        {
+            WCA_ACCENT_POLICY = 19
+        }
+
+        internal enum AccentState
+        {
+            ACCENT_DISABLED = 0,
+            ACCENT_ENABLE_BLURBEHIND = 3, // Efek blur standar
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        internal struct AccentPolicy
+        {
+            public AccentState AccentState;
+            public int AccentFlags;
+            public int GradientColor;
+            public int AnimationId;
+        }
+
+        internal void EnableBlur()
+        {
+            var windowHelper = new System.Windows.Interop.WindowInteropHelper(this);
+            var accent = new AccentPolicy { AccentState = AccentState.ACCENT_ENABLE_BLURBEHIND };
+            var accentStructSize = Marshal.SizeOf(accent);
+            var accentPtr = Marshal.AllocHGlobal(accentStructSize);
+            Marshal.StructureToPtr(accent, accentPtr, false);
+            var data = new WindowCompositionAttributeData { Attribute = WindowCompositionAttribute.WCA_ACCENT_POLICY, SizeOfData = accentStructSize, Data = accentPtr };
+            SetWindowCompositionAttribute(windowHelper.Handle, ref data);
+            Marshal.FreeHGlobal(accentPtr);
+        }
+        #endregion
+
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
             // Position window like macOS Spotlight (center-top)
@@ -104,6 +150,9 @@ namespace ZeroSrc
             var screenHeight = SystemParameters.PrimaryScreenHeight;
             this.Left = (screenWidth - this.Width) / 2;
             this.Top = screenHeight * 0.2; // 20% from the top
+
+            // Aktifkan efek blur saat window dimuat
+            EnableBlur();
 
             var searchBox = this.FindName("SearchBox") as System.Windows.Controls.TextBox;
             searchBox?.Focus();

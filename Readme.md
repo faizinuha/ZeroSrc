@@ -49,6 +49,7 @@ Penasaran dengan fitur barunya? **Tonton video demo di sini!** (Link akan diperb
 - **Peningkatan UI/UX:**
   - Menambahkan ikon untuk membedakan antara Aplikasi Desktop (💻) dan Pencarian Web (🔍).
   - Mengelompokkan hasil pencarian ke dalam kategori "Aplikasi Desktop" dan "Pencarian Web" agar lebih rapi.
+  - **Tampilan Jendela Modern**: Mengadopsi efek *blur* (frosted glass) dan bingkai halus ala macOS untuk tampilan yang lebih elegan dan profesional.
 - **Perbaikan Logika Pencarian:**
   - Memperbaiki bug di mana menekan `Enter` langsung mencari di web. Sekarang, `Enter` akan memprioritaskan saran yang ada di daftar.
   - Menghilangkan bug "auto-enter" yang langsung menjalankan perintah saat memilih saran dengan tombol panah.
