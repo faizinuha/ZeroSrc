@@ -6,20 +6,63 @@ using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.ComponentModel;
 using System.Windows;
+using System.Threading.Tasks;
 using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Media.Animation;
 
 using System.Net.Http;
+using System.Text.Json;
 namespace ZeroSrc
 {
+    public enum SuggestionType
+    {
+        App,
+        WebSearch
+    }
+
+    public class SuggestionItem
+    {
+        public string DisplayText { get; }
+        public string FilePath { get; }
+        public SuggestionType Type { get; }
+        public string Icon { get; } // Ikon dari font Segoe MDL2 Assets
+
+        public SuggestionItem(string displayText, string? filePath, SuggestionType type)
+        {
+            DisplayText = displayText;
+            FilePath = filePath ?? "";
+            Type = type;
+            // Tetapkan ikon berdasarkan tipe
+            Icon = Type == SuggestionType.App ? "\uE770" : "\uE773"; // E770: App, E773: Web
+        }
+    }
+
     public enum NotificationType
     {
         Info,
         Warning,
         Error
+    }
+
+    public class SuggestionTypeToStringConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            if (value is SuggestionType type)
+            {
+                return type == SuggestionType.App ? "Aplikasi Desktop" : "Pencarian Web";
+            }
+            return string.Empty;
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            throw new NotImplementedException();
+        }
     }
     public class StringToVisibilityConverter : IValueConverter
     {
@@ -41,10 +84,8 @@ namespace ZeroSrc
     public partial class SearchOverlay : Window
     {
         private bool _isClosing = false;
-        private readonly Dictionary<string, string> _appShortcuts;
-        private readonly List<string> _suggestions = new();
         private readonly TextBlock _notificationText;
-        private readonly List<string> _allSuggestions = new();
+        private readonly List<SuggestionItem> _allSuggestions = new();
         private readonly List<string> _filteredSuggestions = new();
 
         public SearchOverlay()
@@ -52,20 +93,25 @@ namespace ZeroSrc
             InitializeComponent();
             _notificationText = (TextBlock)this.FindName("NotificationText");
 
-            WindowStartupLocation = WindowStartupLocation.CenterScreen;
-            _appShortcuts = GetStartMenuShortcuts();
-
-            // Semua suggestion asli (tetap ada di sini)
-            _allSuggestions.AddRange(new[] {
-                "https://www.google.com/search?q={Uri.EscapeDataString(query)}"
-            });
-            _allSuggestions.AddRange(_appShortcuts.Keys);
+            // Load all suggestions on startup
+            LoadAllSuggestions();
         }
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
+            // Position window like macOS Spotlight (center-top)
+            var screenWidth = SystemParameters.PrimaryScreenWidth;
+            var screenHeight = SystemParameters.PrimaryScreenHeight;
+            this.Left = (screenWidth - this.Width) / 2;
+            this.Top = screenHeight * 0.2; // 20% from the top
+
             var searchBox = this.FindName("SearchBox") as System.Windows.Controls.TextBox;
             searchBox?.Focus();
+
+            // Ensure the list is collapsed on load
+            SuggestionList.Visibility = Visibility.Collapsed;
+
+            // Start fade-in animation
             var fadeIn = (Storyboard)FindResource("FadeInStoryboard");
             fadeIn.Begin(this);
         }
@@ -118,23 +164,29 @@ namespace ZeroSrc
                         return;
                     }
         
-                    // Ambil saran dari Google
-                    var googleSuggestions = await GetGoogleSuggestionsAsync(query);
-        
-                    // Gabungkan dengan saran lokal
-                    var combinedSuggestions = _allSuggestions
-                        .Where(s => s.StartsWith(query, StringComparison.OrdinalIgnoreCase))
+                    // Filter local suggestions (apps)
+                    var localSuggestions = _allSuggestions
+                        .Where(s => s.DisplayText.StartsWith(query, StringComparison.OrdinalIgnoreCase))
                         .ToList();
                     
-                    combinedSuggestions.AddRange(googleSuggestions);
+                    // Get suggestions from Google
+                    var googleSuggestions = await GetGoogleSuggestionsAsync(query);
+                    var webSuggestions = googleSuggestions
+                        .Select(s => new SuggestionItem(s, null, SuggestionType.WebSearch))
+                        .ToList();
+
+                    var combined = localSuggestions.Concat(webSuggestions).ToList();
         
-                    // Tambahkan opsi search Google
-                    combinedSuggestions.Add($"Search Google for \"{query}\"");
+                    // Add a specific option to search on Google
+                    combined.Add(new SuggestionItem($"Search Google for \"{query}\"", query, SuggestionType.WebSearch));
         
-                    if (combinedSuggestions.Count > 0)
+                    if (combined.Count > 0)
                     {
                         // --- Dropdown suggestion ---
-                        suggestionList!.ItemsSource = combinedSuggestions.Distinct().ToList();
+                        // Gunakan CollectionViewSource untuk grouping
+                        var collectionView = new ListCollectionView(combined);
+                        collectionView.GroupDescriptions.Add(new PropertyGroupDescription("Type"));
+                        suggestionList!.ItemsSource = collectionView;
                         suggestionList.Visibility = Visibility.Visible;
                     }
                     else
@@ -156,7 +208,7 @@ namespace ZeroSrc
                 response.EnsureSuccessStatusCode();
                 var content = await response.Content.ReadAsStringAsync();
 
-                using (var jsonDoc = System.Text.Json.JsonDocument.Parse(content))
+                using (var jsonDoc = JsonDocument.Parse(content))
                 {
                     var root = jsonDoc.RootElement;
                     if (root.GetArrayLength() > 1)
@@ -164,7 +216,9 @@ namespace ZeroSrc
                         var suggestionsArray = root[1];
                         foreach (var suggestion in suggestionsArray.EnumerateArray())
                         {
-                            suggestions.Add(suggestion.GetString());
+                            string? sug = suggestion.GetString();
+                            if (sug != null)
+                                suggestions.Add(sug);
                         }
                     }
                 }
@@ -181,98 +235,35 @@ namespace ZeroSrc
 
 
 
-        private void SuggestionList_SelectionChanged(object sender, SelectionChangedEventArgs? e)
+        private void SuggestionList_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            var lb = sender as ListBox;
-            var searchBox = this.FindName("SearchBox") as TextBox;
-
-            if (lb?.SelectedItem is string selected)
-            {
-                if (selected.StartsWith("Search Google for"))
-                {
-                    string query = searchBox?.Text ?? "";
-                    ExecuteWebSearch(query);
-                    BeginFadeOutAndClose();
-                    return;
-                }
-
-                _isSelectingSuggestion = true; // lock biar TextChanged nggak jalan
-                searchBox!.Text = selected;
-                searchBox.CaretIndex = selected.Length;
-                _isSelectingSuggestion = false;
-
-                lb.Visibility = Visibility.Collapsed;
-            }
+            // Event ini sengaja dikosongkan untuk mencegah eksekusi otomatis
+            // saat pengguna hanya menavigasi daftar saran dengan tombol panah.
+            // Eksekusi hanya akan terjadi pada Enter atau DoubleClick.
         }
 
 
         private void SuggestionList_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
         {
-            SuggestionList_SelectionChanged(sender, null);
+            // Dihapus untuk mencegah eksekusi otomatis pada satu kali klik.
+            // Klik ganda sudah ditangani oleh SuggestionList_MouseDoubleClick.
         }
-
-        // private void SuggestionList_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        // {
-        //     var suggestionList = sender as ListBox;
-        //     var searchBox = this.FindName("SearchBox") as TextBox;
-        //     if (suggestionList?.SelectedItem is string selectedItem && searchBox != null)
-        //     {
-        //         searchBox.Text = selectedItem;
-        //         searchBox.CaretIndex = selectedItem.Length;
-
-        //         // Jika suggestion berasal dari env operations, tangani khusus
-        //         switch (selectedItem.ToLower())
-        //         {
-        //             case "task manager":
-        //                 Process.Start(new ProcessStartInfo("taskmgr") { UseShellExecute = true });
-        //                 BeginFadeOutAndClose();
-        //                 return;
-        //             case "settings":
-        //                 Process.Start(new ProcessStartInfo("ms-settings:") { UseShellExecute = true });
-        //                 BeginFadeOutAndClose();
-        //                 return;
-        //             case "control panel":
-        //                 Process.Start(new ProcessStartInfo("control") { UseShellExecute = true });
-        //                 BeginFadeOutAndClose();
-        //                 return;
-        //             case "device manager":
-        //                 Process.Start(new ProcessStartInfo("devmgmt.msc") { UseShellExecute = true });
-        //                 BeginFadeOutAndClose();
-        //                 return;
-        //             case "file explorer":
-        //                 Process.Start(new ProcessStartInfo(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile)) { UseShellExecute = true });
-        //                 BeginFadeOutAndClose();
-        //                 return;
-        //             default:
-        //                 ExecuteCommand(selectedItem);
-        //                 return;
-        //         }
-        //     }
-        // }
 
         private void SuggestionList_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
-            var lb = sender as ListBox;
-            if (lb?.SelectedItem is string s)
-            {
-                // reuse existing selection logic
-                SuggestionList_SelectionChanged(lb, new SelectionChangedEventArgs(ListBox.SelectionChangedEvent, new List<string>(), new List<string>()));
-            }
+            HandleSuggestionSelection((sender as ListBox)?.SelectedItem as SuggestionItem);
         }
 
         private void SuggestionList_KeyDown(object sender, KeyEventArgs e)
         {
             var lb = sender as ListBox;
-            var searchBox = this.FindName("SearchBox") as TextBox;
-
-            if (e.Key == Key.Enter && lb?.SelectedItem is string s)
+            if (e.Key == Key.Enter && lb?.SelectedItem is SuggestionItem selectedItem)
             {
-                SuggestionList_SelectionChanged(
-                    lb,
-                    new SelectionChangedEventArgs(ListBox.SelectionChangedEvent, new List<string>(), new List<string>())
-                );
+                HandleSuggestionSelection(selectedItem);
+                e.Handled = true; // Mencegah event ini diproses lebih lanjut
             }
-            else if (e.Key == Key.Up)
+            var searchBox = this.FindName("SearchBox") as TextBox;
+            if (e.Key == Key.Up)
             {
                 if (lb?.SelectedIndex == 0 && searchBox != null)
                 {
@@ -281,64 +272,50 @@ namespace ZeroSrc
             }
         }
 
+        private void HandleSuggestionSelection(SuggestionItem? selectedItem)
+        {
+            if (selectedItem == null) return;
+
+            if (selectedItem.Type == SuggestionType.App)
+            {
+                // Langsung jalankan aplikasi
+                ExecuteCommand(selectedItem.DisplayText);
+            }
+            else if (selectedItem.Type == SuggestionType.WebSearch)
+            {
+                // Jika ini adalah item "Search Google for...", gunakan query aslinya.
+                // Jika tidak, gunakan DisplayText.
+                string queryToSearch = selectedItem.DisplayText.StartsWith("Search Google for")
+                    ? selectedItem.FilePath
+                    : selectedItem.DisplayText;
+
+                ExecuteWebSearch(queryToSearch);
+                BeginFadeOutAndClose();
+            }
+        }
+
 
         private void ExecuteCommand(string query)
         {
             if (string.IsNullOrEmpty(query)) return;
+
             try
             {
-                // Perintah khusus
-                if (query == "desktop shortcuts" || query == "open desktop shortcuts" || query == "buka semua shortcut")
-                {
-                    OpenAllDesktopShortcuts();
-                    ShowNotification("Semua shortcut desktop dibuka.", NotificationType.Info);
-                    return;
-                }
+                // Find a matching app from suggestions
+                var appToLaunch = _allSuggestions.FirstOrDefault(
+                    s => s.Type == SuggestionType.App &&
+                         s.DisplayText.Equals(query, StringComparison.OrdinalIgnoreCase));
 
-                if (query == "all apps" || query == "installed apps" || query == "installed")
+                if (appToLaunch != null)
                 {
-                    var suggestionList = this.FindName("SuggestionList") as ListBox;
-                    if (suggestionList != null)
-                    {
-                        var items = _appShortcuts.Keys.OrderBy(k => k).ToList();
-                        suggestionList.ItemsSource = items;
-                        suggestionList.Visibility = Visibility.Visible;
-                    }
-                    return; // jangan tutup overlay
-                }
-
-                // Jika shortcut ditemukan, buka
-                if (_appShortcuts.TryGetValue(query.ToLower(), out var shortcutPath) && !string.IsNullOrEmpty(shortcutPath))
-                {
-                    Process.Start(new ProcessStartInfo(shortcutPath) { UseShellExecute = true });
-                    ShowNotification($"Membuka: {query}", NotificationType.Info);
+                    Process.Start(new ProcessStartInfo(appToLaunch.FilePath) { UseShellExecute = true });
                     BeginFadeOutAndClose();
                     return;
                 }
 
-                // Perintah environment / operations
-                if (query == "env" || query == "environment" || query == "operations")
-                {
-                    // Tampilkan daftar aksi yang bisa dijalankan
-                    var suggestionList = this.FindName("SuggestionList") as ListBox;
-                    var ops = new List<string> { "Task Manager", "Settings", "Control Panel", "Device Manager", "File Explorer" };
-                    if (suggestionList != null)
-                    {
-                        suggestionList.ItemsSource = ops;
-                        suggestionList.Visibility = Visibility.Visible;
-                    }
-                    return;
-                }
-
-                // Jika belum ditemukan, jangan auto-buka browser.
-                ShowNotification("Tidak ditemukan shortcut. Tekan Ctrl+Enter untuk mencari di web atau pilih suggestion.", NotificationType.Warning);
-                var suggestion = this.FindName("SuggestionList") as ListBox;
-                if (suggestion != null)
-                {
-                    var items = _suggestions.Where(s => s.Contains(query)).Take(10).ToList();
-                    suggestion.ItemsSource = items;
-                    suggestion.Visibility = items.Any() ? Visibility.Visible : Visibility.Collapsed;
-                }
+                // If no app matches, perform a web search as a fallback
+                ExecuteWebSearch(query);
+                BeginFadeOutAndClose();
             }
             catch (Exception ex)
             {
@@ -349,21 +326,29 @@ namespace ZeroSrc
         private void SearchBox_KeyDown(object sender, KeyEventArgs e)
         {
             var searchBox = sender as TextBox;
+            var suggestionList = this.FindName("SuggestionList") as ListBox;
+
             if (e.Key == Key.Enter)
             {
                 string query = searchBox?.Text.Trim() ?? string.Empty;
                 if (!string.IsNullOrEmpty(query))
                 {
-                    // Jika Ctrl+Enter -> cari di web
-                    if ((Keyboard.Modifiers & ModifierKeys.Control) == ModifierKeys.Control)
+                    SuggestionItem? itemToExecute = null;
+
+                    // Prioritas 1: Item yang sedang dipilih di ListBox
+                    if (suggestionList?.Visibility == Visibility.Visible && suggestionList.SelectedItem != null)
                     {
-                        ExecuteWebSearch(query);
-                        BeginFadeOutAndClose();
-                        e.Handled = true;
-                        return;
+                        itemToExecute = suggestionList.SelectedItem as SuggestionItem;
+                    }
+                    // Prioritas 2: Jika tidak ada yang dipilih, ambil item pertama dari daftar
+                    else if (suggestionList?.Visibility == Visibility.Visible && suggestionList.HasItems)
+                    {
+                        itemToExecute = (suggestionList.ItemsSource as ICollectionView)?.Cast<object>().FirstOrDefault() as SuggestionItem;
                     }
 
-                    ExecuteCommand(query.ToLower());
+                    // Jika ada item dari saran, eksekusi. Jika tidak, jalankan perintah seperti biasa (fallback ke web search).
+                    if (itemToExecute != null) HandleSuggestionSelection(itemToExecute);
+                    else ExecuteCommand(query);
                 }
             }
             else if (e.Key == Key.Escape)
@@ -372,7 +357,7 @@ namespace ZeroSrc
             }
             else if (e.Key == Key.Down)
             {
-                var suggestionList = this.FindName("SuggestionList") as ListBox;
+                // var suggestionList is already defined in this scope
                 if (suggestionList?.HasItems == true)
                 {
                     suggestionList.SelectedIndex = 0;
@@ -438,29 +423,27 @@ namespace ZeroSrc
             ShowNotification($"Mencoba membuka {shortcutFiles.Length} shortcut.", NotificationType.Info);
         }
 
-        private Dictionary<string, string> GetStartMenuShortcuts()
+        private void LoadAllSuggestions()
         {
-            var shortcuts = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+            _allSuggestions.Clear();
+            var shortcutPaths = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+
             string[] startMenuPaths = new[]
             {
                 Environment.GetFolderPath(Environment.SpecialFolder.CommonStartMenu),
                 Environment.GetFolderPath(Environment.SpecialFolder.StartMenu)
             };
 
-            foreach (string basePath in startMenuPaths)
+            var allLnkFiles = startMenuPaths
+                .Where(Directory.Exists)
+                .SelectMany(path => Directory.GetFiles(path, "*.lnk", SearchOption.AllDirectories));
+
+            foreach (var file in allLnkFiles)
             {
-                if (Directory.Exists(basePath))
-                {
-                    var files = Directory.GetFiles(basePath, "*.lnk", SearchOption.AllDirectories);
-                    foreach (var file in files)
-                    {
-                        string name = Path.GetFileNameWithoutExtension(file);
-                        if (!shortcuts.ContainsKey(name.ToLower()))
-                            shortcuts.Add(name.ToLower(), file);
-                    }
-                }
+                string name = Path.GetFileNameWithoutExtension(file);
+                if (!string.IsNullOrEmpty(name) && !shortcutPaths.ContainsKey(name))
+                    _allSuggestions.Add(new SuggestionItem(name, file, SuggestionType.App));
             }
-            return shortcuts;
         }
 
         public void BeginFadeOutAndCloseByMain()

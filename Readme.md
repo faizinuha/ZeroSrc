@@ -2,25 +2,16 @@
 
 Selamat datang di **ZeroSrc**! Panduan ini akan membantu Anda menginstal, menggunakan, dan menghapus aplikasi ZeroSrc dengan mudah.
 
-## 🚀 Fitur Terbaru
+## 🚀 Fitur Terbaru (v1.6.0)
 
-- **🔍 Smart Launcher Otomatis**  
-  Ketik nama aplikasi (misal: `notepad`, `vscode`, `youtube`) dan ZeroMix langsung membukanya tanpa konfigurasi tambahan.
+ZeroSrc kini lebih cerdas dan intuitif! Kami telah merombak sistem pencarian untuk memberikan pengalaman yang lebih mulus.
 
-- **🖥️ Deteksi Aplikasi Desktop Otomatis**  
-  ZeroMix otomatis mendeteksi semua aplikasi dari Start Menu Anda.
+- **Pencarian Terintegrasi**: Cari aplikasi lokal dan web secara bersamaan dalam satu tempat.
+- **UI yang Informatif**: Hasil pencarian kini dikelompokkan berdasarkan kategori ("Aplikasi Desktop" & "Pencarian Web") dan dilengkapi ikon untuk identifikasi cepat.
+- **Logika `Enter` yang Cerdas**: Tekan `Enter` untuk langsung memilih saran teratas, membuat alur kerja Anda lebih cepat.
+- **Perbaikan Stabilitas**: Menghilangkan berbagai bug untuk pengalaman yang lebih lancar.
 
-- **💻 Shortcut Desktop Otomatis**  
-  Ketik `desktop shortcuts` untuk membuka semua shortcut aplikasi di desktop.
-
----
-
-## 📥 Cara Instalasi
-
-1. **Unduh** ZeroSrc dari [sumber resmi](https://github.com/faizinuha/ZeroSrc/Release).
-2. **Ekstrak** file ZIP ke folder tujuan.
-3. **Jalankan** `ZeroSrc.exe` dengan klik dua kali.
-4. Ikuti instruksi di layar untuk mulai menggunakan fitur ZeroSrc.
+Penasaran dengan fitur barunya? **Tonton video demo di sini!** (Link akan diperbarui)
 
 ---
 
@@ -53,19 +44,27 @@ Selamat datang di **ZeroSrc**! Panduan ini akan membantu Anda menginstal, menggu
 
 ---
 
-### versi 1.6.0
+### Versi 1.6.0
 
-- ???
+- **Peningkatan UI/UX:**
+  - Menambahkan ikon untuk membedakan antara Aplikasi Desktop (💻) dan Pencarian Web (🔍).
+  - Mengelompokkan hasil pencarian ke dalam kategori "Aplikasi Desktop" dan "Pencarian Web" agar lebih rapi.
+- **Perbaikan Logika Pencarian:**
+  - Memperbaiki bug di mana menekan `Enter` langsung mencari di web. Sekarang, `Enter` akan memprioritaskan saran yang ada di daftar.
+  - Menghilangkan bug "auto-enter" yang langsung menjalankan perintah saat memilih saran dengan tombol panah.
+- **Peningkatan Stabilitas:** Berbagai perbaikan kecil untuk meningkatkan stabilitas dan pengalaman pengguna secara keseluruhan.
 
 ---
 
-### versi 1.6.1 - 1.6.5
+### Versi 1.6.1 - 1.6.5 (Rencana Selanjutnya)
 
-- ???
+- **Prioritas Saran Cerdas:** Mengimplementasikan sistem untuk menampilkan aplikasi yang paling sering digunakan di urutan teratas.
+- **Kustomisasi Tampilan:** Menambahkan opsi untuk mengubah urutan kategori (misalnya, Pencarian Web di atas Aplikasi Desktop).
+- **Optimasi Performa:** Peningkatan kecepatan dalam memuat dan menampilkan daftar aplikasi, terutama untuk pengguna dengan banyak program terinstal.
 
 ---
 
-### versi 1.7.0
+### Versi 1.7.0
 
 - ???
 
