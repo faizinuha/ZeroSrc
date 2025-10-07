@@ -69,9 +69,12 @@ FinishedLabel=ZeroMix berhasil diinstal. Kamu bisa menjalankannya dari desktop a
 
 [Code]
 procedure CurStepChanged(CurStep: TSetupStep);
+var
+  ErrorCode: Integer;
 begin
   if CurStep = ssDone then
   begin
     MsgBox('Terima kasih sudah menginstall ZeroMix!' + #13#10 + 'Dukungan Anda sangat berarti bagi kami.', mbInformation, MB_OK);
+    ShellExec('open', 'https://zeromix.pages.dev/', '', '', SW_SHOWNORMAL, ewNoWait, ErrorCode);
   end;
 end;
