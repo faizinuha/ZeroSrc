@@ -1,7 +1,7 @@
 ; --- Informasi Aplikasi ---
 [Setup]
 AppName=ZeroMix
-AppVersion=1.5.5
+AppVersion=1.6.0
 AppVerName=ZeroMix
 AppPublisher=faizinuha
 AppPublisherURL=Mardve7.vercel.app
@@ -34,7 +34,7 @@ WizardImageFile=image.bmp
 ; The Inno Setup compiler resolves relative paths from the script's folder.
 ; To avoid "Source not found" errors, copy your publish output into the Exe\publish\win-x64 folder
 ; (from project root: dotnet publish ... -o ./publish/win-x64), or adjust the path here to the correct publish location.
-Source: "../../publish\\win-x64\\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "../publish\\win-x64\\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "image.ico"; DestDir: "{app}"; Flags: ignoreversion
 
 ; --- Shortcut ---
@@ -71,6 +71,6 @@ procedure CurStepChanged(CurStep: TSetupStep);
 begin
   if CurStep = ssDone then
   begin
-    MsgBox('Terima kasih sudah menginstall ZeroSrc!' + #13#10 + 'Dukungan Anda sangat berarti bagi kami.', mbInformation, MB_OK);
+    MsgBox('Terima kasih sudah menginstall ZeroMix!' + #13#10 + 'Dukungan Anda sangat berarti bagi kami.', mbInformation, MB_OK);
   end;
 end;
