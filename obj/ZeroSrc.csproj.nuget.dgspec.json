@@ -43,6 +43,12 @@
       "frameworks": {
         "net9.0-windows7.0": {
           "targetAlias": "net9.0-windows",
+          "dependencies": {
+            "MegaApiClient": {
+              "target": "Package",
+              "version": "[1.10.5, )"
+            }
+          },
           "imports": [
             "net461",
             "net462",

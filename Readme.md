@@ -57,11 +57,14 @@ Penasaran dengan fitur barunya? **Tonton video demo di sini!** (Link akan diperb
 
 ---
 
-### Versi 1.6.1 - 1.6.5 (Rencana Selanjutnya)
+### Versi 1.6.0 - 1.6.5 (Rencana Selanjutnya)
 
 - **Prioritas Saran Cerdas:** Mengimplementasikan sistem untuk menampilkan aplikasi yang paling sering digunakan di urutan teratas.
 - **Kustomisasi Tampilan:** Menambahkan opsi untuk mengubah urutan kategori (misalnya, Pencarian Web di atas Aplikasi Desktop).
 - **Optimasi Performa:** Peningkatan kecepatan dalam memuat dan menampilkan daftar aplikasi, terutama untuk pengguna dengan banyak program terinstal.
+- **Pembaruan Otomatis**: ZeroSrc kini dapat memeriksa dan menginstal pembaruan secara otomatis, memastikan Anda selalu menggunakan versi terbaru dengan perbaikan dan fitur terkini.
+
+---
 
 ---
 
@@ -80,7 +83,6 @@ Penasaran dengan fitur barunya? **Tonton video demo di sini!** (Link akan diperb
 ## Coming Soon Update
 
 - Menyangkut Semua version di Atas di bawah ini Termasuk Non Segnifikan
-- Penambahan Fitur Pembaruan Otomatis (Coming Soon)
 - Penambahan Fitur Kustomisasi Shortcut (Coming Soon)
 
 ## ⚙️ Persyaratan Sistem
@@ -88,8 +90,8 @@ Penasaran dengan fitur barunya? **Tonton video demo di sini!** (Link akan diperb
 - Sistem Operasi: Windows 10 atau lebih baru
 - RAM: Minimal 2GB
 - Ruang Disk: Minimal 100MB
-- .NET Framework: Versi 4.7.2 atau lebih baru
-- Koneksi Internet: Diperlukan untuk pembaruan otomatis(Cooming soon Feature)
+- .NET: .NET 9.0 atau lebih baru (berdasarkan proyek Anda)
+- Koneksi Internet: Diperlukan untuk fitur pembaruan otomatis dan pencarian web.
 - Izin Administrator: Tidak diperlukan
 
 ---

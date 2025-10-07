@@ -8,4 +8,8 @@
     <UseWPF>true</UseWPF>
   </PropertyGroup>
 
+  <ItemGroup>
+    <PackageReference Include="MegaApiClient" Version="1.10.5" />
+  </ItemGroup>
+
 </Project>
