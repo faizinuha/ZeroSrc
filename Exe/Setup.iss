@@ -2,6 +2,7 @@
 [Setup]
 AppName=ZeroMix
 AppVersion=1.6.0
+FileVersion=1.6.0.
 AppVerName=ZeroMix
 AppPublisher=faizinuha
 AppPublisherURL=Mardve7.vercel.app
