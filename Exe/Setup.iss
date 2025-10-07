@@ -75,6 +75,8 @@ begin
   if CurStep = ssDone then
   begin
     MsgBox('Terima kasih sudah menginstall ZeroMix!' + #13#10 + 'Dukungan Anda sangat berarti bagi kami.', mbInformation, MB_OK);
-    ShellExec('open', 'https://zeromix.pages.dev/', '', '', SW_SHOWNORMAL, ewNoWait, ErrorCode);
+    // Open the thank you page in the user's default web browser
+    // khusus 1.6.6
+    ShellExec('open', 'https://zeromix.pages.dev/ThanksYou', '', '', SW_SHOWNORMAL, ewNoWait, ErrorCode);
   end;
 end;
