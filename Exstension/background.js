@@ -32,7 +32,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
   // --- Handler for Gemini Prompt ---
   if (message.type === 'promptGemini') {
-    const { apiKey, prompt } = message;
+    const { apiKey, prompt, file } = message;
     if (!apiKey) {
       chrome.runtime.sendMessage({
         type: 'geminiResponseError',
@@ -44,6 +44,17 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     // Updated API URL and model name
     const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${apiKey}`;
 
+    const contents = [{ parts: [{ text: prompt || 'Jelaskan file ini' }] }];
+
+    // Jika ada file, tambahkan ke payload
+    if (file && file.base64 && file.mimeType) {
+      contents[0].parts.push({
+        inline_data: {
+          mime_type: file.mimeType,
+          data: file.base64,
+        },
+      });
+    }
     (async () => {
       try {
         const response = await fetch(API_URL, {
@@ -53,7 +64,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
             // The API key is in the URL, so X-goog-api-key header is not needed here
           },
           body: JSON.stringify({
-            contents: [{ parts: [{ text: prompt }] }],
+            contents: contents,
           }),
         });
 
@@ -78,6 +89,79 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       } catch (error) {
         chrome.runtime.sendMessage({
           type: 'geminiResponseError',
+          error: error.message,
+        });
+      }
+    })();
+    return true; // Keep the message channel open for the async response
+  }
+
+  // --- Handler for OpenAI Prompt ---
+  if (message.type === 'promptOpenAI') {
+    const { apiKey, prompt, file } = message;
+    if (!apiKey) {
+      chrome.runtime.sendMessage({
+        type: 'openaiResponseError',
+        error: 'API Key is not set.',
+      });
+      return false; // No async response needed
+    }
+
+    const API_URL = 'https://api.openai.com/v1/chat/completions';
+
+    // Siapkan payload dasar
+    const messages = [
+      {
+        role: 'user',
+        content: [{ type: 'text', text: prompt || 'Jelaskan gambar ini' }],
+      },
+    ];
+
+    // Jika ada file (dan itu gambar), tambahkan ke payload
+    // CATATAN: gpt-3.5-turbo tidak mendukung ini. Anda perlu gpt-4o atau gpt-4-vision-preview
+    if (file && file.base64 && file.mimeType.startsWith('image/')) {
+      messages[0].content.push({
+        type: 'image_url',
+        image_url: {
+          url: `data:${file.mimeType};base64,${file.base64}`,
+        },
+      });
+    }
+
+    (async () => {
+      try {
+        const response = await fetch(API_URL, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${apiKey}`,
+          },
+          body: JSON.stringify({
+            model: 'gpt-3.5-turbo', // Or any other model you prefer
+            messages: messages,
+            stream: false,
+          }),
+        });
+
+        const data = await response.json();
+
+        if (data.error) {
+          throw new Error(data.error.message);
+        }
+
+        const responseText = data.choices?.[0]?.message?.content;
+
+        if (responseText) {
+          chrome.runtime.sendMessage({
+            type: 'openaiResponseChunk',
+            chunk: responseText,
+          });
+        } else {
+          throw new Error('No content received from API.');
+        }
+      } catch (error) {
+        chrome.runtime.sendMessage({
+          type: 'openaiResponseError',
           error: error.message,
         });
       }

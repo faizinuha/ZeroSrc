@@ -96,6 +96,11 @@ body {
   background: var(--gemini-gradient);
 }
 
+.chat-message.openai .icon {
+  background: #10a37f; /* OpenAI's teal color */
+  color: white;
+}
+
 .message-card {
   background: var(--surface-color);
   padding: 12px 16px;
@@ -147,6 +152,58 @@ body {
 
 .message-card:hover .copy-button {
   opacity: 1;
+}
+
+/* --- File Preview Area --- */
+.file-preview-container {
+  padding: 0 20px 10px 20px;
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.file-preview-item {
+  background: var(--surface-color);
+  border-radius: var(--border-radius-small);
+  padding: 4px 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  border: 1px solid #5f6368;
+}
+
+.file-preview-item img {
+  width: 24px;
+  height: 24px;
+  object-fit: cover;
+  border-radius: 4px;
+}
+
+.remove-file-button {
+  background: none;
+  border: none;
+  color: var(--secondary-text-color);
+  cursor: pointer;
+  font-size: 16px;
+  padding: 0 4px;
+}
+.remove-file-button:hover {
+  color: var(--primary-text-color);
+}
+
+/* --- Attach Button --- */
+.attach-button {
+  background: none;
+  border: none;
+  color: var(--secondary-text-color);
+  font-size: 20px;
+  cursor: pointer;
+  padding: 0 8px;
+  transition: color 0.2s;
+}
+.attach-button:hover {
+  color: #8ab4f8;
 }
 /* --- Area Input --- */
 .search-box {
@@ -255,6 +312,12 @@ body {
   font-size: 14px; /* Sesuaikan jika perlu */
 }
 
+.mode-openai {
+  /* Simple black/white style for OpenAI */
+  background: #10a37f;
+  color: white;
+}
+
 #searchInput:focus {
   background: #303134;
   border-color: #8ab4f8;
@@ -325,6 +388,7 @@ body {
   border-radius: var(--border-radius-medium);
   width: 80%;
   max-width: 400px;
+  display: none; /* Hide by default, JS will show the correct one */
   text-align: center;
   border: 1px solid #5f6368;
 }
@@ -354,7 +418,8 @@ body {
   color: var(--primary-text-color);
 }
 
-#saveApiKeyButton {
+#saveApiKeyButton,
+#saveOpenAiApiKeyButton {
   width: 100%;
   padding: 12px;
   border: none;

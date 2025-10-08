@@ -24,32 +24,35 @@
       <!-- Area untuk menampilkan respons dari AI -->
       <div id="response-container" class="response-container">
         <div class="placeholder-text">
-          <span class="gemini-icon">✧</span>
-          <p>-> Haloo Tanya Apa Aja Sama Gemini 🥰</p>
-          <hr />
-          <p>-> Klik Tab Untuk Beralih ke Gemini....</p>
-          <hr />
-          <p>-> Informasi Tambahan <-</p>
-          <p>-> Api Key Diperlukan Untuk Mengakses Fitur Ini</p>
-          <hr />
-          <p>
-            -> Perlu di Ingat Bahwa tidak ada jaminan hasil yang akurat Dan
-            tidak ada Riwayat Chat
+          <span id="placeholder-icon" class="gemini-icon">✧</span>
+          <p>Halo! Mau cari apa atau tanya apa hari ini?</p>
+          <p style="font-size: 14px; color: #9aa0a6">
+            Tekan 'Tab' untuk beralih mode (Google, Gemini, OpenAI).
           </p>
-          <hr />
-          <p>-> Gunakan Dengan Bijak 😊</p>
-          <hr />
           <p>
-            -> Tenang Aja Sob, ApiKey Tidak di simpan di server Jadi Aman
-            Gunakan
+              <p style="font-size: 13px; color: #9aa0a6">
+              Tenang Aja Sob, ApiKey Tidak di simpan di server Jadi Aman
+              Gunakan
+              ✅
+            </p>
+            <p>Perlu DI Ingat Tidak Ada Riwayat Chat!!</p>
           </p>
-          <hr />
         </div>
       </div>
+
+      <!-- Area untuk pratinjau file yang diunggah -->
+      <div id="file-preview-container" class="file-preview-container"></div>
 
       <!-- Area input di bagian bawah -->
       <div class="search-box">
         <div id="mode-indicator" class="mode-google">G</div>
+        <button id="attach-file-button" class="attach-button">📎</button>
+        <input
+          type="file"
+          id="fileInput"
+          style="display: none"
+          accept="image/*,audio/*,video/*,.pdf,.txt,.json,.md"
+        />
         <input
           type="text"
           id="searchInput"
@@ -70,13 +73,14 @@
 
     <!-- Overlay untuk memasukkan API Key -->
     <div id="api-key-overlay" class="api-key-overlay">
-      <div class="api-key-modal">
+      <div id="gemini-api-modal" class="api-key-modal">
         <h3>Set Gemini API Key</h3>
         <p>
           Dapatkan API Key Anda dari<a
             href="https://aistudio.google.com/app/apikey"
             target="_blank"
-            >Google AI Studio</a
+          >
+            Google AI Studio</a
           >.
         </p>
         <input
@@ -84,8 +88,37 @@
           id="apiKeyInput"
           placeholder="Masukkan API Key Anda di sini"
         />
-        <button id="saveApiKeyButton">Simpan</button>
-        <button id="changeApiKeyButton" class="secondary-button">
+        <button id="saveApiKeyButton">Simpan & Coba Lagi</button>
+        <button
+          id="changeApiKeyButton"
+          class="secondary-button"
+          style="display: none"
+        >
+          Ganti API Key
+        </button>
+      </div>
+
+      <div id="openai-api-modal" class="api-key-modal" style="display: none">
+        <h3>Set OpenAI API Key</h3>
+        <p>
+          Dapatkan API Key Anda dari<a
+            href="https://platform.openai.com/api-keys"
+            target="_blank"
+          >
+            OpenAI Platform</a
+          >.
+        </p>
+        <input
+          type="password"
+          id="openaiApiKeyInput"
+          placeholder="Masukkan API Key Anda di sini (sk-...)"
+        />
+        <button id="saveOpenAiApiKeyButton">Simpan & Coba Lagi</button>
+        <button
+          id="changeOpenAiApiKeyButton"
+          class="secondary-button"
+          style="display: none"
+        >
           Ganti API Key
         </button>
       </div>
