@@ -4,6 +4,11 @@
   "version": "2.0",
   "description": "ZeroMix Quick Search Bar and AI Assistant",
   "permissions": ["storage"],
+  "icons": {
+    "16": "image.png",
+    "48": "image.png",
+    "128": "image.png"
+  },
   "background": {
     "service_worker": "background.js"
   },
