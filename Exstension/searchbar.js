@@ -90,7 +90,9 @@ async function performSearch(query, mode) {
     const messagePayload = {
       type: mode === 'gemini' ? 'promptGemini' : 'promptOpenAI',
       apiKey:
-        mode === 'gemini' ? geminiResult.geminiApiKey : openaiResult.openaiApiKey,
+        mode === 'gemini'
+          ? geminiResult.geminiApiKey
+          : openaiResult.openaiApiKey,
       prompt: query,
     };
 
@@ -113,6 +115,9 @@ async function performSearch(query, mode) {
       '_blank'
     );
   }
+
+  // Sembunyikan kotak saran setelah pencarian dilakukan
+  suggestionsBox.style.display = 'none';
 }
 
 saveApiKeyButton.addEventListener('click', () => {
