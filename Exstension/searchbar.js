@@ -10,16 +10,6 @@ const apiKeyInput = document.getElementById('apiKeyInput');
 const saveApiKeyButton = document.getElementById('saveApiKeyButton');
 const changeApiKeyButton = document.getElementById('changeApiKeyButton');
 
-// OpenAI Modal Elements
-const openaiApiModal = document.getElementById('openai-api-modal');
-const openaiApiKeyInput = document.getElementById('openaiApiKeyInput');
-const saveOpenAiApiKeyButton = document.getElementById(
-  'saveOpenAiApiKeyButton'
-);
-const changeOpenAiApiKeyButton = document.getElementById(
-  'changeOpenAiApiKeyButton'
-);
-
 const stopGenerationButton = document.getElementById('stop-generation-button');
 const attachFileButton = document.getElementById('attach-file-button');
 const fileInput = document.getElementById('fileInput');
@@ -28,8 +18,8 @@ const filePreviewContainer = document.getElementById('file-preview-container');
 // State untuk menyimpan file yang akan diunggah
 let fileToSend = null;
 
-let currentMode = 'google'; // 'google', 'gemini', atau 'openai'
-let modes = ['google', 'gemini', 'openai'];
+let currentMode = 'google'; // 'google', 'gemini', atau 'gemini-image'
+let modes = ['google', 'gemini', 'gemini-image'];
 let currentModeIndex = 0;
 
 const searchModes = {
@@ -44,10 +34,10 @@ const searchModes = {
     className: 'mode-gemini',
     icon: '✧',
   },
-  openai: {
-    placeholder: 'Tanya OpenAI...',
-    className: 'mode-openai',
-    icon: 'O',
+  'gemini-image': {
+    placeholder: 'Buat gambar dengan Gemini...',
+    className: 'mode-gemini-image',
+    icon: '🎨',
   },
 };
 
@@ -55,24 +45,15 @@ async function performSearch(query, mode) {
   if (!query) return;
 
   // Mode AI tidak bisa dijalankan tanpa query atau file
-  if ((mode === 'gemini' || mode === 'openai') && !query && !fileToSend) {
+  if ((mode === 'gemini' || mode === 'gemini-image') && !query && !fileToSend) {
     return;
   }
 
-  if (mode === 'gemini' || mode === 'openai') {
-    const geminiResult = await chrome.storage.local.get(['geminiApiKey']);
-    const openaiResult = await chrome.storage.local.get(['openaiApiKey']);
+  if (mode === 'gemini' || mode === 'gemini-image') {
+    const result = await chrome.storage.local.get(['geminiApiKey']);
 
-    if (mode === 'gemini' && !geminiResult.geminiApiKey) {
+    if (!result.geminiApiKey) {
       geminiApiModal.style.display = 'block';
-      openaiApiModal.style.display = 'none';
-      apiKeyOverlay.style.display = 'flex';
-      return;
-    }
-
-    if (mode === 'openai' && !openaiResult.openaiApiKey) {
-      geminiApiModal.style.display = 'none';
-      openaiApiModal.style.display = 'block';
       apiKeyOverlay.style.display = 'flex';
       return;
     }
@@ -88,11 +69,8 @@ async function performSearch(query, mode) {
 
     // Kirim prompt ke background script
     const messagePayload = {
-      type: mode === 'gemini' ? 'promptGemini' : 'promptOpenAI',
-      apiKey:
-        mode === 'gemini'
-          ? geminiResult.geminiApiKey
-          : openaiResult.openaiApiKey,
+      type: mode === 'gemini' ? 'promptGemini' : 'promptGeminiImage',
+      apiKey: result.geminiApiKey,
       prompt: query,
     };
 
@@ -132,32 +110,10 @@ saveApiKeyButton.addEventListener('click', () => {
   }
 });
 
-saveOpenAiApiKeyButton.addEventListener('click', () => {
-  const apiKey = openaiApiKeyInput.value.trim();
-  if (apiKey) {
-    chrome.storage.local.set({ openaiApiKey: apiKey }, () => {
-      apiKeyOverlay.style.display = 'none';
-      input.value = ''; // Clear input to avoid resubmitting old prompt
-      performSearch(input.value.trim(), 'openai'); // Retry the search
-      input.focus();
-    });
-  }
-});
-
 changeApiKeyButton.addEventListener('click', () => {
   chrome.storage.local.remove('geminiApiKey', () => {
     apiKeyInput.value = '';
     geminiApiModal.style.display = 'block';
-    openaiApiModal.style.display = 'none';
-    apiKeyOverlay.style.display = 'flex';
-  });
-});
-
-changeOpenAiApiKeyButton.addEventListener('click', () => {
-  chrome.storage.local.remove('openaiApiKey', () => {
-    openaiApiKeyInput.value = '';
-    geminiApiModal.style.display = 'none';
-    openaiApiModal.style.display = 'block';
     apiKeyOverlay.style.display = 'flex';
   });
 });
@@ -241,12 +197,10 @@ let currentGeminiMessageCard = null;
 // Listener untuk menerima respons dari background script
 chrome.runtime.onMessage.addListener((message) => {
   if (
-    message.type === 'geminiResponseChunk' ||
-    message.type === 'openaiResponseChunk'
+    message.type === 'geminiResponseChunk'
   ) {
     if (!currentGeminiMessageCard) {
-      const role = message.type === 'geminiResponseChunk' ? 'gemini' : 'openai';
-      currentGeminiMessageCard = appendChatMessage('', role);
+      currentGeminiMessageCard = appendChatMessage('', 'gemini');
     }
     currentGeminiMessageCard.textContent += message.chunk;
     responseContainer.scrollTop = responseContainer.scrollHeight; // Auto-scroll
@@ -260,17 +214,9 @@ chrome.runtime.onMessage.addListener((message) => {
       );
     }
     stopGenerationButton.style.display = 'none';
-  } else if (message.type === 'openaiResponseError') {
-    if (!currentGeminiMessageCard) {
-      currentGeminiMessageCard = appendChatMessage(
-        `Error: ${message.error}\n\nPastikan API Key Anda benar.`,
-        'openai'
-      );
-    }
-    stopGenerationButton.style.display = 'none';
   } else if (
     message.type === 'promptGemini' ||
-    message.type === 'promptOpenAI'
+    message.type === 'promptGeminiImage'
   ) {
     // Reset card saat prompt baru dikirim
     currentGeminiMessageCard = null;
@@ -285,8 +231,6 @@ function appendChatMessage(text, role) {
   icon.className = 'icon';
   if (role === 'user') {
     icon.textContent = 'U'; // 'U' for User
-  } else if (role === 'openai') {
-    icon.textContent = 'O';
   } else {
     // gemini
     icon.textContent = '✧';
@@ -301,7 +245,7 @@ function appendChatMessage(text, role) {
   responseContainer.appendChild(messageWrapper);
 
   // Add copy button only for Gemini messages
-  if (role === 'gemini' || role === 'openai') {
+  if (role === 'gemini') {
     const copyButton = document.createElement('button');
     copyButton.className = 'copy-button';
     copyButton.textContent = '📋'; // Clipboard emoji
@@ -381,7 +325,7 @@ input.addEventListener('keydown', (e) => {
       performSearch(query, currentMode);
     }
 
-    if (currentMode === 'gemini' || currentMode === 'openai') {
+    if (currentMode === 'gemini' || currentMode === 'gemini-image') {
       currentGeminiMessageCard = null;
     }
   } else if (e.key === 'Tab') {
@@ -391,7 +335,7 @@ input.addEventListener('keydown', (e) => {
 });
 
 function toggleSearchMode() {
-  // Cycle through modes: google -> gemini -> openai -> google
+  // Cycle through modes: google -> gemini -> gemini-image -> google
   currentModeIndex = (currentModeIndex + 1) % modes.length;
   currentMode = modes[currentModeIndex];
 
