@@ -1,8 +1,8 @@
 ; --- Informasi Aplikasi ---
 [Setup]
 AppName=ZeroMix
-AppVersion=1.6.0
-FileVersion=1.6.0.
+AppVersion=1.6.6
+FileVersion=1.6.6.
 AppVerName=ZeroMix
 AppPublisher=faizinuha
 AppPublisherURL=Mardve7.vercel.app
@@ -12,7 +12,7 @@ DefaultDirName={pf}\ZeroSrc
 DefaultGroupName=ZeroMix
 AllowNoIcons=yes
 OutputDir=.
-OutputBaseFilename=ZeroMix
+OutputBaseFilename=ZeroMix-Demo
 SetupIconFile=image.ico
 Compression=lzma
 SolidCompression=yes
