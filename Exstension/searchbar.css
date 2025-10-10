@@ -32,180 +32,175 @@ body {
   overflow: hidden; /* Mencegah scrollbar di body */
 }
 
-.container {
-  width: 480px; /* Lebar disesuaikan */
-  height: 580px; /* Tinggi disesuaikan */
+.main-wrapper {
   display: flex;
-  flex-direction: column;
-  background: var(--bg-color);
-  animation: fadeInScale 0.35s ease forwards;
+  width: 100vw;
+  height: 100vh;
 }
 
-/* --- Area Respons AI --- */
-.response-container {
+.container {
   flex-grow: 1;
-  padding: 20px;
+  height: 100%;
+  display: flex;
+  flex-direction: column; /* Menumpuk elemen secara vertikal */
+  justify-content: flex-end; /* Mendorong elemen ke bagian bawah */
+  background: var(--bg-color);
+  animation: fadeInScale 0.35s ease forwards;
+  position: relative;
+}
+
+/* Area Konten Tengah (untuk Riwayat) */
+.response-container {
+  flex-grow: 1; /* Membuatnya mengisi ruang kosong */
+  padding: 20px 20px 0 20px;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
 }
 
+/* Gaya untuk teks placeholder jika riwayat kosong */
 .placeholder-text {
   margin: auto;
   text-align: center;
   color: var(--secondary-text-color);
 }
 
-.gemini-icon {
-  font-size: 3rem;
-  background: var(--gemini-gradient);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  display: inline-block;
+/* --- Gaya untuk Riwayat --- */
+.history-title {
+  color: var(--secondary-text-color);
+  font-size: 12px;
+  font-weight: 500;
+  margin: 0 0 12px 0;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
 }
 
-.chat-message {
+/* --- Sidebar Riwayat --- */
+.history-sidebar {
+  width: 280px;
+  height: 100%;
+  background-color: #0e0e0f;
+  border-right: 1px solid #2a2a2d;
   display: flex;
-  gap: 12px;
-  margin-bottom: 16px;
-  max-width: 95%;
+  flex-direction: column;
+  position: fixed;
+  left: 0;
+  top: 0;
+  transform: translateX(-100%);
+  transition: transform 0.3s ease-in-out;
+  z-index: 20;
 }
 
-.chat-message.user {
-  align-self: flex-end;
-  flex-direction: row-reverse;
+.history-sidebar.open {
+  transform: translateX(0);
 }
 
-.chat-message .icon {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  flex-shrink: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: bold;
+#history-content {
+  padding: 20px;
+  overflow-y: auto;
+  flex-grow: 1;
 }
 
-.chat-message.user .icon {
-  background: #8ab4f8;
-  color: var(--bg-color);
-}
-
-.chat-message.gemini .icon {
-  background: var(--gemini-gradient);
-}
-
-.message-card {
-  background: var(--surface-color);
-  padding: 12px 16px;
-  border-radius: var(--border-radius-medium);
-  line-height: 1.6;
-  position: relative;
-  font-size: 15px;
-  white-space: pre-wrap;
-}
-
-.message-card.loading::after {
-  content: '';
-  display: inline-block;
-  width: 5px;
-  height: 5px;
-  border-radius: 50%;
-  background-color: var(--secondary-text-color);
-  animation: loading-pulse 1.5s infinite;
-  margin-left: 8px;
-}
-
-@keyframes loading-pulse {
-  0%,
-  100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.3;
-  }
-}
-
-.copy-button {
+#history-toggle-btn {
   position: absolute;
-  top: 8px;
-  right: 8px;
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid var(--secondary-text-color);
-  color: var(--primary-text-color);
-  border-radius: 4px;
+  top: 50%;
+  left: 100%;
+  transform: translateY(-50%);
   width: 24px;
-  height: 24px;
+  height: 48px;
+  background-color: #0e0e0f;
+  border: 1px solid #2a2a2d;
+  border-left: none;
+  color: var(--secondary-text-color);
   cursor: pointer;
+  border-radius: 0 8px 8px 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  opacity: 0;
-  transition: opacity 0.2s ease;
+  font-size: 18px;
+  transition: background-color 0.2s;
+}
+.history-sidebar.open #history-toggle-btn {
+  transform: translateY(-50%) rotate(180deg);
 }
 
-.message-card:hover .copy-button {
-  opacity: 1;
-}
-
-/* --- File Preview Area --- */
-.file-preview-container {
-  padding: 0 20px 10px 20px;
+.history-list {
   display: flex;
+  flex-direction: column;
   gap: 8px;
-  flex-wrap: wrap;
 }
 
-.file-preview-item {
-  background: var(--surface-color);
-  border-radius: var(--border-radius-small);
-  padding: 4px 8px;
+.history-item {
   display: flex;
+  position: relative;
   align-items: center;
-  gap: 8px;
-  font-size: 13px;
-  border: 1px solid #5f6368;
+  gap: 12px;
+  padding: 10px;
+  background-color: var(--surface-color);
+  border-radius: var(--border-radius-small);
+  text-decoration: none;
+  transition: background-color 0.2s ease, transform 0.2s ease;
 }
 
-.file-preview-item img {
-  width: 24px;
-  height: 24px;
-  object-fit: cover;
-  border-radius: 4px;
+.history-item:hover {
+  background-color: #282a2d;
+  transform: translateY(-2px);
 }
 
-.remove-file-button {
-  background: none;
+.history-item-delete-btn {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 20px;
+  height: 20px;
   border: none;
+  background: none;
   color: var(--secondary-text-color);
   cursor: pointer;
   font-size: 16px;
-  padding: 0 4px;
-}
-.remove-file-button:hover {
-  color: var(--primary-text-color);
+  display: none; /* Sembunyikan secara default */
+  align-items: center;
+  justify-content: center;
 }
 
-/* --- Attach Button --- */
-.attach-button {
-  background: none;
-  border: none;
+.history-item:hover .history-item-delete-btn {
+  display: flex; /* Tampilkan saat hover */
+}
+
+.history-item-favicon {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+
+.history-item-text {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden; /* Mencegah teks keluar dari kotak */
+}
+
+.history-item-title {
+  color: var(--primary-text-color);
+  font-size: 14px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.history-item-url {
   color: var(--secondary-text-color);
-  font-size: 20px;
-  cursor: pointer;
-  padding: 0 8px;
-  transition: color 0.2s;
+  font-size: 12px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-top: 2px;
 }
-.attach-button:hover {
-  color: #8ab4f8;
-}
+
 /* --- Area Input --- */
 .search-box {
   width: 100%;
   display: flex;
   align-items: center;
-  padding: 12px 20px;
+  padding: 20px;
   gap: 12px;
   position: relative; /* Untuk positioning suggestions */
 }
@@ -241,39 +236,6 @@ body {
   transition: all 0.3s ease;
 } */
 
-#searchInput {
-  width: 100%;
-  padding: 14px 20px;
-  box-sizing: border-box;
-  font-size: 16px;
-  border-radius: var(--border-radius-large);
-  border: none;
-  outline: none;
-  background: var(--input-bg);
-  color: var(--input-text-color);
-  transition: background 0.3s ease, box-shadow 0.3s ease, transform 0.3s ease;
-  border: 1px solid #5f6368;
-}
-
-/* --- Stop Button --- */
-.stop-button {
-  position: absolute;
-  right: 30px;
-  top: 50%;
-  transform: translateY(-50%);
-  background: var(--surface-color);
-  border: 1px solid var(--secondary-text-color);
-  color: var(--primary-text-color);
-  border-radius: 6px;
-  width: 28px;
-  height: 28px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding-bottom: 2px; /* Visual alignment for the square */
-}
-
 /* --- Mode Indicator --- */
 #mode-indicator {
   display: flex;
@@ -301,16 +263,17 @@ body {
   );
 }
 
-.mode-gemini {
-  /* Gradien warna Gemini */
-  background: linear-gradient(45deg, #4285f4, #9b72cb, #d96570, #f2a600);
-  font-size: 14px; /* Sesuaikan jika perlu */
-}
-
-.mode-gemini-image {
-  background: #8ab4f8;
-  color: var(--bg-color);
-  font-size: 20px;
+#searchInput {
+  width: 100%;
+  padding: 14px 20px;
+  box-sizing: border-box;
+  font-size: 16px;
+  border-radius: var(--border-radius-large);
+  border: 1px solid #5f6368;
+  outline: none;
+  background: var(--input-bg);
+  color: var(--input-text-color);
+  transition: background 0.3s ease, box-shadow 0.3s ease;
 }
 
 #searchInput:focus {
@@ -319,7 +282,12 @@ body {
 }
 
 .suggestions {
-  display: none;
+  /* Properti untuk animasi */
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(10px);
+  transition: opacity 0.2s ease, transform 0.2s ease, visibility 0.2s;
+
   flex-direction: column;
   gap: 5px;
   background: #303134;
@@ -328,12 +296,11 @@ body {
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
   position: absolute;
   bottom: 100%; /* Muncul di atas input */
-  left: 0;
+  left: 0; /* Dulu 20px, sekarang 0 karena relatif terhadap .search-box */
   right: 0;
   margin-bottom: 8px;
   z-index: 10;
 }
-
 .suggestion-item {
   padding: 8px 12px;
   border-radius: var(--border-radius-small);
@@ -352,6 +319,12 @@ body {
   transform: translateX(5px) scale(0.98);
 }
 
+/* Kelas untuk menampilkan suggestions dengan animasi */
+.suggestions.visible {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
 @keyframes fadeInScale {
   from {
     opacity: 0;
@@ -361,80 +334,4 @@ body {
     opacity: 1;
     transform: scale(1) translateY(0);
   }
-}
-
-/* --- API Key Overlay --- */
-.api-key-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.7);
-  display: none; /* Diubah ke 'flex' via JS */
-  align-items: center;
-  justify-content: center;
-  z-index: 100;
-}
-
-.api-key-modal {
-  background: var(--surface-color);
-  padding: 24px;
-  border-radius: var(--border-radius-medium);
-  width: 80%;
-  max-width: 400px;
-  text-align: center;
-  border: 1px solid #5f6368;
-}
-
-.api-key-modal h3 {
-  margin-top: 0;
-}
-
-.api-key-modal p {
-  color: var(--secondary-text-color);
-  font-size: 14px;
-}
-
-.api-key-modal a {
-  color: #8ab4f8;
-  text-decoration: none;
-}
-
-#apiKeyInput {
-  width: 100%;
-  padding: 10px;
-  margin: 16px 0;
-  box-sizing: border-box;
-  background: var(--bg-color);
-  border: 1px solid #5f6368;
-  border-radius: var(--border-radius-small);
-  color: var(--primary-text-color);
-}
-
-#saveApiKeyButton {
-  width: 100%;
-  padding: 12px;
-  border: none;
-  border-radius: var(--border-radius-small);
-  background: #8ab4f8;
-  color: var(--bg-color);
-  font-weight: bold;
-  cursor: pointer;
-}
-
-.secondary-button {
-  width: 100%;
-  padding: 10px;
-  margin-top: 8px;
-  border: 1px solid #5f6368;
-  border-radius: var(--border-radius-small);
-  background: transparent;
-  color: #8ab4f8;
-  cursor: pointer;
-  transition: background-color 0.2s ease;
-}
-
-.secondary-button:hover {
-  background-color: rgba(138, 180, 248, 0.1);
 }
