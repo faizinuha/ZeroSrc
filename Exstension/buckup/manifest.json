@@ -1,0 +1,32 @@
+{
+  "manifest_version": 3,
+  "name": "ZeroMix",
+  "version": "2.0",
+  "description": "ZeroMix Quick Search Bar and AI Assistant",
+  "permissions": ["storage"],
+  "icons": {
+    "16": "image.png",
+    "48": "image.png",
+    "128": "image.png"
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "host_permissions": ["https://suggestqueries.google.com/*"],
+  "action": {
+    "default_icon": {
+      "16": "image.png",
+      "48": "image.png",
+      "128": "image.png"
+    }
+  },
+
+  "commands": {
+    "toggle-popup": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+Space"
+      },
+      "description": "Open ZeroMix search popup"
+    }
+  }
+}

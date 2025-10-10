@@ -106,37 +106,24 @@ body {
   white-space: pre-wrap;
 }
 
-/* --- Animasi Loading Baru --- */
-.loading-dots {
-  display: flex;
-  gap: 5px;
-  padding: 5px 0; /* Memberi sedikit ruang */
-}
-
-.loading-dots span {
-  width: 8px;
-  height: 8px;
+.message-card.loading::after {
+  content: '';
+  display: inline-block;
+  width: 5px;
+  height: 5px;
   border-radius: 50%;
   background-color: var(--secondary-text-color);
-  animation: dot-bounce 1.4s infinite ease-in-out both;
+  animation: loading-pulse 1.5s infinite;
+  margin-left: 8px;
 }
 
-.loading-dots span:nth-child(1) {
-  animation-delay: -0.32s;
-}
-
-.loading-dots span:nth-child(2) {
-  animation-delay: -0.16s;
-}
-
-@keyframes dot-bounce {
+@keyframes loading-pulse {
   0%,
-  80%,
   100% {
-    transform: scale(0);
+    opacity: 1;
   }
-  40% {
-    transform: scale(1);
+  50% {
+    opacity: 0.3;
   }
 }
 
@@ -450,12 +437,4 @@ body {
 
 .secondary-button:hover {
   background-color: rgba(138, 180, 248, 0.1);
-}
-
-/* Styles to hide Gemini-related features */
-.gemini-disabled #response-container,
-.gemini-disabled #file-preview-container,
-.gemini-disabled #attach-file-button,
-.gemini-disabled #stop-generation-button {
-  display: none !important;
 }
