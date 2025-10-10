@@ -15,85 +15,47 @@
       name="apple-mobile-web-app-status-bar-style"
       content="black-translucent"
     />
-    <style>
-      /* Tambahkan gaya CSS tambahan di sini jika diperlukan */
-    </style>
   </head>
   <body>
-    <div class="container">
-      <!-- Area untuk menampilkan respons dari AI -->
-      <div id="response-container" class="response-container">
-        <div class="placeholder-text">
-          <span id="placeholder-icon" class="gemini-icon">✧</span>
-          <p>Halo! Mau cari apa atau tanya apa hari ini? 🤔</p>
-          <p style="font-size: 14px; color: #9aa0a6">
-            Tekan 'Tab' untuk beralih mode (Google, Gemini Teks, Gemini Gambar).
-          </p>
-          <p>
-              <p style="font-size: 13px; color: #9aa0a6">
-              API Key disimpan aman di perangkatmu. ✅
-            </p>
-            <p>Perlu DI Ingat Tidak Ada Riwayat Chat!!</p>
-          </p>
+    <div class="main-wrapper">
+      <!-- Sidebar untuk Riwayat -->
+      <div id="history-sidebar" class="history-sidebar">
+        <div id="history-content">
+          <!-- Konten riwayat akan diisi oleh JavaScript -->
         </div>
+        <button id="history-toggle-btn" title="Buka/Tutup Riwayat">›</button>
       </div>
 
-      <!-- Area untuk pratinjau file yang diunggah -->
-      <div id="file-preview-container" class="file-preview-container"></div>
+      <!-- Kontainer Utama -->
+      <div class="container">
+        <!-- Area untuk menampilkan konten utama (placeholder) -->
+        <div id="response-container" class="response-container">
+          <div class="placeholder-text">
+            <span id="placeholder-icon" class="gemini-icon">✧</span>
+            <p>Halo! Mau cari apa atau tanya apa hari ini? 🤔</p>
+            <p style="font-size: 14px; color: #9aa0a6">
+              Gunakan search bar di bawah atau buka riwayat di samping.
+            </p>
+            <p>
+              <p style="font-size: 13px; color: #9aa0a6">
+                Ekstensi ini fokus pada pencarian cepat. ✅
+              </p>
+              <p>Selamat Mencoba!!</p>
+            </p>
+          </div>
+        </div>
 
-      <!-- Area input di bagian bawah -->
-      <div class="search-box">
-        <div id="mode-indicator" class="mode-google">G</div>
-        <button id="attach-file-button" class="attach-button">📎</button>
-        <input
-          type="file"
-          id="fileInput"
-          style="display: none"
-          accept="image/*,audio/*,video/*,.pdf,.txt,.json,.md"
-        />
-        <input
-          type="text"
-          id="searchInput"
-          placeholder="Cari di Google..."
-          autofocus
-        />
-
-        <button
-          id="stop-generation-button"
-          class="stop-button"
-          style="display: none"
-        >
-          ■
-        </button>
-        <div class="suggestions" id="suggestions"></div>
-      </div>
-    </div>
-
-    <!-- Overlay untuk memasukkan API Key -->
-    <div id="api-key-overlay" class="api-key-overlay">
-      <div id="gemini-api-modal" class="api-key-modal">
-        <h3>Set Gemini API Key</h3>
-        <p>
-          Dapatkan API Key Anda dari<a
-            href="https://aistudio.google.com/app/apikey"
-            target="_blank"
-          >
-            Google AI Studio</a
-          >.
-        </p>
-        <input
-          type="password"
-          id="apiKeyInput"
-          placeholder="Masukkan API Key Anda di sini"
-        />
-        <button id="saveApiKeyButton">Simpan & Coba Lagi</button>
-        <button
-          id="changeApiKeyButton"
-          class="secondary-button"
-          style="display: none"
-        >
-          Ganti API Key
-        </button>
+        <!-- Area input di bagian bawah -->
+        <div class="search-box">
+          <div id="mode-indicator" class="mode-google">G</div>
+          <input
+            type="text"
+            id="searchInput"
+            placeholder="Cari di Google atau dalam riwayat..."
+            autofocus
+          />
+          <div class="suggestions" id="suggestions"></div>
+        </div>
       </div>
     </div>
     <script src="searchbar.js"></script>

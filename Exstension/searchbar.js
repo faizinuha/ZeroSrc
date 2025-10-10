@@ -2,25 +2,12 @@ const input = document.getElementById('searchInput');
 const suggestionsBox = document.getElementById('suggestions');
 const modeIndicator = document.getElementById('mode-indicator');
 const responseContainer = document.getElementById('response-container');
-const apiKeyOverlay = document.getElementById('api-key-overlay');
 
-// Modal Elements (diasumsikan ada di HTML Anda)
-const openaiApiModal = document.getElementById('openai-api-modal');
-const apiKeyInput = document.getElementById('apiKeyInput');
-const saveApiKeyButton = document.getElementById('saveApiKeyButton');
-const changeApiKeyButton = document.getElementById('changeApiKeyButton');
-
-const stopGenerationButton = document.getElementById('stop-generation-button');
-const attachFileButton = document.getElementById('attach-file-button');
-const fileInput = document.getElementById('fileInput');
-const filePreviewContainer = document.getElementById('file-preview-container');
-
-// State untuk menyimpan file yang akan diunggah
-let fileToSend = null;
+const historySidebar = document.getElementById('history-sidebar');
+const historyContent = document.getElementById('history-content');
+const historyToggleBtn = document.getElementById('history-toggle-btn');
 
 let currentMode = 'google'; // 'google', 'gemini', atau 'gemini-image'
-let modes = ['google', 'openai'];
-let currentModeIndex = 0;
 
 const searchModes = {
   google: {
@@ -29,217 +16,90 @@ const searchModes = {
     className: 'mode-google',
     icon: 'G',
   },
-  openai: {
-    placeholder: 'Tanya AI (dukung gambar)...',
-    className: 'mode-openai',
-    icon: 'AI',
-  },
 };
 
 async function performSearch(query, mode) {
-  // Mode AI tidak bisa dijalankan tanpa query atau file
-  if (mode === 'openai' && !query && !fileToSend) {
-    return;
-  }
-
-  if (mode === 'openai') {
-    const result = await chrome.storage.local.get(['openaiApiKey']);
-
-    if (!result.openaiApiKey) {
-      // Tampilkan modal jika API key tidak ada
-      if (openaiApiModal) openaiApiModal.style.display = 'block';
-      if (apiKeyOverlay) apiKeyOverlay.style.display = 'flex';
-      return;
-    }
-
-    // Hapus placeholder jika ada
-    const placeholder = responseContainer.querySelector('.placeholder-text');
-    if (placeholder) responseContainer.innerHTML = '';
-
-    // Tampilkan prompt pengguna di UI
-    appendChatMessage(query, 'user');
-    if (stopGenerationButton) stopGenerationButton.style.display = 'flex';
-
-    // Kirim prompt ke background script
-    const messagePayload = {
-      type: 'promptOpenAI',
-      apiKey: result.openaiApiKey,
-      prompt: query,
-    };
-
-    if (fileToSend) {
-      messagePayload.file = fileToSend;
-    }
-
-    chrome.runtime.sendMessage(messagePayload);
-
-    // Reset UI setelah mengirim
-    input.value = '';
-    fileToSend = null;
-    if (filePreviewContainer) filePreviewContainer.innerHTML = '';
-    if (attachFileButton) attachFileButton.style.display = 'block';
-  } else {
-    // Buka tab pencarian Google seperti biasa
-    input.value = ''; // Kosongkan input setelah mengirim
-    window.open(
-      searchModes[currentMode].url + encodeURIComponent(query),
-      '_blank'
-    );
-  }
+  if (!query) return;
+  // Buka tab pencarian Google seperti biasa
+  input.value = ''; // Kosongkan input setelah mengirim
+  window.open(
+    searchModes[currentMode].url + encodeURIComponent(query),
+    '_blank'
+  );
 
   // Sembunyikan kotak saran setelah pencarian dilakukan
-  suggestionsBox.style.display = 'none';
+  suggestionsBox.classList.remove('visible');
+  suggestionsBox.style.display = 'none'; // Pastikan hilang
 }
 
-// --- Event Listeners untuk Modal API Key, File, dll. ---
-if (saveApiKeyButton) {
-  saveApiKeyButton.addEventListener('click', () => {
-    const apiKey = apiKeyInput.value.trim();
-    if (apiKey) {
-      chrome.storage.local.set({ openaiApiKey: apiKey }, () => {
-        if (apiKeyOverlay) apiKeyOverlay.style.display = 'none';
-        performSearch(input.value.trim(), 'openai'); // Coba lagi setelah simpan key
-        input.focus();
-      });
-    }
-  });
-}
+/**
+ * Mengambil dan menampilkan riwayat pencarian.
+ * @param {string} query - Teks untuk mencari riwayat. Jika kosong, tampilkan riwayat terbaru.
+ */
+function displaySearchHistory(query = '') {
+  if (!historyContent) return;
+  historyContent.innerHTML = ''; // Bersihkan kontainer
 
-if (changeApiKeyButton) {
-  changeApiKeyButton.addEventListener('click', () => {
-    chrome.storage.local.remove('openaiApiKey', () => {
-      if (apiKeyInput) apiKeyInput.value = '';
-      if (openaiApiModal) openaiApiModal.style.display = 'block';
-      if (apiKeyOverlay) apiKeyOverlay.style.display = 'flex';
-    });
-  });
-}
+  // Buat judul untuk bagian riwayat
+  const historyTitle = document.createElement('h4');
+  historyTitle.className = 'history-title';
+  historyTitle.textContent = query
+    ? 'Hasil Pencarian Riwayat'
+    : 'Riwayat Terbaru';
+  historyContent.appendChild(historyTitle);
 
-if (apiKeyOverlay) {
-  apiKeyOverlay.addEventListener('click', (e) => {
-    if (e.target === apiKeyOverlay) {
-      apiKeyOverlay.style.display = 'none';
-    }
-  });
-}
-
-if (attachFileButton) {
-  attachFileButton.addEventListener('click', () => {
-    if (fileInput) fileInput.click();
-  });
-}
-
-if (fileInput) {
-  fileInput.addEventListener('change', (event) => {
-    const file = event.target.files[0];
-    if (!file) return;
-
-    // Hanya izinkan gambar untuk OpenAI
-    if (!file.type.startsWith('image/')) {
-      alert('Hanya file gambar yang didukung untuk mode AI ini.');
+  // Ambil item riwayat
+  chrome.history.search({ text: query, maxResults: 50 }, (historyItems) => {
+    if (chrome.runtime.lastError) {
+      console.error(chrome.runtime.lastError.message);
+      historyContent.innerHTML =
+        '<div class="placeholder-text" style="font-size:14px; padding: 10px;">Gagal memuat riwayat. Pastikan izin "history" ada di manifest.</div>';
       return;
     }
 
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const base64String = e.target.result.split(',')[1];
-      fileToSend = {
-        base64: base64String,
-        mimeType: file.type,
-        name: file.name,
-      };
-      displayFilePreview(file);
-    };
-    reader.readAsDataURL(file);
-    fileInput.value = '';
+    if (historyItems.length === 0) {
+      historyContent.innerHTML +=
+        '<div class="placeholder-text" style="font-size:14px; padding: 10px;">Tidak ada riwayat ditemukan.</div>';
+      return;
+    }
+
+    const list = document.createElement('div');
+    list.className = 'history-list';
+
+    // Filter untuk menghindari duplikat judul
+    const uniqueItems = [];
+    const seenTitles = new Set();
+    historyItems.forEach((item) => {
+      if (item.title && !seenTitles.has(item.title)) {
+        seenTitles.add(item.title);
+        uniqueItems.push(item);
+      }
+    });
+
+    uniqueItems.slice(0, 20).forEach((item) => {
+      if (!item.title || !item.url) return; // Lewati item tanpa judul atau url
+      const historyItem = document.createElement('a');
+      historyItem.className = 'history-item';
+      historyItem.href = item.url;
+      historyItem.target = '_blank';
+      historyItem.dataset.url = item.url; // Simpan URL untuk penghapusan
+
+      const deleteBtn = document.createElement('button');
+      deleteBtn.className = 'history-item-delete-btn';
+      deleteBtn.innerHTML = '&times;';
+      deleteBtn.title = 'Hapus dari riwayat';
+
+      // Gunakan favicon Google untuk visual
+      historyItem.innerHTML = `<img src="https://www.google.com/s2/favicons?domain=${
+        new URL(item.url).hostname
+      }" class="history-item-favicon" alt="favicon" /><div class="history-item-text"><span class="history-item-title">${
+        item.title
+      }</span><span class="history-item-url">${item.url}</span></div>`;
+      historyItem.appendChild(deleteBtn);
+      list.appendChild(historyItem);
+    });
+    historyContent.appendChild(list);
   });
-}
-
-function displayFilePreview(file) {
-  if (!filePreviewContainer) return;
-  filePreviewContainer.innerHTML = '';
-  const previewItem = document.createElement('div');
-  previewItem.className = 'file-preview-item';
-
-  const img = document.createElement('img');
-  img.src = URL.createObjectURL(file);
-  previewItem.appendChild(img);
-
-  const fileName = document.createElement('span');
-  fileName.textContent = `🖼️ ${file.name}`;
-  previewItem.appendChild(fileName);
-
-  const removeButton = document.createElement('button');
-  removeButton.className = 'remove-file-button';
-  removeButton.innerHTML = '&times;';
-  removeButton.onclick = () => {
-    fileToSend = null;
-    filePreviewContainer.innerHTML = '';
-  };
-  previewItem.appendChild(removeButton);
-
-  filePreviewContainer.appendChild(previewItem);
-}
-
-let currentMessageCard = null;
-
-// Listener untuk menerima respons dari background script
-chrome.runtime.onMessage.addListener((message) => {
-  if (message.type === 'openaiResponseChunk') {
-    if (!currentMessageCard) {
-      currentMessageCard = appendChatMessage('', 'ai');
-    }
-    currentMessageCard.textContent += message.chunk;
-    if (responseContainer)
-      responseContainer.scrollTop = responseContainer.scrollHeight;
-  } else if (message.type === 'openaiResponseError') {
-    if (!currentMessageCard) {
-      currentMessageCard = appendChatMessage(
-        `Error: ${message.error}\n\nPastikan API Key OpenAI Anda benar dan mendukung model yang digunakan.`,
-        'ai'
-      );
-    }
-    if (stopGenerationButton) stopGenerationButton.style.display = 'none';
-  } else if (message.type === 'promptOpenAI') {
-    // Reset card saat prompt baru dikirim
-    currentMessageCard = null;
-  }
-});
-
-function appendChatMessage(text, role) {
-  if (!responseContainer) return;
-  const messageWrapper = document.createElement('div');
-  messageWrapper.className = `chat-message ${role}`;
-
-  const icon = document.createElement('div');
-  icon.className = 'icon';
-  icon.textContent = role === 'user' ? 'U' : 'AI';
-
-  const messageCard = document.createElement('div');
-  messageCard.className = 'message-card';
-  messageCard.textContent = text;
-
-  messageWrapper.appendChild(icon);
-  messageWrapper.appendChild(messageCard);
-  responseContainer.appendChild(messageWrapper);
-
-  if (role === 'ai') {
-    const copyButton = document.createElement('button');
-    copyButton.className = 'copy-button';
-    copyButton.textContent = '📋';
-    copyButton.onclick = () => {
-      navigator.clipboard.writeText(messageCard.textContent).then(() => {
-        copyButton.textContent = '✅';
-        setTimeout(() => {
-          copyButton.textContent = '📋';
-        }, 1500);
-      });
-    };
-    messageCard.appendChild(copyButton);
-  }
-
-  responseContainer.scrollTop = responseContainer.scrollHeight;
-  return messageCard;
 }
 
 function fetchSuggestions(query) {
@@ -261,7 +121,10 @@ function fetchSuggestions(query) {
 input.addEventListener('input', async (e) => {
   const query = e.target.value.trim();
   if (!query || currentMode !== 'google') {
-    suggestionsBox.style.display = 'none';
+    suggestionsBox.classList.remove('visible');
+    suggestionsBox.style.display = 'none'; // Pastikan hilang
+    // Jika input kosong, tampilkan riwayat terbaru lagi
+    displaySearchHistory();
     return;
   }
 
@@ -278,14 +141,17 @@ input.addEventListener('input', async (e) => {
         fragment.appendChild(div);
       });
       suggestionsBox.appendChild(fragment);
-      suggestionsBox.style.display = 'flex';
+      suggestionsBox.classList.add('visible');
     } else {
-      suggestionsBox.style.display = 'none';
+      suggestionsBox.classList.remove('visible');
     }
   } catch (error) {
     console.error('Failed to fetch suggestions:', error);
-    suggestionsBox.style.display = 'none';
+    suggestionsBox.classList.remove('visible');
   }
+
+  // Selalu cari riwayat saat mengetik
+  displaySearchHistory(query);
 });
 
 suggestionsBox.addEventListener('click', (e) => {
@@ -299,62 +165,33 @@ input.addEventListener('keydown', (e) => {
   if (e.key === 'Enter') {
     // Cek jika ada file yang dipilih, kirim bahkan jika input teks kosong
     const query = input.value.trim();
-    if (query || fileToSend) {
+    if (query) {
       performSearch(query, currentMode);
     }
-    if (currentMode === 'openai') {
-      currentMessageCard = null;
-    }
-  } else if (e.key === 'Tab') {
-    e.preventDefault(); // Mencegah fokus berpindah dari input
-    toggleSearchMode();
   }
 });
-
-function toggleSearchMode() {
-  currentModeIndex = (currentModeIndex + 1) % modes.length;
-  currentMode = modes[currentModeIndex];
-  chrome.storage.local.set({ lastMode: currentMode });
-  updateUIAfterModeChange();
-}
-
-// Fungsi untuk memuat mode terakhir saat popup dibuka
-function loadLastMode() {
-  chrome.storage.local.get(['lastMode'], (result) => {
-    const lastMode = result.lastMode;
-    if (lastMode && modes.includes(lastMode)) {
-      currentMode = lastMode;
-      currentModeIndex = modes.indexOf(lastMode);
-    }
-    updateUIAfterModeChange();
-  });
-}
 
 // Panggil fungsi untuk memuat mode saat skrip dijalankan
 document.addEventListener('DOMContentLoaded', () => {
-  loadLastMode();
+  // Tampilkan riwayat terbaru saat pertama kali dibuka
+  displaySearchHistory();
   // Fokuskan ke input saat popup dibuka
   input.focus();
+
+  // Event listener untuk tombol buka/tutup sidebar
+  historyToggleBtn.addEventListener('click', () => {
+    historySidebar.classList.toggle('open');
+  });
+
+  // Event listener untuk tombol hapus (delegasi)
+  historyContent.addEventListener('click', (e) => {
+    if (e.target && e.target.classList.contains('history-item-delete-btn')) {
+      e.preventDefault(); // Mencegah link terbuka
+      const historyItem = e.target.closest('.history-item');
+      const urlToDelete = historyItem.dataset.url;
+      chrome.history.deleteUrl({ url: urlToDelete }, () =>
+        historyItem.remove()
+      );
+    }
+  });
 });
-
-function updateUIAfterModeChange() {
-  const newMode = searchModes[currentMode];
-  input.placeholder = newMode.placeholder;
-  modeIndicator.className = newMode.className;
-  modeIndicator.textContent = newMode.icon;
-
-  // Tampilkan/sembunyikan elemen UI berdasarkan mode
-  const isAiMode = currentMode === 'openai';
-  if (attachFileButton)
-    attachFileButton.style.display = isAiMode ? 'flex' : 'none';
-  if (responseContainer)
-    responseContainer.style.display = isAiMode ? 'flex' : 'none';
-
-  // Atur saran pencarian
-  if (currentMode !== 'google') {
-    suggestionsBox.style.display = 'none';
-  } else if (input.value.trim()) {
-    // Jika kembali ke mode google dan ada teks, panggil lagi sarannya
-    input.dispatchEvent(new Event('input'));
-  }
-}

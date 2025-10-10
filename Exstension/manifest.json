@@ -1,9 +1,9 @@
 {
   "manifest_version": 3,
   "name": "ZeroMix",
-  "version": "2.0",
+  "version": "2.0.0",
   "description": "ZeroMix Quick Search Bar and AI Assistant",
-  "permissions": ["storage"],
+  "permissions": ["storage", "history"],
   "icons": {
     "16": "image.png",
     "48": "image.png",
