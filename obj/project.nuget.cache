@@ -1,12 +1,11 @@
 {
   "version": 2,
-  "dgSpecHash": "DVlLfWCAHXw=",
+  "dgSpecHash": "J0XnqWBhl/g=",
   "success": true,
-  "projectFilePath": "c:\\ZeroMix\\ZeroMix\\ZeroMix.csproj",
+  "projectFilePath": "C:\\ZeroMix\\ZeroMix\\ZeroMix.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\User\\.nuget\\packages\\megaapiclient\\1.10.5\\megaapiclient.1.10.5.nupkg.sha512",
     "C:\\Users\\User\\.nuget\\packages\\microsoft.csharp\\4.3.0\\microsoft.csharp.4.3.0.nupkg.sha512",
-    "C:\\Users\\User\\.nuget\\packages\\microsoft.net.illink.tasks\\9.0.6\\microsoft.net.illink.tasks.9.0.6.nupkg.sha512",
     "C:\\Users\\User\\.nuget\\packages\\microsoft.netcore.platforms\\1.1.1\\microsoft.netcore.platforms.1.1.1.nupkg.sha512",
     "C:\\Users\\User\\.nuget\\packages\\microsoft.netcore.targets\\1.1.0\\microsoft.netcore.targets.1.1.0.nupkg.sha512",
     "C:\\Users\\User\\.nuget\\packages\\microsoft.win32.primitives\\4.3.0\\microsoft.win32.primitives.4.3.0.nupkg.sha512",
