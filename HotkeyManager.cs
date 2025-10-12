@@ -1,7 +1,7 @@
 using System;
 using System.Runtime.InteropServices;
 
-namespace ZeroSrc
+namespace ZeroMix
 {
     public static class HotkeyManager
     {

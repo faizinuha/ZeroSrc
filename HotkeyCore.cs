@@ -9,7 +9,7 @@ using System.Windows.Interop;
 
 
 
-namespace ZeroSrc
+namespace ZeroMix
 
 {
 

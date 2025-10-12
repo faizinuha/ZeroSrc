@@ -1,14 +1,14 @@
-~## Panduan Kontribusi ZeroSrc~
+~## Panduan Kontribusi ZeroMix~
 
-~Kami sangat senang Anda tertarik untuk berkontribusi pada ZeroSrc! Panduan ini akan membantu Anda memulai dan memastikan proses kontribusi berjalan lancar.~
+~Kami sangat senang Anda tertarik untuk berkontribusi pada ZeroMix! Panduan ini akan membantu Anda memulai dan memastikan proses kontribusi berjalan lancar.~
 
 ~### Cara Memulai~
 
 ~1.  **Fork** repositori ini ke akun GitHub Anda.~
 ~2.  **Clone** repositori yang sudah di-fork ke mesin lokal Anda:~
 ~    ```bash~
-~    git clone [https://github.com/akun-anda/ZeroSrc.git~](https://github.com/akun-anda/ZeroSrc.git~)
-~    cd ZeroSrc~
+~    git clone [https://github.com/akun-anda/ZeroMix.git~](https://github.com/akun-anda/ZeroMix.git~)
+~    cd ZeroMix~
 ~    ```~
 ~3.  **Buat branch baru** untuk fitur atau perbaikan bug Anda:~
 ~    ```bash~

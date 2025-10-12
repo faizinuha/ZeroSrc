@@ -1,3 +1,5 @@
 publish/
 Release/
 ZeroSrc.prx/
+obj/
+bin/

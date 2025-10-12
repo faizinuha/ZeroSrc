@@ -1,6 +1,6 @@
 ## Halo Semuanya! 👋
 
-### Terima kasih sudah mengunduh dan menggunakan Ekstensi ZeroSrc. Semoga bermanfaat untuk kalian semua
+### Terima kasih sudah mengunduh dan menggunakan Ekstensi ZeroMix. Semoga bermanfaat untuk kalian semua
 
 ### dan membantu meningkatkan produktivitas kalian
 
@@ -27,7 +27,7 @@ Terima kasih sekali lagi atas dukungan Anda. Selamat mencoba fitur-fitur baru!
 
 ━━━━━━━━━━━━━━━━━━━━━━
 
-Support ZeroExtension
+Support ZeroMix Extension
 
 Link : <https://sociabuzz.com/zuax/tribe>
 
@@ -36,4 +36,4 @@ Subscribe : <https://www.youtube.com/@Zuanzi>
 ━━━━━━━━━━━━━━━━━━━━━━
 
 Salam hangat,
-Tim ZeroSrc
+Tim ZeroMix

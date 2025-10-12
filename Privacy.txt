@@ -1,15 +1,15 @@
 --- DISCLAIMER ---
 
-ZeroSrc adalah aplikasi pribadi yang **tidak dipublikasikan secara massal** di platform resmi.  
+ZeroMix adalah aplikasi pribadi yang **tidak dipublikasikan secara massal** di platform resmi.  
 Jika Anda tetap ingin menginstal aplikasi ini, silakan klik **"More info"** lalu pilih **"Run anyway"** saat muncul peringatan dari sistem.  
 Gunakan aplikasi ini dengan kesadaran penuh. Segala risiko penggunaan berada di tangan pengguna.
 
 ---
 
---- Terima Kasih Telah Menggunakan ZeroSrc ---
+--- Terima Kasih Telah Menggunakan ZeroMix ---
 
-ZeroSrc adalah aplikasi yang dibuat dengan tujuan untuk memudahkan akses ke aplikasi web dan desktop favorit Anda.  
-Dengan ZeroSrc, Anda bisa membuka aplikasi-aplikasi pilihan Anda dengan **lebih cepat, praktis, dan efisien**.
+ZeroMix adalah aplikasi yang dibuat dengan tujuan untuk memudahkan akses ke aplikasi web dan desktop favorit Anda.  
+Dengan ZeroMix, Anda bisa membuka aplikasi-aplikasi pilihan Anda dengan **lebih cepat, praktis, dan efisien**.
 
 Kami sangat menghargai Anda yang telah meluangkan waktu untuk membaca ini.  
 Semoga aplikasi ini dapat memberikan pengalaman yang menyenangkan dan bermanfaat bagi Anda.
@@ -21,7 +21,7 @@ Kami terbuka untuk segala saran, dan sangat menghargai kepercayaan serta dukunga
 
 --- Kebijakan Privasi (Privacry.txt) ---
 
-**Privacry.txt** adalah dokumen yang menjelaskan bagaimana ZeroSrc mengelola dan melindungi data pengguna.  
+**Privacry.txt** adalah dokumen yang menjelaskan bagaimana ZeroMix mengelola dan melindungi data pengguna.  
 Kami berkomitmen untuk menjaga privasi Anda dan memastikan bahwa data pribadi yang dikumpulkan digunakan dengan cara yang transparan dan sesuai dengan hukum yang berlaku.
 
 **Apa yang Kami Kumpulkan:**
@@ -50,7 +50,7 @@ Kami berkomitmen untuk menjaga privasi Anda dan memastikan bahwa data pribadi ya
 
 Terima kasih telah membaca kebijakan privasi kami.  
 Kami menghargai kepercayaan Anda dan berkomitmen untuk menjaga keamanan data pribadi Anda.  
-Semoga ZeroSrc bisa membantu Anda mengakses aplikasi dengan lebih nyaman dan cepat.
+Semoga ZeroMix bisa membantu Anda mengakses aplikasi dengan lebih nyaman dan cepat.
 
 Salam hangat,  
-Tim ZeroSrc 💻✨
+Tim ZeroMix 💻✨

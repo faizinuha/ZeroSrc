@@ -1,6 +1,6 @@
 ﻿using System.Windows;
 
-namespace ZeroSrc
+namespace ZeroMix
 {
 	public partial class MainWindow : Window
 	{
