@@ -18,7 +18,7 @@ namespace ZeroMix.Core
 
         public MegaUpdater()
         {
-            _currentVersion = Assembly.GetExecutingAssembly().GetName().Version?.ToString(3) ?? "1.6.0";
+            _currentVersion = Assembly.GetExecutingAssembly().GetName().Version?.ToString(3) ?? "1.6.6";
         }
 
         public async Task CheckAndUpdateAsync()
