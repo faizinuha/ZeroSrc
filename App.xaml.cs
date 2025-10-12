@@ -1,9 +1,10 @@
 ﻿using System.Configuration;
 using System.Data;
 using System.Windows;
-using ZeroSrc.Core;
+using ZeroMix.Core;
 using System.Threading.Tasks;
-namespace ZeroSrc
+
+namespace ZeroMix
 {
     using System.Windows;
 

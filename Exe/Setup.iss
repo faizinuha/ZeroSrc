@@ -5,10 +5,10 @@ AppVersion=1.6.0
 FileVersion=1.6.0.
 AppVerName=ZeroMix
 AppPublisher=faizinuha
-AppPublisherURL=Mardve7.vercel.app
+AppPublisherURL= Mardve7.vercel.app
 AppCopyright=Copyright (c) 2025
-AppComments=ZeroSrc smart launcher
-DefaultDirName={pf}\ZeroSrc
+AppComments=ZeroMix smart launcher
+DefaultDirName={pf}\ZeroMix
 DefaultGroupName=ZeroMix
 AllowNoIcons=yes
 OutputDir=.
@@ -27,7 +27,7 @@ WizardImageFile=image.bmp
 ; Example command (from project root):
 ; dotnet publish -c Release -r win-x64 -p:PublishSingleFile=true -p:PublishTrimmed=true --self-contained true -o ..\publish\win-x64
 ; Then run Inno Setup using this script; the installer will include the self-contained exe and dependencies.
-; Optionally sign both ZeroSrc.exe and the installer with a code signing certificate to reduce false-positive antivirus flags.
+; Optionally sign both ZeroMix.exe and the installer with a code signing certificate to reduce false-positive antivirus flags.
 
 ; --- File yang akan diinstal ---
 [Files]
@@ -49,7 +49,7 @@ Name: "desktopicon"; Description: "Create a &desktop shortcut"; GroupDescription
 
 ; --- Jalankan aplikasi setelah install ---
 [Run]
-Filename: "{app}\ZeroSrc.exe"; Description: "Jalankan ZeroMix"; Flags: nowait postinstall skipifsilent
+Filename: "{app}\ZeroMix.exe"; Description: "Jalankan ZeroMix"; Flags: nowait postinstall skipifsilent
 
 ; --- Bersihkan file saat uninstall ---
 [UninstallDelete]
@@ -58,7 +58,7 @@ Type: filesandordirs; Name: "{userappdata}\GoogleBox"
 
 ; --- Tutup proses saat uninstall ---
 [UninstallRun]
-Filename: "taskkill.exe"; Parameters: "/IM ZeroSrc.exe /F"; StatusMsg: "Menutup aplikasi Google Box..."; Flags: runhidden
+Filename: "taskkill.exe"; Parameters: "/IM ZeroMix.exe /F"; StatusMsg: "Menutup aplikasi Google Box..."; Flags: runhidden
 Filename: "cmd.exe"; Parameters: "/C echo Terima kasih telah menggunakan Google Box! && timeout /t 3"; Flags: runhidden
 
 ; --- Teks Custom Welcome & Selesai ---

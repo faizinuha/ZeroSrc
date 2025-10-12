@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.IO;
 
-namespace ZeroSrc.Core
+namespace ZeroMix.Core
 {
     public class MegaUpdater
     {
@@ -85,7 +85,7 @@ namespace ZeroSrc.Core
                 }
                 else
                 {
-                    Debug.WriteLine("ZeroSrc is up to date.");
+                    Debug.WriteLine("ZeroMix is up to date.");
                 }
             }
             catch (Exception ex)

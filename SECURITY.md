@@ -1,6 +1,6 @@
-~## Kebijakan Keamanan ZeroSrc~
+~## Kebijakan Keamanan ZeroMix~
 
-~Kami menganggap serius keamanan ZeroSrc. Jika Anda menemukan kerentanan keamanan, kami sangat menghargai jika Anda melapor kepada kami secara bertanggung jawab agar kami dapat memperbaikinya secepat mungkin.~
+~Kami menganggap serius keamanan ZeroMix. Jika Anda menemukan kerentanan keamanan, kami sangat menghargai jika Anda melapor kepada kami secara bertanggung jawab agar kami dapat memperbaikinya secepat mungkin.~
 
 ~### Cara Melapor~
 
@@ -20,4 +20,4 @@
 
 ~Kami berkomitmen untuk bekerja sama dengan Anda untuk menyelesaikan masalah dengan cepat dan tidak akan mengambil tindakan hukum terhadap peneliti yang bertindak dengan itikad baik.~
 
-~Terima kasih telah membantu menjaga ZeroSrc tetap aman!~
+~Terima kasih telah membantu menjaga ZeroMix tetap aman!~

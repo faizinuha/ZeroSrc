@@ -1,10 +1,10 @@
-# ZeroSrc
+# ZeroMix
 
-Selamat datang di **ZeroSrc**! Panduan ini akan membantu Anda menginstal, menggunakan, dan menghapus aplikasi ZeroSrc dengan mudah.
+Selamat datang di **ZeroMix**! Panduan ini akan membantu Anda menginstal, menggunakan, dan menghapus aplikasi ZeroMix dengan mudah.
 
 ## 🚀 Fitur Terbaru (v1.6.0)
 
-ZeroSrc kini lebih cerdas dan intuitif! Kami telah merombak sistem pencarian untuk memberikan pengalaman yang lebih mulus.
+ZeroMix kini lebih cerdas dan intuitif! Kami telah merombak sistem pencarian untuk memberikan pengalaman yang lebih mulus.
 
 - **Pencarian Terintegrasi**: Cari aplikasi lokal dan web secara bersamaan dalam satu tempat.
 - **UI yang Informatif**: Hasil pencarian kini dikelompokkan berdasarkan kategori ("Aplikasi Desktop" & "Pencarian Web") dan dilengkapi ikon untuk identifikasi cepat.
@@ -62,7 +62,7 @@ Penasaran dengan fitur barunya? **Tonton video demo di sini!** (Link akan diperb
 - **Prioritas Saran Cerdas:** Mengimplementasikan sistem untuk menampilkan aplikasi yang paling sering digunakan di urutan teratas.
 - **Kustomisasi Tampilan:** Menambahkan opsi untuk mengubah urutan kategori (misalnya, Pencarian Web di atas Aplikasi Desktop).
 - **Optimasi Performa:** Peningkatan kecepatan dalam memuat dan menampilkan daftar aplikasi, terutama untuk pengguna dengan banyak program terinstal.
-- **Pembaruan Otomatis**: ZeroSrc kini dapat memeriksa dan menginstal pembaruan secara otomatis, memastikan Anda selalu menggunakan versi terbaru dengan perbaikan dan fitur terkini.
+- **Pembaruan Otomatis**: ZeroMix kini dapat memeriksa dan menginstal pembaruan secara otomatis, memastikan Anda selalu menggunakan versi terbaru dengan perbaikan dan fitur terkini.
 
 ---
 
@@ -98,16 +98,16 @@ Penasaran dengan fitur barunya? **Tonton video demo di sini!** (Link akan diperb
 
 ## 💡 Cara Penggunaan
 
-- Ketik nama aplikasi di ZeroSrc untuk membukanya.
+- Ketik nama aplikasi di ZeroMix untuk membukanya.
 - Gunakan fitur shortcut dan pembaruan otomatis sesuai kebutuhan.
 
 ---
 
-## 🔗 Download Aplikasi ZeroSrc
+## 🔗 Download Aplikasi ZeroMix
 
-- [GitHub Repository](https://github.com/faizinuha/ZeroSrc)
-- [Releases Page](https://github.com/faizinuha/ZeroSrc/releases)
-- [🌐 ZeroSrc Official Website](https://faizinuha.github.io/ZeroSrc/)
+- [GitHub Repository](https://github.com/faizinuha/ZeroMix)
+- [Releases Page](https://github.com/faizinuha/ZeroMix/releases)
+- [🌐 ZeroMix Official Website](https://faizinuha.github.io/ZeroMix/)
 
 Pastikan mengunduh versi terbaru untuk fitur dan perbaikan terbaru.
 
@@ -115,14 +115,14 @@ Pastikan mengunduh versi terbaru untuk fitur dan perbaikan terbaru.
 
 ## ❌ Cara Uninstall
 
-1. Tutup aplikasi ZeroSrc jika sedang berjalan.
-2. Hapus folder instalasi ZeroSrc dari komputer Anda.
-3. Pastikan tidak ada proses ZeroSrc yang berjalan:
+1. Tutup aplikasi ZeroMix jika sedang berjalan.
+2. Hapus folder instalasi ZeroMix dari komputer Anda.
+3. Pastikan tidak ada proses ZeroMix yang berjalan:
    - Buka **Task Manager** (`Ctrl + Shift + Esc`)
-   - Cari `ZeroSrc.exe`
+   - Cari `ZeroMix.exe`
    - Klik kanan > **End Task** jika masih aktif.
 
-> 💡 **Tips:** Pastikan semua instance ZeroSrc tertutup agar aplikasi benar-benar terhapus.
+> 💡 **Tips:** Pastikan semua instance ZeroMix tertutup agar aplikasi benar-benar terhapus.
 
 ---
 

@@ -17,7 +17,7 @@ using System.Windows.Media.Animation;
 
 using System.Net.Http;
 using System.Text.Json;
-namespace ZeroSrc
+namespace ZeroMix
 {
     public enum SuggestionType
     {
