@@ -197,7 +197,7 @@ body {
 
 /* --- Area Input --- */
 .search-box {
-  width: 100%;
+  width: 90%;
   display: flex;
   align-items: center;
   padding: 20px;
