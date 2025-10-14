@@ -1,15 +1,10 @@
 // File: SearchOverlay.xaml.cs
-using System;
-using System.Collections;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
-using System.Linq;
 using System.ComponentModel;
 using System.Runtime.InteropServices;
 using System.Windows;
-using System.Threading.Tasks;
 using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Input;
@@ -198,52 +193,53 @@ namespace ZeroMix
         private bool _isSelectingSuggestion = false;
         private static readonly HttpClient _httpClient = new HttpClient();
 
-                private async void SearchBox_TextChanged(object sender, TextChangedEventArgs e)
-                {
-                    if (_isSelectingSuggestion) return;
-        
-                    var searchBox = sender as TextBox;
-                    string query = searchBox?.Text ?? "";
-                    var suggestionList = this.FindName("SuggestionList") as ListBox;
-        
-                    if (string.IsNullOrWhiteSpace(query))
-                    {
-                        suggestionList!.ItemsSource = null;
-                        suggestionList.Visibility = Visibility.Collapsed;
-                        return;
-                    }
-        
-                    // Filter local suggestions (apps)
-                    var localSuggestions = _allSuggestions
-                        .Where(s => s.DisplayText.StartsWith(query, StringComparison.OrdinalIgnoreCase))
-                        .ToList();
-                    
-                    // Get suggestions from Google
-                    var googleSuggestions = await GetGoogleSuggestionsAsync(query);
-                    var webSuggestions = googleSuggestions
-                        .Select(s => new SuggestionItem(s, null, SuggestionType.WebSearch))
-                        .ToList();
+        private async void SearchBox_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            if (_isSelectingSuggestion) return;
 
-                    var combined = localSuggestions.Concat(webSuggestions).ToList();
-        
-                    // Add a specific option to search on Google
-                    combined.Add(new SuggestionItem($"Search Google for \"{query}\"", query, SuggestionType.WebSearch));
-        
+            var searchBox = sender as TextBox;
+            string query = searchBox?.Text ?? "";
+            var suggestionList = this.FindName("SuggestionList") as ListBox;
+
+            if (string.IsNullOrWhiteSpace(query))
+            {
+                suggestionList!.ItemsSource = null;
+                suggestionList.Visibility = Visibility.Collapsed;
+                return;
+            }
+
+            // Filter local suggestions (apps)
+            var localSuggestions = _allSuggestions
+                .Where(s => s.DisplayText.StartsWith(query, StringComparison.OrdinalIgnoreCase))
+                .ToList();
+
+            // Get suggestions from Google
+            var googleSuggestions = await GetGoogleSuggestionsAsync(query);
+            var webSuggestions = googleSuggestions
+                .Select(s => new SuggestionItem(s, null, SuggestionType.WebSearch))
+                .ToList();
+
+            var combined = localSuggestions.Concat(webSuggestions).ToList();
+
+            // Add a specific option to search on Google
+            combined.Add(new SuggestionItem("Search Google for \"" + query + "\"", query, SuggestionType.WebSearch));
+
+
                     if (combined.Count > 0)
-                    {
-                        // --- Dropdown suggestion ---
-                        // Gunakan CollectionViewSource untuk grouping
-                        var collectionView = new ListCollectionView(combined);
-                        collectionView.GroupDescriptions.Add(new PropertyGroupDescription("Type"));
-                        suggestionList!.ItemsSource = collectionView;
-                        suggestionList.Visibility = Visibility.Visible;
-                    }
-                    else
-                    {
-                        suggestionList!.ItemsSource = null;
-                        suggestionList.Visibility = Visibility.Collapsed;
-                    }
-                }
+            {
+                // --- Dropdown suggestion ---
+                // Gunakan CollectionViewSource untuk grouping
+                var collectionView = new ListCollectionView(combined);
+                collectionView.GroupDescriptions.Add(new PropertyGroupDescription("Type"));
+                suggestionList!.ItemsSource = collectionView;
+                suggestionList.Visibility = Visibility.Visible;
+            }
+            else
+            {
+                suggestionList!.ItemsSource = null;
+                suggestionList.Visibility = Visibility.Collapsed;
+            }
+        }
         private async Task<List<string>> GetGoogleSuggestionsAsync(string query)
         {
             var suggestions = new List<string>();
@@ -493,6 +489,18 @@ namespace ZeroMix
                 if (!string.IsNullOrEmpty(name) && !shortcutPaths.ContainsKey(name))
                     _allSuggestions.Add(new SuggestionItem(name, file, SuggestionType.App));
             }
+        }
+
+        private void CustomShortcutButton_Click(object sender, RoutedEventArgs e)
+        {
+            // Hide the overlay to focus on the settings window
+            this.Visibility = Visibility.Hidden;
+
+            var customShortcutWindow = new CustomShortcutWindow();
+            customShortcutWindow.ShowDialog(); // Blocks until closed
+
+            // After the dialog is closed, close the overlay completely.
+            this.Close();
         }
 
         public void BeginFadeOutAndCloseByMain()

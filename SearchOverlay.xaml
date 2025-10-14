@@ -183,10 +183,10 @@
                 </Grid.ColumnDefinitions>
 
                 <TextBlock Text="{Binding Icon}"
-                       FontFamily="Segoe MDL2 Assets"
-                       FontSize="16"
-                       VerticalAlignment="Center"
-                       HorizontalAlignment="Center"/>
+                           FontFamily="Segoe MDL2 Assets"
+                           FontSize="16"
+                           VerticalAlignment="Center"
+                           HorizontalAlignment="Center"/>
 
                 <TextBlock Text="{Binding DisplayText}"
                            Grid.Column="1"
@@ -207,7 +207,8 @@
         <Border CornerRadius="18"
                 Background="#B3FFFFFF"
                 BorderBrush="#20000000"
-                BorderThickness="1" Effect="{StaticResource MacShadow}"
+                BorderThickness="1"
+                Effect="{StaticResource MacShadow}"
                 Margin="8">
             <Grid>
                 <Grid.RowDefinitions>
@@ -269,6 +270,21 @@
                            Foreground="#007AFF"
                            FontFamily="{StaticResource MacFont}"
                            Visibility="Collapsed"/>
+
+                <Button Name="CustomShortcutButton"
+                        Grid.Row="0"
+                        HorizontalAlignment="Right"
+                        VerticalAlignment="Center"
+                        Margin="0,0,16,0"
+                        Content="&#xE713;"
+                        FontFamily="Segoe MDL2 Assets"
+                        FontSize="16"
+                        Width="32"
+                        Height="32"
+                        Background="Transparent"
+                        Foreground="#555"
+                        BorderThickness="0"
+                        Click="CustomShortcutButton_Click"/>
             </Grid>
         </Border>
     </Grid>

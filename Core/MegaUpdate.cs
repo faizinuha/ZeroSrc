@@ -64,6 +64,11 @@ namespace ZeroMix.Core
 
                     if (result != MessageBoxResult.Yes) return;
 
+                    if (string.IsNullOrEmpty(info.UpdateFile))
+                    {
+                        ShowMessage("Nama file pembaruan tidak valid.", "Update Error");
+                        return;
+                    }
                     var updateNode = nodes.FirstOrDefault(n => n.Name == info.UpdateFile);
                     if (updateNode == null)
                     {
