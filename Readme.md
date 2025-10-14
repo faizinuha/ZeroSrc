@@ -134,7 +134,7 @@ Pastikan mengunduh versi terbaru untuk fitur dan perbaikan terbaru.
 ## 🛠️ Gambar
 <!-- Gambar ini menunjukkan tampilan ZeroMix -->
 
-<img src="assets/image.png" alt="ZeroMix Screenshot" width="100">
+<img src="assets/zeromix-high-resolution-logo-transparent.png" alt="ZeroMix Screenshot" width="100" >
 <div align="center">
 
 ---
