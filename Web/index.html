@@ -4,152 +4,23 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>ZeroMix – Desktop & Extension</title>
-    <style>
-      body {
-        margin: 0;
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        background: #0f0f1a;
-        color: #f4f4f9;
-        line-height: 1.6;
-      }
-      header {
-        background: linear-gradient(135deg, #1a1a2e, #16213e);
-        text-align: center;
-        padding: 60px 20px;
-      }
-      header h1 {
-        font-size: 3rem;
-        margin: 0;
-        color: #00d9ff;
-      }
-      header p {
-        font-size: 1.2rem;
-        margin-top: 10px;
-        color: #bbb;
-      }
-      .btn {
-        display: inline-block;
-        margin-top: 20px;
-        padding: 12px 25px;
-        background: #00d9ff;
-        color: #000;
-        font-weight: bold;
-        border-radius: 8px;
-        text-decoration: none;
-        transition: 0.3s;
-        cursor: pointer;
-        /* animation: pulse 1.5s infinite; */
-      }
-      .btn:hover {
-        border-radius: 20px;
-        background: #08acd0;
-        color: #fff;
-        transform: scale(1.1);
-      }
-      @keyframes pulse {
-        0% {
-          box-shadow: 0 0 0 0 rgba(0, 217, 255, 0.7);
-        }
-        70% {
-          box-shadow: 0 0 0 20px rgba(0, 217, 255, 0);
-        }
-        100% {
-          box-shadow: 0 0 0 0 rgba(0, 217, 255, 0);
-        }
-      }
-      section {
-        padding: 60px 20px;
-        max-width: 1000px;
-        margin: auto;
-      }
-      h2 {
-        text-align: center;
-        margin-bottom: 40px;
-        color: #00d9ff;
-      }
-      .features {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-        gap: 30px;
-      }
-      .card {
-        background: #1e1e2f;
-        padding: 20px;
-        border-radius: 12px;
-        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
-        transition: 0.3s;
-      }
-      .card:hover {
-        transform: translateY(-5px) scale(1.03);
-        background: #22223c;
-        box-shadow: 0 0 15px #00d9ff;
-      }
-      .install-steps {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 30px;
-        justify-content: center;
-      }
-      .install-steps div {
-        background: #1e1e2f;
-        padding: 20px;
-        border-radius: 10px;
-        flex: 1 1 300px;
-      }
-      .screenshots {
-        display: flex;
-        gap: 20px;
-        flex-wrap: wrap;
-        justify-content: center;
-      }
-      .screenshots img {
-        width: 300px;
-        border-radius: 10px;
-        box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
-      }
-      .download-cards {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-        gap: 25px;
-        margin-top: 30px;
-      }
-      .download-card {
-        background: #1e1e2f;
-        padding: 25px;
-        border-radius: 12px;
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
-        transition: 0.3s;
-        text-align: center;
-      }
-      .download-card:hover {
-        transform: translateY(-5px) scale(1.02);
-        box-shadow: 0 0 15px #00d9ff;
-      }
-      footer {
-        text-align: center;
-        padding: 30px;
-        background: #111;
-        color: #888;
-        margin-top: 50px;
-      }
-      footer a {
-        color: #00d9ff;
-        text-decoration: none;
-      }
-      footer .easter-egg {
-        margin-top: 15px;
-        font-size: 0.9rem;
-        color: #555;
-      }
-    </style>
+    <link rel="stylesheet" href="style.css" />
+    <!-- Swiper.js CSS -->
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/swiper/swiper-bundle.min.css"
+    />
   </head>
   <body>
     <!-- Hero Section -->
     <header>
-      <h1>ZeroMix</h1>
-      <p>Selamat Datang Di website Kami Update Ke 1.5.5</p>
-      <p>Aplikasi Desktop & Extension untuk produktivitas tanpa batas 🚀</p>
-      <button onclick="Alert()" class="btn">Get Started</button>
+      <div id="particles-js"></div>
+      <div class="header-content">
+        <h1>ZeroMix</h1>
+        <p>Selamat Datang Di website Kami Update Ke 1.5.5</p>
+        <p>Aplikasi Desktop & Extension untuk produktivitas tanpa batas 🚀</p>
+        <button onclick="Alert()" class="btn">Get Started</button>
+      </div>
     </header>
 
     <script>
@@ -249,7 +120,7 @@
           <h3>🌐 ZeroMix Extension</h3>
           <p>Paket Extension untuk Chrome / Edge / Opera</p>
           <div class="download-buttons">
-            <button class="btn" onclick="NotFound()"> Download ZIP</button>
+            <button class="btn" onclick="NotFound()">Download ZIP</button>
             <a
               href="https://mega.nz/folder/uEdWTbSJ#y1bCKlrXXy93gi3e5zeBXA"
               target="_blank"
@@ -263,82 +134,32 @@
     <script>
       function NotFound() {
         alert('Developer Mengubah Update langsung di kirim Ke Link Tujuan....');
-          alert('Silakan Ke Link Alternatif Ya....');
-          alert('Lets Go'); window.location.href = 'https://mega.nz/folder/uEdWTbSJ#y1bCKlrXXy93gi3e5zeBXA';
+        alert('Silakan Ke Link Alternatif Ya....');
+        alert('Lets Go');
+        window.location.href =
+          'https://mega.nz/folder/uEdWTbSJ#y1bCKlrXXy93gi3e5zeBXA';
       }
     </script>
-    <style>
-      .download-buttons {
-        display: flex;
-        gap: 15px;
-        flex-wrap: wrap;
-        margin-top: 15px;
-      }
-
-      /* Tombol umum */
-      .download-buttons a {
-        flex: 1;
-        text-align: center;
-        padding: 12px 20px;
-        border-radius: 8px;
-        font-weight: bold;
-        text-decoration: none;
-        transition: 0.3s ease;
-        cursor: pointer;
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      }
-
-      /* Tombol utama (EXE) */
-      .btn-1 {
-        background: #00d9ff;
-        color: #000;
-      }
-      .btn-1:hover {
-        background: #08acd0;
-        color: #fff;
-        transform: scale(1.05);
-      }
-
-      /* Tombol ZIP (belum ada file) */
-      .btn-2 {
-        background: #ffcc00;
-        color: #000;
-      }
-      .btn-2:hover {
-        background: #d4aa00;
-        color: #fff;
-        transform: scale(1.05);
-      }
-
-      /* Tombol alternatif (Mega, GDrive, dll) */
-      .btn-3 {
-        background: #ff006a;
-        color: #fff;
-      }
-      .btn-3:hover {
-        background: #cc0055;
-        transform: scale(1.05);
-      }
-
-      /* Extension ZIP */
-      .btn-4 {
-        background: #4caf50;
-        color: #fff;
-      }
-      .btn-4:hover {
-        background: #3e8e41;
-        transform: scale(1.05);
-      }
-    </style>
-
     <!-- Screenshots -->
     <section>
-      <h2>🖼️ Screenshot</h2>
-      <div class="screenshots">
-        <img src="Presen.png" alt="ZeroMix Desktop" />
-        <img src="image-copy.png" alt="ZeroMix Extension" />
+      <h2 class="reveal">🖼️ Screenshot</h2>
+      <!-- Swiper Carousel -->
+      <div class="swiper-container screenshots-carousel reveal">
+        <div class="swiper-wrapper">
+          <div class="swiper-slide">
+            <img src="image copy.png" alt="ZeroMix Desktop" />
+          </div>
+          <div class="swiper-slide">
+            <img src="image copy 2.png" alt="ZeroMix Desktop" />
+          </div>
+          <div class="swiper-slide">
+            <img src="image-copy.png" alt="ZeroMix Extension" />
+          </div>
+        </div>
+        <!-- Add Pagination -->
+        <div class="swiper-pagination"></div>
       </div>
-      <p style="text-align: center">Belum Update gambar ✨</p>
+      <p style="text-align: center" class="reveal">Belum Update gambar ✨</p>
     </section>
 
     <!-- Footer -->
@@ -355,5 +176,11 @@
         🤫 Psst... kamu manis banget udah scroll sampai sini 💖
       </div>
     </footer>
+
+    <!-- Pustaka Eksternal -->
+    <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
+    <script src="https://unpkg.com/swiper/swiper-bundle.min.js"></script>
+
+    <script src="script.js"></script>
   </body>
 </html>
