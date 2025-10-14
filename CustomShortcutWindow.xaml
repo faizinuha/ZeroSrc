@@ -1,48 +1,115 @@
-<Window x:Class="ZeroMix.CustomShortcutWindow"
-        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Custom Shortcuts" Height="450" Width="600"
-        Background="#1e1e1e" Foreground="White">
+<Window
+    x:Class="ZeroMix.CustomShortcutWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    Title="Custom Shortcuts"
+    Width="600"
+    Height="450"
+    Background="#1e1e1e"
+    Foreground="White">
     <Grid Margin="15">
         <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
-            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
-        <!-- Input Form -->
+        <!--  Input Form  -->
         <StackPanel Grid.Row="0">
-            <TextBlock Text="Shortcut Hotkey:" FontWeight="Bold"/>
-            <TextBox Name="HotkeyTextBox" Margin="0,5,0,10" Padding="5" Background="#3c3c3c" Foreground="White" BorderThickness="1" BorderBrush="#555" PreviewKeyDown="HotkeyTextBox_PreviewKeyDown" IsReadOnly="True" Text="Click here and press a key combination"/>
+            <TextBlock FontWeight="Bold" Text="Shortcut Hotkey:" />
+            <TextBox
+                Name="HotkeyTextBox"
+                Margin="0,5,0,10"
+                Padding="5"
+                Background="#3c3c3c"
+                BorderBrush="#555"
+                BorderThickness="1"
+                Foreground="White"
+                IsReadOnly="True"
+                PreviewKeyDown="HotkeyTextBox_PreviewKeyDown"
+                Text="Click here and press a key combination" />
 
-            <TextBlock Text="Application Path:" FontWeight="Bold"/>
+            <TextBlock FontWeight="Bold" Text="Application Path:" />
             <Grid>
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
-                <TextBox Name="AppPathTextBox" Margin="0,5,5,10" Padding="5" IsReadOnly="True" Background="#3c3c3c" Foreground="White" BorderThickness="1" BorderBrush="#555"/>
-                <Button Name="BrowseButton" Grid.Column="1" Content="Browse..." Click="BrowseButton_Click" Padding="10,5" Background="#007acc" BorderThickness="0"/>
+                <ComboBox
+                    Name="AppPathComboBox"
+                    Margin="0,5,5,10"
+                    Padding="5"
+                    Background="#3c3c3c"
+                    BorderBrush="#555"
+                    BorderThickness="1"
+                    DisplayMemberPath="Name"
+                    Foreground="black"
+                    IsEditable="True"
+                    SelectedValuePath="Path" />
+                <Button
+                    Name="BrowseButton"
+                    Grid.Column="1"
+                    Padding="10,5"
+                    Background="#007acc"
+                    BorderThickness="0"
+                    Click="BrowseButton_Click"
+                    Content="Browse..." />
             </Grid>
         </StackPanel>
 
-        <Button Grid.Row="1" Name="AddShortcutButton" Content="Add/Update Shortcut" Click="AddShortcutButton_Click" HorizontalAlignment="Left" Margin="0,0,0,15" Padding="10,5" Background="#2a9d8f" BorderThickness="0"/>
+        <Button
+            Name="AddShortcutButton"
+            Grid.Row="1"
+            Margin="0,0,0,15"
+            Padding="10,5"
+            HorizontalAlignment="Left"
+            Background="#2a9d8f"
+            BorderThickness="0"
+            Click="AddShortcutButton_Click"
+            Content="Add Shortcut" />
 
-        <!-- Shortcut List -->
-        <ListView Name="ShortcutListView" Grid.Row="2" Background="#2a2a2a" BorderThickness="0">
+        <!--  Shortcut List  -->
+        <ListView
+            Name="ShortcutListView"
+            Grid.Row="2"
+            Background="#2a2a2a"
+            BorderThickness="0">
             <ListView.View>
                 <GridView>
-                    <GridViewColumn Header="Hotkey" Width="200" DisplayMemberBinding="{Binding Hotkey}"/>
-                    <GridViewColumn Header="Application" Width="350" DisplayMemberBinding="{Binding ApplicationPath}"/>
+                    <GridViewColumn
+                        Width="200"
+                        DisplayMemberBinding="{Binding Hotkey}"
+                        Header="Hotkey" />
+                    <GridViewColumn
+                        Width="350"
+                        DisplayMemberBinding="{Binding ApplicationPath}"
+                        Header="Application" />
                 </GridView>
             </ListView.View>
         </ListView>
 
-        <!-- Action Buttons -->
-        <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,15,0,0">
-            <Button Name="SaveButton" Content="Save and Close" Click="SaveButton_Click" Padding="10,5" Background="#007acc" BorderThickness="0" Margin="0,0,10,0"/>
-            <Button Name="CancelButton" Content="Cancel" Click="CancelButton_Click" Padding="10,5" Background="#3c3c3c" BorderThickness="0"/>
+        <!--  Action Buttons  -->
+        <StackPanel
+            Grid.Row="3"
+            Margin="0,15,0,0"
+            HorizontalAlignment="Right"
+            Orientation="Horizontal">
+            <Button
+                Name="SaveButton"
+                Margin="0,0,10,0"
+                Padding="10,5"
+                Background="#007acc"
+                BorderThickness="0"
+                Click="SaveButton_Click"
+                Content="Save and Close" />
+            <Button
+                Name="CancelButton"
+                Padding="10,5"
+                Background="#3c3c3c"
+                BorderThickness="0"
+                Click="CancelButton_Click"
+                Content="Cancel" />
         </StackPanel>
     </Grid>
 </Window>
