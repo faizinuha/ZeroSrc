@@ -12,13 +12,17 @@ namespace ZeroMix
     {
         private const string ShortcutsFilePath = "custom_shortcuts.json";
         public ObservableCollection<CustomShortcut> Shortcuts { get; set; }
+        public ObservableCollection<InstalledApplication> InstalledApps { get; set; }
 
         public CustomShortcutWindow()
         {
             InitializeComponent();
             Shortcuts = new ObservableCollection<CustomShortcut>();
+            InstalledApps = new ObservableCollection<InstalledApplication>();
             ShortcutListView.ItemsSource = Shortcuts;
+            AppPathComboBox.ItemsSource = InstalledApps;
             LoadShortcuts();
+            LoadInstalledApplications();
         }
 
         private void BrowseButton_Click(object sender, RoutedEventArgs e)
@@ -31,7 +35,7 @@ namespace ZeroMix
 
             if (openFileDialog.ShowDialog() == true)
             {
-                AppPathTextBox.Text = openFileDialog.FileName;
+                AppPathComboBox.Text = openFileDialog.FileName;
             }
         }
 
@@ -79,7 +83,7 @@ namespace ZeroMix
         private void AddShortcutButton_Click(object sender, RoutedEventArgs e)
         {
             string hotkey = HotkeyTextBox.Text;
-            string appPath = AppPathTextBox.Text;
+            string appPath = AppPathComboBox.Text; // Ambil dari ComboBox
 
             if (string.IsNullOrWhiteSpace(hotkey) || hotkey == "Click here and press a key combination")
             {
@@ -93,11 +97,50 @@ namespace ZeroMix
                 return;
             }
 
+            // Cek duplikat hotkey
+            if (Shortcuts.Any(s => s.Hotkey.Equals(hotkey, StringComparison.OrdinalIgnoreCase)))
+            {
+                MessageBox.Show("This hotkey is already in use. Please choose a different one.", "Duplicate Hotkey", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
             Shortcuts.Add(new CustomShortcut { Hotkey = hotkey, ApplicationPath = appPath });
 
             // Clear inputs for next entry
             HotkeyTextBox.Text = "Click here and press a key combination";
-            AppPathTextBox.Clear();
+            AppPathComboBox.Text = "";
+            AppPathComboBox.SelectedIndex = -1;
+        }
+
+        private void LoadInstalledApplications()
+        {
+            var appList = new List<InstalledApplication>();
+            // Tambahkan Desktop ke daftar path yang akan dipindai
+            string[] scanPaths =
+            {
+                Environment.GetFolderPath(Environment.SpecialFolder.CommonStartMenu),
+                Environment.GetFolderPath(Environment.SpecialFolder.StartMenu),
+                Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory) // <-- Path Desktop ditambahkan di sini
+            };
+
+            foreach (var path in scanPaths.Where(Directory.Exists))
+            {
+                // Untuk Desktop, kita hanya pindai folder utama, bukan sub-folder.
+                var searchOption = path.Contains("Desktop") ? SearchOption.TopDirectoryOnly : SearchOption.AllDirectories;
+                var lnkFiles = Directory.GetFiles(path, "*.lnk", searchOption);
+                foreach (var file in lnkFiles)
+                {
+                    string name = Path.GetFileNameWithoutExtension(file);
+                    if (!string.IsNullOrEmpty(name) && !appList.Any(a => a.Name.Equals(name, StringComparison.OrdinalIgnoreCase)))
+                        appList.Add(new InstalledApplication { Name = name, Path = file });
+                }
+            }
+
+            // Urutkan berdasarkan nama dan tambahkan ke ObservableCollection
+            foreach (var app in appList.OrderBy(a => a.Name))
+            {
+                InstalledApps.Add(app);
+            }
         }
 
         private void LoadShortcuts()
@@ -125,5 +168,11 @@ namespace ZeroMix
     {
         public string Hotkey { get; set; } = "";
         public string ApplicationPath { get; set; } = "";
+    }
+
+    public class InstalledApplication
+    {
+        public string Name { get; set; } = "";
+        public string Path { get; set; } = "";
     }
 }
