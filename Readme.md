@@ -57,13 +57,18 @@ Penasaran dengan fitur barunya? **Tonton video demo di sini!** (Link akan diperb
 
 ---
 
-### Versi 1.6.0 - 1.6.5 (Rencana Selanjutnya)
+### Versi 1.6.0 - 1.6.6
 
 - **Prioritas Saran Cerdas:** Mengimplementasikan sistem untuk menampilkan aplikasi yang paling sering digunakan di urutan teratas.
 - **Kustomisasi Tampilan:** Menambahkan opsi untuk mengubah urutan kategori (misalnya, Pencarian Web di atas Aplikasi Desktop).
 - **Optimasi Performa:** Peningkatan kecepatan dalam memuat dan menampilkan daftar aplikasi, terutama untuk pengguna dengan banyak program terinstal.
 - **Pembaruan Otomatis**: ZeroMix kini dapat memeriksa dan menginstal pembaruan secara otomatis, memastikan Anda selalu menggunakan versi terbaru dengan perbaikan dan fitur terkini.
-
+- **Manajemen Shortcut Kustom**:
+  - **Jendela Khusus**: Menambahkan antarmuka baru untuk membuat dan mengelola pintasan keyboard kustom.
+  - **Perekaman Hotkey Intuitif**: Merekam hotkey kini lebih mudah. Cukup tekan kombinasi tombol yang diinginkan (misal: `Ctrl+V`), dan sistem akan merekamnya secara otomatis.
+  - **Penemuan Aplikasi Cerdas**: Mempermudah pemilihan aplikasi dengan menampilkan daftar aplikasi yang terinstal dari Start Menu dan Desktop secara otomatis.
+  - **Peningkatan UI/UX (Dalam Pengembangan)**: Antarmuka untuk fitur ini masih dalam tahap awal. Peningkatan desain dan pengalaman pengguna akan menjadi fokus pada versi 1.7.0.
+  
 ---
 
 ---
@@ -134,7 +139,7 @@ Pastikan mengunduh versi terbaru untuk fitur dan perbaikan terbaru.
 
 ---
 
-<img src="assets/Presen.png" alt="ZeroMix Screenshot" width="600">
+<img src="assets/image copy.png" alt="ZeroMix Screenshot" width="600">
 </div>
 
 ## Terima Kasih
