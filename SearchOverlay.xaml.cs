@@ -497,10 +497,21 @@ namespace ZeroMix
             this.Visibility = Visibility.Hidden;
 
             var customShortcutWindow = new CustomShortcutWindow();
-            customShortcutWindow.ShowDialog(); // Blocks until closed
+            bool? result = customShortcutWindow.ShowDialog(); // Blocks until closed
 
-            // After the dialog is closed, close the overlay completely.
-            this.Close();
+            // Karena hotkey sekarang dimuat ulang secara dinamis, kita tidak perlu menutup aplikasi.
+            // Cukup tampilkan kembali overlay.
+            if (result == true)
+            {
+                // Pengguna menyimpan, cukup tampilkan kembali overlay
+                this.Visibility = Visibility.Visible;
+                SearchBox.Focus();
+            }
+            else // Jika pengguna menekan "Cancel" atau menutup jendela
+            {
+                this.Visibility = Visibility.Visible; // Tampilkan kembali overlay
+                SearchBox.Focus();
+            }
         }
 
         public void BeginFadeOutAndCloseByMain()

@@ -42,12 +42,19 @@ namespace ZeroMix
         private void SaveButton_Click(object sender, RoutedEventArgs e)
         {
             SaveShortcuts();
+
+            // Panggil metode reload di instance HotkeyCore yang sedang berjalan.
+            App.HotkeyCoreInstance?.ReloadCustomHotkeys();
+
+            this.DialogResult = true; // Tandai bahwa perubahan disimpan
+            // Ubah pesan, karena restart tidak lagi diperlukan
+            MessageBox.Show("Shortcuts have been updated and are now active.", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
             this.Close();
-            MessageBox.Show("Shortcuts saved. Please restart the application for the new hotkeys to take effect.", "Restart Required", MessageBoxButton.OK, MessageBoxImage.Information);
         }
 
         private void CancelButton_Click(object sender, RoutedEventArgs e)
         {
+            this.DialogResult = false; // Tandai bahwa dibatalkan
             this.Close();
         }
 
@@ -75,7 +82,11 @@ namespace ZeroMix
             if ((Keyboard.Modifiers & ModifierKeys.Windows) != 0) hotkeyParts.Add("Win");
 
             // Update the TextBox with the key name
-            hotkeyParts.Add(key.ToString());
+            // Gunakan KeyConverter untuk mendapatkan nama yang lebih baik (misal: "OemComma" menjadi ",")
+            var keyConverter = new KeyConverter();
+            var keyName = keyConverter.ConvertToString(key);
+            if (keyName != null)
+                hotkeyParts.Add(keyName);
 
             (sender as TextBox)!.Text = string.Join("+", hotkeyParts);
         }
@@ -83,7 +94,9 @@ namespace ZeroMix
         private void AddShortcutButton_Click(object sender, RoutedEventArgs e)
         {
             string hotkey = HotkeyTextBox.Text;
-            string appPath = AppPathComboBox.Text; // Ambil dari ComboBox
+            // BUG FIX: Gunakan SelectedValue (path) jika ada, jika tidak, gunakan Text.
+            // Ini memastikan path file yang disimpan, bukan hanya nama aplikasinya.
+            string appPath = AppPathComboBox.SelectedValue as string ?? AppPathComboBox.Text;
 
             if (string.IsNullOrWhiteSpace(hotkey) || hotkey == "Click here and press a key combination")
             {
@@ -110,6 +123,22 @@ namespace ZeroMix
             HotkeyTextBox.Text = "Click here and press a key combination";
             AppPathComboBox.Text = "";
             AppPathComboBox.SelectedIndex = -1;
+        }
+
+        private void DeleteShortcutButton_Click(object sender, RoutedEventArgs e)
+        {
+            var selectedShortcut = ShortcutListView.SelectedItem as CustomShortcut;
+            if (selectedShortcut == null)
+            {
+                MessageBox.Show("Please select a shortcut from the list to delete.", "No Shortcut Selected", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+            var result = MessageBox.Show($"Are you sure you want to delete the shortcut '{selectedShortcut.Hotkey}'?", "Confirm Deletion", MessageBoxButton.YesNo, MessageBoxImage.Question);
+            if (result == MessageBoxResult.Yes)
+            {
+                Shortcuts.Remove(selectedShortcut);
+            }
         }
 
         private void LoadInstalledApplications()
