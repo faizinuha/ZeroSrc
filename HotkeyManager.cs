@@ -60,19 +60,26 @@ namespace ZeroMix
             return 0; // Failed
         }
 
-        public static void UnregisterAll(IntPtr handle)
+        public static void UnregisterAllCustom(IntPtr handle)
         {
-            // Unregister main overlay hotkey
-            UnregisterHotKey(handle, OVERLAY_HOTKEY_ID);
-
             // Unregister all custom hotkeys
             foreach (var id in new List<int>(_hotkeyActions.Keys))
             {
                 if (id != OVERLAY_HOTKEY_ID)
                 {
                     UnregisterHotKey(handle, id);
+                    _hotkeyActions.Remove(id);
                 }
             }
+            // Reset ID counter untuk pendaftaran ulang
+            _nextCustomHotkeyId = 9001;
+        }
+
+        public static void UnregisterAll(IntPtr handle)
+        {
+            // Unregister main overlay hotkey
+            UnregisterHotKey(handle, OVERLAY_HOTKEY_ID);
+            UnregisterAllCustom(handle);
             _hotkeyActions.Clear();
         }
 

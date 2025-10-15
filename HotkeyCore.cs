@@ -70,6 +70,16 @@ namespace ZeroMix
             }
         }
 
+        public void ReloadCustomHotkeys()
+        {
+            if (_source == null) return;
+
+            // 1. Unregister semua hotkey kustom yang lama.
+            HotkeyManager.UnregisterAllCustom(_source.Handle);
+            // 2. Daftarkan kembali semua hotkey dari file JSON yang sudah diperbarui.
+            RegisterCustomHotkeys();
+        }
+
         protected override void OnClosed(EventArgs e)
         {
             if (_source != null)

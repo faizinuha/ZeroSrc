@@ -58,16 +58,26 @@
             </Grid>
         </StackPanel>
 
-        <Button
-            Name="AddShortcutButton"
-            Grid.Row="1"
-            Margin="0,0,0,15"
-            Padding="10,5"
-            HorizontalAlignment="Left"
-            Background="#2a9d8f"
-            BorderThickness="0"
-            Click="AddShortcutButton_Click"
-            Content="Add Shortcut" />
+        <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,0,0,15">
+            <Button
+                Name="AddShortcutButton"
+                Padding="10,5"
+                HorizontalAlignment="Left"
+                Background="#2a9d8f"
+                BorderThickness="0"
+                Click="AddShortcutButton_Click"
+                Content="Add Shortcut" />
+
+            <Button
+                Name="DeleteShortcutButton"
+                Margin="10,0,0,0"
+                Padding="10,5"
+                HorizontalAlignment="Left"
+                Background="#e63946"
+                BorderThickness="0"
+                Click="DeleteShortcutButton_Click"
+                Content="Delete Selected" />
+        </StackPanel>
 
         <!--  Shortcut List  -->
         <ListView

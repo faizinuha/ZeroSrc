@@ -1,4 +1,4 @@
-﻿using System.Configuration;
+﻿﻿using System.Configuration;
 using System.Data;
 using System.Windows;
 using ZeroMix.Core;
@@ -10,6 +10,9 @@ namespace ZeroMix
 
     public partial class App : Application
     {
+        // Buat properti statis agar instance HotkeyCore bisa diakses dari mana saja.
+        public static HotkeyCore? HotkeyCoreInstance { get; private set; }
+
         protected override async void OnStartup(StartupEventArgs e)
         {
             base.OnStartup(e);
@@ -29,8 +32,8 @@ namespace ZeroMix
             }
 
             // Jalankan HotkeyCore yang mendaftar hotkey global dan menampilkan overlay saat ditekan.
-            var hotkeyCore = new HotkeyCore();
-            hotkeyCore.Show();
+            HotkeyCoreInstance = new HotkeyCore();
+            HotkeyCoreInstance.Show();
         }
     }
 }
