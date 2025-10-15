@@ -13,12 +13,12 @@ DefaultGroupName=ZeroMix
 AllowNoIcons=yes
 OutputDir=.
 OutputBaseFilename=ZeroMix-Setup
-SetupIconFile=image.ico
+SetupIconFile=zeromix.ico
 Compression=lzma
 SolidCompression=yes
 DisableProgramGroupPage=yes
-UninstallDisplayIcon={app}\image.ico
-WizardImageFile=image.bmp
+UninstallDisplayIcon={app}\zeromix.ico
+WizardImageFile=zeromix.bmp
 
 ; NOTE for packagers:
 ; To avoid requiring users to install the .NET runtime, publish your app as
@@ -36,12 +36,12 @@ WizardImageFile=image.bmp
 ; To avoid "Source not found" errors, copy your publish output into the Exe\publish\win-x64 folder
 ; (from project root: dotnet publish ... -o ./publish/win-x64), or adjust the path here to the correct publish location.
 Source: "../publish\\win-x64\\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
-Source: "image.ico"; DestDir: "{app}"; Flags: ignoreversion
+Source: "zeromix.ico"; DestDir: "{app}"; Flags: ignoreversion
 
 ; --- Shortcut ---
 [Icons]
-Name: "{group}\ZeroMix"; Filename: "{app}\ZeroMix.exe"; IconFilename: "{app}\image.ico"
-Name: "{commondesktop}\ZeroMix"; Filename: "{app}\ZeroMix.exe"; IconFilename: "{app}\image.ico"; Tasks: desktopicon
+Name: "{group}\ZeroMix"; Filename: "{app}\ZeroMix.exe"; IconFilename: "{app}\zeromix.ico"
+Name: "{commondesktop}\ZeroMix"; Filename: "{app}\ZeroMix.exe"; IconFilename: "{app}\zeromix.ico"; Tasks: desktopicon
 
 ; --- Pilihan Tambahan ---
 [Tasks]
