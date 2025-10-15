@@ -62,7 +62,10 @@ Penasaran dengan fitur barunya? **Tonton video demo di sini!** (Link akan diperb
 - **Prioritas Saran Cerdas:** Mengimplementasikan sistem untuk menampilkan aplikasi yang paling sering digunakan di urutan teratas.
 - **Kustomisasi Tampilan:** Menambahkan opsi untuk mengubah urutan kategori (misalnya, Pencarian Web di atas Aplikasi Desktop).
 - **Optimasi Performa:** Peningkatan kecepatan dalam memuat dan menampilkan daftar aplikasi, terutama untuk pengguna dengan banyak program terinstal.
-- **Pembaruan Otomatis**: ZeroMix kini dapat memeriksa dan menginstal pembaruan secara otomatis, memastikan Anda selalu menggunakan versi terbaru dengan perbaikan dan fitur terkini.
+- **Pembaruan Otomatis Cerdas**:
+  - **Pengecekan Senyap**: Aplikasi secara otomatis memeriksa pembaruan di latar belakang saat dimulai, tanpa mengganggu Anda.
+  - **Notifikasi Elegan**: Jika versi baru tersedia, notifikasi akan muncul di pojok layar, lengkap dengan catatan perubahan (changelog).
+  - **Instalasi Mulus**: Dengan satu klik, ZeroMix akan mengunduh installer baru (dengan progress bar) dan menjalankannya secara otomatis di mode senyap untuk proses update yang lancar.
 - **Manajemen Shortcut Kustom**:
   - **Jendela Khusus**: Menambahkan antarmuka baru untuk membuat dan mengelola pintasan keyboard kustom.
   - **Perekaman Hotkey Intuitif**: Merekam hotkey kini lebih mudah. Cukup tekan kombinasi tombol yang diinginkan (misal: `Ctrl+V`), dan sistem akan merekamnya secara otomatis.

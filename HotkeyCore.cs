@@ -13,12 +13,20 @@ namespace ZeroMix
     {
         private HwndSource? _source;
         private SearchOverlay? _overlay;
-        private const string ShortcutsFilePath = "custom_shortcuts.json";
+        
+        // SOLUSI: Pindahkan path file konfigurasi ke folder AppData pengguna.
+        // Ini memastikan aplikasi memiliki izin untuk menulis file.
+        private static readonly string AppDataFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "ZeroMix");
+        private static readonly string ShortcutsFilePath = Path.Combine(AppDataFolder, "custom_shortcuts.json");
 
         public HotkeyCore()
         {
             this.Visibility = Visibility.Hidden;
             this.ShowInTaskbar = false;
+
+            // Pastikan folder di AppData ada.
+            // Jika tidak, aplikasi tidak akan bisa menyimpan file.
+            Directory.CreateDirectory(AppDataFolder);
         }
 
         protected override void OnSourceInitialized(EventArgs e)
