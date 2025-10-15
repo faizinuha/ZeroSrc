@@ -2,9 +2,8 @@
 [Setup]
 AppName=ZeroMix
 AppVersion=1.6.0
-FileVersion=1.6.0.
 AppVerName=ZeroMix
-AppPublisher=faizinuha
+AppPublisher=Zaki
 AppPublisherURL= Mardve7.vercel.app
 AppCopyright=Copyright (c) 2025
 AppComments=ZeroMix smart launcher
@@ -54,12 +53,13 @@ Filename: "{app}\ZeroMix.exe"; Description: "Jalankan ZeroMix"; Flags: nowait po
 ; --- Bersihkan file saat uninstall ---
 [UninstallDelete]
 Type: filesandordirs; Name: "{app}"
-Type: filesandordirs; Name: "{userappdata}\GoogleBox"
+; Hapus folder konfigurasi dari AppData pengguna
+Type: filesandordirs; Name: "{userappdata}\ZeroMix"
 
 ; --- Tutup proses saat uninstall ---
 [UninstallRun]
-Filename: "taskkill.exe"; Parameters: "/IM ZeroMix.exe /F"; StatusMsg: "Menutup aplikasi Google Box..."; Flags: runhidden
-Filename: "cmd.exe"; Parameters: "/C echo Terima kasih telah menggunakan Google Box! && timeout /t 3"; Flags: runhidden
+Filename: "taskkill.exe"; Parameters: "/IM ZeroMix.exe /F"; StatusMsg: "Menutup aplikasi..."; Flags: runhidden
+Filename: "cmd.exe"; Parameters: "/C echo Terima kasih telah menggunakan! && timeout /t 3"; Flags: runhidden
 
 ; --- Teks Custom Welcome & Selesai ---
 [Messages]

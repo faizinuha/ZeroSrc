@@ -10,7 +10,11 @@ namespace ZeroMix
 {
     public partial class CustomShortcutWindow : Window
     {
-        private const string ShortcutsFilePath = "custom_shortcuts.json";
+        // SOLUSI: Gunakan path yang sama dengan HotkeyCore dari folder AppData.
+        private static readonly string AppDataFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "ZeroMix");
+        private static readonly string ShortcutsFilePath = Path.Combine(AppDataFolder, "custom_shortcuts.json");
+
+
         public ObservableCollection<CustomShortcut> Shortcuts { get; set; }
         public ObservableCollection<InstalledApplication> InstalledApps { get; set; }
 
@@ -23,6 +27,9 @@ namespace ZeroMix
             AppPathComboBox.ItemsSource = InstalledApps;
             LoadShortcuts();
             LoadInstalledApplications();
+
+            // Pastikan folder ada sebelum mencoba menyimpan
+            Directory.CreateDirectory(AppDataFolder);
         }
 
         private void BrowseButton_Click(object sender, RoutedEventArgs e)

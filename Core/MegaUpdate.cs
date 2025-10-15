@@ -31,40 +31,41 @@ namespace ZeroMix.Core
                 var folderUri = new Uri(megaFolderLink);
                 var nodes = await client.GetNodesFromLinkAsync(folderUri);
 
-                var versionNode = nodes.FirstOrDefault(n => n.Name == "../version.json");
+                var versionNode = nodes.FirstOrDefault(n => n.Name == "version.json");
                 if (versionNode == null)
                 {
-                    ShowMessage("File version.json tidak ditemukan di server pembaruan.", "Update Check Failed");
+                    // File version.json tidak ditemukan, hentikan proses secara diam-diam.
+                    Debug.WriteLine("version.json not found on the update server.");
                     return;
                 }
 
                 // Download the version.json file to a temporary path
-                string tempVersionFile = Path.Combine(Path.GetTempPath(), "../version.json");
+                string tempVersionFile = Path.Combine(Path.GetTempPath(), "version.json");
                 await client.DownloadFileAsync(versionNode, tempVersionFile);
 
                 // Read the content of the downloaded file
                 string jsonContent = await File.ReadAllTextAsync(tempVersionFile);
                 var info = JsonSerializer.Deserialize<UpdateInfo>(jsonContent);
                 File.Delete(tempVersionFile); // Clean up the temporary file
-
                 if (info == null || string.IsNullOrEmpty(info.LatestVersion))
                 {
-                    ShowMessage("Gagal membaca informasi versi dari server.", "Update Check Failed");
+                    // Gagal membaca JSON, hentikan proses secara diam-diam.
+                    Debug.WriteLine("Failed to parse version.json or it is invalid.");
                     return;
                 }
 
                 if (new Version(info.LatestVersion) > new Version(_currentVersion))
                 {
-                    var result = MessageBox.Show(
-                        $"Tersedia versi baru: {info.LatestVersion}\nVersi Anda: {_currentVersion}\n\nPerubahan:\n{info.Changelog}\n\nApakah Anda ingin mengunduh dan menginstal pembaruan sekarang?",
-                        "Pembaruan Tersedia",
-                        MessageBoxButton.YesNo,
-                        MessageBoxImage.Information
-                    );
+                    // Gunakan jendela notifikasi kustom
+                    string message = $"Versi baru {info.LatestVersion} tersedia!\n\nPerubahan:\n{info.Changelog}\n\nUpdate sekarang?";
+                    var notificationWindow = new UpdateNotificationWindow(message);
+                    bool? result = notificationWindow.ShowDialog();
 
-                    if (result != MessageBoxResult.Yes) return;
+                    if (result != true) return;
 
-                    if (string.IsNullOrEmpty(info.UpdateFile))
+                    // PERBAIKAN KRITIS: Pastikan file update adalah installer (.exe)
+                    // Nama file harus sesuai dengan yang ada di server (misal: "ZeroMix-Setup-1.7.0.exe")
+                    if (string.IsNullOrEmpty(info.UpdateFile) || !info.UpdateFile.EndsWith(".exe"))
                     {
                         ShowMessage("Nama file pembaruan tidak valid.", "Update Error");
                         return;
@@ -76,16 +77,32 @@ namespace ZeroMix.Core
                         return;
                     }
 
-                    string tempZip = Path.Combine(Path.GetTempPath(), info.UpdateFile);
-                    await client.DownloadFileAsync(updateNode, tempZip);
+                    string tempInstallerPath = Path.Combine(Path.GetTempPath(), info.UpdateFile);
 
-                    // For a real-world scenario, a separate updater process is safer.
-                    // This approach is simple but can have file-locking issues.
-                    string extractionPath = AppDomain.CurrentDomain.BaseDirectory;
-                    ZipFile.ExtractToDirectory(tempZip, extractionPath, true);
-                    File.Delete(tempZip);
+                    // Tampilkan progress bar dan nonaktifkan tombol
+                    notificationWindow.ShowProgress();
 
-                    MessageBox.Show("Pembaruan telah berhasil diunduh dan diekstrak. Silakan mulai ulang aplikasi untuk menerapkan perubahan.", "Update Selesai", MessageBoxButton.OK, MessageBoxImage.Information);
+                    // Buat progress handler untuk di-pass ke downloader
+                    var progressHandler = new Progress<double>(p => notificationWindow.UpdateProgress(p));
+
+                    // Mulai unduhan dengan progress reporting
+                    await client.DownloadFileAsync(updateNode, tempInstallerPath, progressHandler);
+
+                    // PERBAIKAN KRITIS: Jalankan installer baru, jangan ekstrak ZIP.
+                    // Ini akan menangani hak akses dan menimpa file dengan benar.
+                    var processInfo = new ProcessStartInfo(tempInstallerPath)
+                    {
+                        // Gunakan mode silent agar installer berjalan di latar belakang.
+                        Arguments = "/SILENT", 
+                        UseShellExecute = true
+                    };
+                    Process.Start(processInfo);
+
+                    // Beri tahu pengguna bahwa instalasi sedang berjalan
+                    notificationWindow.ShowInstalling();
+
+                    // Tutup aplikasi saat ini agar installer bisa berjalan.
+                    // Pesan tidak lagi diperlukan karena installer akan menanganinya.
                     Application.Current.Shutdown();
                 }
                 else
@@ -95,7 +112,8 @@ namespace ZeroMix.Core
             }
             catch (Exception ex)
             {
-                ShowMessage($"Terjadi kesalahan saat memeriksa pembaruan: {ex.Message}", "Update Error");
+                // Jangan tampilkan pesan error ke pengguna, cukup catat di debug console.
+                // ShowMessage($"Terjadi kesalahan saat memeriksa pembaruan: {ex.Message}", "Update Error");
                 Debug.WriteLine($"Update check failed: {ex}");
             }
             finally
