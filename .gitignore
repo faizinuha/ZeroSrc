@@ -5,9 +5,9 @@ obj/
 bin/
 
 # File sertifikat (jangan dimasukkan ke repositori publik)
-ZeroMixCert.pfx
+ZeroMixCert.pfx/
 
 # DLL spesifik yang tidak perlu dilacak
-libcrypto-3-x64.dll
-libssl-3-x64.dll
-libcrypto-3-x86.dll
+libcrypto-3-x64.dll/
+libssl-3-x64.dll/
+libcrypto-3-x86.dll/
