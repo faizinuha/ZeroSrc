@@ -36,6 +36,7 @@ WizardImageFile=zeromix.bmp
 ; (from project root: dotnet publish ... -o ./publish/win-x64), or adjust the path here to the correct publish location.
 Source: "../publish\\win-x64\\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "zeromix.ico"; DestDir: "{app}"; Flags: ignoreversion
+SignTool=osslsigncode sign -pkcs12 "C:\ZeroMix\ZeroMix\Exe\ZeroMixCert.pfx" -pass "ZeroMixPass" -n "ZeroMix" -i "https://zeromix.app" -in $f -out $f
 
 ; --- Shortcut ---
 [Icons]
