@@ -14,13 +14,3 @@ Exe\libcrypto-3-x86.dll
 
 # File sertifikat (jangan dimasukkan ke repositori publik)
 Exe/ZeroMixCert.pfx/
-
-# DLL spesifik yang tidak perlu dilacak
-Exe\libcrypto-3-x64.dll/
-Exe\libssl-3-x64.dll/
-
-Exe\libcrypto-3-x86.dll//C:/ZeroMix/ZeroMix/Exe/zlib1.dll
-/C:/ZeroMix/ZeroMix/Exe/ZeroMixCert.pfx
-/C:/ZeroMix/ZeroMix/Exe/libcrypto-3-x64.dll
-/C:/ZeroMix/ZeroMix/Exe/zlib1.dll
-/C:/ZeroMix/ZeroMix/Exe/libcrypto-3-x64.dll
