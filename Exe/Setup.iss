@@ -21,7 +21,7 @@ WizardImageFile=zeromix.bmp
 SignTool=osslsigncode
 
 [SignTool]
-Name: "osslsigncode"; Command: "osslsigncode sign -pkcs12 ""C:\ZeroMix\ZeroMix\Exe\ZeroMixCert.pfx"" -pass ""ZeroMixPass"" -n ""ZeroMix"" -i ""https://zeromix.pages.dev"" -in $f -out $f -t http://timestamp.digicert.com"
+Name: "osslsigncode"; Command: "osslsigncode sign -pkcs12 ""ZeroMixCert.pfx"" -pass ""ZeroMixPass"" -n ""ZeroMix"" -i ""https://zeromix.pages.dev"" -in $f -out $f -t http://timestamp.digicert.com"
 
 
 ; NOTE for packagers:
@@ -83,5 +83,15 @@ begin
     // Open the thank you page in the user's default web browser
     // khusus 1.6.6
     ShellExec('open', 'https://zeromix.pages.dev/ThanksYou', '', '', SW_SHOWNORMAL, ewNoWait, ErrorCode);
+  end;
+end;
+
+procedure CurUninstallStepChanged(CurStep: TUninstallStep);
+var
+  ErrorCode: Integer;
+begin
+  if CurStep = usPostUninstall then
+  begin
+    ShellExec('open', 'https://zeromix.pages.dev/Feedback.html', '', '', SW_SHOWNORMAL, ewNoWait, ErrorCode);
   end;
 end;
