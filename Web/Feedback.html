@@ -153,24 +153,19 @@
             box-shadow: 0 4px 15px rgba(0, 123, 255, 0.4);
         }
 
-        .anon-notice {
-            margin-top: 1rem;
-            font-size: 0.9rem;
-            font-weight: 300;
-        }
     </style>
 </head>
 <body>
 
     <div class="slider-container">
         <div class="slide active">
-            <img src="image copy.png" alt="Presentation Image 1">
+            <img src="image-copy.png" alt="Presentation Image 1">
         </div>
         <div class="slide">
-            <img src="image copy.png" alt="Presentation Image 2">
+            <img src="image-copy.png" alt="Presentation Image 2">
         </div>
         <div class="slide">
-            <img src="image copy 2.png" alt="Presentation Image 3">
+            <img src="image-copy.png" alt="Presentation Image 3">
         </div>
         <div class="overlay"></div>
     </div>
@@ -180,9 +175,6 @@
             <img src="../assets/zeromix-high-resolution-logo-transparent.png" alt="ZeroMix Logo" class="logo">
             <h1>Umpan Balik</h1>
         </header>
-        <p>Masih Demo</p>
-        <p>Kami sangat menghargai umpan balik Anda! Silakan beri tahu kami pengalaman Anda menggunakan ZeroMix.</p>
-        <p class="anon-notice">Umpan balik ini bersifat anonim dan tidak mengumpulkan informasi pribadi.</p>
         <p>Terima kasih telah menggunakan ZeroMix. Umpan balik anonim Anda membantu kami untuk terus berkembang.</p>
         
         <form id="feedbackForm" onsubmit="return false;">
@@ -193,7 +185,7 @@
                 <input type="radio" id="star2" name="rating" value="2" /><label for="star2" title="2 stars">★</label>
                 <input type="radio" id="star1" name="rating" value="1" /><label for="star1" title="1 star">★</label>
             </div>
-            <textarea placeholder="Tuliskan saran atau masalah yang Anda temui..."></textarea>
+            <textarea name="pesan" placeholder="Tuliskan saran atau masalah yang Anda temui..."></textarea>
             <button type="button" onclick="submitFeedback()">Kirim Umpan Balik</button>
         </form>
     </div>
@@ -216,15 +208,40 @@
             currentSlide = (currentSlide + 1) % slides.length;
             showSlide(currentSlide);
         }
-
-        // Start the slider
         setInterval(nextSlide, 5000); // Change slide every 5 seconds
 
-        // --- Form Logic ---
+        // --- Form Submission Logic ---
+        
+        const GOOGLE_FORM_URL = 'https://docs.google.com/forms/d/e/1FAIpQLSeU5170r0CqohbEFjCGiOHZAQ7F6myTcK5INzGzSj3heUCTKg/formResponse';
+        // const NAME_ENTRY = 'entry.1045781291';
+        const RATING_ENTRY = 'entry.898991209';
+        const PESAN_ENTRY = 'entry.1815112662';
+
         function submitFeedback() {
-            // In a real application, you would send this data to a server.
-            alert("Terima kasih atas umpan balik Anda!");
-            document.getElementById('feedbackForm').reset();
+            const form = document.getElementById('feedbackForm');
+            const ratingInput = form.querySelector('input[name="rating"]:checked');
+            const pesanInput = form.querySelector('textarea[name="pesan"]');
+
+            if (!ratingInput) {
+                alert('Silakan pilih peringkat bintang terlebih dahulu.');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append(RATING_ENTRY, ratingInput.value);
+            formData.append(PESAN_ENTRY, pesanInput.value);
+
+            fetch(GOOGLE_FORM_URL, {
+                method: 'POST',
+                body: formData,
+                mode: 'no-cors' // Required for submitting to Google Forms via JS
+            }).then(() => {
+                alert("Terima kasih! Umpan balik Anda telah terkirim.");
+                form.reset();
+            }).catch(error => {
+                console.error('Error:', error);
+                alert('Maaf, terjadi kesalahan saat mengirim umpan balik.');
+            });
         }
     </script>
 
