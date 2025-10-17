@@ -1,10 +1,14 @@
-; --- Informasi Aplikasi ---
+; --- Informasi Aplikasi & Penanda Tangan (Semua di dalam [Setup]) ---
 [Setup]
 AppName=ZeroMix
-AppVersion=1.6.0
+AppVersion=1.6.6
+VersionInfoVersion=1.6.6.0
+VersionInfoCompany=Zaki
+VersionInfoDescription=ZeroMix smart launcher
+VersionInfoTextVersion=1.6.6
 AppVerName=ZeroMix
 AppPublisher=Zaki
-AppPublisherURL= Mardve7.vercel.app
+AppPublisherURL=Mardve7.vercel.app
 AppCopyright=Copyright (c) 2025
 AppComments=ZeroMix smart launcher
 DefaultDirName={pf}\ZeroMix
@@ -18,11 +22,10 @@ SolidCompression=yes
 DisableProgramGroupPage=yes
 UninstallDisplayIcon={app}\zeromix.ico
 WizardImageFile=zeromix.bmp
-SignTool=osslsigncode
+;SignTool=MySigner
 
 [SignTool]
-Name: "osslsigncode"; Command: "osslsigncode sign -pkcs12 ""ZeroMixCert.pfx"" -pass ""ZeroMixPass"" -n ""ZeroMix"" -i ""https://zeromix.pages.dev"" -in $f -out $f -t http://timestamp.digicert.com"
-
+MySigner="osslsigncode.exe sign -pkcs12 ZeroMixCert.pfx -pass ""ZeroMixPass"" -n ""ZeroMix"" -i ""https://zeromix.pages.dev"" -in $f -out $f -t http://timestamp.digicert.com"
 
 ; NOTE for packagers:
 ; To avoid requiring users to install the .NET runtime, publish your app as
@@ -39,7 +42,7 @@ Name: "osslsigncode"; Command: "osslsigncode sign -pkcs12 ""ZeroMixCert.pfx"" -p
 ; The Inno Setup compiler resolves relative paths from the script's folder.
 ; To avoid "Source not found" errors, copy your publish output into the Exe\publish\win-x64 folder
 ; (from project root: dotnet publish ... -o ./publish/win-x64), or adjust the path here to the correct publish location.
-Source: "../publish\\win-x64\\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "..\publish\win-x64\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "zeromix.ico"; DestDir: "{app}"; Flags: ignoreversion
 
 ; --- Shortcut ---
@@ -75,23 +78,23 @@ FinishedLabel=ZeroMix berhasil diinstal. Kamu bisa menjalankannya dari desktop a
 [Code]
 procedure CurStepChanged(CurStep: TSetupStep);
 var
-  ErrorCode: Integer;
+ ErrorCode: Integer;
 begin
-  if CurStep = ssDone then
-  begin
-    MsgBox('Terima kasih sudah menginstall ZeroMix!' + #13#10 + 'Dukungan Anda sangat berarti bagi kami.', mbInformation, MB_OK);
-    // Open the thank you page in the user's default web browser
-    // khusus 1.6.6
-    ShellExec('open', 'https://zeromix.pages.dev/ThanksYou', '', '', SW_SHOWNORMAL, ewNoWait, ErrorCode);
-  end;
+ if CurStep = ssDone then
+ begin
+  MsgBox('Terima kasih sudah menginstall ZeroMix!' + #13#10 + 'Dukungan Anda sangat berarti bagi kami.', mbInformation, MB_OK);
+  // Open the thank you page in the user's default web browser
+  // khusus 1.6.6
+  ShellExec('open', 'https://zeromix.pages.dev/ThanksYou', '', '', SW_SHOWNORMAL, ewNoWait, ErrorCode);
+ end;
 end;
 
 procedure CurUninstallStepChanged(CurStep: TUninstallStep);
 var
-  ErrorCode: Integer;
+ErrorCode: Integer;
 begin
-  if CurStep = usPostUninstall then
-  begin
-    ShellExec('open', 'https://zeromix.pages.dev/Feedback.html', '', '', SW_SHOWNORMAL, ewNoWait, ErrorCode);
-  end;
+ if CurStep = usPostUninstall then
+ begin
+  ShellExec('open', 'https://zeromix.pages.dev/Feedback.html', '', '', SW_SHOWNORMAL, ewNoWait, ErrorCode);
+ end;
 end;
