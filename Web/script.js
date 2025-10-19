@@ -1,11 +1,11 @@
 document.addEventListener('DOMContentLoaded', () => {
-  // --- Fungsi untuk alert ---
+  // --- Fungsi untuk alert (jika masih diperlukan) ---
   window.Alert = function () {
     alert(`
 😅 Oops... fitur ini lagi cuti dulu ya!
 👉 Silakan jalan-jalan ke GitHub buat info lebih lanjut.
 👇 Jangan lupa scroll ke bawah, siapa tau ada harta karun fitur baru! 🏴‍☠️✨
-
+ 
 🌍 English Mode Activated!
 🙈 Sorry, this feature is still on vacation...
 📦 But hey, scroll down to download or discover upcoming surprises!
@@ -19,7 +19,6 @@ document.addEventListener('DOMContentLoaded', () => {
     window.location.href =
       'https://mega.nz/folder/uEdWTbSJ#y1bCKlrXXy93gi3e5zeBXA';
   };
-
   // --- Animasi saat scroll ---
   const observer = new IntersectionObserver(
     (entries) => {
@@ -40,7 +39,7 @@ document.addEventListener('DOMContentLoaded', () => {
     particlesJS('particles-js', {
       particles: {
         number: {
-          value: 80,
+          value: 60,
           density: {
             enable: true,
             value_area: 800,
@@ -88,9 +87,25 @@ document.addEventListener('DOMContentLoaded', () => {
         events: {
           onhover: {
             enable: true,
-            mode: 'grab',
+            mode: 'bubble',
+          },
+           onclick: {
+            enable: true,
+            mode: 'repulse',
           },
         },
+        modes: {
+            bubble: {
+                distance: 200,
+                size: 6,
+                duration: 2,
+                opacity: 0.8,
+            },
+            repulse: {
+                distance: 200,
+                duration: 0.4,
+            }
+        }
       },
       retina_detect: true,
     });
@@ -104,10 +119,10 @@ document.addEventListener('DOMContentLoaded', () => {
     slidesPerView: 'auto',
     effect: 'coverflow',
     coverflowEffect: {
-      rotate: 50,
+      rotate: 40,
       stretch: 0,
-      depth: 100,
-      modifier: 1,
+      depth: 150,
+      modifier: 1.5,
       slideShadows: true,
     },
     pagination: {

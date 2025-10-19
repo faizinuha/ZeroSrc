@@ -1,17 +1,10 @@
 # ZeroMix
 
+<p align="center">
+  <img src="assets/zeromix-high-resolution-logo-transparent.png" alt="ZeroMix Logo" width="300">
+</p>
+
 Selamat datang di **ZeroMix**! Panduan ini akan membantu Anda menginstal, menggunakan, dan menghapus aplikasi ZeroMix dengan mudah.
-
-## 🚀 Fitur Terbaru (v1.6.0)
-
-ZeroMix kini lebih cerdas dan intuitif! Kami telah merombak sistem pencarian untuk memberikan pengalaman yang lebih mulus.
-
-- **Pencarian Terintegrasi**: Cari aplikasi lokal dan web secara bersamaan dalam satu tempat.
-- **UI yang Informatif**: Hasil pencarian kini dikelompokkan berdasarkan kategori ("Aplikasi Desktop" & "Pencarian Web") dan dilengkapi ikon untuk identifikasi cepat.
-- **Logika `Enter` yang Cerdas**: Tekan `Enter` untuk langsung memilih saran teratas, membuat alur kerja Anda lebih cepat.
-- **Perbaikan Stabilitas**: Menghilangkan berbagai bug untuk pengalaman yang lebih lancar.
-
-Penasaran dengan fitur barunya? **Tonton video demo di sini!** (Link akan diperbarui)
 
 ---
 
@@ -116,6 +109,7 @@ Penasaran dengan fitur barunya? **Tonton video demo di sini!** (Link akan diperb
 - [GitHub Repository](https://github.com/faizinuha/ZeroMix)
 - [Releases Page](https://github.com/faizinuha/ZeroMix/releases)
 - [🌐 ZeroMix Official Website](https://faizinuha.github.io/ZeroMix/)
+- [Direct Download](https://mega.nz/folder/uEdWTbSJ#y1bCKlrXXy93gi3e5zeBXA/ZeroMix.zip)
 
 Pastikan mengunduh versi terbaru untuk fitur dan perbaikan terbaru.
 
@@ -136,14 +130,12 @@ Pastikan mengunduh versi terbaru untuk fitur dan perbaikan terbaru.
 
 ## 🛠️ Gambar
 <!-- Gambar ini menunjukkan tampilan ZeroMix -->
-
-<img src="assets/zeromix-high-resolution-logo-transparent.png" alt="ZeroMix Screenshot" width="100" >
-<div align="center">
-
----
-
-<img src="assets/image copy.png" alt="ZeroMix Screenshot" width="600">
-</div>
+<p align="center">
+  <img src="assets/zeromix-high-resolution-logo-transparent.png" alt="ZeroMix Logo Kecil" width="100" >
+</p>
+<p align="center">
+  <img src="assets/image copy.png" alt="ZeroMix Screenshot" width="600">
+</p>
 
 ## Terima Kasih
 

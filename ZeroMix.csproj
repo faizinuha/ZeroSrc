@@ -12,5 +12,10 @@
     <PackageReference Include="MegaApiClient" Version="1.10.5" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
   </ItemGroup>
+  
+  <Target Name="AfterPublish" AfterTargets="Publish">
+    <Message Text="Menjalankan proses signing installer ZeroMix..." Importance="High" />
+    <Exec Command='powershell -ExecutionPolicy Bypass -File "$(ProjectDir)build\build.ps1"' />
+  </Target>
 
 </Project>
