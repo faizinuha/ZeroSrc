@@ -13,7 +13,7 @@
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
   </ItemGroup>
   
-  <Target Name="AfterPublish" AfterTargets="Publish">
+  <Target Name="AfterPublish" AfterTargets="Publish" Condition="'$(Configuration)' == 'Release' AND '$(BuildingForLiveReload)' != 'true'">
     <Message Text="Menjalankan proses signing installer ZeroMix..." Importance="High" />
     <Exec Command='powershell -ExecutionPolicy Bypass -File "$(ProjectDir)build\build.ps1"' />
   </Target>
