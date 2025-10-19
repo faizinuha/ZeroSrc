@@ -64,14 +64,22 @@ Selamat datang di **ZeroMix**! Panduan ini akan membantu Anda menginstal, menggu
   - **Perekaman Hotkey Intuitif**: Merekam hotkey kini lebih mudah. Cukup tekan kombinasi tombol yang diinginkan (misal: `Ctrl+V`), dan sistem akan merekamnya secara otomatis.
   - **Penemuan Aplikasi Cerdas**: Mempermudah pemilihan aplikasi dengan menampilkan daftar aplikasi yang terinstal dari Start Menu dan Desktop secara otomatis.
   - **Peningkatan UI/UX (Dalam Pengembangan)**: Antarmuka untuk fitur ini masih dalam tahap awal. Peningkatan desain dan pengalaman pengguna akan menjadi fokus pada versi 1.7.0.
-  
+ 
+  - Ganti Logo ZeroMix
+  - Codesign 50% Per 50% Kemungkinana berhasil
+  - Install DI Bawa Ke Tampilan website untuk Mempercantik
+  - Uninstall DI bawa Ke Tampilan Website Untuk Feedback
 ---
 
 ---
 
 ### Versi 1.7.0
-
-- ???
+`Rencana Saya`
+- Fitur Login Untuk Menyimpan History ( Rencana Bisa Berubah )
+- Memperjelas UI/UX Manajemend Shourcut( Rencana )
+- Memperpanjang Tampilan Search bar ( Sudah pasti )
+- ??
+- ??
 
 ---
 
