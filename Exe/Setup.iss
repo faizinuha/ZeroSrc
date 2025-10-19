@@ -1,11 +1,11 @@
 ; --- Informasi Aplikasi & Penanda Tangan (Semua di dalam [Setup]) ---
 [Setup]
 AppName=ZeroMix
-AppVersion=1.6.6
-VersionInfoVersion=1.6.6.0
+AppVersion=1.7.0
+VersionInfoVersion=1.7.0.0
 VersionInfoCompany=Zaki
 VersionInfoDescription=ZeroMix smart launcher
-VersionInfoTextVersion=1.6.6
+VersionInfoTextVersion=1.7.0
 AppVerName=ZeroMix
 AppPublisher=Zaki
 AppPublisherURL=Mardve7.vercel.app
@@ -22,10 +22,10 @@ SolidCompression=yes
 DisableProgramGroupPage=yes
 UninstallDisplayIcon={app}\zeromix.ico
 WizardImageFile=zeromix.bmp
-;SignTool=MySigner
+;SignTool=osslsigncode
 
 [SignTool]
-MySigner="osslsigncode.exe sign -pkcs12 ZeroMixCert.pfx -pass ""ZeroMixPass"" -n ""ZeroMix"" -i ""https://zeromix.pages.dev"" -in $f -out $f -t http://timestamp.digicert.com"
+osslsigncode="osslsigncode.exe sign -pkcs12 ZeroMixCert.pfx -pass ""ZeroMixPass"" -n ""ZeroMix"" -i ""https://zeromix.pages.dev"" -in $f -out $f -t http://timestamp.digicert.com"
 
 ; NOTE for packagers:
 ; To avoid requiring users to install the .NET runtime, publish your app as
@@ -84,7 +84,7 @@ begin
  begin
   MsgBox('Terima kasih sudah menginstall ZeroMix!' + #13#10 + 'Dukungan Anda sangat berarti bagi kami.', mbInformation, MB_OK);
   // Open the thank you page in the user's default web browser
-  // khusus 1.6.6
+  // khusus 1.7.0
   ShellExec('open', 'https://zeromix.pages.dev/ThanksYou', '', '', SW_SHOWNORMAL, ewNoWait, ErrorCode);
  end;
 end;

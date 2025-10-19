@@ -1,5 +1,5 @@
 /* Import Google Fonts */
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;700&display=swap');
 
 :root {
   --bg-color: #0a0a14;
@@ -19,12 +19,68 @@ html {
 
 body {
   margin: 0;
-  font-family: 'Poppins', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-family: 'Fira Code', monospace;
   background-color: var(--bg-color);
   color: var(--text-primary);
   line-height: 1.7;
   overflow-x: hidden; /* Mencegah scroll horizontal */
 }
+
+.logo{
+  max-width: 150px;
+  margin-bottom: 20px;
+}
+
+/* --- Navbar --- */
+.navbar {
+    background: rgba(10, 10, 20, 0.8);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--border-color);
+    padding: 15px 20px;
+    position: sticky;
+    top: 0;
+    width: 100%;
+    z-index: 1000;
+}
+
+.nav-container {
+    max-width: 1100px;
+    margin: 0 auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.nav-logo {
+    color: var(--primary-accent);
+    font-size: 1.5rem;
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.nav-menu {
+    list-style: none;
+    display: flex;
+    gap: 25px;
+    margin: 0;
+    padding: 0;
+}
+
+.nav-item a {
+    color: var(--text-primary);
+    text-decoration: none;
+    font-size: 1rem;
+    padding: 5px 10px;
+    border-radius: 8px;
+    transition: background 0.3s ease, color 0.3s ease;
+}
+
+.nav-item a:hover {
+    background: var(--primary-accent);
+    color: #000;
+}
+
 
 /* --- Animasi --- */
 @keyframes fadeIn {
@@ -78,6 +134,7 @@ header {
   border-bottom: 1px solid var(--border-color);
   position: relative; /* Diperlukan untuk positioning #particles-js */
   overflow: hidden; /* Mencegah partikel keluar dari header */
+  padding-top: 60px;
 }
 
 #particles-js {
@@ -104,7 +161,7 @@ header h1 {
 
 header p {
   font-size: 1.2rem;
-  margin-top: 15px;
+  margin-top: 25px;
   color: var(--text-secondary);
   animation: fadeInUp 0.8s ease-out 0.2s;
   animation-fill-mode: backwards; /* Agar tidak muncul sebelum animasi */
@@ -120,10 +177,10 @@ header p {
   font-weight: 600;
   border-radius: 12px;
   text-decoration: none;
-  transition: all 0.3s ease;
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
   cursor: pointer;
   border: none;
-  font-family: 'Poppins', sans-serif;
+  font-family: 'Fira Code', monospace;
   font-size: 1rem;
   animation: pulse 2s infinite;
 }
@@ -162,13 +219,13 @@ h2 {
   border-radius: 16px;
   border: 1px solid var(--border-color);
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
-  transition: all 0.3s ease;
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
   backdrop-filter: blur(10px); /* Efek Glassmorphism */
   -webkit-backdrop-filter: blur(10px);
 }
 
 .card:hover {
-  transform: translateY(-10px);
+  transform: translateY(-10px) rotate(1deg);
   background: var(--surface-hover);
   box-shadow: 0 0 25px var(--shadow-color);
   border-color: var(--primary-accent);
@@ -181,6 +238,9 @@ h2 {
 
 .card p {
   color: var(--text-secondary);
+  max-width: 300px;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 /* --- Langkah Instalasi --- */
@@ -248,14 +308,14 @@ h2 {
   padding: 30px;
   border-radius: 16px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-  transition: all 0.3s ease;
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
   text-align: center;
   border: 1px solid var(--border-color);
   backdrop-filter: blur(10px);
 }
 
 .download-card:hover {
-  transform: translateY(-8px);
+  transform: translateY(-8px) rotate(-1deg);
   box-shadow: 0 0 25px var(--shadow-color);
   border-color: var(--primary-accent);
 }
@@ -274,9 +334,9 @@ h2 {
   border-radius: 10px;
   font-weight: 600;
   text-decoration: none;
-  transition: all 0.3s ease;
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
   cursor: pointer;
-  font-family: 'Poppins', sans-serif;
+  font-family: 'Fira Code', monospace;
   border: none;
   font-size: 0.95rem;
 }
@@ -341,4 +401,36 @@ footer .easter-egg {
   margin-top: 20px;
   font-size: 0.9rem;
   color: #555;
+}
+
+/* --- Media Queries for Responsiveness --- */
+@media (max-width: 768px) {
+    .header-content {
+        padding: 60px 20px;
+    }
+
+    header h1 {
+        font-size: 2.5rem;
+    }
+
+    header p {
+        font-size: 1rem;
+    }
+
+    section {
+        padding: 60px 20px;
+    }
+
+    h2 {
+        font-size: 2rem;
+    }
+
+    .features,
+    .download-cards {
+        gap: 20px;
+    }
+
+    .nav-menu {
+        display: none; /* Hide menu on mobile for now */
+    }
 }
