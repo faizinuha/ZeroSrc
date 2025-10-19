@@ -1,7 +1,10 @@
 using Microsoft.Win32;
 using Newtonsoft.Json;
+using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
+using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -32,12 +35,20 @@ namespace ZeroMix
             Directory.CreateDirectory(AppDataFolder);
         }
 
+        private void Window_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            if (e.ButtonState == MouseButtonState.Pressed)
+            {
+                DragMove();
+            }
+        }
+
         private void BrowseButton_Click(object sender, RoutedEventArgs e)
         {
             OpenFileDialog openFileDialog = new OpenFileDialog
             {
                 Filter = "Executable files (*.exe)|*.exe|All files (*.*)|*.*",
-                Title = "Select an Application"
+                Title = "Pilih Aplikasi"
             };
 
             if (openFileDialog.ShowDialog() == true)
@@ -55,7 +66,7 @@ namespace ZeroMix
 
             this.DialogResult = true; // Tandai bahwa perubahan disimpan
             // Ubah pesan, karena restart tidak lagi diperlukan
-            MessageBox.Show("Shortcuts have been updated and are now active.", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
+            MessageBox.Show("Pintasan telah diperbarui dan sekarang aktif.", "Sukses", MessageBoxButton.OK, MessageBoxImage.Information);
             this.Close();
         }
 
@@ -67,13 +78,13 @@ namespace ZeroMix
 
         private void HotkeyTextBox_PreviewKeyDown(object sender, KeyEventArgs e)
         {
-            // Prevent the key from being processed by the TextBox
+            // Mencegah tombol diproses oleh TextBox
             e.Handled = true;
 
-            // Get the pressed key, ignoring modifiers
+            // Dapatkan tombol yang ditekan, abaikan pengubah
             Key key = (e.Key == Key.System) ? e.SystemKey : e.Key;
 
-            // Ignore modifier-only presses
+            // Abaikan penekanan hanya pengubah
             if (key == Key.LeftCtrl || key == Key.RightCtrl ||
                 key == Key.LeftAlt || key == Key.RightAlt ||
                 key == Key.LeftShift || key == Key.RightShift ||
@@ -88,7 +99,7 @@ namespace ZeroMix
             if ((Keyboard.Modifiers & ModifierKeys.Shift) != 0) hotkeyParts.Add("Shift");
             if ((Keyboard.Modifiers & ModifierKeys.Windows) != 0) hotkeyParts.Add("Win");
 
-            // Update the TextBox with the key name
+            // Perbarui TextBox dengan nama tombol
             // Gunakan KeyConverter untuk mendapatkan nama yang lebih baik (misal: "OemComma" menjadi ",")
             var keyConverter = new KeyConverter();
             var keyName = keyConverter.ConvertToString(key);
@@ -105,29 +116,29 @@ namespace ZeroMix
             // Ini memastikan path file yang disimpan, bukan hanya nama aplikasinya.
             string appPath = AppPathComboBox.SelectedValue as string ?? AppPathComboBox.Text;
 
-            if (string.IsNullOrWhiteSpace(hotkey) || hotkey == "Click here and press a key combination")
+            if (string.IsNullOrWhiteSpace(hotkey) || hotkey == "Klik dan tekan kombinasi tombol")
             {
-                MessageBox.Show("Please record a hotkey.", "Missing Information", MessageBoxButton.OK, MessageBoxImage.Warning);
+                MessageBox.Show("Silakan rekam hotkey.", "Informasi Hilang", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
 
             if (string.IsNullOrWhiteSpace(appPath))
             {
-                MessageBox.Show("Please select an application path.", "Missing Information", MessageBoxButton.OK, MessageBoxImage.Warning);
+                MessageBox.Show("Silakan pilih jalur aplikasi.", "Informasi Hilang", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
 
             // Cek duplikat hotkey
             if (Shortcuts.Any(s => s.Hotkey.Equals(hotkey, StringComparison.OrdinalIgnoreCase)))
             {
-                MessageBox.Show("This hotkey is already in use. Please choose a different one.", "Duplicate Hotkey", MessageBoxButton.OK, MessageBoxImage.Warning);
+                MessageBox.Show("Hotkey ini sudah digunakan. Silakan pilih yang lain.", "Hotkey Duplikat", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
 
             Shortcuts.Add(new CustomShortcut { Hotkey = hotkey, ApplicationPath = appPath });
 
-            // Clear inputs for next entry
-            HotkeyTextBox.Text = "Click here and press a key combination";
+            // Kosongkan input untuk entri berikutnya
+            HotkeyTextBox.Text = "Klik dan tekan kombinasi tombol";
             AppPathComboBox.Text = "";
             AppPathComboBox.SelectedIndex = -1;
         }
@@ -137,11 +148,11 @@ namespace ZeroMix
             var selectedShortcut = ShortcutListView.SelectedItem as CustomShortcut;
             if (selectedShortcut == null)
             {
-                MessageBox.Show("Please select a shortcut from the list to delete.", "No Shortcut Selected", MessageBoxButton.OK, MessageBoxImage.Warning);
+                MessageBox.Show("Silakan pilih pintasan dari daftar untuk dihapus.", "Tidak Ada Pintasan Dipilih", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
 
-            var result = MessageBox.Show($"Are you sure you want to delete the shortcut '{selectedShortcut.Hotkey}'?", "Confirm Deletion", MessageBoxButton.YesNo, MessageBoxImage.Question);
+            var result = MessageBox.Show($"Apakah Anda yakin ingin menghapus pintasan '{selectedShortcut.Hotkey}'?", "Konfirmasi Penghapusan", MessageBoxButton.YesNo, MessageBoxImage.Question);
             if (result == MessageBoxResult.Yes)
             {
                 Shortcuts.Remove(selectedShortcut);
