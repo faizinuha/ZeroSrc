@@ -12,6 +12,10 @@
     <PackageReference Include="MegaApiClient" Version="1.10.5" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
   </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="zeromix.ico" />
+  </ItemGroup>
   
   <Target Name="AfterPublish" AfterTargets="Publish" Condition="'$(Configuration)' == 'Release' AND '$(BuildingForLiveReload)' != 'true'">
     <Message Text="Menjalankan proses signing installer ZeroMix..." Importance="High" />

@@ -3,6 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="Custom Shortcuts"
         Height="600" Width="750"
+        Icon="favicon.ico"
         WindowStyle="None" AllowsTransparency="True" Background="Transparent"
         WindowStartupLocation="CenterScreen"
         MouseLeftButtonDown="Window_MouseLeftButtonDown">
@@ -10,14 +11,14 @@
     <Window.Resources>
         <!-- Modern Color Palette -->
         <Color x:Key="BackgroundColor">#202020</Color>
-        <Color x:Key="ForegroundColor">#F0F0F0</Color>
-        <Color x:Key="BorderColor">#303030</Color>
+        <Color x:Key="ForegroundColor">#FFFFFF</Color>
+        <Color x:Key="BorderColor">#404040</Color>
         <Color x:Key="AccentColor">#0078D4</Color>
-        <Color x:Key="SuccessColor">#107C10</Color>
-        <Color x:Key="DangerColor">#D83B01</Color>
-        <Color x:Key="ControlBackgroundColor">#252525</Color>
+        <Color x:Key="SuccessColor">#2EA043</Color>
+        <Color x:Key="DangerColor">#E74C3C</Color>
+        <Color x:Key="ControlBackgroundColor">#2D2D2D</Color>
         <Color x:Key="ControlHoverColor">#3E3E3E</Color>
-        <Color x:Key="ControlPressedColor">#005A9E</Color>
+        <Color x:Key="ControlPressedColor">#1B1B1B</Color>
 
         <!-- Brushes -->
         <SolidColorBrush x:Key="BackgroundBrush" Color="{StaticResource BackgroundColor}" Opacity="0.85"/>
@@ -35,6 +36,11 @@
             <Setter Property="FontFamily" Value="Segoe UI"/>
             <Setter Property="Foreground" Value="{StaticResource ForegroundBrush}"/>
         </Style>
+
+        <!-- Subtle animations for brushes -->
+        <Storyboard x:Key="ButtonHoverStoryboard">
+            <ColorAnimation Storyboard.TargetProperty="(Border.Background).(SolidColorBrush.Color)" Duration="0:0:0.12" To="#2E2E2E" />
+        </Storyboard>
 
         <!-- TextBox Style -->
         <Style TargetType="TextBox">
@@ -77,7 +83,7 @@
                 <Setter.Value>
                     <ControlTemplate TargetType="ComboBox">
                         <Grid>
-                            <ToggleButton x:Name="ToggleButton" 
+                                                        <ToggleButton x:Name="ToggleButton" 
                                           BorderBrush="{TemplateBinding BorderBrush}" 
                                           Background="{TemplateBinding Background}" 
                                           Foreground="{TemplateBinding Foreground}"
@@ -86,20 +92,17 @@
                                           ClickMode="Press">
                                 <ToggleButton.Template>
                                     <ControlTemplate TargetType="ToggleButton">
-                                        <Border x:Name="templateRoot" CornerRadius="4" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}">
+                                        <Border x:Name="border" CornerRadius="4" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="1">
                                             <Grid>
-                                                <Grid.ColumnDefinitions>
-                                                    <ColumnDefinition Width="*" />
-                                                    <ColumnDefinition Width="30" />
-                                                </Grid.ColumnDefinitions>
-                                                <Path x:Name="Arrow" Grid.Column="1" HorizontalAlignment="Center" VerticalAlignment="Center" Data="M 0 0 L 4 4 L 8 0 Z" Fill="{StaticResource ForegroundBrush}" />
+                                                <ContentPresenter />
+                                                <Path x:Name="arrow" Data="M0,0 L4,4 L8,0" Stroke="{TemplateBinding Foreground}" StrokeThickness="2" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,10,0"/>
                                             </Grid>
                                         </Border>
                                     </ControlTemplate>
                                 </ToggleButton.Template>
                             </ToggleButton>
                             <ContentPresenter x:Name="ContentSite" IsHitTestVisible="False" Content="{TemplateBinding SelectionBoxItem}" ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}" ContentTemplateSelector="{TemplateBinding ItemTemplateSelector}" Margin="10,0,35,0" VerticalAlignment="Center" HorizontalAlignment="Left" />
-                            <TextBox x:Name="PART_EditableTextBox" Style="{x:Null}" Template="{StaticResource {x:Type TextBox}}" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="10,0,35,0" Focusable="True" Background="Transparent" Visibility="Hidden" IsReadOnly="{TemplateBinding IsReadOnly}"/>
+                            <TextBox x:Name="PART_EditableTextBox" Style="{x:Null}" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="10,0,35,0" Focusable="True" Background="Transparent" Visibility="Hidden" IsReadOnly="{TemplateBinding IsReadOnly}"/>
                             <Popup x:Name="Popup" Placement="Bottom" IsOpen="{TemplateBinding IsDropDownOpen}" AllowsTransparency="True" Focusable="False" PopupAnimation="Slide">
                                 <Grid x:Name="DropDown" SnapsToDevicePixels="True" MinWidth="{TemplateBinding ActualWidth}" MaxHeight="{TemplateBinding MaxDropDownHeight}">
                                     <Border x:Name="DropDownBorder" Background="{StaticResource ControlBackgroundBrush}" BorderThickness="1" BorderBrush="{StaticResource BorderBrush}" CornerRadius="4"/>
@@ -119,20 +122,31 @@
             <Setter Property="Background" Value="{StaticResource AccentBrush}"/>
             <Setter Property="Foreground" Value="White"/>
             <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="Padding" Value="15,10"/>
+            <Setter Property="Padding" Value="12,8"/>
             <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="SnapsToDevicePixels" Value="True"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
-                        <Border x:Name="border" CornerRadius="4" Background="{TemplateBinding Background}">
+                        <Border x:Name="border" CornerRadius="6" Background="{TemplateBinding Background}" Padding="{TemplateBinding Padding}">
                             <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
                                 <Setter TargetName="border" Property="Background" Value="{StaticResource ControlHoverBrush}"/>
+                                <Setter TargetName="border" Property="RenderTransform">
+                                    <Setter.Value>
+                                        <ScaleTransform ScaleX="1.02" ScaleY="1.02"/>
+                                    </Setter.Value>
+                                </Setter>
                             </Trigger>
-                             <Trigger Property="IsPressed" Value="True">
+                            <Trigger Property="IsPressed" Value="True">
                                 <Setter TargetName="border" Property="Background" Value="{StaticResource ControlPressedBrush}"/>
+                                <Setter TargetName="border" Property="RenderTransform">
+                                    <Setter.Value>
+                                        <ScaleTransform ScaleX="0.98" ScaleY="0.98"/>
+                                    </Setter.Value>
+                                </Setter>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -160,12 +174,19 @@
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
                         <Border x:Name="border" CornerRadius="17" Background="Transparent">
-                            <Path Data="M0,0 L12,12 M12,0 L0,12" Stroke="{TemplateBinding Foreground}" StrokeThickness="2" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            <Path x:Name="xpath" Data="M0,0 L12,12 M12,0 L0,12" Stroke="{TemplateBinding Foreground}" StrokeThickness="2" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
                                 <Setter TargetName="border" Property="Background" Value="#C42B1C"/>
-                                <Setter Property="Foreground" Value="White"/>
+                                <Setter TargetName="xpath" Property="Stroke" Value="White"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="border" Property="RenderTransform">
+                                    <Setter.Value>
+                                        <ScaleTransform ScaleX="0.95" ScaleY="0.95"/>
+                                    </Setter.Value>
+                                </Setter>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -249,19 +270,20 @@
     </Window.Resources>
 
     <!-- Glassmorphism Background -->
-    <Border CornerRadius="8">
+    <Border CornerRadius="12" Margin="12">
         <Border.Effect>
-            <DropShadowEffect ShadowDepth="0" BlurRadius="25" Color="Black" Opacity="0.4"/>
+            <DropShadowEffect ShadowDepth="0" BlurRadius="30" Color="Black" Opacity="0.45"/>
         </Border.Effect>
-        <Border CornerRadius="8" ClipToBounds="True">
+        <Border CornerRadius="20" ClipToBounds="True">
             <Border.Background>
-                <SolidColorBrush Color="{StaticResource BackgroundColor}" Opacity="0.7" />
+                <!-- Slightly more transparent for stronger glass look -->
+                <SolidColorBrush Color="{StaticResource BackgroundColor}" Opacity="0.55" />
             </Border.Background>
             <Grid>
-                <!-- Frosted Glass Effect -->
+                <!-- Frosted Glass Effect (backdrop blur simulated) -->
                 <Grid>
                     <Grid.Effect>
-                        <BlurEffect Radius="20" KernelType="Gaussian"/>
+                        <BlurEffect Radius="18" KernelType="Gaussian"/>
                     </Grid.Effect>
                 </Grid>
 
@@ -275,23 +297,40 @@
                     </Grid.RowDefinitions>
 
                     <!-- Custom Title Bar -->
-                    <Grid Grid.Row="0">
-                        <TextBlock Text="Custom Shortcuts" 
-                                   Foreground="{StaticResource ForegroundBrush}" 
-                                   FontSize="16" 
-                                   FontWeight="SemiBold"
-                                   HorizontalAlignment="Center" 
-                                   VerticalAlignment="Center"/>
-                        <Button Name="CancelButton" 
+                    <Grid Grid.Row="0" Background="Transparent" Height="56">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+
+                        <!-- Title area with drag support -->
+                        <Grid Grid.ColumnSpan="2" Background="Transparent" MouseLeftButtonDown="Window_MouseLeftButtonDown">
+                            <!-- Drag grip (left) -->
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="12,0,8,0">
+                                <Rectangle Width="8" Height="8" Fill="{StaticResource AccentBrush}" RadiusX="2" RadiusY="2"/>
+                                <TextBlock Text="Custom Shortcuts" 
+                                       Foreground="{StaticResource ForegroundBrush}" 
+                                       FontSize="18" 
+                                       FontWeight="SemiBold"
+                                       Margin="12,0,0,0"/>
+                            </StackPanel>
+                        </Grid>
+
+                        <!-- Close button in its own column -->
+                        <Button Grid.Column="2" 
+                                Name="CancelButton" 
                                 Style="{StaticResource CloseButton}" 
                                 HorizontalAlignment="Right" 
                                 VerticalAlignment="Center" 
-                                Margin="0,0,10,0"
-                                Click="CancelButton_Click"/>
+                                Margin="0,0,12,0"
+                                Click="CancelButton_Click" 
+                                Panel.ZIndex="100" 
+                                ToolTip="Close"/>
                     </Grid>
-
+                    
                     <!-- Input Area -->
-                    <Border Grid.Row="1" Margin="20,10" Padding="20" Background="#1A1A1A" CornerRadius="4">
+                    <Border Grid.Row="1" Margin="20,10" Padding="18" Background="#1A1A1A" CornerRadius="8" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1">
                         <StackPanel>
                             <Grid>
                                 <Grid.ColumnDefinitions>
@@ -303,12 +342,13 @@
                                     <RowDefinition Height="Auto"/>
                                 </Grid.RowDefinitions>
 
-                                <TextBlock Grid.Row="0" Grid.Column="0" Text="Shortcut Key" FontWeight="SemiBold" Margin="0,0,0,8"/>
+                                <TextBlock Grid.Row="0" Grid.Column="0" Text="Shortcut Key" Foreground="#FFFFFF" FontWeight="SemiBold" Margin="0,0,0,8"/>
                                 <TextBox Name="HotkeyTextBox" 
                                          Grid.Row="1" Grid.Column="0"
                                          Margin="0,0,10,10"
                                          PreviewKeyDown="HotkeyTextBox_PreviewKeyDown"
-                                         Text="Click and press key combination" />
+                                         Text="Click and press key combination"
+                                         Foreground="#FFFFFF" />
 
                                 <TextBlock Grid.Row="0" Grid.Column="1" Text="Application Path" FontWeight="SemiBold" Margin="0,0,0,8"/>
                                 <Grid Grid.Row="1" Grid.Column="1">
@@ -320,7 +360,8 @@
                                               Margin="0,0,5,10"
                                               DisplayMemberPath="Name"
                                               SelectedValuePath="Path"
-                                              IsEditable="True" />
+                                              IsEditable="True"
+                                              SelectionChanged="AppPathComboBox_SelectionChanged" />
                                     <Button Name="BrowseButton" 
                                             Grid.Column="1" 
                                             Content="Browse..." 
@@ -330,45 +371,95 @@
                                 </Grid>
                             </Grid>
 
-                            <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
-                                <Button Name="AddShortcutButton" 
-                                        Content="Add Shortcut" 
-                                        Click="AddShortcutButton_Click"
-                                        Style="{StaticResource SuccessButton}"/>
-                                <Button Name="DeleteShortcutButton" 
-                                        Content="Delete Selected" 
-                                        Margin="10,0,0,0"
-                                        Click="DeleteShortcutButton_Click"
-                                        Style="{StaticResource DangerButton}"/>
-                            </StackPanel>
+                <StackPanel Orientation="Horizontal" Margin="0,12,0,0">
+                <Button Name="AddShortcutButton" 
+                    Content="Add Shortcut" 
+                    Click="AddShortcutButton_Click"
+                    Style="{StaticResource SuccessButton}" Width="120"/>
+                <Button Name="DeleteShortcutButton" 
+                    Content="Delete Selected" 
+                    Margin="10,0,0,0"
+                    Click="DeleteShortcutButton_Click"
+                    Style="{StaticResource DangerButton}" Width="120"/>
+                <TextBlock Text="" Width="16"/>
+                <TextBlock VerticalAlignment="Center" Foreground="#9A9A9A">Tip: Select a row before deleting</TextBlock>
+                </StackPanel>
                         </StackPanel>
                     </Border>
 
                     <!-- Shortcut List -->
                     <DataGrid Name="ShortcutListView"
                               Grid.Row="2"
-                              Margin="20,0,20,10"
+                              Margin="20,6,20,10"
                               ItemsSource="{Binding Shortcuts}"
                               AutoGenerateColumns="False"
                               CanUserAddRows="False"
                               CanUserDeleteRows="False"
                               IsReadOnly="True"
-                              SelectionMode="Single">
+                              SelectionMode="Single"
+                              RowHeight="44"
+                              GridLinesVisibility="None"
+                              HeadersVisibility="Column"
+                              AlternatingRowBackground="#171717"
+                              Background="Transparent"
+                              BorderThickness="0">
+                        <DataGrid.Resources>
+                            <SolidColorBrush x:Key="DataGridRowHoverBrush" Color="#2A2A2A" />
+                            <Style TargetType="DataGridRow">
+                                <Setter Property="Background" Value="Transparent" />
+                                <Setter Property="SnapsToDevicePixels" Value="True" />
+                                <Setter Property="Padding" Value="6" />
+                                <Setter Property="Margin" Value="0,2,0,2" />
+                                <Setter Property="Template">
+                                    <Setter.Value>
+                                        <ControlTemplate TargetType="DataGridRow">
+                                            <Border x:Name="DGR_Border" Background="{TemplateBinding Background}" CornerRadius="6" Padding="4">
+                                                <SelectiveScrollingGrid>
+                                                    <SelectiveScrollingGrid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="Auto" />
+                                                        <ColumnDefinition Width="*" />
+                                                    </SelectiveScrollingGrid.ColumnDefinitions>
+                                                    <DataGridCellsPresenter Grid.Column="1" ItemsPanel="{TemplateBinding ItemsPanel}" SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"/>
+                                                </SelectiveScrollingGrid>
+                                            </Border>
+                                            <ControlTemplate.Triggers>
+                                                <Trigger Property="IsMouseOver" Value="True">
+                                                    <Setter TargetName="DGR_Border" Property="Background" Value="{StaticResource ControlHoverBrush}" />
+                                                </Trigger>
+                                                <Trigger Property="IsSelected" Value="True">
+                                                    <Setter TargetName="DGR_Border" Property="Background" Value="{StaticResource AccentBrush}" />
+                                                    <Setter Property="Foreground" Value="White" />
+                                                </Trigger>
+                                            </ControlTemplate.Triggers>
+                                        </ControlTemplate>
+                                    </Setter.Value>
+                                </Setter>
+                            </Style>
+                        </DataGrid.Resources>
                         <DataGrid.Columns>
-                            <DataGridTextColumn Header="Shortcut" Binding="{Binding Hotkey}" Width="*" />
-                            <DataGridTextColumn Header="Application" Binding="{Binding ApplicationPath}" Width="2*" />
+                            <DataGridTextColumn Header="Shortcut" Binding="{Binding Hotkey}" Width="200" />
+                            <DataGridTextColumn Header="Application" Binding="{Binding ApplicationPath}" Width="*" />
                         </DataGrid.Columns>
                     </DataGrid>
 
                     <!-- Save Button -->
-                    <Button Name="SaveButton" 
-                            Grid.Row="3" 
-                            Content="Save and Apply" 
-                            Click="SaveButton_Click"
-                            HorizontalAlignment="Right"
-                            Margin="0,10,20,20"/>
+                    <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,12,20,20">
+                        <Button Name="SaveButton" Content="Save and Apply" Click="SaveButton_Click" Width="140"/>
+                    </StackPanel>
                 </Grid>
             </Grid>
         </Border>
     </Border>
+
+    <!-- Window entrance animation -->
+    <Window.Triggers>
+        <EventTrigger RoutedEvent="Window.Loaded">
+            <BeginStoryboard>
+                <Storyboard>
+                    <DoubleAnimation Storyboard.TargetProperty="Opacity" From="0" To="1" Duration="0:0:0.22" />
+                    <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(TranslateTransform.Y)" From="8" To="0" Duration="0:0:0.22" />
+                </Storyboard>
+            </BeginStoryboard>
+        </EventTrigger>
+    </Window.Triggers>
 </Window>
