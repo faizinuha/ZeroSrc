@@ -57,11 +57,11 @@ namespace ZeroMix
             }
         }
 
-        private void AppPathComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        private void AppPathComboBox_DropDownClosed(object sender, EventArgs e)
         {
             if (AppPathComboBox.SelectedItem is InstalledApplication selectedApp)
             {
-                AppPathComboBox.Text = selectedApp.Path;
+                AppPathComboBox.Text = selectedApp.Name;
             }
         }
 
