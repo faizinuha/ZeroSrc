@@ -57,6 +57,14 @@ namespace ZeroMix
             }
         }
 
+        private void AppPathComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (AppPathComboBox.SelectedItem is InstalledApplication selectedApp)
+            {
+                AppPathComboBox.Text = selectedApp.Path;
+            }
+        }
+
         private void SaveButton_Click(object sender, RoutedEventArgs e)
         {
             SaveShortcuts();
