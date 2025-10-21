@@ -1,3 +1,4 @@
+
 /* Import Google Fonts */
 @import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;700&display=swap');
 
@@ -402,6 +403,115 @@ footer .easter-egg {
   font-size: 0.9rem;
   color: #555;
 }
+
+/* --- Changelog --- */
+.changelog {
+  background: var(--surface-color);
+  padding: 30px;
+  border-radius: 16px;
+  border: 1px solid var(--border-color);
+  backdrop-filter: blur(10px);
+}
+
+.changelog h3 {
+  color: var(--primary-accent);
+  border-bottom: 2px solid var(--primary-accent);
+  padding-bottom: 10px;
+  margin-top: 30px;
+}
+
+.changelog ul {
+  list-style-type: '✅ ';
+  padding-left: 20px;
+}
+
+.changelog ul ul {
+  list-style-type: '➡️ ';
+  margin-top: 10px;
+}
+
+/* --- Feedback Form --- */
+.feedback-container {
+    background-color: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    padding: 2rem 3rem;
+    border-radius: 15px;
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    text-align: center;
+    max-width: 500px;
+    width: 90%;
+    z-index: 1;
+    margin: auto;
+}
+
+.feedback-container h1 {
+    font-weight: 600;
+    font-size: 2rem;
+    margin: 0;
+}
+
+.feedback-container p {
+    font-weight: 300;
+}
+
+.feedback-container textarea {
+    width: 100%;
+    padding: 0.8rem;
+    margin-top: 1rem;
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    background-color: rgba(255, 255, 255, 0.2);
+    color: #fff;
+    min-height: 120px;
+    font-family: 'Poppins', sans-serif;
+}
+
+.feedback-container textarea::placeholder {
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.rating {
+    margin-top: 1rem;
+    display: inline-block;
+    direction: rtl;
+}
+
+.rating input {
+    display: none;
+}
+
+.rating label {
+    font-size: 2.5rem;
+    color: rgba(255, 255, 255, 0.4);
+    cursor: pointer;
+    padding: 0 0.2em;
+    transition: color 0.2s;
+}
+
+.rating input:checked ~ label,
+.rating:not(:checked) > label:hover,
+.rating:not(:checked) > label:hover ~ label {
+    color: #f0ad4e;
+}
+
+.feedback-container button {
+    margin-top: 1.5rem;
+    padding: 0.8rem 2rem;
+    background: linear-gradient(45deg, #007BFF, #0056b3);
+    color: white;
+    border: none;
+    border-radius: 50px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.feedback-container button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0, 123, 255, 0.4);
+}
+
 
 /* --- Media Queries for Responsiveness --- */
 @media (max-width: 768px) {

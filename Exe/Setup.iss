@@ -8,23 +8,8 @@ VersionInfoDescription=ZeroMix smart launcher
 VersionInfoTextVersion=1.7.0
 AppVerName=ZeroMix
 AppPublisher=Zaki
-AppPublisherURL=https://zeromix.pages.dev
-AppSupportURL=https://zeromix.pages.dev/support
-AppUpdatesURL=https://zeromix.pages.dev/updates
-AppCopyright=Copyright © 2025 Zaki. All rights reserved.
-MinVersion=6.1sp1
-PrivilegesRequired=admin
-ArchitecturesInstallIn64BitMode=x64
-CloseApplications=yes
-RestartApplications=no
-AlwaysRestart=no
-DisableDirPage=auto
-DisableWelcomePage=no
-DisableReadyPage=no
-DisableFinishedPage=no
-AppMutex=ZeroMixAppMutex_1.7.0
-WizardStyle=modern
-SetupMutex=ZeroMixSetupMutex_1.7.0,Global\ZeroMixSetupMutex_1.7.0
+AppPublisherURL=Mardve7.vercel.app
+AppCopyright=Copyright (c) 2025
 AppComments=ZeroMix smart launcher
 DefaultDirName={pf}\ZeroMix
 DefaultGroupName=ZeroMix
@@ -37,73 +22,10 @@ SolidCompression=yes
 DisableProgramGroupPage=yes
 UninstallDisplayIcon={app}\zeromix.ico
 WizardImageFile=zeromix.bmp
-; Signer configuration — gunakan sertifikat yang ada di folder Exe
-#define CERT_PATH "Exe\\ZeroMixCert.pfx"
-; Use environment variable ZEROMIX_CERT_PASS when set to avoid embedding password in script
-#if GetEnv('ZEROMIX_CERT_PASS') == ''
-#define CERT_PASS "ZeroMixPass"
-#else
-#define CERT_PASS GetEnv('ZEROMIX_CERT_PASS')
-#endif
-SignTool=signtool
-SignedUninstaller=yes
+;SignTool=osslsigncode
 
 [SignTool]
-; Gunakan signtool.exe untuk menandatangani installer dan uninstaller
-signtool=signtool.exe sign /f "{#CERT_PATH}" /p "{#CERT_PASS}" /d "ZeroMix" /du "https://zeromix.pages.dev" /tr http://timestamp.digicert.com /td sha256 /fd sha256 $f
-
-[Code]
-function VerifyFileHash(const FilePath: string; const ExpectedHash: string): Boolean;
-var
-  CalculatedHash: string;
-  HashAlg: HCRYPTPROV;
-  HashCtx: HCRYPTHASH;
-  FileHandle: THandle;
-  BytesRead: DWORD;
-  Buffer: array[0..4095] of Byte;
-  HashValue: array[0..31] of Byte;
-  HashSize: DWORD;
-  i: Integer;
-begin
-  Result := False;
-  
-  if not CryptAcquireContext(HashAlg, nil, nil, PROV_RSA_AES, CRYPT_VERIFYCONTEXT) then
-    Exit;
-  try
-    if not CryptCreateHash(HashAlg, CALG_SHA_256, 0, 0, HashCtx) then
-      Exit;
-    try
-      FileHandle := CreateFile(FilePath, GENERIC_READ, FILE_SHARE_READ, nil, OPEN_EXISTING, 0, 0);
-      if FileHandle = INVALID_HANDLE_VALUE then
-        Exit;
-      try
-        repeat
-          if not ReadFile(FileHandle, Buffer, SizeOf(Buffer), BytesRead, nil) then
-            Exit;
-          if BytesRead > 0 then
-            if not CryptHashData(HashCtx, @Buffer, BytesRead, 0) then
-              Exit;
-        until BytesRead = 0;
-        
-        HashSize := SizeOf(HashValue);
-        if not CryptGetHashParam(HashCtx, HP_HASHVAL, @HashValue, HashSize, 0) then
-          Exit;
-          
-        CalculatedHash := '';
-        for i := 0 to HashSize - 1 do
-          CalculatedHash := CalculatedHash + IntToHex(HashValue[i], 2);
-          
-        Result := CompareText(CalculatedHash, ExpectedHash) = 0;
-      finally
-        CloseHandle(FileHandle);
-      end;
-    finally
-      CryptDestroyHash(HashCtx);
-    end;
-  finally
-    CryptReleaseContext(HashAlg, 0);
-  end;
-end;
+osslsigncode="osslsigncode.exe sign -pkcs12 ZeroMixCert.pfx -pass ""ZeroMixPass"" -n ""ZeroMix"" -i ""https://zeromix.pages.dev"" -in $f -out $f -t http://timestamp.digicert.com"
 
 ; NOTE for packagers:
 ; To avoid requiring users to install the .NET runtime, publish your app as
@@ -148,6 +70,8 @@ Filename: "taskkill.exe"; Parameters: "/IM ZeroMix.exe /F"; StatusMsg: "Menutup 
 Filename: "cmd.exe"; Parameters: "/C echo Terima kasih telah menggunakan! && timeout /t 3"; Flags: runhidden
 
 ; --- Teks Custom Welcome & Selesai ---
+
+; --- Teks Custom Welcome & Selesai ---
 [Messages]
 WelcomeLabel1=Selamat datang di Program Penginstal ZeroMix
 WelcomeLabel2=Program ini akan menginstal ZeroMix versi 1.7.0 di komputer Anda.%n%nZeroMix adalah aplikasi pintar yang memungkinkan Anda membuka web dan aplikasi desktop dengan cepat dan efisien.%n%nDisarankan untuk menutup semua aplikasi lain sebelum melanjutkan.
@@ -161,36 +85,9 @@ AdditionalTasks=Tugas tambahan:
 WindowsServiceNote=Layanan Windows:
 
 [LicenseFile]
-InfoBeforeFile=README-Installer.md
+InfoBeforeFile=../SECURITY.md
 
 [Code]
-// Fungsi untuk memeriksa apakah ZeroMix sedang berjalan
-function IsAppRunning(): Boolean;
-var
-  FoundWnd: HWND;
-begin
-  FoundWnd := FindWindowByWindowName('ZeroMix');
-  Result := (FoundWnd <> 0);
-end;
-
-// Event sebelum instalasi dimulai
-function InitializeSetup(): Boolean;
-begin
-  Result := True;
-
-  // Periksa apakah aplikasi sedang berjalan
-  if IsAppRunning() then begin
-    if MsgBox('ZeroMix sedang berjalan. Aplikasi harus ditutup untuk melanjutkan instalasi.' + #13#10 +
-              'Apakah Anda ingin menutup ZeroMix sekarang?', 
-              mbConfirmation, MB_YESNO) = IDYES then begin
-      Exec('taskkill.exe', '/F /IM ZeroMix.exe', '', SW_HIDE, ewWaitUntilTerminated, ErrorCode);
-    end else begin
-      Result := False;
-      exit;
-    end;
-  end;
-end;
-
 procedure CurStepChanged(CurStep: TSetupStep);
 var
  ErrorCode: Integer;
