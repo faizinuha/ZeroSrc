@@ -78,14 +78,17 @@ Selamat datang di **ZeroMix**! Panduan ini akan membantu Anda menginstal, menggu
 
 - Memperpanjang Tampilan Search bar
 - Memperbaiki UI/UX Manajemen Shortcut
-- Custom Ui/Ux Search Bar
 - Memperbaiki Bug
 
 ---
 
-### versi 1.7.2 - 1.7.5
+### versi Update 1.7.2 - 1.7.5 
 
-- ???
+- Custom Ui/Ux Search Bar
+- Menambahkan Widget ( Rencana )
+- Belum di Tambahkan!
+- Fitur Animasi Border Search dan Shourcut
+- Belum DI Tulis.....
 
 ---
 
