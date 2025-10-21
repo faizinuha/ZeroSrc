@@ -90,6 +90,7 @@ Selamat datang di **ZeroMix**! Panduan ini akan membantu Anda menginstal, menggu
 - Fitur Animasi Border Search dan Shourcut
 - Belum DI Tulis.....
 
+_Update v1.7.5 Stop version_
 ---
 
 ## Coming Soon Update
