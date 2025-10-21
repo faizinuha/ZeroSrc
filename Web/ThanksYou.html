@@ -3,174 +3,66 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>ZeroMix – Desktop & Extension</title>
-    <style>
-      body {
-        margin: 0;
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        background: #0f0f1a;
-        color: #f4f4f9;
-        line-height: 1.6;
-      }
-      header {
-        background: linear-gradient(135deg, #1a1a2e, #16213e);
-        text-align: center;
-        padding: 60px 20px;
-      }
-      header h1 {
-        font-size: 3rem;
-        margin: 0;
-        color: #00d9ff;
-      }
-      header p {
-        font-size: 1.2rem;
-        margin-top: 10px;
-        color: #bbb;
-      }
-      .btn {
-        display: inline-block;
-        margin-top: 20px;
-        padding: 12px 25px;
-        background: #00d9ff;
-        color: #000;
-        font-weight: bold;
-        border-radius: 8px;
-        text-decoration: none;
-        transition: 0.3s;
-        cursor: pointer;
-        /* animation: pulse 1.5s infinite; */
-      }
-      .btn:hover {
-        border-radius: 20px;
-        background: #08acd0;
-        color: #fff;
-        transform: scale(1.1);
-      }
-      @keyframes pulse {
-        0% {
-          box-shadow: 0 0 0 0 rgba(0, 217, 255, 0.7);
-        }
-        70% {
-          box-shadow: 0 0 0 20px rgba(0, 217, 255, 0);
-        }
-        100% {
-          box-shadow: 0 0 0 0 rgba(0, 217, 255, 0);
-        }
-      }
-      section {
-        padding: 60px 20px;
-        max-width: 1000px;
-        margin: auto;
-      }
-      h2 {
-        text-align: center;
-        margin-bottom: 40px;
-        color: #00d9ff;
-      }
-      .features {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-        gap: 30px;
-      }
-      .card {
-        background: #1e1e2f;
-        padding: 20px;
-        border-radius: 12px;
-        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
-        transition: 0.3s;
-      }
-      .card:hover {
-        transform: translateY(-5px) scale(1.03);
-        background: #22223c;
-        box-shadow: 0 0 15px #00d9ff;
-      }
-      .install-steps {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 30px;
-        justify-content: center;
-      }
-      .install-steps div {
-        background: #1e1e2f;
-        padding: 20px;
-        border-radius: 10px;
-        flex: 1 1 300px;
-      }
-      .screenshots {
-        display: flex;
-        gap: 20px;
-        flex-wrap: wrap;
-        justify-content: center;
-      }
-      .screenshots img {
-        width: 300px;
-        border-radius: 10px;
-        box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
-      }
-      .download-cards {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-        gap: 25px;
-        margin-top: 30px;
-      }
-      .download-card {
-        background: #1e1e2f;
-        padding: 25px;
-        border-radius: 12px;
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
-        transition: 0.3s;
-        text-align: center;
-      }
-      .download-card:hover {
-        transform: translateY(-5px) scale(1.02);
-        box-shadow: 0 0 15px #00d9ff;
-      }
-      footer {
-        text-align: center;
-        padding: 30px;
-        background: #111;
-        color: #888;
-        margin-top: 50px;
-      }
-      footer a {
-        color: #00d9ff;
-        text-decoration: none;
-      }
-      footer .easter-egg {
-        margin-top: 15px;
-        font-size: 0.9rem;
-        color: #555;
-      }
-    </style>
+    <title>ZeroMix – Thank You</title>
+    <link rel="stylesheet" href="style.css" />
   </head>
   <body>
-    <!-- Hero Section -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="index.html" class="nav-logo">ZeroMix</a>
+            <ul class="nav-menu">
+                <li class="nav-item"><a href="index.html">Beranda</a></li>
+                <li class="nav-item"><a href="About.html">About</a></li>
+                <li class="nav-item"><a href="Changelog.html">Changelog</a></li>
+                <li class="nav-item"><a href="Support.html">Support My Laptop</a></li>
+            </ul>
+        </div>
+    </nav>
+
     <header>
-      <img
-        src="original-93f36c9bb9818c6d64a4fcc42a74c39f.gif"
-        alt="ZeroMix Logo"
-        style="width: 150px; margin-bottom: 20px ; background: transparent;"
-      />
-      <h1>Thank You for Your Download!</h1>
-      <p>Your contribution helps us continue to improve and innovate.</p>
-      <div>
-        <a href="mailto:rozakadm@gmail.com" class="btn">Email</a> | 
-        <a href="https://sociabuzz.com/zuax/tribe" target="_blank" class="btn"
-          >Support on Sociabuzz</a
-        > |
+      <div class="header-content">
+        <img src="original-93f36c9bb9818c6d64a4fcc42a74c39f.gif" alt="ZeroMix Logo" class="logo" />
+        <h1>Thank You!</h1>
+        <p>Terima kasih telah mengunduh ZeroMix. Dukungan Anda sangat berarti bagi kami.</p>
+        <a href="index.html" class="btn">Kembali ke Beranda</a>
       </div>
     </header>
 
+    <section>
+      <h2>Bagaimana Selanjutnya?</h2>
+      <div class="features">
+        <div class="card">
+          <h3>🚀 Mulai Gunakan</h3>
+          <p>
+            Jalankan installer yang baru saja Anda unduh dan ikuti petunjuknya. ZeroMix akan siap digunakan dalam sekejap.
+          </p>
+        </div>
+        <div class="card">
+          <h3>💡 Beri Masukan</h3>
+          <p>
+            Punya saran atau menemukan bug? Beri tahu kami melalui halaman <a href="Feedback.html">umpan balik</a>.
+          </p>
+        </div>
+        <div class="card">
+          <h3>💖 Dukung Kami</h3>
+          <p>
+            Suka dengan ZeroMix? Anda dapat mendukung pengembangan lebih lanjut melalui <a href="https://sociabuzz.com/zuax/tribe" target="_blank">Sociabuzz</a>.
+          </p>
+        </div>
+      </div>
+    </section>
+
     <footer>
-      <p>&copy; 2025 ZeroMix Project. Made with ❤️ by the ZeroMix Team</p>
+      <p>© 2025 ZeroMix Project – Dibuat dengan ❤️ oleh Sayang Ku</p>
       <p>
-        <a href="https://github.com/faizinuha/ZeroMix" target="_blank"
-          >GitHub</a
-        >
-        |
-        <a href="mailto:rozakadm@gmail.com">Email</a>
+        <a href="https://github.com/faizinuha/ZeroMix">GitHub</a> |
+        <a href="index.html">Home</a> |
+        <a href="mailto:rozakadm@gmail.com">Email</a> |
+        <a href="https://sociabuzz.com/zuax/tribe">Sociabuzz</a>
       </p>
-      <div class="easter-egg">🤫 Psst... you're sweet for stopping by 💖</div>
+      <div class="easter-egg">
+        🤫 Psst... kamu manis banget udah scroll sampai sini 💖
+      </div>
     </footer>
   </body>
 </html>

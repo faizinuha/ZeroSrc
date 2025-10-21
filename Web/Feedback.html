@@ -1,249 +1,124 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>ZeroMix Feedback</title>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap');
-
-        * {
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Poppins', sans-serif;
-            color: #fff;
-            margin: 0;
-            overflow: hidden;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-        }
-
-        .slider-container {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: -1;
-            background-color: #000;
-        }
-
-        .slide {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            opacity: 0;
-            transition: opacity 1.5s ease-in-out;
-        }
-
-        .slide.active {
-            opacity: 1;
-        }
-
-        .slide img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-        
-        .overlay {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.6);
-        }
-
-        .container {
-            background-color: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            padding: 2rem 3rem;
-            border-radius: 15px;
-            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
-            border: 1px solid rgba(255, 255, 255, 0.18);
-            text-align: center;
-            max-width: 500px;
-            width: 90%;
-            z-index: 1;
-        }
-        
-        header {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 1rem;
-            margin-bottom: 1rem;
-        }
-
-        .logo {
-            height: 50px;
-        }
-
-        h1 {
-            font-weight: 600;
-            font-size: 2rem;
-            margin: 0;
-        }
-        
-        p {
-            font-weight: 300;
-        }
-
-        textarea {
-            width: 100%;
-            padding: 0.8rem;
-            margin-top: 1rem;
-            border-radius: 8px;
-            border: 1px solid rgba(255, 255, 255, 0.5);
-            background-color: rgba(255, 255, 255, 0.2);
-            color: #fff;
-            min-height: 120px;
-            font-family: 'Poppins', sans-serif;
-        }
-        
-        textarea::placeholder {
-            color: rgba(255, 255, 255, 0.7);
-        }
-
-        .rating {
-            margin-top: 1rem;
-            display: inline-block;
-            direction: rtl;
-        }
-
-        .rating input {
-            display: none;
-        }
-
-        .rating label {
-            font-size: 2.5rem;
-            color: rgba(255, 255, 255, 0.4);
-            cursor: pointer;
-            padding: 0 0.2em;
-            transition: color 0.2s;
-        }
-
-        .rating input:checked ~ label,
-        .rating:not(:checked) > label:hover,
-        .rating:not(:checked) > label:hover ~ label {
-            color: #f0ad4e;
-        }
-
-        button {
-            margin-top: 1.5rem;
-            padding: 0.8rem 2rem;
-            background: linear-gradient(45deg, #007BFF, #0056b3);
-            color: white;
-            border: none;
-            border-radius: 50px;
-            cursor: pointer;
-            font-weight: 600;
-            transition: transform 0.2s, box-shadow 0.2s;
-        }
-
-        button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 15px rgba(0, 123, 255, 0.4);
-        }
-
-    </style>
-</head>
-<body>
-
-    <div class="slider-container">
-        <div class="slide active">
-            <img src="image-copy.png" alt="Presentation Image 1">
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+   <nav class="navbar">
+        <div class="nav-container">
+            <a href="index.html" class="nav-logo">ZeroMix</a>
+            <ul class="nav-menu">
+                <li class="nav-item"><a href="index.html">Beranda</a></li>
+                <li class="nav-item"><a href="About.html">About</a></li>
+                <li class="nav-item"><a href="Changelog.html">Changelog</a></li>
+                <li class="nav-item"><a href="Support.html">Support My Laptop</a></li>
+            </ul>
         </div>
-        <div class="slide">
-            <img src="image-copy.png" alt="Presentation Image 2">
-        </div>
-        <div class="slide">
-            <img src="image-copy.png" alt="Presentation Image 3">
-        </div>
-        <div class="overlay"></div>
-    </div>
+    </nav>
 
-    <div class="container">
-        <header>
-            <img src="zeromix-high-resolution-logo-transparent.png" alt="ZeroMix Logo" class="logo">
-            <h1>Umpan Balik</h1>
-        </header>
-        <p>Terima kasih telah menggunakan ZeroMix. Umpan balik anonim Anda membantu kami untuk terus berkembang.</p>
-        
+    <header>
+      <div class="header-content">
+        <h1>Umpan Balik</h1>
+        <p>
+          Terima kasih telah menggunakan ZeroMix. Umpan balik anonim Anda
+          membantu kami untuk terus berkembang. Mohon untuk memberikan masukan
+          yang positif!
+        </p>
+      </div>
+    </header>
+
+    <section>
+      <div id="particles-js"></div>
+      <div class="feedback-container">
         <form id="feedbackForm" onsubmit="return false;">
-            <div class="rating">
-                <input type="radio" id="star5" name="rating" value="5" /><label for="star5" title="5 stars">★</label>
-                <input type="radio" id="star4" name="rating" value="4" /><label for="star4" title="4 stars">★</label>
-                <input type="radio" id="star3" name="rating" value="3" /><label for="star3" title="3 stars">★</label>
-                <input type="radio" id="star2" name="rating" value="2" /><label for="star2" title="2 stars">★</label>
-                <input type="radio" id="star1" name="rating" value="1" /><label for="star1" title="1 star">★</label>
-            </div>
-            <textarea name="pesan" placeholder="Tuliskan saran atau masalah yang Anda temui..."></textarea>
-            <button type="button" onclick="submitFeedback()">Kirim Umpan Balik</button>
+          <div class="rating">
+            <input type="radio" id="star5" name="rating" value="5" /><label
+              for="star5"
+              title="5 stars"
+              >★</label
+            >
+            <input type="radio" id="star4" name="rating" value="4" /><label
+              for="star4"
+              title="4 stars"
+              >★</label
+            >
+            <input type="radio" id="star3" name="rating" value="3" /><label
+              for="star3"
+              title="3 stars"
+              >★</label
+            >
+            <input type="radio" id="star2" name="rating" value="2" /><label
+              for="star2"
+              title="2 stars"
+              >★</label
+            >
+            <input type="radio" id="star1" name="rating" value="1" /><label
+              for="star1"
+              title="1 star"
+              >★</label
+            >
+          </div>
+          <textarea
+            name="pesan"
+            placeholder="Tuliskan saran atau masalah yang Anda temui..."
+          ></textarea>
+          <button type="button" onclick="submitFeedback()">
+            Kirim Umpan Balik
+          </button>
         </form>
-    </div>
+      </div>
+    </section>
+
+    <footer>
+      <p>© 2025 ZeroMix Project – Dibuat dengan ❤️ oleh Sayang Ku</p>
+      <p>
+        <a href="https://github.com/faizinuha/ZeroMix">GitHub</a> |
+        <a href="index.html">Home</a> |
+        <a href="mailto:rozakadm@gmail.com">Email</a> |
+        <a href="https://sociabuzz.com/zuax/tribe">Sociabuzz</a>
+      </p>
+    </footer>
 
     <script>
-        // --- Slider Logic ---
-        const slides = document.querySelectorAll('.slide');
-        let currentSlide = 0;
+      const GOOGLE_FORM_URL =
+        'https://docs.google.com/forms/d/e/1FAIpQLSeU5170r0CqohbEFjCGiOHZAQ7F6myTcK5INzGzSj3heUCTKg/formResponse';
+      const RATING_ENTRY = 'entry.898991209';
+      const PESAN_ENTRY = 'entry.1815112662';
 
-        function showSlide(index) {
-            slides.forEach((slide, i) => {
-                slide.classList.remove('active');
-                if (i === index) {
-                    slide.classList.add('active');
-                }
-            });
+      function submitFeedback() {
+        const form = document.getElementById('feedbackForm');
+        const ratingInput = form.querySelector('input[name="rating"]:checked');
+        const pesanInput = form.querySelector('textarea[name="pesan"]');
+
+        if (!ratingInput) {
+          alert('Silakan pilih peringkat bintang terlebih dahulu.');
+          return;
         }
 
-        function nextSlide() {
-            currentSlide = (currentSlide + 1) % slides.length;
-            showSlide(currentSlide);
-        }
-        setInterval(nextSlide, 5000); // Change slide every 5 seconds
+        const formData = new FormData();
+        formData.append(RATING_ENTRY, ratingInput.value);
+        formData.append(PESAN_ENTRY, pesanInput.value);
 
-        // --- Form Submission Logic ---
-        
-        const GOOGLE_FORM_URL = 'https://docs.google.com/forms/d/e/1FAIpQLSeU5170r0CqohbEFjCGiOHZAQ7F6myTcK5INzGzSj3heUCTKg/formResponse';
-        // const NAME_ENTRY = 'entry.1045781291';
-        const RATING_ENTRY = 'entry.898991209';
-        const PESAN_ENTRY = 'entry.1815112662';
-
-        function submitFeedback() {
-            const form = document.getElementById('feedbackForm');
-            const ratingInput = form.querySelector('input[name="rating"]:checked');
-            const pesanInput = form.querySelector('textarea[name="pesan"]');
-
-            if (!ratingInput) {
-                alert('Silakan pilih peringkat bintang terlebih dahulu.');
-                return;
-            }
-
-            const formData = new FormData();
-            formData.append(RATING_ENTRY, ratingInput.value);
-            formData.append(PESAN_ENTRY, pesanInput.value);
-
-            fetch(GOOGLE_FORM_URL, {
-                method: 'POST',
-                body: formData,
-                mode: 'no-cors' // Required for submitting to Google Forms via JS
-            }).then(() => {
-                alert("Terima kasih! Umpan balik Anda telah terkirim.");
-                form.reset();
-            }).catch(error => {
-                console.error('Error:', error);
-                alert('Maaf, terjadi kesalahan saat mengirim umpan balik.');
-            });
-        }
+        fetch(GOOGLE_FORM_URL, {
+          method: 'POST',
+          body: formData,
+          mode: 'no-cors', // Required for submitting to Google Forms via JS
+        })
+          .then(() => {
+            alert('Terima kasih! Umpan balik Anda telah terkirim.');
+            form.reset();
+            window.location.href = 'ThanksYou.html';
+          })
+          .catch((error) => {
+            console.error('Error:', error);
+            alert('Maaf, terjadi kesalahan saat mengirim umpan balik.');
+          });
+      }
     </script>
 
-</body>
+    <script src="script.js"></script>
+  </body>
 </html>
