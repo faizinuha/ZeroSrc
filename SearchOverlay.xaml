@@ -3,9 +3,9 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:local="clr-namespace:ZeroMix"
         Title="ZeroMix"
-        Width="420"
+        Width="680"
         SizeToContent="Height"
-        MaxHeight="400"
+        MaxHeight="600"
         Topmost="True"
         WindowStyle="None"
         ResizeMode="NoResize"
@@ -199,13 +199,13 @@
     <Window.RenderTransform>
         <ScaleTransform ScaleX="1"
                         ScaleY="1"
-                        CenterX="210"
+                        CenterX="340"
                         CenterY="45"/>
     </Window.RenderTransform>
 
     <Grid>
         <Border CornerRadius="18"
-                Background="#B3FFFFFF"
+                Background="#E6FFFFFF"
                 BorderBrush="#20000000"
                 BorderThickness="1"
                 Effect="{StaticResource MacShadow}"
@@ -251,7 +251,7 @@
                 <ListBox Name="SuggestionList"
                          Grid.Row="1"
                          Margin="60,0,16,16"
-                         MaxHeight="200"
+                         MaxHeight="400"
                          Background="Transparent"
                          BorderThickness="0"
                          Visibility="Collapsed"

@@ -378,6 +378,17 @@ namespace ZeroMix
                 string query = searchBox?.Text.Trim() ?? string.Empty;
                 if (!string.IsNullOrEmpty(query))
                 {
+                    if (query.StartsWith("ytc ", StringComparison.OrdinalIgnoreCase))
+                    {
+                        string channelName = query.Substring(4).Trim();
+                        if (!string.IsNullOrEmpty(channelName))
+                        {
+                            ExecuteYouTubeSearch(channelName);
+                            BeginFadeOutAndClose();
+                            return;
+                        }
+                    }
+
                     SuggestionItem? itemToExecute = null;
 
                     // Prioritas 1: Item yang sedang dipilih di ListBox
@@ -416,6 +427,19 @@ namespace ZeroMix
             try
             {
                 string url = $"https://www.google.com/search?q={Uri.EscapeDataString(query)}";
+                Process.Start(new ProcessStartInfo(url) { UseShellExecute = true });
+            }
+            catch (Exception ex)
+            {
+                ShowNotification($"Gagal membuka browser: {ex.Message}", NotificationType.Error);
+            }
+        }
+
+        private void ExecuteYouTubeSearch(string channelName)
+        {
+            try
+            {
+                string url = $"https://www.youtube.com/results?search_query={Uri.EscapeDataString(channelName)}";
                 Process.Start(new ProcessStartInfo(url) { UseShellExecute = true });
             }
             catch (Exception ex)
