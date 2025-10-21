@@ -150,7 +150,7 @@ Pastikan mengunduh versi terbaru untuk fitur dan perbaikan terbaru.
 Donate untuk mendukung pengembangan ZeroMix:
 
 - [Saweria](saweria.co/MahiroDev)
-- [Ko-Fi](https://ko-fi.com/mahiro885)
+- [Sociabuzz](https://sociabuzz.com/zuax/tribe)
 
 Kami berharap panduan ini membantu Anda dalam menggunakan ZeroMix. Jika ada pertanyaan atau masalah, silakan buka [issue di GitHub](https://github.com/faizinuha/ZeroMix/issues).
 Terima kasih telah menggunakan ZeroMix!
