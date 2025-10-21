@@ -76,13 +76,19 @@ Selamat datang di **ZeroMix**! Panduan ini akan membantu Anda menginstal, menggu
 
 `Update Version`
 
+<!-- Tambahan -->
+- Tampilan Latar Belakang: Transparansi latar belakang telah saya sesuaikan agar tidak terlalu tembus pandang, sehingga lebih nyaman dilihat.
+
+- Pencarian Channel YouTube: Fitur pencarian channel YouTube telah ditambahkan. Cukup ketik ytc diikuti nama channel (contoh: ytc WPU) lalu tekan Enter untuk langsung melakukan pencarian di YouTube.
+<!-- Update -->
 - Memperpanjang Tampilan Search bar
 - Memperbaiki UI/UX Manajemen Shortcut
 - Memperbaiki Bug
+- Menambahkan fungsi Auto Link : <https://youtube.com/Wpu>
 
 ---
 
-### versi Update 1.7.2 - 1.7.5 
+### versi Update 1.7.2 - 1.7.5
 
 - Custom Ui/Ux Search Bar
 - Menambahkan Widget ( Rencana )
@@ -90,7 +96,7 @@ Selamat datang di **ZeroMix**! Panduan ini akan membantu Anda menginstal, menggu
 - Fitur Animasi Border Search dan Shourcut
 - Belum DI Tulis.....
 
-_Update v1.7.5 Stop version_
+*Update v1.7.5 Stop version*
 ---
 
 ## Coming Soon Update
