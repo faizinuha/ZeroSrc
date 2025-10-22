@@ -1,0 +1,78 @@
+name: Build and Release .NET Desktop App
+
+on:
+  push:
+    branches: [ "ProyekTil" ]
+  workflow_dispatch:
+
+jobs:
+  build-and-release:
+    runs-on: windows-latest
+
+    env:
+      DOTNET_VERSION: '9.0.x'
+      PROJECT_PATH: 'ZeroMix.csproj'
+      # The output path for the dotnet publish command
+      PUBLISH_DIR: './publish'
+      # The path to the Inno Setup script
+      INNO_SETUP_SCRIPT: 'Exe/Setup.iss'
+      # The path where the unsigned installer will be created by Inno Setup
+      INSTALLER_OUTPUT_DIR: 'Exe'
+      # The base name of the installer file
+      INSTALLER_NAME: 'ZeroMix-Setup'
+
+
+    steps:
+    - name: 1. Checkout repository
+      uses: actions/checkout@v4
+
+    - name: 2. Setup .NET SDK
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: ${{ env.DOTNET_VERSION }}
+
+    - name: 3. Restore, Build, and Publish
+      run: |
+        dotnet restore "${{ env.PROJECT_PATH }}"
+        dotnet build "${{ env.PROJECT_PATH }}" -c Release --no-restore
+        dotnet publish "${{ env.PROJECT_PATH }}" -c Release -r win-x64 --self-contained true -o "${{ env.PUBLISH_DIR }}"
+      shell: pwsh
+
+    - name: 4. Install Inno Setup
+      uses: Minionguy/setup-inno-setup-action@v1.0.1
+
+    - name: 5. Compile the installer
+      run: iscc "${{ env.INNO_SETUP_SCRIPT }}"
+      shell: cmd
+
+    - name: 6. Decode and install signing certificate
+      run: |
+        $pfx_cert_byte = [System.Convert]::FromBase64String("${{ secrets.SIGNING_CERTIFICATE_BASE64 }}")
+        $pfx_path = Join-Path -Path "${{ env.INSTALLER_OUTPUT_DIR }}" -ChildPath "ZeroMixCert.pfx"
+        [System.IO.File]::WriteAllBytes($pfx_path, $pfx_cert_byte)
+      shell: pwsh
+      # This step runs only if the secret is set
+      if: ${{ secrets.SIGNING_CERTIFICATE_BASE64 != '' }}
+
+    - name: 7. Install and run code signing tool
+      run: |
+        choco install osslsigncode -y
+        $InstallerFile = "${{ env.INSTALLER_OUTPUT_DIR }}\${{ env.INSTALLER_NAME }}.exe"
+        $CertFile = "${{ env.INSTALLER_OUTPUT_DIR }}\ZeroMixCert.pfx"
+        osslsigncode sign -pkcs12 "$CertFile" -pass "${{ secrets.SIGNING_CERTIFICATE_PASSWORD }}" -n "ZeroMix" -i "https://zeromix.vercel.app" -in "$InstallerFile" -out "$InstallerFile-signed.exe" -t http://timestamp.digicert.com
+        Move-Item -Path "$InstallerFile-signed.exe" -Destination "$InstallerFile" -Force
+      shell: pwsh
+      # This step runs only if both secrets are set
+      if: ${{ secrets.SIGNING_CERTIFICATE_BASE64 != '' && secrets.SIGNING_CERTIFICATE_PASSWORD != '' }}
+
+    - name: 8. Create or Update Release
+      uses: ncipollo/release-action@v1
+      with:
+        allowUpdates: true
+        name: ProyekTil
+        tag: latest
+        body: |
+          Installer automatically updated by GitHub Actions.
+          This release always contains the latest build from the '${{ github.ref_name }}' branch.
+        artifacts: '${{ env.INSTALLER_OUTPUT_DIR }}/${{ env.INSTALLER_NAME }}.exe'
+        token: ${{ secrets.GITHUB_TOKEN }}
