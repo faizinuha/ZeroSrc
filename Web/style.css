@@ -1,3 +1,93 @@
+/* --- Why ZeroMix Section --- */
+.whyzeromix-section {
+  background: linear-gradient(120deg, #10101a 60%, #1a1a2e 100%);
+  border-radius: 24px;
+  box-shadow: 0 8px 32px 0 var(--shadow-color);
+  margin-top: 40px;
+  margin-bottom: 40px;
+  padding: 60px 20px 40px 20px;
+}
+.whyzeromix-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 40px;
+  align-items: flex-start;
+  justify-content: center;
+}
+.whyzeromix-list {
+  flex: 1 1 320px;
+  max-width: 350px;
+  background: var(--surface-color);
+  border-radius: 16px;
+  padding: 32px 28px;
+  margin: 0 0 20px 0;
+  box-shadow: 0 2px 16px 0 var(--shadow-color);
+  list-style: none;
+  font-size: 1.08rem;
+  color: var(--text-primary);
+}
+.whyzeromix-list li {
+  margin-bottom: 18px;
+  padding-left: 1.2em;
+  position: relative;
+}
+.whyzeromix-list li:before {
+  content: '✔';
+  color: var(--primary-accent);
+  position: absolute;
+  left: 0;
+  font-size: 1.1em;
+  top: 0.1em;
+}
+.whyzeromix-featurecards {
+  flex: 2 1 500px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 24px;
+}
+.whyzeromix-featurecards .card {
+  min-height: 140px;
+  background: var(--surface-hover);
+  border: 1.5px solid var(--primary-accent);
+  color: var(--text-primary);
+  box-shadow: 0 2px 12px 0 var(--shadow-color);
+  padding: 22px 18px;
+  border-radius: 14px;
+  text-align: left;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.whyzeromix-featurecards .card:hover {
+  transform: translateY(-6px) scale(1.03);
+  box-shadow: 0 6px 24px 0 var(--primary-accent);
+}
+.whyzeromix-featurecards .card h3 {
+  margin-top: 0;
+  margin-bottom: 10px;
+  color: var(--primary-accent);
+  font-size: 1.15rem;
+}
+.whyzeromix-featurecards .card p {
+  color: var(--text-secondary);
+  font-size: 1rem;
+  margin-bottom: 0;
+}
+.whyzeromix-featurecards .card a {
+  color: var(--primary-accent);
+  text-decoration: underline;
+  font-weight: 500;
+}
+.whyzeromix-featurecards .card a:hover {
+  color: var(--primary-accent-hover);
+}
+@media (max-width: 900px) {
+  .whyzeromix-container {
+    flex-direction: column;
+    gap: 30px;
+  }
+  .whyzeromix-list, .whyzeromix-featurecards {
+    max-width: 100%;
+  }
+}
 /* Import Google Fonts */
 @import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;700&display=swap');
 
