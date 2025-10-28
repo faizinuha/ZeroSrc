@@ -1,108 +1,101 @@
-using CG.Web.MegaApiClient;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO.Compression;
+using System.IO;
 using System.Linq;
+using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Reflection;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using System.Windows;
-using System.IO;
 
 namespace ZeroMix.Core
 {
-    public class MegaUpdater
+    public class GithubUpdater
     {
-        private const string megaFolderLink = "https://mega.nz/folder/uEdWTbSJ#y1bCKlrXXy93gi3e5zeBXA";
+        private const string GithubApiUrl = "https://api.github.com/repos/faizinuha/ZeroMix/releases/latest";
         private readonly string _currentVersion;
 
-        public MegaUpdater()
+        public GithubUpdater()
         {
             _currentVersion = Assembly.GetExecutingAssembly().GetName().Version?.ToString(3) ?? "1.6.6";
         }
 
         public async Task CheckAndUpdateAsync()
         {
-            var client = new MegaApiClient();
+            var client = new HttpClient();
+            client.DefaultRequestHeaders.UserAgent.Add(new ProductInfoHeaderValue("ZeroMix", _currentVersion));
+
             try
             {
-                client.LoginAnonymous();
+                var response = await client.GetStringAsync(GithubApiUrl);
+                var release = JsonSerializer.Deserialize<GithubRelease>(response);
 
-                var folderUri = new Uri(megaFolderLink);
-                var nodes = await client.GetNodesFromLinkAsync(folderUri);
-
-                var versionNode = nodes.FirstOrDefault(n => n.Name == "version.json");
-                if (versionNode == null)
+                if (release == null || string.IsNullOrEmpty(release.TagName))
                 {
-                    // File version.json tidak ditemukan, hentikan proses secara diam-diam.
-                    Debug.WriteLine("version.json not found on the update server.");
+                    Debug.WriteLine("Failed to parse GitHub release info.");
                     return;
                 }
 
-                // Download the version.json file to a temporary path
-                string tempVersionFile = Path.Combine(Path.GetTempPath(), "version.json");
-                await client.DownloadFileAsync(versionNode, tempVersionFile);
+                string latestVersionStr = release.TagName.TrimStart('v');
 
-                // Read the content of the downloaded file
-                string jsonContent = await File.ReadAllTextAsync(tempVersionFile);
-                var info = JsonSerializer.Deserialize<UpdateInfo>(jsonContent);
-                File.Delete(tempVersionFile); // Clean up the temporary file
-                if (info == null || string.IsNullOrEmpty(info.LatestVersion))
+                if (new Version(latestVersionStr) > new Version(_currentVersion))
                 {
-                    // Gagal membaca JSON, hentikan proses secara diam-diam.
-                    Debug.WriteLine("Failed to parse version.json or it is invalid.");
-                    return;
-                }
-
-                if (new Version(info.LatestVersion) > new Version(_currentVersion))
-                {
-                    // Gunakan jendela notifikasi kustom
-                    string message = $"Versi baru {info.LatestVersion} tersedia!\n\nPerubahan:\n{info.Changelog}\n\nUpdate sekarang?";
+                    string message = $"Versi baru {latestVersionStr} tersedia!\n\nPerubahan:\n{release.Body}\n\nUpdate sekarang?";
                     var notificationWindow = new UpdateNotificationWindow(message);
                     bool? result = notificationWindow.ShowDialog();
 
                     if (result != true) return;
 
-                    // PERBAIKAN KRITIS: Pastikan file update adalah installer (.exe)
-                    // Nama file harus sesuai dengan yang ada di server (misal: "ZeroMix-Setup-1.7.0.exe")
-                    if (string.IsNullOrEmpty(info.UpdateFile) || !info.UpdateFile.EndsWith(".exe"))
+                    var installerAsset = release.Assets?.FirstOrDefault(a => a.Name != null && a.Name.EndsWith(".exe"));
+                    if (installerAsset == null || string.IsNullOrEmpty(installerAsset.BrowserDownloadUrl))
                     {
-                        ShowMessage("Nama file pembaruan tidak valid.", "Update Error");
-                        return;
-                    }
-                    var updateNode = nodes.FirstOrDefault(n => n.Name == info.UpdateFile);
-                    if (updateNode == null)
-                    {
-                        ShowMessage($"File pembaruan '{info.UpdateFile}' tidak ditemukan di server.", "Update Error");
+                        ShowMessage("File installer (.exe) tidak ditemukan di rilis terbaru.", "Update Error");
                         return;
                     }
 
-                    string tempInstallerPath = Path.Combine(Path.GetTempPath(), info.UpdateFile);
+                    string tempInstallerPath = Path.Combine(Path.GetTempPath(), installerAsset.Name);
 
-                    // Tampilkan progress bar dan nonaktifkan tombol
                     notificationWindow.ShowProgress();
 
-                    // Buat progress handler untuk di-pass ke downloader
-                    var progressHandler = new Progress<double>(p => notificationWindow.UpdateProgress(p));
+                    using (var downloadClient = new HttpClient())
+                    {
+                        using (var fileStream = new FileStream(tempInstallerPath, FileMode.Create, FileAccess.Write, FileShare.None))
+                        {
+                            var downloadResponse = await downloadClient.GetAsync(installerAsset.BrowserDownloadUrl, HttpCompletionOption.ResponseHeadersRead);
+                            downloadResponse.EnsureSuccessStatusCode();
 
-                    // Mulai unduhan dengan progress reporting
-                    await client.DownloadFileAsync(updateNode, tempInstallerPath, progressHandler);
+                            long? totalBytes = downloadResponse.Content.Headers.ContentLength;
+                            long totalBytesRead = 0;
+                            var buffer = new byte[8192];
+                            int bytesRead;
 
-                    // PERBAIKAN KRITIS: Jalankan installer baru, jangan ekstrak ZIP.
-                    // Ini akan menangani hak akses dan menimpa file dengan benar.
+                            using (var stream = await downloadResponse.Content.ReadAsStreamAsync())
+                            {
+                                while ((bytesRead = await stream.ReadAsync(buffer, 0, buffer.Length)) > 0)
+                                {
+                                    await fileStream.WriteAsync(buffer, 0, bytesRead);
+                                    totalBytesRead += bytesRead;
+                                    if (totalBytes.HasValue)
+                                    {
+                                        double progressPercentage = (double)totalBytesRead / totalBytes.Value * 100;
+                                        notificationWindow.UpdateProgress(progressPercentage);
+                                    }
+                                }
+                            }
+                        }
+                    }
+
                     var processInfo = new ProcessStartInfo(tempInstallerPath)
                     {
-                        // Gunakan mode silent agar installer berjalan di latar belakang.
-                        Arguments = "/SILENT", 
+                        Arguments = "/SILENT",
                         UseShellExecute = true
                     };
                     Process.Start(processInfo);
 
-                    // Beri tahu pengguna bahwa instalasi sedang berjalan
                     notificationWindow.ShowInstalling();
-
-                    // Tutup aplikasi saat ini agar installer bisa berjalan.
-                    // Pesan tidak lagi diperlukan karena installer akan menanganinya.
                     Application.Current.Shutdown();
                 }
                 else
@@ -112,26 +105,34 @@ namespace ZeroMix.Core
             }
             catch (Exception ex)
             {
-                // Jangan tampilkan pesan error ke pengguna, cukup catat di debug console.
-                // ShowMessage($"Terjadi kesalahan saat memeriksa pembaruan: {ex.Message}", "Update Error");
                 Debug.WriteLine($"Update check failed: {ex}");
             }
-            finally
-            {
-                client.Logout();
-            }
         }
-        
+
         private void ShowMessage(string message, string title)
         {
             MessageBox.Show(message, title, MessageBoxButton.OK, MessageBoxImage.Warning);
         }
 
-        private class UpdateInfo
+        private class GithubRelease
         {
-            public string? LatestVersion { get; set; }
-            public string? UpdateFile { get; set; }
-            public string? Changelog { get; set; }
+            [JsonPropertyName("tag_name")]
+            public string TagName { get; set; }
+
+            [JsonPropertyName("body")]
+            public string Body { get; set; }
+
+            [JsonPropertyName("assets")]
+            public List<GithubAsset> Assets { get; set; }
+        }
+
+        private class GithubAsset
+        {
+            [JsonPropertyName("name")]
+            public string Name { get; set; }
+
+            [JsonPropertyName("browser_download_url")]
+            public string BrowserDownloadUrl { get; set; }
         }
     }
 }

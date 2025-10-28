@@ -1,5 +1,4 @@
-<Window
-    x:Class="ZeroMix.CustomShortcutWindow"
+<Window x:Class="ZeroMix.CustomShortcutWindow"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     Title="Custom Shortcuts"
@@ -13,22 +12,19 @@
     WindowStyle="None">
 
     <Window.Resources>
-        <!--  Modern Color Palette  -->
-        <Color x:Key="BackgroundColor">#202020</Color>
-        <Color x:Key="ForegroundColor">#FFFFFF</Color>
-        <Color x:Key="BorderColor">#404040</Color>
+        <!-- Modern Light Color Palette -->
+        <Color x:Key="BackgroundColor">#F5F5F5</Color>
+        <Color x:Key="ForegroundColor">#1C1C1C</Color>
+        <Color x:Key="BorderColor">#DCDCDC</Color>
         <Color x:Key="AccentColor">#0078D4</Color>
         <Color x:Key="SuccessColor">#2EA043</Color>
         <Color x:Key="DangerColor">#E74C3C</Color>
-        <Color x:Key="ControlBackgroundColor">#2D2D2D</Color>
-        <Color x:Key="ControlHoverColor">#3E3E3E</Color>
-        <Color x:Key="ControlPressedColor">#1B1B1B</Color>
+        <Color x:Key="ControlBackgroundColor">#FFFFFF</Color>
+        <Color x:Key="ControlHoverColor">#E0E0E0</Color>
+        <Color x:Key="ControlPressedColor">#C9C9C9</Color>
 
-        <!--  Brushes  -->
-        <SolidColorBrush
-            x:Key="BackgroundBrush"
-            Opacity="0.85"
-            Color="{StaticResource BackgroundColor}" />
+        <!-- Brushes -->
+        <SolidColorBrush x:Key="BackgroundBrush" Color="{StaticResource BackgroundColor}" />
         <SolidColorBrush x:Key="ForegroundBrush" Color="{StaticResource ForegroundColor}" />
         <SolidColorBrush x:Key="BorderBrush" Color="{StaticResource BorderColor}" />
         <SolidColorBrush x:Key="AccentBrush" Color="{StaticResource AccentColor}" />
@@ -38,21 +34,13 @@
         <SolidColorBrush x:Key="ControlHoverBrush" Color="{StaticResource ControlHoverColor}" />
         <SolidColorBrush x:Key="ControlPressedBrush" Color="{StaticResource ControlPressedColor}" />
 
-        <!--  Base Control Styles  -->
+        <!-- Base Control Styles -->
         <Style TargetType="Control">
             <Setter Property="FontFamily" Value="Segoe UI" />
             <Setter Property="Foreground" Value="{StaticResource ForegroundBrush}" />
         </Style>
 
-        <!--  Subtle animations for brushes  -->
-        <Storyboard x:Key="ButtonHoverStoryboard">
-            <ColorAnimation
-                Storyboard.TargetProperty="(Border.Background).(SolidColorBrush.Color)"
-                To="#2E2E2E"
-                Duration="0:0:0.12" />
-        </Storyboard>
-
-        <!--  TextBox Style  -->
+        <!-- TextBox Style -->
         <Style TargetType="TextBox">
             <Setter Property="Background" Value="{StaticResource ControlBackgroundBrush}" />
             <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}" />
@@ -63,12 +51,7 @@
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="TextBox">
-                        <Border
-                            x:Name="border"
-                            Background="{TemplateBinding Background}"
-                            BorderBrush="{TemplateBinding BorderBrush}"
-                            BorderThickness="{TemplateBinding BorderThickness}"
-                            CornerRadius="4">
+                        <Border x:Name="border" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="4">
                             <ScrollViewer x:Name="PART_ContentHost" />
                         </Border>
                         <ControlTemplate.Triggers>
@@ -77,7 +60,7 @@
                             </Trigger>
                             <Trigger Property="IsKeyboardFocused" Value="True">
                                 <Setter TargetName="border" Property="BorderBrush" Value="{StaticResource AccentBrush}" />
-                                <Setter TargetName="border" Property="BorderThickness" Value="2" />
+                                <Setter TargetName="border" Property="BorderThickness" Value="1.5" />
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -86,21 +69,13 @@
         </Style>
 
         <!-- ComboBox Style -->
-                <!-- ComboBox and ComboBoxItem Styles -->
         <Style TargetType="{x:Type ComboBoxItem}">
-            <Setter Property="Background" Value="Transparent"/>
             <Setter Property="Padding" Value="10,8"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="{x:Type ComboBoxItem}">
-                        <Border x:Name="Bd" 
-                                Background="{TemplateBinding Background}"
-                                Padding="{TemplateBinding Padding}"
-                                SnapsToDevicePixels="true">
-                            <ContentPresenter 
-                                HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
-                                VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
-                                SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"/>
+                        <Border x:Name="Bd" Background="{TemplateBinding Background}" Padding="{TemplateBinding Padding}" SnapsToDevicePixels="true">
+                            <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" VerticalAlignment="{TemplateBinding VerticalContentAlignment}" SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"/>
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
@@ -108,6 +83,7 @@
                             </Trigger>
                             <Trigger Property="IsSelected" Value="True">
                                 <Setter TargetName="Bd" Property="Background" Value="{StaticResource AccentBrush}"/>
+                                <Setter Property="Foreground" Value="White"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -120,159 +96,66 @@
             <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}"/>
             <Setter Property="BorderThickness" Value="1"/>
             <Setter Property="Padding" Value="10,8"/>
-            <Setter Property="Foreground" Value="{StaticResource ForegroundBrush}"/>
-            <!-- Remove the default focus rectangle -->
-            <Setter Property="FocusVisualStyle" Value="{x:Null}" />
-            <Setter Property="SnapsToDevicePixels" Value="True" />
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="{x:Type ComboBox}">
                         <Grid>
-                            <ToggleButton
-                                x:Name="ToggleButton"
-                                Background="{TemplateBinding Background}"
-                                BorderBrush="{TemplateBinding BorderBrush}"
-                                ClickMode="Press"
-                                Focusable="False"
-                                IsChecked="{Binding Path=IsDropDownOpen, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}"
-                                FocusVisualStyle="{x:Null}">
+                            <ToggleButton x:Name="ToggleButton" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" ClickMode="Press" Focusable="False" IsChecked="{Binding Path=IsDropDownOpen, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}">
                                 <ToggleButton.Template>
                                     <ControlTemplate TargetType="ToggleButton">
-                                        <Border
-                                            x:Name="border"
-                                            Background="{TemplateBinding Background}"
-                                            BorderBrush="{TemplateBinding BorderBrush}"
-                                            BorderThickness="1"
-                                            CornerRadius="8">
-                                            <Grid>
-                                                <ContentPresenter />
-                                                <Path
-                                                    x:Name="arrow"
-                                                    Margin="0,0,10,0"
-                                                    HorizontalAlignment="Right"
-                                                    VerticalAlignment="Center"
-                                                    Data="M0,0 L4,4 L8,0"
-                                                    Stroke="{StaticResource ForegroundBrush}"
-                                                    StrokeThickness="2" />
-                                            </Grid>
+                                        <Border x:Name="border" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="1" CornerRadius="4">
+                                            <Path x:Name="arrow" Margin="0,0,10,0" HorizontalAlignment="Right" VerticalAlignment="Center" Data="M0,0 L4,4 L8,0" Stroke="{StaticResource ForegroundBrush}" StrokeThickness="2" />
                                         </Border>
-                                        <!-- keep hover visual subtle, do not change border color to bright blue -->
-                                        <ControlTemplate.Triggers>
-                                            <Trigger Property="IsMouseOver" Value="True">
-                                                <Setter TargetName="border" Property="Background" Value="{StaticResource ControlHoverBrush}" />
-                                            </Trigger>
-                                        </ControlTemplate.Triggers>
                                     </ControlTemplate>
                                 </ToggleButton.Template>
                             </ToggleButton>
-
-                            <!-- The visual when an item is selected (non-editable mode) -->
-                            <ContentPresenter
-                                x:Name="ContentSite"
-                                Margin="10,0,35,0"
-                                HorizontalAlignment="Left"
-                                VerticalAlignment="Center"
-                                Content="{TemplateBinding SelectionBoxItem}"
-                                ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}"
-                                ContentTemplateSelector="{TemplateBinding ItemTemplateSelector}"
-                                IsHitTestVisible="False" />
-
-                            <!-- Editable textbox: bind its Text to the ComboBox.Text so selections populate it -->
-                            <TextBox
-                                x:Name="PART_EditableTextBox"
-                                Margin="10,0,35,0"
-                                HorizontalAlignment="Left"
-                                VerticalAlignment="Center"
-                                Background="Transparent"
-                                CaretBrush="{StaticResource ForegroundBrush}"
-                                Focusable="True"
-                                IsReadOnly="False"
-                                Style="{x:Null}"
-                                Visibility="Collapsed"
-                                Text="{TemplateBinding Text}" />
-
-                            <Popup
-                                x:Name="Popup"
-                                AllowsTransparency="True"
-                                Focusable="False"
-                                IsOpen="{TemplateBinding IsDropDownOpen}"
-                                Placement="Bottom"
-                                PopupAnimation="Slide">
-                                <Grid
-                                    x:Name="DropDown"
-                                    MinWidth="{TemplateBinding ActualWidth}"
-                                    MaxHeight="{TemplateBinding MaxDropDownHeight}"
-                                    SnapsToDevicePixels="True">
-                                    <Border
-                                        x:Name="DropDownBorder"
-                                        Background="{StaticResource ControlBackgroundBrush}"
-                                        BorderBrush="{StaticResource BorderBrush}"
-                                        BorderThickness="1"
-                                        CornerRadius="8" />
+                            <ContentPresenter x:Name="ContentSite" Margin="10,0,35,0" HorizontalAlignment="Left" VerticalAlignment="Center" Content="{TemplateBinding SelectionBoxItem}" IsHitTestVisible="False" />
+                            <TextBox x:Name="PART_EditableTextBox" Margin="10,0,35,0" HorizontalAlignment="Left" VerticalAlignment="Center" Background="Transparent" Focusable="True" IsReadOnly="False" Style="{x:Null}" Visibility="Collapsed" Text="{TemplateBinding Text}" />
+                            <Popup x:Name="Popup" AllowsTransparency="True" Focusable="False" IsOpen="{TemplateBinding IsDropDownOpen}" Placement="Bottom" PopupAnimation="Slide">
+                                <Grid x:Name="DropDown" MinWidth="{TemplateBinding ActualWidth}" MaxHeight="{TemplateBinding MaxDropDownHeight}" SnapsToDevicePixels="True">
+                                    <Border x:Name="DropDownBorder" Background="{StaticResource ControlBackgroundBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" CornerRadius="4" />
                                     <ScrollViewer Margin="4" SnapsToDevicePixels="True">
-                                        <StackPanel IsItemsHost="True" KeyboardNavigation.DirectionalNavigation="Contained" />
+                                        <StackPanel IsItemsHost="True" />
                                     </ScrollViewer>
                                 </Grid>
                             </Popup>
                         </Grid>
-
                         <ControlTemplate.Triggers>
-                            <!-- Show the editable textbox when ComboBox.IsEditable is true -->
                             <Trigger Property="IsEditable" Value="True">
                                 <Setter TargetName="PART_EditableTextBox" Property="Visibility" Value="Visible" />
                                 <Setter TargetName="ContentSite" Property="Visibility" Value="Collapsed" />
                             </Trigger>
-
-                            <!-- When dropdown opens, ensure popup is on top and the main border doesn't get an aggressive accent color -->
-                            <Trigger Property="IsDropDownOpen" Value="True">
-                                <Setter TargetName="DropDownBorder" Property="Visibility" Value="Visible" />
+                             <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="ToggleButton" Property="BorderBrush" Value="{StaticResource AccentBrush}" />
                             </Trigger>
-
-                            <!-- Disabled state -->
-                            <Trigger Property="IsEnabled" Value="False">
-                                <Setter Property="Foreground" Value="#888" />
+                            <Trigger Property="IsKeyboardFocused" Value="True">
+                                <Setter TargetName="ToggleButton" Property="BorderBrush" Value="{StaticResource AccentBrush}" />
                             </Trigger>
                         </ControlTemplate.Triggers>
-                        </ControlTemplate>
+                    </ControlTemplate>
                 </Setter.Value>
             </Setter>
-            <!-- Remove the global IsMouseOver -> AccentBrush so the small blue border no longer appears -->
         </Style>
 
-        <!--  Button Style  -->
+        <!-- Button Style -->
         <Style TargetType="Button">
             <Setter Property="Background" Value="{StaticResource AccentBrush}" />
             <Setter Property="Foreground" Value="White" />
             <Setter Property="BorderThickness" Value="0" />
             <Setter Property="Padding" Value="12,8" />
             <Setter Property="Cursor" Value="Hand" />
-            <Setter Property="SnapsToDevicePixels" Value="True" />
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
-                        <Border
-                            x:Name="border"
-                            Padding="{TemplateBinding Padding}"
-                            Background="{TemplateBinding Background}"
-                            CornerRadius="6">
+                        <Border x:Name="border" Padding="{TemplateBinding Padding}" Background="{TemplateBinding Background}" CornerRadius="4">
                             <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="border" Property="Background" Value="{StaticResource ControlHoverBrush}" />
-                                <Setter TargetName="border" Property="RenderTransform">
-                                    <Setter.Value>
-                                        <ScaleTransform ScaleX="1.02" ScaleY="1.02" />
-                                    </Setter.Value>
-                                </Setter>
+                                <Setter TargetName="border" Property="Opacity" Value="0.9" />
                             </Trigger>
                             <Trigger Property="IsPressed" Value="True">
-                                <Setter TargetName="border" Property="Background" Value="{StaticResource ControlPressedBrush}" />
-                                <Setter TargetName="border" Property="RenderTransform">
-                                    <Setter.Value>
-                                        <ScaleTransform ScaleX="0.98" ScaleY="0.98" />
-                                    </Setter.Value>
-                                </Setter>
+                                <Setter TargetName="border" Property="Opacity" Value="0.7" />
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -280,57 +163,31 @@
             </Setter>
         </Style>
 
-        <!--  Specific Button Styles  -->
-        <Style
-            x:Key="SuccessButton"
-            BasedOn="{StaticResource {x:Type Button}}"
-            TargetType="Button">
+        <Style x:Key="SuccessButton" BasedOn="{StaticResource {x:Type Button}}" TargetType="Button">
             <Setter Property="Background" Value="{StaticResource SuccessBrush}" />
         </Style>
-        <Style
-            x:Key="DangerButton"
-            BasedOn="{StaticResource {x:Type Button}}"
-            TargetType="Button">
+        <Style x:Key="DangerButton" BasedOn="{StaticResource {x:Type Button}}" TargetType="Button">
             <Setter Property="Background" Value="{StaticResource DangerBrush}" />
         </Style>
-        <Style
-            x:Key="SecondaryButton"
-            BasedOn="{StaticResource {x:Type Button}}"
-            TargetType="Button">
-            <Setter Property="Background" Value="{StaticResource ControlBackgroundBrush}" />
+        <Style x:Key="SecondaryButton" BasedOn="{StaticResource {x:Type Button}}" TargetType="Button">
+            <Setter Property="Background" Value="{StaticResource ControlHoverBrush}" />
             <Setter Property="Foreground" Value="{StaticResource ForegroundBrush}" />
         </Style>
         <Style x:Key="CloseButton" TargetType="Button">
             <Setter Property="Background" Value="Transparent" />
-            <Setter Property="Foreground" Value="#E0E0E0" />
-            <Setter Property="Width" Value="34" />
-            <Setter Property="Height" Value="34" />
+            <Setter Property="Foreground" Value="#888888" />
+            <Setter Property="Width" Value="40" />
+            <Setter Property="Height" Value="30" />
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
-                        <Border
-                            x:Name="border"
-                            Background="Transparent"
-                            CornerRadius="17">
-                            <Path
-                                x:Name="xpath"
-                                HorizontalAlignment="Center"
-                                VerticalAlignment="Center"
-                                Data="M0,0 L12,12 M12,0 L0,12"
-                                Stroke="{TemplateBinding Foreground}"
-                                StrokeThickness="2" />
+                        <Border x:Name="border" Background="Transparent">
+                            <Path x:Name="xpath" HorizontalAlignment="Center" VerticalAlignment="Center" Data="M0,0 L10,10 M10,0 L0,10" Stroke="{TemplateBinding Foreground}" StrokeThickness="1.5" />
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="border" Property="Background" Value="#C42B1C" />
+                                <Setter TargetName="border" Property="Background" Value="#E81123" />
                                 <Setter TargetName="xpath" Property="Stroke" Value="White" />
-                            </Trigger>
-                            <Trigger Property="IsPressed" Value="True">
-                                <Setter TargetName="border" Property="RenderTransform">
-                                    <Setter.Value>
-                                        <ScaleTransform ScaleX="0.95" ScaleY="0.95" />
-                                    </Setter.Value>
-                                </Setter>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -338,22 +195,20 @@
             </Setter>
         </Style>
 
-        <!--  DataGrid Style  -->
+        <!-- DataGrid Style -->
         <Style TargetType="DataGrid">
-            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="Background" Value="{StaticResource ControlBackgroundBrush}" />
             <Setter Property="Foreground" Value="{StaticResource ForegroundBrush}" />
-            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}" />
             <Setter Property="RowDetailsVisibilityMode" Value="VisibleWhenSelected" />
-            <Setter Property="ScrollViewer.CanContentScroll" Value="true" />
-            <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Auto" />
-            <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Auto" />
-            <Setter Property="AlternatingRowBackground" Value="#2A2A2A" />
-            <Setter Property="GridLinesVisibility" Value="None" />
+            <Setter Property="GridLinesVisibility" Value="Horizontal" />
+            <Setter Property="HorizontalGridLinesBrush" Value="{StaticResource BorderBrush}" />
             <Setter Property="HeadersVisibility" Value="Column" />
         </Style>
 
         <Style TargetType="DataGridColumnHeader">
-            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="Background" Value="#FAFAFA" />
             <Setter Property="Foreground" Value="{StaticResource ForegroundBrush}" />
             <Setter Property="FontWeight" Value="SemiBold" />
             <Setter Property="FontSize" Value="14" />
@@ -365,29 +220,6 @@
         <Style TargetType="DataGridRow">
             <Setter Property="Background" Value="Transparent" />
             <Setter Property="SnapsToDevicePixels" Value="true" />
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="DataGridRow">
-                        <Border
-                            x:Name="DGR_Border"
-                            Background="{TemplateBinding Background}"
-                            BorderBrush="{TemplateBinding BorderBrush}"
-                            BorderThickness="{TemplateBinding BorderThickness}"
-                            SnapsToDevicePixels="True">
-                            <SelectiveScrollingGrid>
-                                <SelectiveScrollingGrid.ColumnDefinitions>
-                                    <ColumnDefinition Width="Auto" />
-                                    <ColumnDefinition Width="*" />
-                                </SelectiveScrollingGrid.ColumnDefinitions>
-                                <DataGridCellsPresenter
-                                    Grid.Column="1"
-                                    ItemsPanel="{TemplateBinding ItemsPanel}"
-                                    SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" />
-                            </SelectiveScrollingGrid>
-                        </Border>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
             <Style.Triggers>
                 <Trigger Property="IsMouseOver" Value="True">
                     <Setter Property="Background" Value="{StaticResource ControlHoverBrush}" />
@@ -403,20 +235,6 @@
             <Setter Property="Background" Value="Transparent" />
             <Setter Property="BorderThickness" Value="0" />
             <Setter Property="Padding" Value="12" />
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="DataGridCell">
-                        <Border
-                            Padding="{TemplateBinding Padding}"
-                            Background="{TemplateBinding Background}"
-                            BorderBrush="{TemplateBinding BorderBrush}"
-                            BorderThickness="{TemplateBinding BorderThickness}"
-                            SnapsToDevicePixels="True">
-                            <ContentPresenter SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" />
-                        </Border>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
             <Style.Triggers>
                 <Trigger Property="IsSelected" Value="True">
                     <Setter Property="Foreground" Value="White" />
@@ -426,99 +244,40 @@
 
     </Window.Resources>
 
-    <!--  Glassmorphism Background  -->
-    <Border Margin="12" CornerRadius="12">
+    <!-- Main Window Border with Shadow -->
+    <Border Margin="10" CornerRadius="8">
         <Border.Effect>
-            <DropShadowEffect
-                BlurRadius="30"
-                Opacity="0.45"
-                ShadowDepth="0"
-                Color="Black" />
+            <DropShadowEffect BlurRadius="15" Opacity="0.15" ShadowDepth="1" Color="Black" />
         </Border.Effect>
-        <Border ClipToBounds="True" CornerRadius="20">
-            <Border.Background>
-                <!--  Slightly more transparent for stronger glass look  -->
-                <SolidColorBrush Opacity="0.55" Color="{StaticResource BackgroundColor}" />
-            </Border.Background>
+        <Border x:Name="MainBorder" Background="{StaticResource BackgroundBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" CornerRadius="8" ClipToBounds="True">
             <Grid>
-                <!--  Frosted Glass Effect (backdrop blur simulated)  -->
-                <Grid>
-                    <Grid.Effect>
-                        <BlurEffect KernelType="Gaussian" Radius="18" />
-                    </Grid.Effect>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="40" /> <!-- Title Bar -->
+                    <RowDefinition Height="*" />    <!-- Main Content -->
+                </Grid.RowDefinitions>
+
+                <!-- Custom Title Bar -->
+                <Grid Grid.Row="0" Background="Transparent">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+
+                    <TextBlock Text="Custom Shortcuts" Grid.Column="0" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="15,0,0,0" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource ForegroundBrush}" />
+
+                    <Button Name="CancelButton" Grid.Column="1" HorizontalAlignment="Right" VerticalAlignment="Top" Click="CancelButton_Click" Style="{StaticResource CloseButton}" ToolTip="Close" />
                 </Grid>
 
-                <!--  Main Content Grid  -->
-                <Grid>
+                <!-- Main Content Grid -->
+                <Grid Grid.Row="1">
                     <Grid.RowDefinitions>
-                        <RowDefinition Height="48" /> 
-                        <!--  Title Bar  -->
-                        <RowDefinition Height="Auto" /> 
-                        <!--  Input Form  -->
-                        <RowDefinition Height="*" />    
-                        <!--  Data Table  -->
-                        <RowDefinition Height="Auto" /> 
-                        <!--  Action Buttons  -->
+                        <RowDefinition Height="Auto" /> <!-- Input Form -->
+                        <RowDefinition Height="*" />    <!-- Data Table -->
+                        <RowDefinition Height="Auto" /> <!-- Action Buttons -->
                     </Grid.RowDefinitions>
 
-                    <!--  Custom Title Bar  -->
-                    <Grid
-                        Grid.Row="0"
-                        Height="56"
-                        Background="Transparent">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto" />
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="Auto" />
-                        </Grid.ColumnDefinitions>
-
-                        <!--  Title area with drag support  -->
-                        <Grid
-                            Grid.ColumnSpan="2"
-                            Background="Transparent"
-                            MouseLeftButtonDown="Window_MouseLeftButtonDown">
-                            <!--  Drag grip (left)  -->
-                            <StackPanel
-                                Margin="12,0,8,0"
-                                VerticalAlignment="Center"
-                                Orientation="Horizontal">
-                                <Rectangle
-                                    Width="8"
-                                    Height="8"
-                                    Fill="{StaticResource AccentBrush}"
-                                    RadiusX="2"
-                                    RadiusY="2" />
-                                <TextBlock
-                                    Margin="12,0,0,0"
-                                    FontSize="18"
-                                    FontWeight="SemiBold"
-                                    Foreground="{StaticResource ForegroundBrush}"
-                                    Text="Custom Shortcuts" />
-                            </StackPanel>
-                        </Grid>
-
-                        <!--  Close button in its own column  -->
-                        <Button
-                            Name="CancelButton"
-                            Grid.Column="2"
-                            Margin="0,0,12,0"
-                            HorizontalAlignment="Right"
-                            VerticalAlignment="Center"
-                            Panel.ZIndex="100"
-                            Click="CancelButton_Click"
-                            Style="{StaticResource CloseButton}"
-                            ToolTip="Close" />
-                    </Grid>
-
-                    <!--  Input Area  -->
-                    <Border
-                        Grid.Row="1"
-                        Margin="20,10"
-                        Padding="18"
-                        Background="#1A1A1A"
-                        BorderBrush="{StaticResource BorderBrush}"
-                        BorderThickness="1"
-                        CornerRadius="8">
+                    <!-- Input Area -->
+                    <Border Grid.Row="0" Margin="15,5,15,10" Padding="15" Background="{StaticResource ControlBackgroundBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" CornerRadius="4">
                         <StackPanel>
                             <Grid>
                                 <Grid.ColumnDefinitions>
@@ -530,186 +289,52 @@
                                     <RowDefinition Height="Auto" />
                                 </Grid.RowDefinitions>
 
-                                <TextBlock
-                                    Grid.Row="0"
-                                    Grid.Column="0"
-                                    Margin="0,0,0,8"
-                                    FontWeight="SemiBold"
-                                    Foreground="#FFFFFF"
-                                    Text="Shortcut Key" />
-                                <TextBox
-                                    Name="HotkeyTextBox"
-                                    Grid.Row="1"
-                                    Grid.Column="0"
-                                    Margin="0,0,10,10"
-                                    Foreground="#FFFFFF"
-                                    PreviewKeyDown="HotkeyTextBox_PreviewKeyDown"
-                                    Text="Click and press key combination" />
+                                <TextBlock Grid.Row="0" Grid.Column="0" Margin="0,0,0,8" FontWeight="SemiBold" Text="Shortcut Key" />
+                                <TextBox Name="HotkeyTextBox" Grid.Row="1" Grid.Column="0" Margin="0,0,10,10" PreviewKeyDown="HotkeyTextBox_PreviewKeyDown" Text="Click and press key combination" />
 
-                                <TextBlock
-                                    Grid.Row="0"
-                                    Grid.Column="1"
-                                    Margin="0,0,0,8"
-                                    FontWeight="SemiBold"
-                                    Text="Application Path" />
+                                <TextBlock Grid.Row="0" Grid.Column="1" Margin="0,0,0,8" FontWeight="SemiBold" Text="Application Path" />
                                 <Grid Grid.Row="1" Grid.Column="1">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="*" />
                                         <ColumnDefinition Width="Auto" />
                                     </Grid.ColumnDefinitions>
-                                    <ComboBox
-                                        Name="AppPathComboBox"
-                                        Margin="0,0,5,10"
-                                        Background="{StaticResource ControlBackgroundBrush}"
-                                        DisplayMemberPath="Name"
-                                        IsEditable="True"
-                                        IsTextSearchEnabled="True"
-                                        StaysOpenOnEdit="True"
-                                        TextSearch.TextPath="Name"
-                                        SelectedValuePath="Path"
-                                        DropDownClosed="AppPathComboBox_DropDownClosed">
-                                        <ComboBox.Resources>
-                                            <Style TargetType="{x:Type ComboBoxItem}">
-                                                <Setter Property="Foreground" Value="{StaticResource ForegroundBrush}"/>
-                                            </Style>
-                                            <Style TargetType="{x:Type TextBox}">
-                                                <Setter Property="Foreground" Value="{StaticResource ForegroundBrush}"/>
-                                                <Setter Property="CaretBrush" Value="{StaticResource ForegroundBrush}"/>
-                                                <Setter Property="Background" Value="Transparent"/>
-                                            </Style>
-                                        </ComboBox.Resources>
-                                    </ComboBox>
-                                    <Button
-                                        Name="BrowseButton"
-                                        Grid.Column="1"
-                                        Margin="0,0,0,10"
-                                        Click="BrowseButton_Click"
-                                        Content="Browse..."
-                                        Style="{StaticResource SecondaryButton}" />
+                                    <ComboBox Name="AppPathComboBox" Margin="0,0,5,10" DisplayMemberPath="Name" IsEditable="True" IsTextSearchEnabled="True" StaysOpenOnEdit="True" TextSearch.TextPath="Name" SelectedValuePath="Path" DropDownClosed="AppPathComboBox_DropDownClosed" />
+                                    <Button Name="BrowseButton" Grid.Column="1" Margin="0,0,0,10" Click="BrowseButton_Click" Content="Browse..." Style="{StaticResource SecondaryButton}" />
                                 </Grid>
                             </Grid>
 
                             <StackPanel Margin="0,12,0,0" Orientation="Horizontal">
-                                <Button
-                                    Name="AddShortcutButton"
-                                    Width="120"
-                                    Click="AddShortcutButton_Click"
-                                    Content="Add Shortcut"
-                                    Style="{StaticResource SuccessButton}" />
-                                <Button
-                                    Name="DeleteShortcutButton"
-                                    Width="120"
-                                    Margin="10,0,0,0"
-                                    Click="DeleteShortcutButton_Click"
-                                    Content="Delete Selected"
-                                    Style="{StaticResource DangerButton}" />
+                                <Button Name="AddShortcutButton" Width="120" Click="AddShortcutButton_Click" Content="Add Shortcut" Style="{StaticResource SuccessButton}" />
+                                <Button Name="DeleteShortcutButton" Width="120" Margin="10,0,0,0" Click="DeleteShortcutButton_Click" Content="Delete Selected" Style="{StaticResource DangerButton}" />
                                 <TextBlock Width="16" Text="" />
-                                <TextBlock VerticalAlignment="Center" Foreground="#9A9A9A">Tip: Select a row before deleting</TextBlock>
+                                <TextBlock VerticalAlignment="Center" Foreground="#888888">Tip: Select a row before deleting</TextBlock>
                             </StackPanel>
                         </StackPanel>
                     </Border>
 
-                    <!--  Shortcut List  -->
-                    <DataGrid
-                        Name="ShortcutListView"
-                        Grid.Row="2"
-                        Margin="20,6,20,10"
-                        AlternatingRowBackground="#171717"
-                        AutoGenerateColumns="False"
-                        Background="Transparent"
-                        BorderThickness="0"
-                        CanUserAddRows="False"
-                        CanUserDeleteRows="False"
-                        GridLinesVisibility="None"
-                        HeadersVisibility="Column"
-                        IsReadOnly="True"
-                        ItemsSource="{Binding Shortcuts}"
-                        RowHeight="44"
-                        SelectionMode="Single">
-                        <DataGrid.Resources>
-                            <SolidColorBrush x:Key="DataGridRowHoverBrush" Color="#2A2A2A" />
-                            <Style TargetType="DataGridRow">
-                                <Setter Property="Background" Value="Transparent" />
-                                <Setter Property="SnapsToDevicePixels" Value="True" />
-                                <Setter Property="Padding" Value="6" />
-                                <Setter Property="Margin" Value="0,2,0,2" />
-                                <Setter Property="Template">
-                                    <Setter.Value>
-                                        <ControlTemplate TargetType="DataGridRow">
-                                            <Border
-                                                x:Name="DGR_Border"
-                                                Padding="4"
-                                                Background="{TemplateBinding Background}"
-                                                CornerRadius="6">
-                                                <SelectiveScrollingGrid>
-                                                    <SelectiveScrollingGrid.ColumnDefinitions>
-                                                        <ColumnDefinition Width="Auto" />
-                                                        <ColumnDefinition Width="*" />
-                                                    </SelectiveScrollingGrid.ColumnDefinitions>
-                                                    <DataGridCellsPresenter
-                                                        Grid.Column="1"
-                                                        ItemsPanel="{TemplateBinding ItemsPanel}"
-                                                        SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" />
-                                                </SelectiveScrollingGrid>
-                                            </Border>
-                                            <ControlTemplate.Triggers>
-                                                <Trigger Property="IsMouseOver" Value="True">
-                                                    <Setter TargetName="DGR_Border" Property="Background" Value="{StaticResource ControlHoverBrush}" />
-                                                </Trigger>
-                                                <Trigger Property="IsSelected" Value="True">
-                                                    <Setter TargetName="DGR_Border" Property="Background" Value="{StaticResource AccentBrush}" />
-                                                    <Setter Property="Foreground" Value="White" />
-                                                </Trigger>
-                                            </ControlTemplate.Triggers>
-                                        </ControlTemplate>
-                                    </Setter.Value>
-                                </Setter>
-                            </Style>
-                        </DataGrid.Resources>
+                    <!-- Shortcut List -->
+                    <DataGrid Name="ShortcutListView" Grid.Row="1" Margin="15,0,15,10" AutoGenerateColumns="False" CanUserAddRows="False" CanUserDeleteRows="False" IsReadOnly="True" ItemsSource="{Binding Shortcuts}" SelectionMode="Single">
                         <DataGrid.Columns>
-                            <DataGridTextColumn
-                                Width="200"
-                                Binding="{Binding Hotkey}"
-                                Header="Shortcut" />
-                            <DataGridTextColumn
-                                Width="*"
-                                Binding="{Binding ApplicationPath}"
-                                Header="Application" />
+                            <DataGridTextColumn Width="200" Binding="{Binding Hotkey}" Header="Shortcut" />
+                            <DataGridTextColumn Width="*" Binding="{Binding ApplicationPath}" Header="Application" />
                         </DataGrid.Columns>
                     </DataGrid>
 
-                    <!--  Save Button  -->
-                    <StackPanel
-                        Grid.Row="3"
-                        Margin="0,12,20,20"
-                        HorizontalAlignment="Right"
-                        Orientation="Horizontal">
-                        <Button
-                            Name="SaveButton"
-                            Width="140"
-                            Click="SaveButton_Click"
-                            Content="Save and Apply" />
+                    <!-- Save Button -->
+                    <StackPanel Grid.Row="2" Margin="0,10,15,15" HorizontalAlignment="Right" Orientation="Horizontal">
+                        <Button Name="SaveButton" Width="140" Click="SaveButton_Click" Content="Save and Apply" />
                     </StackPanel>
                 </Grid>
             </Grid>
         </Border>
     </Border>
 
-    <!--  Window entrance animation  -->
+    <!-- Window entrance animation -->
     <Window.Triggers>
         <EventTrigger RoutedEvent="Window.Loaded">
             <BeginStoryboard>
                 <Storyboard>
-                    <DoubleAnimation
-                        Storyboard.TargetProperty="Opacity"
-                        From="0"
-                        To="1"
-                        Duration="0:0:0.22" />
-                    <DoubleAnimation
-                        Storyboard.TargetProperty="(UIElement.RenderTransform).(TranslateTransform.Y)"
-                        From="8"
-                        To="0"
-                        Duration="0:0:0.22" />
+                    <DoubleAnimation Storyboard.TargetProperty="Opacity" From="0" To="1" Duration="0:0:0.22" />
                 </Storyboard>
             </BeginStoryboard>
         </EventTrigger>

@@ -6,17 +6,23 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>
+    <ApplicationIcon>zeromix.ico</ApplicationIcon>
   </PropertyGroup>
 
+  <!-- Item Group -->
   <ItemGroup>
     <PackageReference Include="MegaApiClient" Version="1.10.5" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
   </ItemGroup>
 
   <ItemGroup>
+    <FrameworkReference Include="Microsoft.WindowsDesktop.App.WindowsForms" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Resource Include="zeromix.ico" />
   </ItemGroup>
-  
+
   <Target Name="AfterPublish" AfterTargets="Publish" Condition="'$(Configuration)' == 'Release' AND '$(BuildingForLiveReload)' != 'true'">
     <Message Text="Menjalankan proses signing installer ZeroMix..." Importance="High" />
     <Exec Command='powershell -ExecutionPolicy Bypass -File "$(ProjectDir)build\build.ps1"' />
