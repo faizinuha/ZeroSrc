@@ -225,7 +225,7 @@ namespace ZeroMix
             combined.Add(new SuggestionItem("Search Google for \"" + query + "\"", query, SuggestionType.WebSearch));
 
 
-                    if (combined.Count > 0)
+            if (combined.Count > 0)
             {
                 // --- Dropdown suggestion ---
                 // Gunakan CollectionViewSource untuk grouping
