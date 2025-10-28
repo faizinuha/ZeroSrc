@@ -13,6 +13,8 @@
         AllowsTransparency="True"
         ShowInTaskbar="False"
         Opacity="0"
+        Icon="zeromix.ico"
+        MouseLeftButtonDown="Window_MouseLeftButtonDown"
         Loaded="Window_Loaded">
 
     <Window.Resources>
