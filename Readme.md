@@ -92,9 +92,11 @@ Selamat datang di **ZeroMix**! Panduan ini akan membantu Anda menginstal, menggu
 
 - Custom Ui/Ux Search Bar
 - Menambahkan Widget ( Rencana )
-- Belum di Tambahkan!
+- Ubah Hotkey alt+space -> ???
 - Fitur Animasi Border Search dan Shourcut
-- Belum DI Tulis.....
+- Menambahkan ikon di system tray dengan menu.
+- Menampilkan performa CPU & RAM.
+- Menambahkan tombol untuk proses pembersihan Temp & %Temp%.
 
 *Update v1.7.5 Stop version*
 ---

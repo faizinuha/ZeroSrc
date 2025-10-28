@@ -1,39 +1,38 @@
-﻿﻿using System.Configuration;
-using System.Data;
+using System;
 using System.Windows;
 using ZeroMix.Core;
-using System.Threading.Tasks;
 
 namespace ZeroMix
 {
-    using System.Windows;
-
     public partial class App : Application
     {
-        // Buat properti statis agar instance HotkeyCore bisa diakses dari mana saja.
         public static HotkeyCore? HotkeyCoreInstance { get; private set; }
 
         protected override async void OnStartup(StartupEventArgs e)
         {
             base.OnStartup(e);
 
+            // First, create and show the main window.
+            // This becomes the main window for the application's lifetime.
+            var mainWindow = new MainWindow();
+            this.MainWindow = mainWindow;
+            mainWindow.Show();
 
-            // Periksa pembaruan saat aplikasi dimulai
+            // Now, run the background hotkey service.
+            HotkeyCoreInstance = new HotkeyCore();
+            HotkeyCoreInstance.Show(); // This window is invisible by design.
+
+            // Check for updates in the background.
             try
             {
-                var updater = new MegaUpdater();
+                var updater = new GithubUpdater();
                 await updater.CheckAndUpdateAsync();
             }
             catch (Exception ex)
             {
-
                 System.Diagnostics.Debug.WriteLine($"Error during update check: {ex.Message}");
-                MessageBox.Show("Terjadi kesalahan saat memeriksa pembaruan. Silakan coba lagi nanti.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                // Don't show a blocking MessageBox on startup for update errors.
             }
-
-            // Jalankan HotkeyCore yang mendaftar hotkey global dan menampilkan overlay saat ditekan.
-            HotkeyCoreInstance = new HotkeyCore();
-            HotkeyCoreInstance.Show();
         }
     }
 }
