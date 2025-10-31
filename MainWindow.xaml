@@ -39,7 +39,7 @@
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
                         <Border x:Name="border" Background="{TemplateBinding Background}" Padding="{TemplateBinding Padding}" CornerRadius="4">
-                            <TextBlock Text="{TemplateBinding Content}" VerticalAlignment="Center"/>
+                            <ContentPresenter VerticalAlignment="Center"/>
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
@@ -86,10 +86,13 @@
             <StackPanel Margin="10">
                 <Button Name="HomeButton" Content="Home" Click="HomeButton_Click" Style="{StaticResource NavButton}"/>
                 <Button Name="DashboardButton" Content="Dashboard" Click="DashboardButton_Click" Style="{StaticResource NavButton}" Margin="0,5,0,0"/>
+                <Button Name="AboutButton" Content="About" Click="AboutButton_Click" Style="{StaticResource NavButton}" Margin="0,5,0,0"/>
+                <Button Name="PrivacyButton" Content="Privacy" Click="PrivacyButton_Click" Style="{StaticResource NavButton}" Margin="0,5,0,0"/>
+                <Button Name="WallpaperButton" Content="Wallpapers" Click="WallpaperButton_Click" Style="{StaticResource NavButton}" Margin="0,5,0,0"/>
                 <Button Name="CustomButton" Click="CustomButton_Click" Style="{StaticResource NavButton}" Margin="0,5,0,0">
                     <StackPanel Orientation="Horizontal">
                         <TextBlock Text="⚙️" FontSize="14" VerticalAlignment="Center"/>
-                        <TextBlock Text=" Settings" VerticalAlignment="Center" Margin="8,0,0,0"/>
+                        <TextBlock Text="Settings" VerticalAlignment="Center" Margin="8,0,0,0"/>
                     </StackPanel>
                 </Button>
             </StackPanel>
@@ -101,7 +104,7 @@
             <!-- Home Content -->
             <StackPanel Name="HomeContent" VerticalAlignment="Center" HorizontalAlignment="Center" Margin="16">
                 <TextBlock Text="ZeroMix" FontSize="32" FontWeight="Bold" Foreground="{StaticResource ForegroundBrush}" HorizontalAlignment="Center" Margin="0,0,0,8"/>
-                <!-- <Button Width="220" Height="40" Click="OpenOverlay_Click" Style="{StaticResource MainButton}">Open Overlay</Button> -->
+                <TextBlock Text="Welcome to ZeroMix Dashboard" FontSize="16" Foreground="{StaticResource ForegroundBrush}" TextAlignment="Center"/>
                 <TextBlock Text="Press Alt+Space to open the overlay from anywhere." FontSize="14" Foreground="#888" TextAlignment="Center" Margin="0,16,0,0"/>
             </StackPanel>
 
@@ -112,10 +115,7 @@
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
-
                 <TextBlock Grid.Row="0" Text="System Dashboard" FontSize="24" FontWeight="SemiBold" Margin="0,0,0,15"/>
-
-                <!-- Performance Section -->
                 <GroupBox Grid.Row="1" Header="Live Performance" FontWeight="SemiBold">
                     <StackPanel Margin="10">
                         <Grid>
@@ -136,15 +136,91 @@
                         </Grid>
                     </StackPanel>
                 </GroupBox>
-
-                <!-- Maintenance Section -->
                 <GroupBox Grid.Row="2" Header="System Maintenance" FontWeight="SemiBold" Margin="0,15,0,0">
                     <StackPanel Margin="10">
                         <Button Name="CleanTempButton" Content="Clean Temporary Files" Click="CleanTempButton_Click" Style="{StaticResource MainButton}" HorizontalAlignment="Left"/>
                         <TextBlock Name="CleanStatusText" Text="" Margin="0,10,0,0" Foreground="#555" FontStyle="Italic"/>
+                        <ProgressBar Name="CleanProgressBar" Height="8" Margin="0,5,0,0" IsIndeterminate="True" Visibility="Collapsed" />
                     </StackPanel>
                 </GroupBox>
             </Grid>
+
+            <!-- About Content (Initially Hidden) -->
+            <ScrollViewer Name="AboutContent" Visibility="Collapsed" Margin="20">
+                <StackPanel>
+                    <TextBlock FontSize="24" FontWeight="SemiBold" Margin="0,0,0,15">About ZeroMix</TextBlock>
+                    <TextBlock TextWrapping="Wrap" FontSize="14" LineHeight="22" Margin="0,0,0,15">
+                        <Run FontWeight="Bold">ZeroMix</Run> is a smart launcher designed to speed up your workflow. With a clean and modern interface, it allows you to quickly search and launch applications, files, and even perform web searches directly from your desktop.
+                    </TextBlock>
+                    <TextBlock TextWrapping="Wrap" FontSize="14" LineHeight="22">
+                        Our browser extension brings the same functionality to your browser, providing a consistent experience wherever you work.
+                    </TextBlock>
+                </StackPanel>
+            </ScrollViewer>
+
+            <!-- Privacy Content (Initially Hidden) -->
+            <ScrollViewer Name="PrivacyContent" Visibility="Collapsed" Margin="20">
+                <StackPanel>
+                    <!-- Peringatan Penggunaan -->
+                    <TextBlock FontSize="18" FontWeight="SemiBold" Margin="0,0,0,10">Peringatan Penggunaan</TextBlock>
+                    <TextBlock TextWrapping="Wrap" Margin="0,0,0,5">
+                        ZeroMix adalah aplikasi pribadi yang <Run FontWeight="Bold">tidak dipublikasikan secara massal</Run> di platform resmi.
+                        Jika Anda tetap ingin menginstal aplikasi ini, silakan klik <Run FontWeight="Bold">"More info"</Run> lalu pilih <Run FontWeight="Bold">"Run anyway"</Run> saat muncul peringatan dari sistem.
+                    </TextBlock>
+                    <TextBlock TextWrapping="Wrap" FontStyle="Italic" Foreground="#555">
+                        Gunakan aplikasi ini dengan kesadaran penuh. Segala risiko penggunaan berada di tangan pengguna.
+                    </TextBlock>
+
+                    <Separator Margin="0,15,0,15"/>
+
+                    <!-- Terima Kasih -->
+                    <TextBlock FontSize="18" FontWeight="SemiBold" Margin="0,0,0,10">Terima Kasih Telah Menggunakan ZeroMix</TextBlock>
+                    <TextBlock TextWrapping="Wrap" Margin="0,0,0,10">
+                        ZeroMix adalah aplikasi yang dibuat dengan tujuan untuk memudahkan akses ke aplikasi web dan desktop favorit Anda.
+                        Dengan ZeroMix, Anda bisa membuka aplikasi-aplikasi pilihan Anda dengan <Run FontWeight="Bold">lebih cepat, praktis, dan efisien</Run>.
+                    </TextBlock>
+                    <TextBlock TextWrapping="Wrap" Margin="0,0,0,10">
+                        Kami sangat menghargai Anda yang telah meluangkan waktu untuk membaca ini.
+                        Semoga aplikasi ini dapat memberikan pengalaman yang menyenangkan dan bermanfaat bagi Anda.
+                    </TextBlock>
+
+                    <Separator Margin="0,15,0,15"/>
+
+                    <!-- Kebijakan Privasi -->
+                    <TextBlock FontSize="18" FontWeight="SemiBold" Margin="0,0,0,10">Kebijakan Privasi</TextBlock>
+                    <TextBlock TextWrapping="Wrap" Margin="0,0,0,15">
+                        Kami berkomitmen untuk menjaga privasi Anda dan memastikan bahwa data pribadi yang dikumpulkan digunakan dengan cara yang transparan dan sesuai dengan hukum yang berlaku.
+                    </TextBlock>
+
+                    <TextBlock FontWeight="SemiBold" Margin="0,0,0,5">Apa yang Kami Kumpulkan:</TextBlock>
+                    <TextBlock TextWrapping="Wrap" Margin="15,0,0,10">• Informasi yang diperlukan untuk meningkatkan layanan seperti preferensi aplikasi dan pengaturan pengguna.</TextBlock>
+
+                    <TextBlock FontWeight="SemiBold" Margin="0,0,0,5">Bagaimana Kami Menggunakan Data:</TextBlock>
+                    <TextBlock TextWrapping="Wrap" Margin="15,0,0,2">• Untuk meningkatkan pengalaman pengguna.</TextBlock>
+                    <TextBlock TextWrapping="Wrap" Margin="15,0,0,2">• Untuk memperbaiki bug dan menambahkan fitur baru.</TextBlock>
+                    <TextBlock TextWrapping="Wrap" Margin="15,0,0,10">• Untuk memahami kebutuhan pengguna secara lebih baik.</TextBlock>
+
+                    <TextBlock FontWeight="SemiBold" Margin="0,0,0,5">Kami TIDAK akan:</TextBlock>
+                    <TextBlock TextWrapping="Wrap" Margin="15,0,0,10">• Membagikan data Anda kepada pihak ketiga tanpa izin Anda, kecuali diwajibkan oleh hukum.</TextBlock>
+
+                    <TextBlock FontWeight="SemiBold" Margin="0,0,0,5">Keamanan Data:</TextBlock>
+                    <TextBlock TextWrapping="Wrap" Margin="15,0,0,10">• Kami menggunakan enkripsi dan praktik keamanan terbaik untuk melindungi data Anda.</TextBlock>
+
+                    <Separator Margin="0,15,0,15"/>
+
+                    <!-- Penutup -->
+                    <TextBlock TextWrapping="Wrap" Margin="0,0,0,10">
+                        Terima kasih telah membaca kebijakan privasi kami.
+                        Kami menghargai kepercayaan Anda dan berkomitmen untuk menjaga keamanan data pribadi Anda.
+                        Semoga ZeroMix bisa membantu Anda mengakses aplikasi dengan lebih nyaman dan cepat.
+                    </TextBlock>
+                    <TextBlock TextWrapping="Wrap" Margin="0,10,0,0">
+                        Salam hangat,
+                        <LineBreak/>
+                        Tim ZeroMix 💻✨
+                    </TextBlock>
+                </StackPanel>
+            </ScrollViewer>
         </Grid>
     </Grid>
 </Window>

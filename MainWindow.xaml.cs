@@ -16,6 +16,8 @@ namespace ZeroMix
         private PerformanceCounter _ramCounter;
         private DispatcherTimer _performanceTimer;
 
+        
+
         public MainWindow()
         {
             InitializeComponent();
@@ -94,25 +96,59 @@ namespace ZeroMix
 
         // --- Navigation --- //
 
-        private void HomeButton_Click(object sender, RoutedEventArgs e)
+        private void DeactivateAllTabs()
         {
-            HomeContent.Visibility = Visibility.Visible;
+            HomeContent.Visibility = Visibility.Collapsed;
             DashboardContent.Visibility = Visibility.Collapsed;
+            AboutContent.Visibility = Visibility.Collapsed;
+           
+
             _performanceTimer.Stop();
 
-            HomeButton.Background = (System.Windows.Media.SolidColorBrush)FindResource("NavSelectedBrush");
+            HomeButton.Background = System.Windows.Media.Brushes.Transparent;
             DashboardButton.Background = System.Windows.Media.Brushes.Transparent;
+            AboutButton.Background = System.Windows.Media.Brushes.Transparent;
+            PrivacyButton.Background = System.Windows.Media.Brushes.Transparent;
+            WallpaperButton.Background = System.Windows.Media.Brushes.Transparent;
+            PrivacyContent.Visibility = Visibility.Collapsed;
+        }
+
+        private void HomeButton_Click(object sender, RoutedEventArgs e)
+        {
+            DeactivateAllTabs();
+            HomeContent.Visibility = Visibility.Visible;
+            HomeButton.Background = (System.Windows.Media.SolidColorBrush)FindResource("NavSelectedBrush");
         }
 
         private void DashboardButton_Click(object sender, RoutedEventArgs e)
-    {
-      HomeContent.Visibility = Visibility.Collapsed;
+        {
+            DeactivateAllTabs();
             DashboardContent.Visibility = Visibility.Visible;
             _performanceTimer.Start();
-
             DashboardButton.Background = (System.Windows.Media.SolidColorBrush)FindResource("NavSelectedBrush");
-            HomeButton.Background = System.Windows.Media.Brushes.Transparent;
         }
+
+        private void AboutButton_Click(object sender, RoutedEventArgs e)
+        {
+            DeactivateAllTabs();
+            AboutContent.Visibility = Visibility.Visible;
+            AboutButton.Background = (System.Windows.Media.SolidColorBrush)FindResource("NavSelectedBrush");
+        }
+
+        private void PrivacyButton_Click(object sender, RoutedEventArgs e)
+        {
+            DeactivateAllTabs();
+            PrivacyContent.Visibility = Visibility.Visible;
+            PrivacyButton.Background = (System.Windows.Media.SolidColorBrush)FindResource("NavSelectedBrush");
+        }
+
+        private void WallpaperButton_Click(object sender, RoutedEventArgs e)
+        {
+            var wallpaperWindow = new Wallpapers();
+            wallpaperWindow.ShowDialog();
+        }
+
+        // remove Tidak di pakek
 
         private void CustomButton_Click(object sender, RoutedEventArgs e)
         {
@@ -132,6 +168,7 @@ namespace ZeroMix
         {
             CleanTempButton.IsEnabled = false;
             CleanStatusText.Text = "Pembersihan Segeara Mohon tunggu..";
+            CleanProgressBar.Visibility = Visibility.Visible;
 
             int skippedFiles = 0;
 
@@ -172,6 +209,7 @@ namespace ZeroMix
 
             CleanStatusText.Text = $"Cleaning complete. Skipped {skippedFiles} files that were in use.";
             CleanTempButton.IsEnabled = true;
+            CleanProgressBar.Visibility = Visibility.Collapsed;
         }
 
         private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)

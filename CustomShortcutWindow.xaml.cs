@@ -9,10 +9,57 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 
+using System.Runtime.InteropServices;
+
 namespace ZeroMix
 {
     public partial class CustomShortcutWindow : Window
     {
+        #region Window Blur Effect
+        [DllImport("user32.dll")]
+        internal static extern int SetWindowCompositionAttribute(IntPtr hwnd, ref WindowCompositionAttributeData data);
+
+        [StructLayout(LayoutKind.Sequential)]
+        internal struct WindowCompositionAttributeData
+        {
+            public WindowCompositionAttribute Attribute;
+            public IntPtr Data;
+            public int SizeOfData;
+        }
+
+        internal enum WindowCompositionAttribute
+        {
+            WCA_ACCENT_POLICY = 19
+        }
+
+        internal enum AccentState
+        {
+            ACCENT_DISABLED = 0,
+            ACCENT_ENABLE_BLURBEHIND = 3, // Standard blur effect
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        internal struct AccentPolicy
+        {
+            public AccentState AccentState;
+            public int AccentFlags;
+            public int GradientColor;
+            public int AnimationId;
+        }
+
+        internal void EnableBlur()
+        {
+            var windowHelper = new System.Windows.Interop.WindowInteropHelper(this);
+            var accent = new AccentPolicy { AccentState = AccentState.ACCENT_ENABLE_BLURBEHIND };
+            var accentStructSize = Marshal.SizeOf(accent);
+            var accentPtr = Marshal.AllocHGlobal(accentStructSize);
+            Marshal.StructureToPtr(accent, accentPtr, false);
+            var data = new WindowCompositionAttributeData { Attribute = WindowCompositionAttribute.WCA_ACCENT_POLICY, SizeOfData = accentStructSize, Data = accentPtr };
+            SetWindowCompositionAttribute(windowHelper.Handle, ref data);
+            Marshal.FreeHGlobal(accentPtr);
+        }
+        #endregion
+
         // SOLUSI: Gunakan path yang sama dengan HotkeyCore dari folder AppData.
         private static readonly string AppDataFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "ZeroMix");
         private static readonly string ShortcutsFilePath = Path.Combine(AppDataFolder, "custom_shortcuts.json");
@@ -33,6 +80,11 @@ namespace ZeroMix
 
             // Pastikan folder ada sebelum mencoba menyimpan
             Directory.CreateDirectory(AppDataFolder);
+        }
+
+        private void Window_Loaded(object sender, RoutedEventArgs e)
+        {
+            // EnableBlur(); // Efek blur dihilangkan sesuai permintaan
         }
 
         private void Window_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)

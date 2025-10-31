@@ -7,7 +7,7 @@ VersionInfoCompany=Zaki
 VersionInfoDescription=ZeroMix smart launcher
 VersionInfoTextVersion=1.7.0.0
 AppVerName=ZeroMix
-AppPublisher=Zaki
+AppPublisher=Frieren
 AppPublisherURL=Mardve7.vercel.app
 AppCopyright=Copyright (c) 2025
 AppComments=ZeroMix smart launcher
@@ -25,7 +25,7 @@ WizardImageFile=zeromix.bmp
 ;SignTool=osslsigncode
 
 [SignTool]
-osslsigncode="osslsigncode.exe sign -pkcs12 ZeroMixCert.pfx -pass ""ZeroMixPass"" -n ""ZeroMix"" -i ""https://zeromix.pages.dev"" -in $f -out $f -t http://timestamp.digicert.com"
+osslsigncode="osslsigncode.exe sign -pkcs12 ZeroMixCert.pfx -pass ""ZeroMixPass"" -n ""ZeroMix"" -i ""https://zeromix.vercel.app"" -in $f -out $f -t http://timestamp.digicert.com"
 
 ; NOTE for packagers:
 ; To avoid requiring users to install the .NET runtime, publish your app as
@@ -88,6 +88,26 @@ WindowsServiceNote=Layanan Windows:
 InfoBeforeFile=../SECURITY.md
 
 [Code]
+function NextButtonClick(CurPageID: Integer): Boolean;
+begin
+  Result := True;
+  if CurPageID = wpLicense then
+  begin
+    // Memeriksa apakah pengguna telah menggulir ke bagian bawah lisensi
+    if WizardForm.LicenseMemo.VScroll.Position <> WizardForm.LicenseMemo.VScroll.Max then
+    begin
+      MsgBox('Silakan gulir ke bawah dan baca seluruh syarat dan ketentuan sebelum melanjutkan.', mbInformation, MB_OK);
+      Result := False;
+    end
+    // Memeriksa apakah tombol radio "accept" sudah dicentang
+    else if not WizardForm.LicenseAcceptedRadio.Checked then
+    begin
+      MsgBox('Anda harus menerima syarat dan ketentuan untuk melanjutkan.', mbError, MB_OK);
+      Result := False;
+    end;
+  end;
+end;
+
 procedure CurStepChanged(CurStep: TSetupStep);
 var
  ErrorCode: Integer;
@@ -97,8 +117,17 @@ begin
   MsgBox('Terima kasih sudah menginstall ZeroMix!' + #13#10 + 'Dukungan Anda sangat berarti bagi kami.', mbInformation, MB_OK);
   // Open the thank you page in the user's default web browser
   // khusus 1.7.0
-  ShellExec('open', 'https://zeromix.pages.dev/ThanksYou', '', '', SW_SHOWNORMAL, ewNoWait, ErrorCode);
+  ShellExec('open', 'https://zeromix.vercel.app/ThanksYou', '', '', SW_SHOWNORMAL, ewNoWait, ErrorCode);
  end;
+end;
+
+function InitializeUninstall(): Boolean;
+begin
+  // Menampilkan dialog konfirmasi sebelum uninstall
+  if MsgBox('Apakah Anda yakin ingin meng-uninstall ZeroMix?', mbConfirmation, MB_YESNO) = IDYES then
+    Result := True // Jika pengguna memilih 'Yes', lanjutkan uninstall
+  else
+    Result := False; // Jika pengguna memilih 'No', batalkan uninstall
 end;
 
 procedure CurUninstallStepChanged(CurStep: TUninstallStep);
@@ -107,6 +136,6 @@ ErrorCode: Integer;
 begin
  if CurStep = usPostUninstall then
  begin
-  ShellExec('open', 'https://zeromix.pages.dev/Feedback.html', '', '', SW_SHOWNORMAL, ewNoWait, ErrorCode);
+  ShellExec('open', 'https://zeromix.vercel.app/Feedback.html', '', '', SW_SHOWNORMAL, ewNoWait, ErrorCode);
  end;
 end;
