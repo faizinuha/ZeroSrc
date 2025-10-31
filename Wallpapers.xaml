@@ -1,17 +1,21 @@
-<Window x:Class="ZeroMix.Wallpapers"
-        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Wallpaper Settings"
-        Width="800" Height="600"
-        AllowsTransparency="True" Background="Transparent"
-        WindowStyle="None" WindowStartupLocation="CenterScreen"
-        MouseLeftButtonDown="Window_MouseLeftButtonDown"
-        Loaded="Window_Loaded">
+<Window
+    x:Class="ZeroMix.Wallpapers"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    Title="Wallpaper Settings"
+    Width="700"
+    Height="600"
+    AllowsTransparency="True"
+    Background="Transparent"
+    Loaded="Window_Loaded"
+    MouseLeftButtonDown="Window_MouseLeftButtonDown"
+    WindowStartupLocation="CenterScreen"
+    WindowStyle="None">
 
     <Window.Resources>
-        <!-- Menggunakan resource dari CustomShortcutWindow untuk konsistensi -->
+        <!--  Menggunakan resource dari CustomShortcutWindow untuk konsistensi  -->
         <ResourceDictionary>
-            <!-- Resources disalin dari CustomShortcutWindow.xaml untuk menghindari XamlParseException -->
+            <!--  Resources disalin dari CustomShortcutWindow.xaml untuk menghindari XamlParseException  -->
             <Color x:Key="AccentColor">#0078D4</Color>
             <Color x:Key="ControlHoverColor">#E0E0E0</Color>
             <Color x:Key="ForegroundColor">#1C1C1C</Color>
@@ -28,7 +32,11 @@
                 <Setter Property="Template">
                     <Setter.Value>
                         <ControlTemplate TargetType="Button">
-                            <Border x:Name="border" Padding="{TemplateBinding Padding}" Background="{TemplateBinding Background}" CornerRadius="4">
+                            <Border
+                                x:Name="border"
+                                Padding="{TemplateBinding Padding}"
+                                Background="{TemplateBinding Background}"
+                                CornerRadius="4">
                                 <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
                             </Border>
                             <ControlTemplate.Triggers>
@@ -44,11 +52,14 @@
                 </Setter>
             </Style>
 
-            <Style x:Key="SecondaryButton" BasedOn="{StaticResource BaseButton}" TargetType="Button">
+            <Style
+                x:Key="SecondaryButton"
+                BasedOn="{StaticResource BaseButton}"
+                TargetType="Button">
                 <Setter Property="Background" Value="{StaticResource ControlHoverBrush}" />
                 <Setter Property="Foreground" Value="{StaticResource ForegroundBrush}" />
             </Style>
-            
+
             <Style x:Key="CloseButton" TargetType="Button">
                 <Setter Property="Background" Value="Transparent" />
                 <Setter Property="Foreground" Value="#888888" />
@@ -58,7 +69,13 @@
                     <Setter.Value>
                         <ControlTemplate TargetType="Button">
                             <Border x:Name="border" Background="Transparent">
-                                <Path x:Name="xpath" HorizontalAlignment="Center" VerticalAlignment="Center" Data="M0,0 L10,10 M10,0 L0,10" Stroke="{TemplateBinding Foreground}" StrokeThickness="1.5" />
+                                <Path
+                                    x:Name="xpath"
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Center"
+                                    Data="M0,0 L10,10 M10,0 L0,10"
+                                    Stroke="{TemplateBinding Foreground}"
+                                    StrokeThickness="1.5" />
                             </Border>
                             <ControlTemplate.Triggers>
                                 <Trigger Property="IsMouseOver" Value="True">
@@ -72,31 +89,63 @@
             </Style>
 
             <Style x:Key="WallpaperImageStyle" TargetType="Image">
-                <Setter Property="Width" Value="180"/>
-                <Setter Property="Height" Value="100"/>
-                <Setter Property="Stretch" Value="UniformToFill"/>
-                <Setter Property="Margin" Value="5"/>
-                <Setter Property="RenderOptions.BitmapScalingMode" Value="HighQuality"/>
-                <Setter Property="RenderOptions.EdgeMode" Value="Aliased"/>
+                <Setter Property="Width" Value="180" />
+                <Setter Property="Height" Value="100" />
+                <Setter Property="Stretch" Value="UniformToFill" />
+                <Setter Property="Margin" Value="5" />
+                <Setter Property="RenderOptions.BitmapScalingMode" Value="HighQuality" />
+                <Setter Property="RenderOptions.EdgeMode" Value="Aliased" />
                 <Setter Property="CacheMode">
                     <Setter.Value>
-                        <BitmapCache RenderAtScale="1.0" SnapsToDevicePixels="True"/>
+                        <BitmapCache RenderAtScale="1.0" SnapsToDevicePixels="True" />
                     </Setter.Value>
                 </Setter>
             </Style>
 
             <Style x:Key="WallpaperBorderStyle" TargetType="Border">
-                <Setter Property="BorderBrush" Value="#444"/>
-                <Setter Property="BorderThickness" Value="2"/>
-                <Setter Property="CornerRadius" Value="4"/>
-                <Setter Property="Margin" Value="5"/>
-                <Setter Property="Cursor" Value="Hand"/>
-                <Setter Property="Background" Value="#22000000"/>
+                <Setter Property="BorderBrush" Value="#444" />
+                <Setter Property="BorderThickness" Value="2" />
+                <Setter Property="CornerRadius" Value="4" />
+                <Setter Property="Margin" Value="5" />
+                <Setter Property="Cursor" Value="Hand" />
+                <Setter Property="Background" Value="#22000000" />
+                <!--  initial state for entrance animation  -->
+                <Setter Property="Opacity" Value="0" />
+                <Setter Property="RenderTransform">
+                    <Setter.Value>
+                        <TranslateTransform Y="-24" />
+                    </Setter.Value>
+                </Setter>
                 <Style.Triggers>
                     <Trigger Property="IsMouseOver" Value="True">
-                        <Setter Property="BorderBrush" Value="{StaticResource AccentBrush}"/>
-                        <Setter Property="Background" Value="#44000000"/>
+                        <Setter Property="BorderBrush" Value="{StaticResource AccentBrush}" />
+                        <Setter Property="Background" Value="#44000000" />
                     </Trigger>
+                    <!--  entrance animation on element loaded  -->
+                    <EventTrigger RoutedEvent="FrameworkElement.Loaded">
+                        <BeginStoryboard>
+                            <Storyboard>
+                                <DoubleAnimation
+                                    Storyboard.TargetProperty="Opacity"
+                                    From="0"
+                                    To="1"
+                                    Duration="0:0:0.15">
+                                    <DoubleAnimation.EasingFunction>
+                                        <CubicEase EasingMode="EaseOut" />
+                                    </DoubleAnimation.EasingFunction>
+                                </DoubleAnimation>
+                                <DoubleAnimation
+                                    Storyboard.TargetProperty="(UIElement.RenderTransform).(TranslateTransform.Y)"
+                                    From="-24"
+                                    To="0"
+                                    Duration="0:0:0.18">
+                                    <DoubleAnimation.EasingFunction>
+                                        <CubicEase EasingMode="EaseOut" />
+                                    </DoubleAnimation.EasingFunction>
+                                </DoubleAnimation>
+                            </Storyboard>
+                        </BeginStoryboard>
+                    </EventTrigger>
                 </Style.Triggers>
             </Style>
 
@@ -105,32 +154,70 @@
 
     <Border Margin="10" CornerRadius="8">
         <Border.Effect>
-            <DropShadowEffect BlurRadius="15" Opacity="0.15" ShadowDepth="1" Color="Black" />
+            <DropShadowEffect
+                BlurRadius="15"
+                Opacity="0.15"
+                ShadowDepth="1"
+                Color="Black" />
         </Border.Effect>
-        <Border Background="#D9000000" BorderBrush="#555" BorderThickness="1" CornerRadius="8" ClipToBounds="True">
+        <Border
+            Background="#D9000000"
+            BorderBrush="#555"
+            BorderThickness="1"
+            ClipToBounds="True"
+            CornerRadius="8">
             <Grid>
                 <Grid.RowDefinitions>
-                    <RowDefinition Height="40" /> <!-- Title Bar -->
-                    <RowDefinition Height="*" />    <!-- Main Content -->
-                    <RowDefinition Height="Auto" /> <!-- Action Buttons -->
+                    <RowDefinition Height="40" />
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
 
-                <!-- Custom Title Bar -->
+                <!--  Title Bar  -->
                 <Grid Grid.Row="0" Background="Transparent">
-                    <TextBlock Text="Wallpaper Settings" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="15,0,0,0" FontSize="14" FontWeight="SemiBold" Foreground="White" />
-                    <Button Name="CloseButton" HorizontalAlignment="Right" VerticalAlignment="Top" Click="CloseButton_Click" Style="{StaticResource CloseButton}" ToolTip="Close" />
+                    <TextBlock
+                        Margin="15,0,0,0"
+                        HorizontalAlignment="Left"
+                        VerticalAlignment="Center"
+                        FontSize="14"
+                        FontWeight="SemiBold"
+                        Foreground="White"
+                        Text="Wallpaper Settings" />
+                    <Button
+                        Name="CloseButton"
+                        VerticalAlignment="Top"
+                        HorizontalAlignment="Right"
+                        Click="CloseButton_Click"
+                        Style="{StaticResource CloseButton}"
+                        ToolTip="Close" />
                 </Grid>
 
-                <!-- Main Content -->
+                <!--  Main Content  -->
                 <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
-                    <WrapPanel Name="WallpaperListPanel" Margin="10"/>
+                    <WrapPanel Name="WallpaperListPanel" Margin="10" />
                 </ScrollViewer>
 
-                <!-- Action Buttons -->
-                <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="15">
-                    <Button Name="BrowseButton" Content="Browse for Image..." Click="BrowseButton_Click" Style="{StaticResource SecondaryButton}" Width="160"/>
-                    <Button Name="SetWallpaperButton" Content="Set as Wallpaper" Click="SetWallpaperButton_Click" Margin="10,0,0,0" Width="160" Style="{StaticResource BaseButton}"/>
-                </StackPanel>
+                <!--  Action Row (Footer + Buttons)  -->
+                <Grid Grid.Row="2" Margin="15">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+
+                    <!--  Footer kecil: link ke sumber wallpaper  -->
+                    <TextBlock Grid.Column="0" VerticalAlignment="Center" Foreground="#BBB" FontSize="12">
+                        <Run Text="Link wallpaper original: " />
+                        <Hyperlink NavigateUri="https://wallpaperflare.com" RequestNavigate="Hyperlink_RequestNavigate">
+                            Link wallpaper original
+                        </Hyperlink>
+                    </TextBlock>
+
+                    <!--  Action Buttons (kanan)  -->
+                    <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right">
+                        <Button Name="BrowseButton" Content="Browse for Image..." Click="BrowseButton_Click" Style="{StaticResource SecondaryButton}" Width="160" />
+                        <Button Name="SetWallpaperButton" Content="Set as Wallpaper" Click="SetWallpaperButton_Click" Margin="10,0,0,0" Width="160" Style="{StaticResource BaseButton}" />
+                    </StackPanel>
+                </Grid>
             </Grid>
         </Border>
     </Border>
