@@ -1,3 +1,9 @@
+/* Disable text selection globally */
+html, body, * {
+  -webkit-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
 /* --- Why ZeroMix Section --- */
 .whyzeromix-section {
   background: linear-gradient(120deg, #10101a 60%, #1a1a2e 100%);
