@@ -16,11 +16,12 @@ namespace ZeroMix.Core
     public class GithubUpdater
     {
         private const string GithubApiUrl = "https://api.github.com/repos/faizinuha/ZeroMix/releases/latest";
+        // private const string GithubApiUrl = "https://github.com/faizinuha/ZeroMix/releases/latest";
         private readonly string _currentVersion;
 
         public GithubUpdater()
         {
-            _currentVersion = Assembly.GetExecutingAssembly().GetName().Version?.ToString(3) ?? "1.6.6";
+            _currentVersion = Assembly.GetExecutingAssembly().GetName().Version?.ToString(3) ?? " 1.7.2";
         }
 
         public async Task CheckAndUpdateAsync()

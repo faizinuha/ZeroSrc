@@ -9,6 +9,7 @@
     Icon="zeromix.ico"
     MouseLeftButtonDown="Window_MouseLeftButtonDown"
     WindowStartupLocation="CenterScreen"
+    Loaded="Window_Loaded"
     WindowStyle="None">
 
     <Window.Resources>
@@ -197,19 +198,19 @@
 
         <!-- DataGrid Style -->
         <Style TargetType="DataGrid">
-            <Setter Property="Background" Value="{StaticResource ControlBackgroundBrush}" />
+            <Setter Property="Background" Value="Transparent" />
             <Setter Property="Foreground" Value="{StaticResource ForegroundBrush}" />
             <Setter Property="BorderThickness" Value="1" />
             <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}" />
             <Setter Property="RowDetailsVisibilityMode" Value="VisibleWhenSelected" />
             <Setter Property="GridLinesVisibility" Value="Horizontal" />
-            <Setter Property="HorizontalGridLinesBrush" Value="{StaticResource BorderBrush}" />
+            <Setter Property="HorizontalGridLinesBrush" Value="#33000000" />
             <Setter Property="HeadersVisibility" Value="Column" />
         </Style>
 
         <Style TargetType="DataGridColumnHeader">
-            <Setter Property="Background" Value="#FAFAFA" />
-            <Setter Property="Foreground" Value="{StaticResource ForegroundBrush}" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="Foreground" Value="#DDDDDD" />
             <Setter Property="FontWeight" Value="SemiBold" />
             <Setter Property="FontSize" Value="14" />
             <Setter Property="Padding" Value="12" />
@@ -235,9 +236,10 @@
             <Setter Property="Background" Value="Transparent" />
             <Setter Property="BorderThickness" Value="0" />
             <Setter Property="Padding" Value="12" />
+            <Setter Property="Foreground" Value="White" />
             <Style.Triggers>
                 <Trigger Property="IsSelected" Value="True">
-                    <Setter Property="Foreground" Value="White" />
+                    <Setter Property="Foreground" Value="White" /> <!-- Pastikan tetap putih saat dipilih -->
                 </Trigger>
             </Style.Triggers>
         </Style>
@@ -249,7 +251,7 @@
         <Border.Effect>
             <DropShadowEffect BlurRadius="15" Opacity="0.15" ShadowDepth="1" Color="Black" />
         </Border.Effect>
-        <Border x:Name="MainBorder" Background="{StaticResource BackgroundBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" CornerRadius="8" ClipToBounds="True">
+        <Border x:Name="MainBorder" Background="Transparent" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" CornerRadius="8" ClipToBounds="True">
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="40" /> <!-- Title Bar -->
@@ -263,21 +265,21 @@
                         <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
 
-                    <TextBlock Text="Custom Shortcuts" Grid.Column="0" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="15,0,0,0" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource ForegroundBrush}" />
+                    <TextBlock Text="Custom Shortcuts" Grid.Column="0" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="15,0,0,0" FontSize="14" FontWeight="SemiBold" Foreground="White" />
 
                     <Button Name="CancelButton" Grid.Column="1" HorizontalAlignment="Right" VerticalAlignment="Top" Click="CancelButton_Click" Style="{StaticResource CloseButton}" ToolTip="Close" />
                 </Grid>
 
                 <!-- Main Content Grid -->
                 <Grid Grid.Row="1">
-                    <Grid.RowDefinitions>
+                    <Grid.RowDefinitions> 
                         <RowDefinition Height="Auto" /> <!-- Input Form -->
                         <RowDefinition Height="*" />    <!-- Data Table -->
                         <RowDefinition Height="Auto" /> <!-- Action Buttons -->
                     </Grid.RowDefinitions>
 
                     <!-- Input Area -->
-                    <Border Grid.Row="0" Margin="15,5,15,10" Padding="15" Background="{StaticResource ControlBackgroundBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" CornerRadius="4">
+                    <Border Grid.Row="0" Margin="15,5,15,10" Padding="15" Background="Black" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" CornerRadius="4">
                         <StackPanel>
                             <Grid>
                                 <Grid.ColumnDefinitions>
@@ -289,10 +291,10 @@
                                     <RowDefinition Height="Auto" />
                                 </Grid.RowDefinitions>
 
-                                <TextBlock Grid.Row="0" Grid.Column="0" Margin="0,0,0,8" FontWeight="SemiBold" Text="Shortcut Key" />
+                                <TextBlock Grid.Row="0" Grid.Column="0" Margin="0,0,0,8" FontWeight="SemiBold" Text="Shortcut Key" Foreground="White" />
                                 <TextBox Name="HotkeyTextBox" Grid.Row="1" Grid.Column="0" Margin="0,0,10,10" PreviewKeyDown="HotkeyTextBox_PreviewKeyDown" Text="Click and press key combination" />
 
-                                <TextBlock Grid.Row="0" Grid.Column="1" Margin="0,0,0,8" FontWeight="SemiBold" Text="Application Path" />
+                                <TextBlock Grid.Row="0" Grid.Column="1" Margin="0,0,0,8" FontWeight="SemiBold" Text="Application Path" Foreground="White" />
                                 <Grid Grid.Row="1" Grid.Column="1">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="*" />
