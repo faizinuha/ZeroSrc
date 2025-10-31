@@ -10,6 +10,8 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using System.Windows.Media.Animation;
+using System.Windows.Navigation;
 
 namespace ZeroMix
 {
@@ -100,7 +102,6 @@ namespace ZeroMix
                     {
                         var element = CreateWallpaperElement(bitmap, currentWallpaperPath);
                         WallpaperListPanel.Children.Add(element);
-                        await Task.Delay(20); // Yield to UI thread
                     }
                 }
             }
@@ -109,34 +110,65 @@ namespace ZeroMix
                 Debug.WriteLine($"[ERROR] Failed to load current wallpaper: {ex.Message}");
             }
 
-            // 2. Load default wallpapers from resource folders
-            var resourceImagePaths = new List<string>
+            // 2. Try loading default wallpapers from disk folders first
+            bool anyDiskImages = false;
+            try
             {
-                // Images from Resource/images
-                "Resource/Images/1.jpg", "Resource/Images/2.jpg", "Resource/Images/3.jpg",
-                "Resource/Images/4.jpg", "Resource/Images/5.jpg", "Resource/Images/6.jpg", "Resource/Images/7.jpg",
-                // Images from Resource/anim
-                "Resource/anim/Fieren.jpg", "Resource/anim/Fieren2.jpg", "Resource/anim/Fieren3.jpg",
-                "Resource/anim/view.jpg", "Resource/anim/anime.jpg"
-            };
-
-            foreach (var path in resourceImagePaths)
-            {
-                try
+                foreach (var imagePath in EnumerateResourceImagesOnDisk())
                 {
-                    var uri = new Uri($"pack://application:,,,/{path}");
-                    var bitmap = CreateBitmapFromUri(uri);
+                    var bitmap = CreateBitmapFromPath(imagePath);
                     if (bitmap != null)
                     {
-                        var element = CreateWallpaperElement(bitmap, uri.ToString());
+                        anyDiskImages = true;
+                        var element = CreateWallpaperElement(bitmap, imagePath);
                         WallpaperListPanel.Children.Add(element);
-                        await Task.Delay(20); // Yield to allow UI to update
                     }
                 }
-                catch (Exception ex)
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"[ERROR] Loading disk images failed: {ex.Message}");
+            }
+
+            // 3. Fallback to pack resources if disk images are not found
+            if (!anyDiskImages)
+            {
+                var resourceImagePaths = new List<string>
                 {
-                    Debug.WriteLine($"[ERROR] Failed to load resource image '{path}': {ex.Message}");
+                    "Resource/Images/1.jpg", "Resource/Images/2.jpg", "Resource/Images/3.jpg",
+                    "Resource/Images/4.jpg", "Resource/Images/5.jpg", "Resource/Images/6.jpg", "Resource/Images/7.jpg",
+                    "Resource/anim/Fieren.jpg", "Resource/anim/Fieren2.jpg", "Resource/anim/Fieren3.jpg",
+                    "Resource/anim/view.jpg", "Resource/anim/anime.jpg"
+                };
+
+                foreach (var path in resourceImagePaths)
+                {
+                    try
+                    {
+                        var uri = new Uri($"pack://application:,,,/{path}");
+                        var bitmap = CreateBitmapFromUri(uri);
+                        if (bitmap != null)
+                        {
+                            var element = CreateWallpaperElement(bitmap, uri.ToString());
+                            WallpaperListPanel.Children.Add(element);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Debug.WriteLine($"[ERROR] Failed to load resource image '{path}': {ex.Message}");
+                    }
                 }
+            }
+            
+            // If still nothing except possibly current wallpaper, warn user once
+            if (WallpaperListPanel.Children.Count <= 1)
+            {
+                MessageBox.Show(
+                    "Tidak ada gambar ditemukan di folder Resource/Images atau Resource/anim.\n" +
+                    "Pastikan file disalin ke folder output (bin/...) atau set 'Copy to Output Directory' atau 'Build Action: Resource'.",
+                    "Gambar Resource Tidak Ditemukan",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Information);
             }
         }
 
@@ -160,12 +192,55 @@ namespace ZeroMix
                 Child = image
             };
 
+            // Initial state now handled by XAML style (WallpaperBorderStyle) with Loaded animation
+
             border.MouseLeftButtonUp += (s, e) =>
             {
                 HandleWallpaperSelection(bitmap, imageIdentifier);
             };
 
             return border;
+        }
+
+        private async Task AnimateEntranceAsync(UIElement element, int orderIndex)
+        {
+            try
+            {
+                // Small stagger between items
+                int delay = Math.Max(0, Math.Min(orderIndex * 30, 300));
+                if (delay > 0)
+                {
+                    await Task.Delay(delay);
+                }
+
+                // Opacity animation
+                var fade = new DoubleAnimation
+                {
+                    From = 0,
+                    To = 1,
+                    Duration = TimeSpan.FromMilliseconds(250),
+                    EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut }
+                };
+
+                // Slide from top (Y: -24 -> 0)
+                var slide = new DoubleAnimation
+                {
+                    From = -24,
+                    To = 0,
+                    Duration = TimeSpan.FromMilliseconds(300),
+                    EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut }
+                };
+
+                element.BeginAnimation(UIElement.OpacityProperty, fade);
+                if (element is FrameworkElement fe && fe.RenderTransform is TranslateTransform tt)
+                {
+                    tt.BeginAnimation(TranslateTransform.YProperty, slide);
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"[ERROR] AnimateEntranceAsync: {ex.Message}");
+            }
         }
 
         /// <summary>
@@ -179,14 +254,27 @@ namespace ZeroMix
                 // so the Windows API can access it.
                 if (imageIdentifier.StartsWith("pack://"))
                 {
-                    string tempPath = Path.Combine(Path.GetTempPath(), $"zeromix_wallpaper_{Guid.NewGuid()}.jpg");
-                    var encoder = new JpegBitmapEncoder();
-                    encoder.Frames.Add(BitmapFrame.Create(bitmap));
-                    using (var fileStream = new FileStream(tempPath, FileMode.Create))
+                    // Load full-resolution frame from the resource stream (avoid thumbnail downscale)
+                    var packUri = new Uri(imageIdentifier, UriKind.Absolute);
+                    using (var resourceStream = Application.GetResourceStream(packUri)?.Stream)
                     {
-                        encoder.Save(fileStream);
+                        if (resourceStream == null)
+                            throw new FileNotFoundException($"Resource not found: {imageIdentifier}");
+
+                        // Decide output format based on the resource extension
+                        string ext = Path.GetExtension(packUri.AbsolutePath).ToLowerInvariant();
+                        string outExt = string.IsNullOrEmpty(ext) ? ".jpg" : ext;
+                        string tempPath = Path.Combine(Path.GetTempPath(), $"zeromix_wallpaper_{Guid.NewGuid()}{outExt}");
+
+                        BitmapEncoder encoder = CreateEncoderForExtension(outExt);
+                        var fullFrame = BitmapFrame.Create(resourceStream, BitmapCreateOptions.None, BitmapCacheOption.OnLoad);
+                        encoder.Frames.Add(fullFrame);
+                        using (var fileStream = new FileStream(tempPath, FileMode.Create))
+                        {
+                            encoder.Save(fileStream);
+                        }
+                        _selectedImagePath = tempPath;
                     }
-                    _selectedImagePath = tempPath;
                     MessageBox.Show($"Selected: {Path.GetFileName(imageIdentifier)}. Click 'Set as Wallpaper' to apply.", "Selection", MessageBoxButton.OK, MessageBoxImage.Information);
                 }
                 else
@@ -201,6 +289,75 @@ namespace ZeroMix
                 Debug.WriteLine($"[ERROR] HandleWallpaperSelection: {ex}");
             }
 }
+
+        private static IEnumerable<string> EnumerateResourceImagesOnDisk()
+        {
+            var results = new List<string>();
+            try
+            {
+                var exts = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { ".jpg", ".jpeg", ".png", ".bmp" };
+
+                // Try multiple possible roots (output dir, project dir, parent dirs)
+                string baseDir = AppDomain.CurrentDomain.BaseDirectory;
+                var candidateRoots = new List<string> { baseDir };
+
+                try
+                {
+                    var dirInfo = new DirectoryInfo(baseDir);
+                    // Walk up to 4 levels to cover bin/Debug/... back to project root
+                    for (int i = 0; i < 4 && dirInfo?.Parent != null; i++)
+                    {
+                        dirInfo = dirInfo.Parent;
+                        if (dirInfo != null)
+                        {
+                            candidateRoots.Add(dirInfo.FullName);
+                        }
+                    }
+                }
+                catch { }
+
+                foreach (var root in candidateRoots)
+                {
+                    string imagesDir = Path.Combine(root, "Resource", "Images");
+                    string animDir = Path.Combine(root, "Resource", "anim");
+
+                    foreach (var dir in new[] { imagesDir, animDir })
+                    {
+                        if (!Directory.Exists(dir)) continue;
+                        foreach (var file in Directory.EnumerateFiles(dir, "*.*", SearchOption.AllDirectories))
+                        {
+                            if (exts.Contains(Path.GetExtension(file)))
+                            {
+                                if (!results.Contains(file, StringComparer.OrdinalIgnoreCase))
+                                {
+                                    results.Add(file);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"[ERROR] EnumerateResourceImagesOnDisk: {ex.Message}");
+            }
+            return results;
+        }
+
+        private static BitmapEncoder CreateEncoderForExtension(string extension)
+        {
+            switch (extension.ToLowerInvariant())
+            {
+                case ".png":
+                    return new PngBitmapEncoder();
+                case ".bmp":
+                    return new BmpBitmapEncoder();
+                case ".jpg":
+                case ".jpeg":
+                default:
+                    return new JpegBitmapEncoder();
+            }
+        }
 
         /// <summary>
         /// Creates a BitmapImage from a local file path.
@@ -262,6 +419,20 @@ namespace ZeroMix
                 return key?.GetValue("Wallpaper") as string;
             }
         }
+        
+        private void Hyperlink_RequestNavigate(object sender, RequestNavigateEventArgs e)
+        {
+            try
+            {
+                Process.Start(new ProcessStartInfo(e.Uri.AbsoluteUri) { UseShellExecute = true });
+                e.Handled = true;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Gagal membuka tautan.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                Debug.WriteLine($"[ERROR] OpenLink: {ex}");
+            }
+        }
     }
 
     /// <summary>
@@ -285,5 +456,5 @@ namespace ZeroMix
         {
             SystemParametersInfo(SPI_SETDESKWALLPAPER, 0, path, SPIF_UPDATEINIFILE | SPIF_SENDCHANGE);
         }
-    }
+}
 }
