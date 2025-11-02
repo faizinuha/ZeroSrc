@@ -129,15 +129,20 @@ body {
 
 /* --- Navbar --- */
 .navbar {
-    background: rgba(10, 10, 20, 0.8);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
+    background: transparent;
     border-bottom: 1px solid var(--border-color);
     padding: 15px 20px;
     position: sticky;
     top: 0;
     width: 100%;
     z-index: 1000;
+    transition: background 0.3s ease;
+}
+
+.navbar.scrolled {
+    background: rgba(10, 10, 20, 0.8);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
 }
 
 .nav-container {
@@ -176,6 +181,14 @@ body {
     background: var(--primary-accent);
     color: #000;
 }
+
+.menu-toggle {
+    display: none;
+    color: var(--text-primary);
+    font-size: 1.5rem;
+    cursor: pointer;
+}
+
 
 
 /* --- Animasi --- */
@@ -394,9 +407,14 @@ h2 {
   display: block;
   width: 90%;
   border-radius: 12px;
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
-  border: 1px solid var(--border-color);
   object-fit: cover;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  background: transparent;
+}
+
+.swiper-slide:hover img {
+  transform: scale(1.05);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.5);
 }
 
 .swiper-pagination-bullet {
@@ -655,7 +673,27 @@ footer .easter-egg {
         gap: 20px;
     }
 
+    .menu-toggle {
+        display: block;
+    }
+
     .nav-menu {
-        display: none; /* Hide menu on mobile for now */
+        display: none;
+        position: absolute;
+        top: 60px;
+        left: 0;
+        background: rgba(10, 10, 20, 0.9);
+        width: 100%;
+        flex-direction: column;
+        align-items: center;
+        padding: 20px 0;
+    }
+
+    .nav-menu.active {
+        display: flex;
+    }
+
+    .nav-item {
+        margin: 10px 0;
     }
 }
