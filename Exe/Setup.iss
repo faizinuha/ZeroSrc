@@ -1,11 +1,11 @@
 ; --- Informasi Aplikasi & Penanda Tangan (Semua di dalam [Setup]) ---
 [Setup]
 AppName=ZeroMix
-AppVersion=1.7.0
-VersionInfoVersion=1.7.0.0
+AppVersion=1.9.0
+VersionInfoVersion=1.9.0.0
 VersionInfoCompany=Zaki
 VersionInfoDescription=ZeroMix smart launcher
-VersionInfoTextVersion=1.7.0.0
+VersionInfoTextVersion=1.9.0.0
 AppVerName=ZeroMix
 AppPublisher=Frieren
 AppPublisherURL=Mardve7.vercel.app
