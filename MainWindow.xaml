@@ -123,24 +123,25 @@
                                 <ColumnDefinition Width="Auto"/>
                                 <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
-                            <TextBlock Grid.Column="0" Text="CPU Usage:" FontWeight="Normal"/>
-                            <TextBlock Name="CpuUsageText" Grid.Column="1" Text="-- %" Margin="10,0,0,0" FontWeight="Normal"/>
+                            <TextBlock Grid.Column="0" Text="CPU Usage:" FontWeight="Normal" VerticalAlignment="Center"/>
+                            <ProgressBar Name="CpuProgressBar" Grid.Column="1" Height="18" Margin="10,0,0,0" Value="0" Maximum="100"/>
+                            <TextBlock Name="CpuUsageText" Grid.Column="1" Text="-- %" Margin="15,0,0,0" FontWeight="Normal" HorizontalAlignment="Left" VerticalAlignment="Center" Foreground="#FEFEFE"/>
                         </Grid>
                         <Grid Margin="0,10,0,0">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto"/>
                                 <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
-                            <TextBlock Grid.Column="0" Text="RAM Usage:" FontWeight="Normal"/>
-                            <TextBlock Name="RamUsageText" Grid.Column="1" Text="-- / -- MB" Margin="10,0,0,0" FontWeight="Normal"/>
+                            <TextBlock Grid.Column="0" Text="RAM Available:" FontWeight="Normal"/>
+                            <TextBlock Name="RamUsageText" Grid.Column="1" Text="-- MB" Margin="10,0,0,0" FontWeight="Normal"/>
                         </Grid>
                     </StackPanel>
                 </GroupBox>
-                <GroupBox Grid.Row="2" Header="System Maintenance" FontWeight="SemiBold" Margin="0,15,0,0">
+                <GroupBox Grid.Row="2" Header="System Cache" FontWeight="SemiBold" Margin="0,15,0,0">
                     <StackPanel Margin="10">
-                        <Button Name="CleanTempButton" Content="Clean Temporary Files" Click="CleanTempButton_Click" Style="{StaticResource MainButton}" HorizontalAlignment="Left"/>
-                        <TextBlock Name="CleanStatusText" Text="" Margin="0,10,0,0" Foreground="#555" FontStyle="Italic"/>
-                        <ProgressBar Name="CleanProgressBar" Height="8" Margin="0,5,0,0" IsIndeterminate="True" Visibility="Collapsed" />
+                        <Button Name="ClearCacheButton" Content="Clear System Cache" Click="ClearCacheButton_Click" Style="{StaticResource MainButton}" HorizontalAlignment="Left"/>
+                        <TextBlock Name="CacheStatusText" Text="" Margin="0,10,0,0" Foreground="#555" FontStyle="Italic"/>
+                        <ProgressBar Name="CacheProgressBar" Height="8" Margin="0,5,0,0" IsIndeterminate="True" Visibility="Collapsed" />
                     </StackPanel>
                 </GroupBox>
             </Grid>

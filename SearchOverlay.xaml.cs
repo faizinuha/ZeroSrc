@@ -128,7 +128,7 @@ namespace ZeroMix
         internal void EnableBlur()
         {
             var windowHelper = new System.Windows.Interop.WindowInteropHelper(this);
-            var accent = new AccentPolicy { AccentState = AccentState.ACCENT_ENABLE_BLURBEHIND };
+            var accent = new AccentPolicy { AccentState = AccentState.ACCENT_ENABLE_BLURBEHIND, AccentFlags = 2, GradientColor = 0 };
             var accentStructSize = Marshal.SizeOf(accent);
             var accentPtr = Marshal.AllocHGlobal(accentStructSize);
             Marshal.StructureToPtr(accent, accentPtr, false);
@@ -146,8 +146,11 @@ namespace ZeroMix
             this.Left = (screenWidth - this.Width) / 2;
             this.Top = screenHeight * 0.2; // 20% from the top
 
-            // Aktifkan efek blur saat window dimuat
-            EnableBlur();
+            // Atur background window menjadi transparan agar efek blur dari DWM terlihat.
+            // Latar belakang visual sekarang diatur pada MainBorder di XAML.
+            this.Background = System.Windows.Media.Brushes.Transparent;
+            // Aktifkan efek blur.
+            EnableBlur(); 
 
             var searchBox = this.FindName("SearchBox") as System.Windows.Controls.TextBox;
             searchBox?.Focus();
@@ -162,8 +165,6 @@ namespace ZeroMix
 
         private void BeginFadeOutAndClose()
         {
-            if (_isClosing) return;
-            _isClosing = true;
             var fadeOut = (Storyboard)FindResource("FadeOutStoryboard");
             fadeOut.Completed += (s, e) => this.Close();
             fadeOut.Begin(this);
@@ -367,6 +368,19 @@ namespace ZeroMix
                 ShowNotification($"Gagal menjalankan perintah: {ex.Message}", NotificationType.Error);
             }
         }
+        private void Window_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Escape)
+            {
+                BeginFadeOutAndClose();
+            }
+        }
+
+        private void Window_Deactivated(object sender, EventArgs e)
+        {
+            BeginFadeOutAndClose();
+        }
+
         //   Event Handlers
         private void SearchBox_KeyDown(object sender, KeyEventArgs e)
         {
@@ -407,10 +421,6 @@ namespace ZeroMix
                     else ExecuteCommand(query);
                 }
             }
-            else if (e.Key == Key.Escape)
-            {
-                BeginFadeOutAndClose();
-            }
             else if (e.Key == Key.Down)
             {
                 // var suggestionList is already defined in this scope
@@ -428,6 +438,7 @@ namespace ZeroMix
             {
                 string url = $"https://www.google.com/search?q={Uri.EscapeDataString(query)}";
                 Process.Start(new ProcessStartInfo(url) { UseShellExecute = true });
+                BeginFadeOutAndClose();
             }
             catch (Exception ex)
             {
@@ -441,6 +452,7 @@ namespace ZeroMix
             {
                 string url = $"https://www.youtube.com/results?search_query={Uri.EscapeDataString(channelName)}";
                 Process.Start(new ProcessStartInfo(url) { UseShellExecute = true });
+                BeginFadeOutAndClose();
             }
             catch (Exception ex)
             {
@@ -525,17 +537,17 @@ namespace ZeroMix
 
             // Karena hotkey sekarang dimuat ulang secara dinamis, kita tidak perlu menutup aplikasi.
             // Cukup tampilkan kembali overlay.
-            if (result == true)
-            {
-                // Pengguna menyimpan, cukup tampilkan kembali overlay
-                this.Visibility = Visibility.Visible;
-                SearchBox.Focus();
-            }
-            else // Jika pengguna menekan "Cancel" atau menutup jendela
-            {
-                this.Visibility = Visibility.Visible; // Tampilkan kembali overlay
-                SearchBox.Focus();
-            }
+            // if (result == true)
+            // {
+            //     // Pengguna menyimpan, cukup tampilkan kembali overlay
+            //     this.Visibility = Visibility.Visible;
+            //     SearchBox.Focus();
+            // }
+            // else // Jika pengguna menekan "Cancel" atau menutup jendela
+            // {
+            //     this.Visibility = Visibility.Visible; // Tampilkan kembali overlay
+            //     SearchBox.Focus();
+            // }
         }
 
         public void BeginFadeOutAndCloseByMain()
