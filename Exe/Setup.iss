@@ -1,8 +1,8 @@
 ; --- Informasi Aplikasi & Penanda Tangan (Semua di dalam [Setup]) ---
 [Setup]
 AppName=ZeroMix
-AppVersion=1.9.0
-VersionInfoVersion=1.9.0.0
+AppVersion=1.9.5
+VersionInfoVersion=1.9.5.0
 VersionInfoCompany=Zaki
 VersionInfoDescription=ZeroMix smart launcher
 VersionInfoTextVersion=1.9.0.0
@@ -22,6 +22,8 @@ SolidCompression=yes
 DisableProgramGroupPage=yes
 UninstallDisplayIcon={app}\zeromix.ico
 WizardImageFile=zeromix.bmp
+WizardSmallImageFile=zeromix.bmp
+WizardStyle=modern
 ;SignTool=osslsigncode
 
 [SignTool]
@@ -44,6 +46,7 @@ osslsigncode="osslsigncode.exe sign -pkcs12 ZeroMixCert.pfx -pass ""ZeroMixPass"
 ; (from project root: dotnet publish ... -o ./publish/win-x64), or adjust the path here to the correct publish location.
 Source: "..\publish\win-x64\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "zeromix.ico"; DestDir: "{app}"; Flags: ignoreversion
+Source: "..\Resource\*"; DestDir: "{app}\Resource"; Flags: ignoreversion recursesubdirs createallsubdirs
 
 ; --- Shortcut ---
 [Icons]
@@ -93,14 +96,8 @@ begin
   Result := True;
   if CurPageID = wpLicense then
   begin
-    // Memeriksa apakah pengguna telah menggulir ke bagian bawah lisensi
-    if WizardForm.LicenseMemo.VScroll.Position <> WizardForm.LicenseMemo.VScroll.Max then
-    begin
-      MsgBox('Silakan gulir ke bawah dan baca seluruh syarat dan ketentuan sebelum melanjutkan.', mbInformation, MB_OK);
-      Result := False;
-    end
     // Memeriksa apakah tombol radio "accept" sudah dicentang
-    else if not WizardForm.LicenseAcceptedRadio.Checked then
+    if not WizardForm.LicenseAcceptedRadio.Checked then
     begin
       MsgBox('Anda harus menerima syarat dan ketentuan untuk melanjutkan.', mbError, MB_OK);
       Result := False;
@@ -117,7 +114,7 @@ begin
   MsgBox('Terima kasih sudah menginstall ZeroMix!' + #13#10 + 'Dukungan Anda sangat berarti bagi kami.', mbInformation, MB_OK);
   // Open the thank you page in the user's default web browser
   // khusus 
-  ShellExec('open', 'https://zeromix.vercel.app/ThanksYou', '', '', SW_SHOWNORMAL, ewNoWait, ErrorCode);
+  ShellExec('open', 'https://zeromix.vercel.app/ThanksYou.html', '', '', SW_SHOWNORMAL, ewNoWait, ErrorCode);
  end;
 end;
 
