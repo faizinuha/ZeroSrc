@@ -74,7 +74,7 @@ Filename: "cmd.exe"; Parameters: "/C echo Terima kasih telah menggunakan! && tim
 ; --- Teks Custom Welcome & Selesai ---
 [Messages]
 WelcomeLabel1=Selamat datang di Program Penginstal ZeroMix
-WelcomeLabel2=Program ini akan menginstal ZeroMix versi 1.7.0 di komputer Anda.%n%nZeroMix adalah aplikasi pintar yang memungkinkan Anda membuka web dan aplikasi desktop dengan cepat dan efisien.%n%nDisarankan untuk menutup semua aplikasi lain sebelum melanjutkan.
+WelcomeLabel2=Program ini akan menginstal ZeroMix di komputer Anda.%n%nZeroMix adalah aplikasi pintar yang memungkinkan Anda membuka web dan aplikasi desktop dengan cepat dan efisien.%n%nDisarankan untuk menutup semua aplikasi lain sebelum melanjutkan.
 FinishedLabel=ZeroMix telah berhasil diinstal di komputer Anda.%n%nSilakan tekan Selesai untuk keluar dari Program Penginstal.
 FinishedHeadingLabel=Penyelesaian Penginstalan ZeroMix
 AboutSetupNote=Program Penginstal ZeroMix dibuat dengan Inno Setup.%nInno Setup tersedia secara gratis dari jrsoftware.org.
@@ -116,7 +116,7 @@ begin
  begin
   MsgBox('Terima kasih sudah menginstall ZeroMix!' + #13#10 + 'Dukungan Anda sangat berarti bagi kami.', mbInformation, MB_OK);
   // Open the thank you page in the user's default web browser
-  // khusus 1.7.0
+  // khusus 
   ShellExec('open', 'https://zeromix.vercel.app/ThanksYou', '', '', SW_SHOWNORMAL, ewNoWait, ErrorCode);
  end;
 end;

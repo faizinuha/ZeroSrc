@@ -64,6 +64,7 @@ namespace ZeroMix
             // CPU Usage
             float cpuUsage = _cpuCounter.NextValue();
             CpuUsageText.Text = $"{cpuUsage:F1} %";
+            CpuProgressBar.Value = cpuUsage;
 
             // RAM Usage
             float availableRam = _ramCounter.NextValue();
@@ -164,11 +165,11 @@ namespace ZeroMix
 
         // --- Dashboard Logic --- //
 
-        private async void CleanTempButton_Click(object sender, RoutedEventArgs e)
+        private async void ClearCacheButton_Click(object sender, RoutedEventArgs e)
         {
-            CleanTempButton.IsEnabled = false;
-            CleanStatusText.Text = "Pembersihan Segeara Mohon tunggu..";
-            CleanProgressBar.Visibility = Visibility.Visible;
+            ClearCacheButton.IsEnabled = false;
+            CacheStatusText.Text = "Pembersihan Segeara Mohon tunggu..";
+            CacheProgressBar.Visibility = Visibility.Visible;
 
             int skippedFiles = 0;
 
@@ -207,9 +208,9 @@ namespace ZeroMix
                 }
             });
 
-            CleanStatusText.Text = $"Cleaning complete. Skipped {skippedFiles} files that were in use.";
-            CleanTempButton.IsEnabled = true;
-            CleanProgressBar.Visibility = Visibility.Collapsed;
+            CacheStatusText.Text = $"Cleaning complete. Skipped {skippedFiles} files that were in use.";
+            ClearCacheButton.IsEnabled = true;
+            CacheProgressBar.Visibility = Visibility.Collapsed;
         }
 
         private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)

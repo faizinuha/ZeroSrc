@@ -105,6 +105,7 @@ namespace ZeroMix
                 _overlay = new SearchOverlay();
                 _overlay.Closed += (s, e) => _overlay = null;
                 _overlay.Show();
+                _overlay.Activate();
             }
             else
             {

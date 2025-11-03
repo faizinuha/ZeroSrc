@@ -15,7 +15,7 @@ namespace ZeroMix
             // First, create and show the main window.
             // This becomes the main window for the application's lifetime.
             var mainWindow = new MainWindow();
-            this.MainWindow = mainWindow;
+            // this.MainWindow = mainWindow;
             mainWindow.Show();
 
             // Now, run the background hotkey service.

@@ -4,7 +4,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     Title="Wallpaper Settings"
     Width="700"
-    Height="600"
+    Height="700"
     AllowsTransparency="True"
     Background="Transparent"
     Loaded="Window_Loaded"

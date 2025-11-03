@@ -3,7 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:local="clr-namespace:ZeroMix"
         Title="ZeroMix"
-        Width="680"
+        Width="700"
         SizeToContent="Height"
         MaxHeight="600"
         Topmost="True"
@@ -15,7 +15,9 @@
         Opacity="0"
         Icon="zeromix.ico"
         MouseLeftButtonDown="Window_MouseLeftButtonDown"
-        Loaded="Window_Loaded">
+        Loaded="Window_Loaded"
+        KeyDown="Window_KeyDown"
+        Deactivated="Window_Deactivated">
 
     <Window.Resources>
         <Storyboard x:Key="FadeInStoryboard">
@@ -41,6 +43,19 @@
                                      EasingMode="EaseOut"/>
                 </DoubleAnimation.EasingFunction>
             </DoubleAnimation>
+            
+            <!-- Animasi untuk menggambar logo Z -->
+            <DoubleAnimation Storyboard.TargetName="ZLogoPath"
+                             Storyboard.TargetProperty="StrokeDashOffset"
+                             From="80" 
+                             To="0"
+                             BeginTime="0:0:0.1"
+                             Duration="0:0:0.6">
+                <DoubleAnimation.EasingFunction>
+                    <CubicEase EasingMode="EaseInOut"/>
+                </DoubleAnimation.EasingFunction>
+            </DoubleAnimation>
+
         </Storyboard>
 
         <Storyboard x:Key="FadeOutStoryboard">
@@ -133,6 +148,7 @@
             </Grid>
         </ControlTemplate>
 
+
         <Style x:Key="SuggestionItemStyle"
                TargetType="ListBoxItem">
             <Setter Property="Padding"
@@ -206,12 +222,12 @@
     </Window.RenderTransform>
 
     <Grid>
-        <Border CornerRadius="18"
-                Background="#E6FFFFFF"
+        <Border x:Name="MainBorder"
+                CornerRadius="18"
+                Background="#CCF2F2F7"
                 BorderBrush="#20000000"
                 BorderThickness="1"
-                Effect="{StaticResource MacShadow}"
-                Margin="8">
+                Effect="{StaticResource MacShadow}">
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
@@ -232,18 +248,23 @@
                              Width="40">
                         <Canvas Width="32"
                                 Height="32">
-                            <Path Data="M 4,6 L 28,6 L 4,26 L 28,26"
+                            <Path x:Name="ZLogoPath"
+                                  Data="M 4,6 L 28,6 L 4,26 L 28,26"
                                   StrokeThickness="5"
                                   Stroke="{StaticResource ZGradient}"
                                   StrokeLineJoin="Round"
                                   StrokeStartLineCap="Round"
-                                  StrokeEndLineCap="Round"/>
+                                  StrokeEndLineCap="Round"
+                                  StrokeDashArray="80"
+                                  StrokeDashOffset="80"
+                                  />
                         </Canvas>
                     </Viewbox>
 
                     <TextBox Name="SearchBox"
                              Grid.Column="1"
-                             Margin="0,16,16,16"
+                             Padding="8,0,16,0"
+                             Margin="0,12,16,12"
                              KeyDown="SearchBox_KeyDown"
                              TextChanged="SearchBox_TextChanged"
                              Style="{StaticResource SearchBoxStyle}"
@@ -252,7 +273,7 @@
 
                 <ListBox Name="SuggestionList"
                          Grid.Row="1"
-                         Margin="60,0,16,16"
+                         Margin="16,0,16,16"
                          MaxHeight="400"
                          Background="Transparent"
                          BorderThickness="0"
@@ -266,7 +287,7 @@
 
                 <TextBlock Name="NotificationText"
                            Grid.Row="2"
-                           Margin="60,0,16,16"
+                           Margin="16,0,16,16"
                            TextAlignment="Center"
                            FontWeight="Medium"
                            Foreground="#007AFF"
@@ -277,7 +298,7 @@
                         Grid.Row="0"
                         HorizontalAlignment="Right"
                         VerticalAlignment="Center"
-                        Margin="0,0,16,0"
+                        Margin="0,0,15,0"
                         Content="&#xE713;"
                         FontFamily="Segoe MDL2 Assets"
                         FontSize="16"
