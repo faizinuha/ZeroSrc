@@ -1,7 +1,10 @@
-# =========================
-# build.ps1
-# dotnet publish -c Release -r win-x64 --self-contained true
-# =========================
+# Script untuk mengotomatiskan build installer ZeroMix
+
+# --- Langkah 0: Publish Aplikasi ---
+Write-Host "Langkah 0: Mem-publish aplikasi ZeroMix..."
+dotnet publish -c Release -r win-x64 -p:PublishSingleFile=true -p:PublishTrimmed=true --self-contained true -o "..\publish\win-x64"
+
+# --- Konfigurasi ---
 $ErrorActionPreference = "Stop"
 
 Write-Host "Langkah 1: Mengkompilasi installer ZeroMix..." -ForegroundColor Green
