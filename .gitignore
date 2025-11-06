@@ -3,7 +3,7 @@ publish/
 Release/
 obj/
 bin/
-
+Exstenions/
 # File sertifikat (jangan dimasukkan ke repositori publik)
 Exe/ZeroMixCert.pfx
 

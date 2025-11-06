@@ -1,11 +1,13 @@
 ; --- Informasi Aplikasi & Penanda Tangan (Semua di dalam [Setup]) ---
 [Setup]
 AppName=ZeroMix
-AppVersion=1.9.5
-VersionInfoVersion=1.9.5.0
+AppVersion=2.0.0
+VersionInfoVersion=2.0.0.0
 VersionInfoCompany=Zaki
 VersionInfoDescription=ZeroMix smart launcher
-VersionInfoTextVersion=1.9.0.0
+VersionInfoTextVersion=2.0.0.0
+VersionInfoProductVersion=2.0.0.0
+SetupIconFile=zeromix.ico
 AppVerName=ZeroMix
 AppPublisher=Frieren
 AppPublisherURL=Mardve7.vercel.app
@@ -24,10 +26,9 @@ UninstallDisplayIcon={app}\zeromix.ico
 WizardImageFile=zeromix.bmp
 WizardSmallImageFile=zeromix.bmp
 WizardStyle=modern
-;SignTool=osslsigncode
-
-[SignTool]
-osslsigncode="osslsigncode.exe sign -pkcs12 ZeroMixCert.pfx -pass ""ZeroMixPass"" -n ""ZeroMix"" -i ""https://zeromix.vercel.app"" -in $f -out $f -t http://timestamp.digicert.com"
+; Digital signature settings
+SignTool= bin\osslsigncode.exe
+SignToolParameters=sign -pkcs12 "ZeroMixCert.pfx" -pass "ZeroMixPass" -n "ZeroMix Installer" -i "https://zeromix.vercel.app" -t "http://timestamp.digicert.com" $f
 
 ; NOTE for packagers:
 ; To avoid requiring users to install the .NET runtime, publish your app as
@@ -72,7 +73,6 @@ Type: filesandordirs; Name: "{userappdata}\ZeroMix"
 Filename: "taskkill.exe"; Parameters: "/IM ZeroMix.exe /F"; StatusMsg: "Menutup aplikasi..."; Flags: runhidden
 Filename: "cmd.exe"; Parameters: "/C echo Terima kasih telah menggunakan! && timeout /t 3"; Flags: runhidden
 
-; --- Teks Custom Welcome & Selesai ---
 
 ; --- Teks Custom Welcome & Selesai ---
 [Messages]
@@ -91,19 +91,7 @@ WindowsServiceNote=Layanan Windows:
 InfoBeforeFile=../SECURITY.md
 
 [Code]
-function NextButtonClick(CurPageID: Integer): Boolean;
-begin
-  Result := True;
-  if CurPageID = wpLicense then
-  begin
-    // Memeriksa apakah tombol radio "accept" sudah dicentang
-    if not WizardForm.LicenseAcceptedRadio.Checked then
-    begin
-      MsgBox('Anda harus menerima syarat dan ketentuan untuk melanjutkan.', mbError, MB_OK);
-      Result := False;
-    end;
-  end;
-end;
+
 
 procedure CurStepChanged(CurStep: TSetupStep);
 var

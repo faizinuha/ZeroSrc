@@ -23,6 +23,12 @@
     <Resource Include="zeromix.ico" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Content Include="Resource\**">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
   <Target Name="AfterPublish" AfterTargets="Publish" Condition="'$(Configuration)' == 'Release' AND '$(BuildingForLiveReload)' != 'true'">
     <Message Text="Menjalankan proses signing installer ZeroMix..." Importance="High" />
     <Exec Command='powershell -ExecutionPolicy Bypass -File "$(ProjectDir)build\build.ps1"' />
