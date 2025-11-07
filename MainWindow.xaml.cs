@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Forms;
 using System.Windows.Threading;
+using ZeroMix.Core;
 
 namespace ZeroMix
 {
@@ -22,10 +23,26 @@ namespace ZeroMix
         {
             InitializeComponent();
             InitializeTrayIcon();
-            InitializePerformanceCounters();
 
             // Set initial view
             HomeButton_Click(this, new RoutedEventArgs());
+
+            App.HotkeyCoreInstance = new HotkeyCore();
+            App.HotkeyCoreInstance.Show();
+
+            // Run update check in the background without awaiting it.
+            _ = Task.Run(async () =>
+            {
+                try
+                {
+                    var updater = new GithubUpdater();
+                    await updater.CheckAndUpdateAsync();
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"Error during update check: {ex.Message}");
+                }
+            });
         }
 
         private void InitializeTrayIcon()
@@ -125,7 +142,13 @@ namespace ZeroMix
         {
             DeactivateAllTabs();
             DashboardContent.Visibility = Visibility.Visible;
+
+            if (_performanceTimer == null)
+            {
+                InitializePerformanceCounters();
+            }
             _performanceTimer.Start();
+
             DashboardButton.Background = (System.Windows.Media.SolidColorBrush)FindResource("NavSelectedBrush");
         }
 
