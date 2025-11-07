@@ -27,6 +27,7 @@ namespace ZeroMix
         private async void Window_Loaded(object sender, RoutedEventArgs e)
         {
             await LoadWallpapersAsync();
+            await LoadVideoWallpapersAsync();
         }
 
         private void Window_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
@@ -42,23 +43,38 @@ namespace ZeroMix
             Close();
         }
 
-        private void BrowseButton_Click(object sender, RoutedEventArgs e)
+        private async void BrowseButton_Click(object sender, RoutedEventArgs e)
         {
             var openFileDialog = new OpenFileDialog
             {
-                Title = "Select a Wallpaper Image",
-                Filter = "Image Files|*.jpg;*.jpeg;*.png;*.bmp|All files (*.*)|*.*"
+                Title = "Select a Wallpaper Image or Video",
+                Filter = "All Media Files|*.jpg;*.jpeg;*.png;*.bmp;*.mp4;*.wmv;*.mov|Image Files|*.jpg;*.jpeg;*.png;*.bmp|Video Files|*.mp4;*.wmv;*.mov|All files (*.*)|*.*"
+
             };
 
             if (openFileDialog.ShowDialog() == true)
             {
                 _selectedImagePath = openFileDialog.FileName;
-                var bitmap = CreateBitmapFromPath(_selectedImagePath);
-                if (bitmap != null)
+                var ext = Path.GetExtension(_selectedImagePath).ToLowerInvariant();
+                if (new[] { ".mp4", ".wmv", ".mov", ".avi" }.Contains(ext))
                 {
-                    var wallpaperElement = CreateWallpaperElement(bitmap, _selectedImagePath);
-                    WallpaperListPanel.Children.Insert(0, wallpaperElement);
-                    MessageBox.Show("Image selected. Click 'Set as Wallpaper' to apply.", "Image Ready", MessageBoxButton.OK, MessageBoxImage.Information);
+                    BitmapSource? thumbnail = await GenerateThumbnailAsync(_selectedImagePath, TimeSpan.FromSeconds(1));
+                    if (thumbnail != null)
+                    {
+                        var videoElement = CreateVideoElement(thumbnail, _selectedImagePath);
+                        WallpaperListPanel.Children.Insert(0, videoElement);
+                    }
+                    MessageBox.Show("Video selected. Setting video wallpapers is not yet supported.", "Video Ready", MessageBoxButton.OK, MessageBoxImage.Information);
+                }
+                else
+                {
+                    var bitmap = CreateBitmapFromPath(_selectedImagePath);
+                    if (bitmap != null)
+                    {
+                        var wallpaperElement = CreateWallpaperElement(bitmap, _selectedImagePath);
+                        WallpaperListPanel.Children.Insert(0, wallpaperElement);
+                        MessageBox.Show("Image selected. Click 'Set as Wallpaper' to apply.", "Image Ready", MessageBoxButton.OK, MessageBoxImage.Information);
+                    }
                 }
             }
         }
@@ -70,7 +86,14 @@ namespace ZeroMix
         {
             if (string.IsNullOrEmpty(_selectedImagePath) || !File.Exists(_selectedImagePath))
             {
-                MessageBox.Show("Please select a valid image first.", "No Image Selected", MessageBoxButton.OK, MessageBoxImage.Warning);
+                MessageBox.Show("Please select a valid image or video first.", "No File Selected", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+            var ext = Path.GetExtension(_selectedImagePath).ToLowerInvariant();
+            if (new[] { ".mp4", ".wmv", ".mov" }.Contains(ext))
+            {
+                MessageBox.Show("Setting a video as a wallpaper is not yet supported.", "Feature Not Available", MessageBoxButton.OK, MessageBoxImage.Information);
                 return;
             }
 
@@ -84,6 +107,143 @@ namespace ZeroMix
                 MessageBox.Show($"Failed to set wallpaper: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
                 Debug.WriteLine($"[ERROR] SetWallpaper: {ex}");
             }
+        }
+
+        private async Task LoadVideoWallpapersAsync()
+        {
+            var videoPaths = new List<string>();
+            try
+            {
+                var videoExtensions = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { ".mp4", ".wmv", ".mov", ".avi" };
+                string baseDir = AppDomain.CurrentDomain.BaseDirectory;
+                var candidateRoots = new List<string> { baseDir };
+                var dirInfo = new DirectoryInfo(baseDir);
+                for (int i = 0; i < 4 && dirInfo?.Parent != null; i++)
+                {
+                    dirInfo = dirInfo.Parent;
+                    if (dirInfo != null) candidateRoots.Add(dirInfo.FullName);
+                }
+
+                foreach (var root in candidateRoots)
+                {
+                    string videoDir = Path.Combine(root, "Resource", "Video");
+                    if (!Directory.Exists(videoDir)) continue;
+
+                    foreach (var file in Directory.EnumerateFiles(videoDir, "*.*", SearchOption.AllDirectories))
+                    {
+                        if (videoExtensions.Contains(Path.GetExtension(file)))
+                        {
+                            if (!videoPaths.Contains(file, StringComparer.OrdinalIgnoreCase))
+                            {
+                                videoPaths.Add(file);
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"[ERROR] Enumerating video files failed: {ex.Message}");
+            }
+
+            foreach (var videoPath in videoPaths)
+            {
+                try
+                {
+                    BitmapSource? thumbnail = await GenerateThumbnailAsync(videoPath, TimeSpan.FromSeconds(1));
+                    if (thumbnail != null)
+                    {
+                        var element = CreateVideoElement(thumbnail, videoPath);
+                        WallpaperListPanel.Children.Add(element);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"[ERROR] Failed to create thumbnail for {videoPath}: {ex.Message}");
+                }
+            }
+        }
+
+        private Border CreateVideoElement(BitmapSource thumbnail, string videoPath)
+        {
+            var image = new Image
+            {
+                Source = thumbnail,
+                Style = (Style)FindResource("WallpaperImageStyle")
+            };
+
+            var border = new Border
+            {
+                Style = (Style)FindResource("WallpaperBorderStyle"),
+                Child = image,
+                ToolTip = videoPath
+            };
+
+            border.MouseLeftButtonUp += (s, e) =>
+            {
+                _selectedImagePath = videoPath;
+                MessageBox.Show($"Selected video: {Path.GetFileName(videoPath)}. Setting video wallpapers is not yet supported.", "Video Selected", MessageBoxButton.OK, MessageBoxImage.Information);
+            };
+
+            return border;
+        }
+
+        private async Task<BitmapSource?> GenerateThumbnailAsync(string videoPath, TimeSpan seekTime)
+        {
+            if (!File.Exists(videoPath)) return null;
+
+            var tcs = new TaskCompletionSource<BitmapSource?>();
+
+            // MediaPlayer must be created and used on the UI thread.
+            await Application.Current.Dispatcher.InvokeAsync(() =>
+            {
+                var player = new MediaPlayer { Volume = 0, ScrubbingEnabled = true };
+                player.Open(new Uri(videoPath));
+
+                player.MediaOpened += (s, e) =>
+                {
+                    player.Position = seekTime;
+                };
+
+                player.SeekCompleted += (s, e) =>
+                {
+                    try
+                    {
+                        // Define the size of the thumbnail.
+                        int width = 180;
+                        int height = 100;
+
+                        // Render the current frame of the video to a bitmap.
+                        var drawingVisual = new DrawingVisual();
+                        using (var drawingContext = drawingVisual.RenderOpen())
+                        {
+                            drawingContext.DrawVideo(player, new Rect(0, 0, width, height));
+                        }
+
+                        var renderTarget = new RenderTargetBitmap(width, height, 96, 96, PixelFormats.Pbgra32);
+                        renderTarget.Render(drawingVisual);
+                        renderTarget.Freeze(); // Important for performance and cross-thread access
+
+                        player.Close();
+                        tcs.TrySetResult(renderTarget);
+                    }
+                    catch (Exception ex)
+                    {
+                        Debug.WriteLine($"[ERROR] Thumbnail generation failed inside SeekCompleted: {ex.Message}");
+                        player.Close();
+                        tcs.TrySetResult(null);
+                    }
+                };
+
+                player.MediaFailed += (s, e) =>
+                {
+                    Debug.WriteLine($"[ERROR] MediaFailed for {videoPath}: {e.ErrorException.Message}");
+                    player.Close();
+                    tcs.TrySetResult(null);
+                };
+            });
+
+            return await tcs.Task;
         }
 
         /// <summary>
@@ -159,7 +319,7 @@ namespace ZeroMix
                     }
                 }
             }
-            
+
             // If still nothing except possibly current wallpaper, warn user once
             if (WallpaperListPanel.Children.Count <= 1)
             {
@@ -288,7 +448,7 @@ namespace ZeroMix
                 MessageBox.Show("Failed to prepare the selected image.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
                 Debug.WriteLine($"[ERROR] HandleWallpaperSelection: {ex}");
             }
-}
+        }
 
         private static IEnumerable<string> EnumerateResourceImagesOnDisk()
         {
@@ -419,7 +579,7 @@ namespace ZeroMix
                 return key?.GetValue("Wallpaper") as string;
             }
         }
-        
+
         private void Hyperlink_RequestNavigate(object sender, RequestNavigateEventArgs e)
         {
             try
@@ -456,5 +616,5 @@ namespace ZeroMix
         {
             SystemParametersInfo(SPI_SETDESKWALLPAPER, 0, path, SPIF_UPDATEINIFILE | SPIF_SENDCHANGE);
         }
-}
+    }
 }
