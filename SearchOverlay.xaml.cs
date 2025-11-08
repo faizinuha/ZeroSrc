@@ -79,7 +79,7 @@ namespace ZeroMix
 
     public partial class SearchOverlay : Window
     {
-        private bool _isClosing = false;
+
         private readonly TextBlock _notificationText;
         private readonly List<SuggestionItem> _allSuggestions = new();
         private readonly List<string> _filteredSuggestions = new();

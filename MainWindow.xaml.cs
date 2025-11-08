@@ -12,10 +12,10 @@ namespace ZeroMix
 {
     public partial class MainWindow : Window
     {
-        private NotifyIcon _notifyIcon;
-        private PerformanceCounter _cpuCounter;
-        private PerformanceCounter _ramCounter;
-        private DispatcherTimer _performanceTimer;
+        private NotifyIcon? _notifyIcon;
+        private PerformanceCounter? _cpuCounter;
+        private PerformanceCounter? _ramCounter;
+        private DispatcherTimer? _performanceTimer;
 
         
 
@@ -23,12 +23,12 @@ namespace ZeroMix
         {
             InitializeComponent();
             InitializeTrayIcon();
+        }
 
-            // Set initial view
+        private void Window_Loaded(object sender, RoutedEventArgs e)
+        {
+            // Set initial view after the window has loaded
             HomeButton_Click(this, new RoutedEventArgs());
-
-            App.HotkeyCoreInstance = new HotkeyCore();
-            App.HotkeyCoreInstance.Show();
 
             // Run update check in the background without awaiting it.
             _ = Task.Run(async () =>
@@ -76,7 +76,7 @@ namespace ZeroMix
             _performanceTimer.Tick += PerformanceTimer_Tick;
         }
 
-        private void PerformanceTimer_Tick(object sender, EventArgs e)
+        private void PerformanceTimer_Tick(object? sender, EventArgs e)
         {
             // CPU Usage
             float cpuUsage = _cpuCounter.NextValue();
@@ -88,7 +88,7 @@ namespace ZeroMix
             RamUsageText.Text = $"{availableRam:F0} MB Available";
 
             // Update tray icon tooltip
-            _notifyIcon.Text = $"CPU: {cpuUsage:F1}% | RAM: {availableRam:F0}MB Avail.";
+            _notifyIcon!.Text = $"CPU: {cpuUsage:F1}% | RAM: {availableRam:F0}MB Avail.";
         }
 
         private void ShowWindow()
@@ -116,19 +116,21 @@ namespace ZeroMix
 
         private void DeactivateAllTabs()
         {
-            HomeContent.Visibility = Visibility.Collapsed;
-            DashboardContent.Visibility = Visibility.Collapsed;
-            AboutContent.Visibility = Visibility.Collapsed;
-           
+            if (HomeContent != null) HomeContent.Visibility = Visibility.Collapsed;
+            if (DashboardContent != null) DashboardContent.Visibility = Visibility.Collapsed;
+            if (AboutContent != null) AboutContent.Visibility = Visibility.Collapsed;
+            if (PrivacyContent != null) PrivacyContent.Visibility = Visibility.Collapsed;
 
-            _performanceTimer.Stop();
+            if (_performanceTimer != null)
+            {
+                _performanceTimer.Stop();
+            }
 
-            HomeButton.Background = System.Windows.Media.Brushes.Transparent;
-            DashboardButton.Background = System.Windows.Media.Brushes.Transparent;
-            AboutButton.Background = System.Windows.Media.Brushes.Transparent;
-            PrivacyButton.Background = System.Windows.Media.Brushes.Transparent;
-            WallpaperButton.Background = System.Windows.Media.Brushes.Transparent;
-            PrivacyContent.Visibility = Visibility.Collapsed;
+            if (HomeButton != null) HomeButton.Background = System.Windows.Media.Brushes.Transparent;
+            if (DashboardButton != null) DashboardButton.Background = System.Windows.Media.Brushes.Transparent;
+            if (AboutButton != null) AboutButton.Background = System.Windows.Media.Brushes.Transparent;
+            if (PrivacyButton != null) PrivacyButton.Background = System.Windows.Media.Brushes.Transparent;
+            if (WallpaperButton != null) WallpaperButton.Background = System.Windows.Media.Brushes.Transparent;
         }
 
         private void HomeButton_Click(object sender, RoutedEventArgs e)
