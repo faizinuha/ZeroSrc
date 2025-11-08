@@ -153,6 +153,14 @@
     </Window.Resources>
 
     <Border Margin="10" CornerRadius="8">
+        <!--
+        SOLUSI PERFORMA:
+        1. DropShadowEffect bisa memakan banyak resource. Jika jendela terasa lambat saat dibuka atau digeser,
+           coba kurangi `BlurRadius` atau `Opacity`. Untuk performa maksimal, hapus DropShadowEffect sepenuhnya.
+        2. Jika jumlah wallpaper menjadi sangat banyak (ratusan), pertimbangkan untuk mengganti WrapPanel
+           dengan `VirtualizingStackPanel` atau `VirtualizingTilePanel` untuk performa scrolling yang lebih baik.
+           Ini akan mencegah semua gambar dimuat ke memori sekaligus.
+        -->
         <Border.Effect>
             <DropShadowEffect
                 BlurRadius="15"
