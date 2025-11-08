@@ -26,6 +26,9 @@ namespace ZeroMix
 
         private async void Window_Loaded(object sender, RoutedEventArgs e)
         {
+            // Clear existing items to prevent duplicates if this event is somehow called again.
+            WallpaperListPanel.Children.Clear();
+
             await LoadWallpapersAsync();
             await LoadVideoWallpapersAsync();
         }
@@ -208,8 +211,8 @@ namespace ZeroMix
                     try
                     {
                         // Define the size of the thumbnail.
-                        int width = 180;
-                        int height = 100;
+                        int width = 200;
+                        int height = 200;
 
                         // Render the current frame of the video to a bitmap.
                         var drawingVisual = new DrawingVisual();
@@ -455,56 +458,42 @@ namespace ZeroMix
 
         private static IEnumerable<string> EnumerateResourceImagesOnDisk()
         {
-            var results = new List<string>();
+            var uniquePaths = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             try
             {
                 var exts = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { ".jpg", ".jpeg", ".png", ".bmp" };
-
-                // Try multiple possible roots (output dir, project dir, parent dirs)
                 string baseDir = AppDomain.CurrentDomain.BaseDirectory;
-                var candidateRoots = new List<string> { baseDir };
+                var dirInfo = new DirectoryInfo(baseDir);
 
-                try
+                // Walk up a maximum of 4 levels to find the "Resource" folder.
+                for (int i = 0; i < 4 && dirInfo != null; i++)
                 {
-                    var dirInfo = new DirectoryInfo(baseDir);
-                    // Walk up to 4 levels to cover bin/Debug/... back to project root
-                    for (int i = 0; i < 4 && dirInfo?.Parent != null; i++)
+                    string resourceRoot = Path.Combine(dirInfo.FullName, "Resource");
+                    if (Directory.Exists(resourceRoot))
                     {
-                        dirInfo = dirInfo.Parent;
-                        if (dirInfo != null)
+                        var imageDirs = new[] { Path.Combine(resourceRoot, "Images"), Path.Combine(resourceRoot, "anim") };
+                        foreach (var dir in imageDirs)
                         {
-                            candidateRoots.Add(dirInfo.FullName);
-                        }
-                    }
-                }
-                catch { }
-
-                foreach (var root in candidateRoots)
-                {
-                    string imagesDir = Path.Combine(root, "Resource", "Images");
-                    string animDir = Path.Combine(root, "Resource", "anim");
-
-                    foreach (var dir in new[] { imagesDir, animDir })
-                    {
-                        if (!Directory.Exists(dir)) continue;
-                        foreach (var file in Directory.EnumerateFiles(dir, "*.*", SearchOption.AllDirectories))
-                        {
-                            if (exts.Contains(Path.GetExtension(file)))
+                            if (!Directory.Exists(dir)) continue;
+                            foreach (var file in Directory.EnumerateFiles(dir, "*.*", SearchOption.AllDirectories))
                             {
-                                if (!results.Contains(file, StringComparer.OrdinalIgnoreCase))
+                                if (exts.Contains(Path.GetExtension(file)))
                                 {
-                                    results.Add(file);
+                                    uniquePaths.Add(file);
                                 }
                             }
                         }
+                        // Once we find and process the "Resource" folder, we can stop searching further up.
+                        return uniquePaths;
                     }
+                    dirInfo = dirInfo.Parent;
                 }
             }
             catch (Exception ex)
             {
                 Debug.WriteLine($"[ERROR] EnumerateResourceImagesOnDisk: {ex.Message}");
             }
-            return results;
+            return uniquePaths;
         }
 
         private static BitmapEncoder CreateEncoderForExtension(string extension)
