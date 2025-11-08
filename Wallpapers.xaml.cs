@@ -200,13 +200,11 @@ namespace ZeroMix
                 var player = new MediaPlayer { Volume = 0, ScrubbingEnabled = true };
                 player.Open(new Uri(videoPath));
 
-                player.MediaOpened += (s, e) =>
+                player.MediaOpened += async (s, e) =>
                 {
                     player.Position = seekTime;
-                };
+                    await Task.Delay(200); // Give the player a moment to seek.
 
-                player.SeekCompleted += (s, e) =>
-                {
                     try
                     {
                         // Define the size of the thumbnail.
@@ -229,7 +227,7 @@ namespace ZeroMix
                     }
                     catch (Exception ex)
                     {
-                        Debug.WriteLine($"[ERROR] Thumbnail generation failed inside SeekCompleted: {ex.Message}");
+                        Debug.WriteLine($"[ERROR] Thumbnail generation failed: {ex.Message}");
                         player.Close();
                         tcs.TrySetResult(null);
                     }
@@ -371,6 +369,11 @@ namespace ZeroMix
                 if (delay > 0)
                 {
                     await Task.Delay(delay);
+                }
+                else
+                {
+                    // Ensure there's always an await if the method is async
+                    await Task.CompletedTask; 
                 }
 
                 // Opacity animation

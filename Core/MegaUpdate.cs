@@ -118,22 +118,22 @@ namespace ZeroMix.Core
         private class GithubRelease
         {
             [JsonPropertyName("tag_name")]
-            public string TagName { get; set; }
+            public string? TagName { get; set; }
 
             [JsonPropertyName("body")]
-            public string Body { get; set; }
+            public string? Body { get; set; }
 
             [JsonPropertyName("assets")]
-            public List<GithubAsset> Assets { get; set; }
+            public List<GithubAsset>? Assets { get; set; }
         }
 
         private class GithubAsset
         {
             [JsonPropertyName("name")]
-            public string Name { get; set; }
+            public string? Name { get; set; }
 
             [JsonPropertyName("browser_download_url")]
-            public string BrowserDownloadUrl { get; set; }
+            public string? BrowserDownloadUrl { get; set; }
         }
     }
 }
