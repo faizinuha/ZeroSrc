@@ -18,16 +18,18 @@ namespace ZeroMix.Core
         private const string GithubApiUrl = "https://api.github.com/repos/faizinuha/ZeroMix/releases/latest";
         // private const string GithubApiUrl = "https://github.com/faizinuha/ZeroMix/releases/latest";
         private readonly string _currentVersion;
-
+        private readonly string _latestVersion = "";
         public GithubUpdater()
         {
-            _currentVersion = Assembly.GetExecutingAssembly().GetName().Version?.ToString(3) ?? " 2.0.0";
+            // Pastikan tidak ada spasi di string fallback dan trim saat mengambil
+            _currentVersion = Assembly.GetExecutingAssembly().GetName().Version?.ToString(3)?.Trim() ?? "2.0.0";
         }
 
         public async Task CheckAndUpdateAsync()
         {
             var client = new HttpClient();
             client.DefaultRequestHeaders.UserAgent.Add(new ProductInfoHeaderValue("ZeroMix", _currentVersion));
+            UpdateNotificationWindow? notificationWindow = null;
 
             try
             {
@@ -40,64 +42,73 @@ namespace ZeroMix.Core
                     return;
                 }
 
-                string latestVersionStr = release.TagName.TrimStart('v');
+                string latestVersionStr = release.TagName.TrimStart('v').Trim();
 
                 if (new Version(latestVersionStr) > new Version(_currentVersion))
                 {
-                    string message = $"Versi baru {latestVersionStr} tersedia!\n\nPerubahan:\n{release.Body}\n\nUpdate sekarang?";
-                    var notificationWindow = new UpdateNotificationWindow(message);
+                    string message = $"A new version {latestVersionStr} is available!\n\nChanges:\n{release.Body}\n\nUpdate now?";
+                    notificationWindow = new UpdateNotificationWindow(message);
                     bool? result = notificationWindow.ShowDialog();
 
                     if (result != true) return;
 
-                    var installerAsset = release.Assets?.FirstOrDefault(a => a.Name != null && a.Name.EndsWith(".exe"));
-                    if (installerAsset == null || string.IsNullOrEmpty(installerAsset.BrowserDownloadUrl))
+                    try
                     {
-                        ShowMessage("File installer (.exe) tidak ditemukan di rilis terbaru.", "Update Error");
-                        return;
-                    }
-
-                    string tempInstallerPath = Path.Combine(Path.GetTempPath(), installerAsset.Name);
-
-                    notificationWindow.ShowProgress();
-
-                    using (var downloadClient = new HttpClient())
-                    {
-                        using (var fileStream = new FileStream(tempInstallerPath, FileMode.Create, FileAccess.Write, FileShare.None))
+                        var installerAsset = release.Assets?.FirstOrDefault(a => a.Name != null && a.Name.EndsWith(".exe"));
+                        if (installerAsset == null || string.IsNullOrEmpty(installerAsset.BrowserDownloadUrl))
                         {
-                            var downloadResponse = await downloadClient.GetAsync(installerAsset.BrowserDownloadUrl, HttpCompletionOption.ResponseHeadersRead);
-                            downloadResponse.EnsureSuccessStatusCode();
+                            ShowMessage("Installer file (.exe) not found in the latest release.", "Update Error");
+                            return;
+                        }
 
-                            long? totalBytes = downloadResponse.Content.Headers.ContentLength;
-                            long totalBytesRead = 0;
-                            var buffer = new byte[8192];
-                            int bytesRead;
+                        string tempInstallerPath = Path.Combine(Path.GetTempPath(), installerAsset.Name);
 
-                            using (var stream = await downloadResponse.Content.ReadAsStreamAsync())
+                        notificationWindow.ShowProgress();
+
+                        using (var downloadClient = new HttpClient())
+                        {
+                            using (var fileStream = new FileStream(tempInstallerPath, FileMode.Create, FileAccess.Write, FileShare.None))
                             {
-                                while ((bytesRead = await stream.ReadAsync(buffer, 0, buffer.Length)) > 0)
+                                var downloadResponse = await downloadClient.GetAsync(installerAsset.BrowserDownloadUrl, HttpCompletionOption.ResponseHeadersRead);
+                                downloadResponse.EnsureSuccessStatusCode();
+
+                                long? totalBytes = downloadResponse.Content.Headers.ContentLength;
+                                long totalBytesRead = 0;
+                                var buffer = new byte[8192];
+                                int bytesRead;
+
+                                using (var stream = await downloadResponse.Content.ReadAsStreamAsync())
                                 {
-                                    await fileStream.WriteAsync(buffer, 0, bytesRead);
-                                    totalBytesRead += bytesRead;
-                                    if (totalBytes.HasValue)
+                                    while ((bytesRead = await stream.ReadAsync(buffer, 0, buffer.Length)) > 0)
                                     {
-                                        double progressPercentage = (double)totalBytesRead / totalBytes.Value * 100;
-                                        notificationWindow.UpdateProgress(progressPercentage);
+                                        await fileStream.WriteAsync(buffer, 0, bytesRead);
+                                        totalBytesRead += bytesRead;
+                                        if (totalBytes.HasValue)
+                                        {
+                                            double progressPercentage = (double)totalBytesRead / totalBytes.Value * 100;
+                                            notificationWindow.UpdateProgress(progressPercentage);
+                                        }
                                     }
                                 }
                             }
                         }
+
+                        var processInfo = new ProcessStartInfo(tempInstallerPath)
+                        {
+                            Arguments = "/SILENT",
+                            UseShellExecute = true
+                        };
+                        Process.Start(processInfo);
+
+                        notificationWindow.ShowInstalling();
+                        Application.Current.Shutdown();
                     }
-
-                    var processInfo = new ProcessStartInfo(tempInstallerPath)
+                    catch (Exception ex)
                     {
-                        Arguments = "/SILENT",
-                        UseShellExecute = true
-                    };
-                    Process.Start(processInfo);
-
-                    notificationWindow.ShowInstalling();
-                    Application.Current.Shutdown();
+                        notificationWindow?.Close();
+                        ShowMessage("Failed to download or launch the installer.", "Update Error");
+                        Debug.WriteLine($"Download/Install failed: {ex}");
+                    }
                 }
                 else
                 {
@@ -107,6 +118,7 @@ namespace ZeroMix.Core
             catch (Exception ex)
             {
                 Debug.WriteLine($"Update check failed: {ex}");
+                // Don't show a message on initial check failure to avoid bothering the user.
             }
         }
 

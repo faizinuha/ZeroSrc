@@ -1,3 +1,7 @@
+; ==============================================================================
+; ZeroMix Installer Script (Revisi Profesional)
+; ==============================================================================
+
 ; --- Informasi Aplikasi & Penanda Tangan (Semua di dalam [Setup]) ---
 [Setup]
 AppName=ZeroMix
@@ -26,28 +30,22 @@ UninstallDisplayIcon={app}\zeromix.ico
 WizardImageFile=zeromix.bmp
 WizardSmallImageFile=zeromix.bmp
 WizardStyle=modern
-; Digital signature settings
+
+; ⭐ PERBAIKAN: Penutupan Aplikasi Otomatis saat Upgrade/Uninstal
+CloseApplications=yes
+CloseApplicationsFilter=ZeroMix.exe
+
+; Digital signature settings (Pastikan file dan password benar)
 SignTool= bin\osslsigncode.exe
 SignToolParameters=sign -pkcs12 "ZeroMixCert.pfx" -pass "ZeroMixPass" -n "ZeroMix Installer" -i "https://zeromix.vercel.app" -t "http://timestamp.digicert.com" $f
 
-; NOTE for packagers:
-; To avoid requiring users to install the .NET runtime, publish your app as
-; a self-contained single-file for the target runtime (e.g. win-x64) and point
-; the [Files] section below at the publish output directory.
-; Example command (from project root):
-; dotnet publish -c Release -r win-x64 -p:PublishSingleFile=true -p:PublishTrimmed=true --self-contained true -o ..\publish\win-x64
-; Then run Inno Setup using this script; the installer will include the self-contained exe and dependencies.
-; Optionally sign both ZeroMix.exe and the installer with a code signing certificate to reduce false-positive antivirus flags.
-
 ; --- File yang akan diinstal ---
 [Files]
-; Use published self-contained output (see NOTE above). Adjust runtime id (win-x64/win-x86) as needed.
-; The Inno Setup compiler resolves relative paths from the script's folder.
-; To avoid "Source not found" errors, copy your publish output into the Exe\publish\win-x64 folder
-; (from project root: dotnet publish ... -o ./publish/win-x64), or adjust the path here to the correct publish location.
+; PERHATIAN: Pastikan path ini benar mengarah ke output 'dotnet publish' self-contained.
 Source: "..\publish\win-x64\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "zeromix.ico"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\Resource\*"; DestDir: "{app}\Resource"; Flags: ignoreversion recursesubdirs createallsubdirs
+; Source: "..\LICENSE.txt"; DestDir: "{app}"; Flags: ignoreversion  ; Contoh file lisensi yang lebih umum
 
 ; --- Shortcut ---
 [Icons]
@@ -64,15 +62,8 @@ Filename: "{app}\ZeroMix.exe"; Description: "Jalankan ZeroMix"; Flags: nowait po
 
 ; --- Bersihkan file saat uninstall ---
 [UninstallDelete]
+; ⭐ PERBAIKAN: Hapus penghapusan AppData dari sini. Biarkan hanya folder instalasi utama.
 Type: filesandordirs; Name: "{app}"
-; Hapus folder konfigurasi dari AppData pengguna
-Type: filesandordirs; Name: "{userappdata}\ZeroMix"
-
-; --- Tutup proses saat uninstall ---
-[UninstallRun]
-Filename: "taskkill.exe"; Parameters: "/IM ZeroMix.exe /F"; StatusMsg: "Menutup aplikasi..."; Flags: runhidden
-Filename: "cmd.exe"; Parameters: "/C echo Terima kasih telah menggunakan! && timeout /t 3"; Flags: runhidden
-
 
 ; --- Teks Custom Welcome & Selesai ---
 [Messages]
@@ -88,39 +79,59 @@ AdditionalTasks=Tugas tambahan:
 WindowsServiceNote=Layanan Windows:
 
 [LicenseFile]
-InfoBeforeFile=../SECURITY.md
+; Sesuaikan ini dengan path ke file lisensi yang sebenarnya (bukan SECURITY.md)
+InfoBeforeFile=../LICENSE.txt 
 
+; --- Kode Pascal Script untuk Logika Lanjut ---
 [Code]
-
-
-procedure CurStepChanged(CurStep: TSetupStep);
-var
- ErrorCode: Integer;
-begin
- if CurStep = ssDone then
- begin
-  MsgBox('Terima kasih sudah menginstall ZeroMix!' + #13#10 + 'Dukungan Anda sangat berarti bagi kami.', mbInformation, MB_OK);
-  // Open the thank you page in the user's default web browser
-  // khusus 
-  ShellExec('open', 'https://zeromix.vercel.app/ThanksYou.html', '', '', SW_SHOWNORMAL, ewNoWait, ErrorCode);
- end;
-end;
-
+// Fungsi yang dipanggil sebelum uninstal
 function InitializeUninstall(): Boolean;
+var
+  ResultCode: Integer;
 begin
-  // Menampilkan dialog konfirmasi sebelum uninstall
+  // Tampilkan dialog konfirmasi sebelum uninstal
   if MsgBox('Apakah Anda yakin ingin meng-uninstall ZeroMix?', mbConfirmation, MB_YESNO) = IDYES then
-    Result := True // Jika pengguna memilih 'Yes', lanjutkan uninstall
+  begin
+    // ⭐ PERBAIKAN: Penutupan proses paksa (hanya jika CloseApplications gagal)
+    // Jalankan taskkill secara tersembunyi.
+    Exec('taskkill.exe', '/IM ZeroMix.exe /F', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
+    Result := True; // Jika pengguna memilih 'Yes', lanjutkan uninstall
+  end
   else
     Result := False; // Jika pengguna memilih 'No', batalkan uninstall
 end;
 
+// Fungsi yang dipanggil ketika langkah instalasi berubah
+procedure CurStepChanged(CurStep: TSetupStep);
+var
+  ErrorCode: Integer;
+begin
+  if CurStep = ssDone then
+  begin
+    // ⭐ PERBAIKAN UX: Hapus MsgBox pop-up. Langsung buka Thank You page.
+    ShellExec('open', 'https://zeromix.vercel.app/ThanksYou.html', '', '', SW_SHOWNORMAL, ewNoWait, ErrorCode);
+  end;
+end;
+
+// Fungsi yang dipanggil ketika langkah uninstal berubah
 procedure CurUninstallStepChanged(CurStep: TUninstallStep);
 var
-ErrorCode: Integer;
+  ErrorCode: Integer;
 begin
- if CurStep = usPostUninstall then
- begin
-  ShellExec('open', 'https://zeromix.vercel.app/Feedback.html', '', '', SW_SHOWNORMAL, ewNoWait, ErrorCode);
- end;
+  // ⭐ PERBAIKAN KRITIS: Opsi Hapus Data Pengguna (AppData)
+  // Dilakukan pada langkah usUninstall sebelum file dihapus secara fisik
+  if CurStep = usUninstall then
+  begin
+    if MsgBox('ZeroMix akan segera dihapus. Apakah Anda ingin **menghapus data konfigurasi pengguna** (pengaturan, dll.) dari AppData?', mbConfirmation, MB_YESNO) = IDYES then
+    begin
+      // Hapus folder AppData secara rekursif dan paksa
+      DelTree(ExpandConstant('{userappdata}\ZeroMix'), True, True, True);
+    end;
+  end;
+
+  if CurStep = usPostUninstall then
+  begin
+    // Buka halaman Feedback setelah proses uninstal selesai
+    ShellExec('open', 'https://zeromix.vercel.app/Feedback.html', '', '', SW_SHOWNORMAL, ewNoWait, ErrorCode);
+  end;
 end;
