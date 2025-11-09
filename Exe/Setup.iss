@@ -22,7 +22,6 @@ DefaultGroupName=ZeroMix
 AllowNoIcons=yes
 OutputDir=.
 OutputBaseFilename=ZeroMix-Setup
-SetupIconFile=zeromix.ico
 Compression=lzma
 SolidCompression=yes
 DisableProgramGroupPage=yes
@@ -36,8 +35,8 @@ CloseApplications=yes
 CloseApplicationsFilter=ZeroMix.exe
 
 ; Digital signature settings (Pastikan file dan password benar)
-SignTool= bin\osslsigncode.exe
-SignToolParameters=sign -pkcs12 "ZeroMixCert.pfx" -pass "ZeroMixPass" -n "ZeroMix Installer" -i "https://zeromix.vercel.app" -t "http://timestamp.digicert.com" $f
+;SignTool= bin\osslsigncode.exe
+;SignToolParameters=sign -pkcs12 "ZeroMixCert.pfx" -pass "ZeroMixPass" -n "ZeroMix Installer" -i "https://zeromix.vercel.app" -t "http://timestamp.digicert.com" $f
 
 ; --- File yang akan diinstal ---
 [Files]
