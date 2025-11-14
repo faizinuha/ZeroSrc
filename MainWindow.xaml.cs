@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Forms;
 using System.Windows.Threading;
-using ZeroMix.Core;
 
 namespace ZeroMix
 {
@@ -29,20 +28,6 @@ namespace ZeroMix
         {
             // Set initial view after the window has loaded
             HomeButton_Click(this, new RoutedEventArgs());
-
-            // Run update check in the background without awaiting it.
-            _ = Task.Run(async () =>
-            {
-                try
-                {
-                    var updater = new GithubUpdater();
-                    await updater.CheckAndUpdateAsync();
-                }
-                catch (Exception ex)
-                {
-                    System.Diagnostics.Debug.WriteLine($"Error during update check: {ex.Message}");
-                }
-            });
         }
 
         private void InitializeTrayIcon()

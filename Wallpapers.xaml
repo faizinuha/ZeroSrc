@@ -4,7 +4,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     Title="Wallpaper Settings"
     Width="700"
-    Height="700"
+    Height="800"
     AllowsTransparency="True"
     Background="Transparent"
     Loaded="Window_Loaded"
@@ -214,7 +214,7 @@
 
                     <!--  Footer kecil: link ke sumber wallpaper  -->
                     <TextBlock Grid.Column="0" VerticalAlignment="Center" Foreground="#BBB" FontSize="12">
-                        <Run Text="Link wallpaper original: " />
+                        <Run/>
                         <Hyperlink NavigateUri="https://wallpaperflare.com" RequestNavigate="Hyperlink_RequestNavigate">
                             Link wallpaper original
                         </Hyperlink>
