@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Management;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -14,6 +15,46 @@ namespace ZeroMix
 {
     public partial class MainWindow : Window
     {
+        // Windows API for Taskbar transparency
+        [DllImport("user32.dll", SetLastError = true)]
+        private static extern IntPtr FindWindow(string lpClassName, string lpWindowName);
+
+        [DllImport("user32.dll")]
+        private static extern int SetWindowCompositionAttribute(IntPtr hwnd, ref WindowCompositionAttributeData data);
+
+        [StructLayout(LayoutKind.Sequential)]
+        private struct WindowCompositionAttributeData
+        {
+            public WindowCompositionAttribute Attribute;
+            public IntPtr Data;
+            public int SizeOfData;
+        }
+
+        private enum WindowCompositionAttribute
+        {
+            WCA_ACCENT_POLICY = 19
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        private struct AccentPolicy
+        {
+            public AccentState AccentState;
+            public int AccentFlags;
+            public int GradientColor;
+            public int AnimationId;
+        }
+
+        private enum AccentState
+        {
+            ACCENT_DISABLED = 0,
+            ACCENT_ENABLE_GRADIENT = 1,
+            ACCENT_ENABLE_TRANSPARENTGRADIENT = 2,
+            ACCENT_ENABLE_BLURBEHIND = 3,
+            ACCENT_ENABLE_ACRYLICBLURBEHIND = 4,
+            ACCENT_NORMAL = 0
+        }
+
+        private bool _isTaskbarTransparent = false;
         private NotifyIcon? _notifyIcon;
         private PerformanceCounter? _cpuCounter;
         private PerformanceCounter? _ramCounter;
@@ -299,6 +340,67 @@ namespace ZeroMix
         {
             var clockWidget = new ClockWidget();
             clockWidget.Show();
+        }
+
+        private void TaskbarToggleBtn_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                if (!_isTaskbarTransparent)
+                {
+                    // Enable transparent taskbar
+                    EnableTransparentTaskbar();
+                    _isTaskbarTransparent = true;
+                    TaskbarToggleBtn.Content = "📌 Disable Transparent Taskbar";
+                }
+                else
+                {
+                    // Disable transparent taskbar (return to normal)
+                    DisableTransparentTaskbar();
+                    _isTaskbarTransparent = false;
+                    TaskbarToggleBtn.Content = "📌 Enable Transparent Taskbar";
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Windows.MessageBox.Show($"Error toggling taskbar: {ex.Message}", "Error");
+            }
+        }
+
+        private void EnableTransparentTaskbar()
+        {
+            IntPtr taskbarHandle = FindWindow("Shell_TrayWnd", null);
+            if (taskbarHandle == IntPtr.Zero) return;
+
+            var accent = new AccentPolicy();
+            accent.AccentState = AccentState.ACCENT_ENABLE_TRANSPARENTGRADIENT;
+
+            var data = new WindowCompositionAttributeData();
+            data.Attribute = WindowCompositionAttribute.WCA_ACCENT_POLICY;
+            data.SizeOfData = Marshal.SizeOf(accent);
+            data.Data = Marshal.AllocHGlobal(data.SizeOfData);
+            Marshal.StructureToPtr(accent, data.Data, false);
+
+            SetWindowCompositionAttribute(taskbarHandle, ref data);
+            Marshal.FreeHGlobal(data.Data);
+        }
+
+        private void DisableTransparentTaskbar()
+        {
+            IntPtr taskbarHandle = FindWindow("Shell_TrayWnd", null);
+            if (taskbarHandle == IntPtr.Zero) return;
+
+            var accent = new AccentPolicy();
+            accent.AccentState = AccentState.ACCENT_DISABLED;
+
+            var data = new WindowCompositionAttributeData();
+            data.Attribute = WindowCompositionAttribute.WCA_ACCENT_POLICY;
+            data.SizeOfData = Marshal.SizeOf(accent);
+            data.Data = Marshal.AllocHGlobal(data.SizeOfData);
+            Marshal.StructureToPtr(accent, data.Data, false);
+
+            SetWindowCompositionAttribute(taskbarHandle, ref data);
+            Marshal.FreeHGlobal(data.Data);
         }
 
         private void DisableMonitoringBtn_Click(object sender, RoutedEventArgs e)
