@@ -85,11 +85,10 @@
         <!-- Left Navigation Panel -->
         <Border Grid.Column="0" Background="{StaticResource ControlBackgroundBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,0,1,0">
             <StackPanel Margin="10">
-                <Button Name="HomeButton" Content="Home" Click="HomeButton_Click" Style="{StaticResource NavButton}"/>
-                <Button Name="DashboardButton" Content="Dashboard" Click="DashboardButton_Click" Style="{StaticResource NavButton}" Margin="0,5,0,0"/>
-                <Button Name="AboutButton" Content="About" Click="AboutButton_Click" Style="{StaticResource NavButton}" Margin="0,5,0,0"/>
-                <Button Name="PrivacyButton" Content="Privacy" Click="PrivacyButton_Click" Style="{StaticResource NavButton}" Margin="0,5,0,0"/>
-                <Button Name="WallpaperButton" Content="Wallpapers" Click="WallpaperButton_Click" Style="{StaticResource NavButton}" Margin="0,5,0,0"/>
+                <Button Name="HomeButton" Content="🏠 Home" Click="HomeButton_Click" Style="{StaticResource NavButton}"/>
+                <Button Name="AboutButton" Content="ℹ️ About" Click="AboutButton_Click" Style="{StaticResource NavButton}" Margin="0,5,0,0"/>
+                <Button Name="PrivacyButton" Content="🔒 Privacy" Click="PrivacyButton_Click" Style="{StaticResource NavButton}" Margin="0,5,0,0"/>
+                <Button Name="WallpaperButton" Content="🖼️ Wallpapers" Click="WallpaperButton_Click" Style="{StaticResource NavButton}" Margin="0,5,0,0"/>
                 <Button Name="CustomButton" Click="CustomButton_Click" Style="{StaticResource NavButton}" Margin="0,5,0,0">
                     <StackPanel Orientation="Horizontal">
                         <TextBlock Text="⚙️" FontSize="14" VerticalAlignment="Center"/>
@@ -103,49 +102,101 @@
         <Grid Grid.Column="1" Name="ContentArea">
             
             <!-- Home Content -->
-            <StackPanel Name="HomeContent" VerticalAlignment="Center" HorizontalAlignment="Center" Margin="16">
-                <TextBlock Text="ZeroMix" FontSize="32" FontWeight="Bold" Foreground="{StaticResource ForegroundBrush}" HorizontalAlignment="Center" Margin="0,0,0,8"/>
-                <TextBlock Text="Welcome to ZeroMix Dashboard" FontSize="16" Foreground="{StaticResource ForegroundBrush}" TextAlignment="Center"/>
-                <TextBlock Text="Press Alt+Space to open the overlay from anywhere." FontSize="14" Foreground="#888" TextAlignment="Center" Margin="0,16,0,0"/>
-            </StackPanel>
+            <ScrollViewer Name="HomeContent">
+                <StackPanel Margin="20" Gap="20">
+                    <!-- Welcome Section -->
+                    <StackPanel VerticalAlignment="Top" HorizontalAlignment="Center" Margin="0,20,0,0">
+                        <TextBlock Text="ZeroMix" FontSize="32" FontWeight="Bold" Foreground="{StaticResource ForegroundBrush}" HorizontalAlignment="Center" Margin="0,0,0,8"/>
+                        <TextBlock Text="Welcome to ZeroMix Dashboard" FontSize="16" Foreground="{StaticResource ForegroundBrush}" TextAlignment="Center"/>
+                        <TextBlock Text="Press Alt+Space to open the overlay from anywhere." FontSize="14" Foreground="#888" TextAlignment="Center" Margin="0,16,0,0"/>
+                    </StackPanel>
 
-            <!-- Dashboard Content (Initially Hidden) -->
-            <Grid Name="DashboardContent" Visibility="Collapsed" Margin="20">
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="*"/>
-                </Grid.RowDefinitions>
-                <TextBlock Grid.Row="0" Text="System Dashboard" FontSize="24" FontWeight="SemiBold" Margin="0,0,0,15"/>
-                <GroupBox Grid.Row="1" Header="Live Performance" FontWeight="SemiBold">
-                    <StackPanel Margin="10">
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="Auto"/>
-                                <ColumnDefinition Width="*"/>
-                            </Grid.ColumnDefinitions>
-                            <TextBlock Grid.Column="0" Text="CPU Usage:" FontWeight="Normal" VerticalAlignment="Center"/>
-                            <ProgressBar Name="CpuProgressBar" Grid.Column="1" Height="18" Margin="10,0,0,0" Value="0" Maximum="100"/>
-                            <TextBlock Name="CpuUsageText" Grid.Column="1" Text="-- %" Margin="15,0,0,0" FontWeight="Normal" HorizontalAlignment="Left" VerticalAlignment="Center" Foreground="#FEFEFE"/>
-                        </Grid>
-                        <Grid Margin="0,10,0,0">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="Auto"/>
-                                <ColumnDefinition Width="*"/>
-                            </Grid.ColumnDefinitions>
-                            <TextBlock Grid.Column="0" Text="RAM Available:" FontWeight="Normal"/>
-                            <TextBlock Name="RamUsageText" Grid.Column="1" Text="-- MB" Margin="10,0,0,0" FontWeight="Normal"/>
-                        </Grid>
+                    <Separator Margin="0,10,0,10"/>
+
+                    <!-- Quick Tools Section -->
+                    <StackPanel>
+                        <TextBlock Text="Quick Features" FontSize="18" FontWeight="SemiBold" Margin="0,0,0,12"/>
+                        <Button Name="EnableMonitoringBtn" Content="📊 Enable System Monitoring" Click="EnableMonitoringBtn_Click" Style="{StaticResource MainButton}" Width="200" HorizontalAlignment="Left"/>
+                        <Button Name="OpenClockBtn" Content="⏰ Open Clock Widget" Click="OpenClockBtn_Click" Style="{StaticResource MainButton}" Width="200" HorizontalAlignment="Left" Margin="0,8,0,0"/>
                     </StackPanel>
-                </GroupBox>
-                <GroupBox Grid.Row="2" Header="System Cache" FontWeight="SemiBold" Margin="0,15,0,0">
-                    <StackPanel Margin="10">
-                        <Button Name="ClearCacheButton" Content="Clear System Cache" Click="ClearCacheButton_Click" Style="{StaticResource MainButton}" HorizontalAlignment="Left"/>
-                        <TextBlock Name="CacheStatusText" Text="" Margin="0,10,0,0" Foreground="#555" FontStyle="Italic"/>
-                        <ProgressBar Name="CacheProgressBar" Height="8" Margin="0,5,0,0" IsIndeterminate="True" Visibility="Collapsed" />
-                    </StackPanel>
-                </GroupBox>
-            </Grid>
+
+                    <!-- Monitoring Dashboard (Hidden by default) -->
+                    <Border Name="MonitoringPanel" Visibility="Collapsed" Background="{StaticResource ControlBackgroundBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" CornerRadius="8" Padding="15">
+                        <StackPanel Gap="15">
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="SpaceBetween">
+                                <TextBlock Text="System Monitoring" FontSize="16" FontWeight="SemiBold"/>
+                                <Button Name="DisableMonitoringBtn" Content="✕ Hide" Click="DisableMonitoringBtn_Click" Style="{StaticResource MainButton}" Padding="8,4" Height="28"/>
+                            </StackPanel>
+
+                            <!-- Quick Stats Row -->
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+
+                                <!-- CPU Card -->
+                                <Border Grid.Column="0" Background="{StaticResource BackgroundBrush}" BorderBrush="{StaticResource AccentBrush}" BorderThickness="1" CornerRadius="8" Padding="12" Margin="4">
+                                    <StackPanel>
+                                        <TextBlock Text="CPU" Foreground="#888" FontSize="11" Margin="0,0,0,6"/>
+                                        <TextBlock Name="CpuPercentText" Text="-- %" FontSize="20" FontWeight="Bold" Foreground="{StaticResource AccentBrush}"/>
+                                        <ProgressBar Name="CpuProgressBar" Height="4" Margin="0,8,0,0" Maximum="100" Foreground="{StaticResource AccentBrush}"/>
+                                    </StackPanel>
+                                </Border>
+
+                                <!-- RAM Card -->
+                                <Border Grid.Column="1" Background="{StaticResource BackgroundBrush}" BorderBrush="{StaticResource AccentBrush}" BorderThickness="1" CornerRadius="8" Padding="12" Margin="4">
+                                    <StackPanel>
+                                        <TextBlock Text="Memory" Foreground="#888" FontSize="11" Margin="0,0,0,6"/>
+                                        <TextBlock Name="RamPercentText" Text="-- %" FontSize="20" FontWeight="Bold" Foreground="{StaticResource AccentBrush}"/>
+                                        <ProgressBar Name="RamProgressBar" Height="4" Margin="0,8,0,0" Maximum="100" Foreground="{StaticResource AccentBrush}"/>
+                                    </StackPanel>
+                                </Border>
+
+                                <!-- Disk Card -->
+                                <Border Grid.Column="2" Background="{StaticResource BackgroundBrush}" BorderBrush="{StaticResource AccentBrush}" BorderThickness="1" CornerRadius="8" Padding="12" Margin="4">
+                                    <StackPanel>
+                                        <TextBlock Text="Disk" Foreground="#888" FontSize="11" Margin="0,0,0,6"/>
+                                        <TextBlock Name="DiskPercentText" Text="-- %" FontSize="20" FontWeight="Bold" Foreground="{StaticResource AccentBrush}"/>
+                                        <ProgressBar Name="DiskProgressBar" Height="4" Margin="0,8,0,0" Maximum="100" Foreground="{StaticResource AccentBrush}"/>
+                                    </StackPanel>
+                                </Border>
+
+                                <!-- System Info Card -->
+                                <Border Grid.Column="3" Background="{StaticResource BackgroundBrush}" BorderBrush="{StaticResource AccentBrush}" BorderThickness="1" CornerRadius="8" Padding="12" Margin="4">
+                                    <StackPanel>
+                                        <TextBlock Text="OS" Foreground="#888" FontSize="11" Margin="0,0,0,6"/>
+                                        <TextBlock Name="OsVersionText" Text="Windows --" FontSize="13" FontWeight="Bold" TextTrimming="CharacterEllipsis"/>
+                                    </StackPanel>
+                                </Border>
+                            </Grid>
+
+                            <!-- System Details -->
+                            <GroupBox Header="System Details" FontWeight="SemiBold">
+                                <StackPanel Margin="8">
+                                    <TextBlock Name="ProcessorText" Text="Processor: --" FontSize="12" Margin="0,0,0,6"/>
+                                    <TextBlock Name="TotalRamText" Text="RAM: --" FontSize="12" Margin="0,0,0,6"/>
+                                    <TextBlock Name="NetworkText" Text="Network: --" FontSize="12"/>
+                                </StackPanel>
+                            </GroupBox>
+
+                            <!-- Maintenance Tools -->
+                            <StackPanel Gap="6">
+                                <TextBlock Text="Maintenance" FontSize="13" FontWeight="SemiBold"/>
+                                <Button Name="ClearCacheButton" Content="🗑️ Clear Cache" Click="ClearCacheButton_Click" Style="{StaticResource MainButton}" Height="28"/>
+                                <Button Name="RefreshProcessesBtn" Content="🔄 Refresh" Click="RefreshProcessesBtn_Click" Style="{StaticResource MainButton}" Height="28"/>
+                                <TextBlock Name="CacheStatusText" Text="" Foreground="#555" FontSize="11" FontStyle="Italic"/>
+                            </StackPanel>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+            </ScrollViewer>
+
+            <!-- Dashboard Content (Removed - now integrated in Home) -->
+            <ScrollViewer Name="DashboardContent" Visibility="Collapsed">
+            </ScrollViewer>
 
             <!-- About Content (Initially Hidden) -->
             <ScrollViewer Name="AboutContent" Visibility="Collapsed" Margin="20">
