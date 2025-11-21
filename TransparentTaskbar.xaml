@@ -113,8 +113,7 @@
             <StackPanel Grid.Column="2" 
                        Orientation="Horizontal"
                        VerticalAlignment="Center"
-                       Margin="20,0,15,0"
-                       Gap="15">
+                       Margin="20,0,15,0">
                 <!-- Time -->
                 <TextBlock Name="TimeDisplay"
                           Text="14:23"
@@ -122,14 +121,15 @@
                           Foreground="{StaticResource TextBrush}"
                           VerticalAlignment="Center"
                           FontFamily="Courier New"
-                          FontWeight="Bold"/>
+                          FontWeight="Bold"
+                          Margin="0,0,15,0"/>
 
                 <!-- Separator -->
-                <Border Width="1" Background="{StaticResource AccentBrush}" Opacity="0.3"/>
+                <Border Width="1" Background="{StaticResource AccentBrush}" Opacity="0.3" Margin="0,0,15,0"/>
 
                 <!-- CPU -->
-                <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Gap="4">
-                    <TextBlock Text="CPU:" FontSize="11" Foreground="{StaticResource TextBrush}"/>
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,15,0">
+                    <TextBlock Text="CPU:" FontSize="11" Foreground="{StaticResource TextBrush}" Margin="0,0,4,0"/>
                     <TextBlock Name="CpuDisplay" 
                               Text="00%"
                               FontSize="11" 
@@ -139,8 +139,8 @@
                 </StackPanel>
 
                 <!-- RAM -->
-                <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Gap="4">
-                    <TextBlock Text="RAM:" FontSize="11" Foreground="{StaticResource TextBrush}"/>
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                    <TextBlock Text="RAM:" FontSize="11" Foreground="{StaticResource TextBrush}" Margin="0,0,4,0"/>
                     <TextBlock Name="RamDisplay" 
                               Text="00%"
                               FontSize="11" 
@@ -154,8 +154,7 @@
             <StackPanel Grid.Column="3" 
                        Orientation="Horizontal"
                        VerticalAlignment="Center"
-                       Margin="0,0,10,0"
-                       Gap="8">
+                       Margin="0,0,10,0">
                 <Button Style="{StaticResource TaskbarButton}" 
                        Content="📌"
                        Name="PinButton"
@@ -167,7 +166,8 @@
                        Name="TaskbarSettingsBtn"
                        Click="TaskbarSettingsBtn_Click"
                        ToolTip="Taskbar Settings"
-                       Padding="8,8"/>
+                       Padding="8,8"
+                       Margin="8,0,0,0"/>
             </StackPanel>
 
             <!-- Close Button -->

@@ -21,7 +21,7 @@ namespace ZeroMix
         private DispatcherTimer? _performanceTimer;
         private DriveInfo? _systemDrive;
 
-        
+
 
         public MainWindow()
         {
@@ -91,10 +91,10 @@ namespace ZeroMix
                 {
                     totalRAM = Convert.ToInt64(managementObject["TotalPhysicalMemory"]) / (1024 * 1024);
                 }
-                
+
                 float usedRam = totalRAM - (int)availableRam;
                 float ramPercent = (usedRam / totalRAM) * 100;
-                
+
                 RamPercentText.Text = $"{ramPercent:F1} %";
                 RamProgressBar.Value = ramPercent;
 
@@ -183,7 +183,7 @@ namespace ZeroMix
                     .ToList();
 
                 // Only update if ProcessList control exists (for backwards compatibility)
-                var processList = FindName("ProcessList") as ListBox;
+                var processList = FindName("ProcessList") as System.Windows.Controls.ListBox;
                 if (processList != null)
                 {
                     processList.Items.Clear();
@@ -273,7 +273,7 @@ namespace ZeroMix
             var customShortcutWindow = new CustomShortcutWindow();
             customShortcutWindow.ShowDialog();
         }
-    // Remove Tidak di pakek
+        // Remove Tidak di pakek
         // private void OpenOverlay_Click(object sender, RoutedEventArgs e)
         // {
         //     var overlay = new SearchOverlay();
@@ -314,7 +314,6 @@ namespace ZeroMix
         {
             ClearCacheButton.IsEnabled = false;
             CacheStatusText.Text = "Pembersihan Segeara Mohon tunggu..";
-            CacheProgressBar.Visibility = Visibility.Visible;
 
             int skippedFiles = 0;
 
@@ -355,14 +354,45 @@ namespace ZeroMix
 
             CacheStatusText.Text = $"Cleaning complete. Skipped {skippedFiles} files that were in use.";
             ClearCacheButton.IsEnabled = true;
-            CacheProgressBar.Visibility = Visibility.Collapsed;
         }
 
         private void RefreshProcessesBtn_Click(object sender, RoutedEventArgs e)
         {
             RefreshProcessList();
         }
+        // ...existing code...
 
+        private TransparentTaskbar? _taskbar;
+
+        // Jika menggunakan tombol di Quick Features
+        private void OpenTaskbarBtn_Click(object sender, RoutedEventArgs e)
+        {
+            if (_taskbar == null || !_taskbar.IsVisible)
+            {
+                _taskbar = new TransparentTaskbar();
+                _taskbar.Show();
+            }
+            else
+            {
+                _taskbar.Activate();
+            }
+        }
+
+        // Atau jika menggunakan tombol di Sidebar
+        private void TaskbarButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (_taskbar == null || !_taskbar.IsVisible)
+            {
+                _taskbar = new TransparentTaskbar();
+                _taskbar.Show();
+            }
+            else
+            {
+                _taskbar.Activate();
+            }
+        }
+
+        // ...existing code...
         private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
             e.Cancel = true;

@@ -103,33 +103,38 @@
             
             <!-- Home Content -->
             <ScrollViewer Name="HomeContent">
-                <StackPanel Margin="20" Gap="20">
+                <StackPanel Margin="20">
                     <!-- Welcome Section -->
-                    <StackPanel VerticalAlignment="Top" HorizontalAlignment="Center" Margin="0,20,0,0">
+                    <StackPanel VerticalAlignment="Top" HorizontalAlignment="Center" Margin="0,20,0,20">
                         <TextBlock Text="ZeroMix" FontSize="32" FontWeight="Bold" Foreground="{StaticResource ForegroundBrush}" HorizontalAlignment="Center" Margin="0,0,0,8"/>
                         <TextBlock Text="Welcome to ZeroMix Dashboard" FontSize="16" Foreground="{StaticResource ForegroundBrush}" TextAlignment="Center"/>
                         <TextBlock Text="Press Alt+Space to open the overlay from anywhere." FontSize="14" Foreground="#888" TextAlignment="Center" Margin="0,16,0,0"/>
                     </StackPanel>
 
-                    <Separator Margin="0,10,0,10"/>
+                    <Separator Margin="0,10,0,20"/>
 
                     <!-- Quick Tools Section -->
-                    <StackPanel>
+                    <StackPanel Margin="0,0,0,20">
                         <TextBlock Text="Quick Features" FontSize="18" FontWeight="SemiBold" Margin="0,0,0,12"/>
                         <Button Name="EnableMonitoringBtn" Content="📊 Enable System Monitoring" Click="EnableMonitoringBtn_Click" Style="{StaticResource MainButton}" Width="200" HorizontalAlignment="Left"/>
                         <Button Name="OpenClockBtn" Content="⏰ Open Clock Widget" Click="OpenClockBtn_Click" Style="{StaticResource MainButton}" Width="200" HorizontalAlignment="Left" Margin="0,8,0,0"/>
+                        <Button Name="OpenTaskbarBtn" Content="📌 Open Taskbar" Click="OpenTaskbarBtn_Click" Style="{StaticResource MainButton}" Width="200" HorizontalAlignment="Left" Margin="0,8,0,0"/>
                     </StackPanel>
 
                     <!-- Monitoring Dashboard (Hidden by default) -->
                     <Border Name="MonitoringPanel" Visibility="Collapsed" Background="{StaticResource ControlBackgroundBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" CornerRadius="8" Padding="15">
-                        <StackPanel Gap="15">
-                            <StackPanel Orientation="Horizontal" HorizontalAlignment="SpaceBetween">
-                                <TextBlock Text="System Monitoring" FontSize="16" FontWeight="SemiBold"/>
-                                <Button Name="DisableMonitoringBtn" Content="✕ Hide" Click="DisableMonitoringBtn_Click" Style="{StaticResource MainButton}" Padding="8,4" Height="28"/>
-                            </StackPanel>
+                        <StackPanel>
+                            <Grid Margin="0,0,0,15">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Text="System Monitoring" FontSize="16" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                                <Button Name="DisableMonitoringBtn" Content="✕ Hide" Click="DisableMonitoringBtn_Click" Style="{StaticResource MainButton}" Padding="8,4" Height="28" Grid.Column="1"/>
+                            </Grid>
 
                             <!-- Quick Stats Row -->
-                            <Grid>
+                            <Grid Margin="0,0,0,15">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="*"/>
                                     <ColumnDefinition Width="*"/>
@@ -174,7 +179,7 @@
                             </Grid>
 
                             <!-- System Details -->
-                            <GroupBox Header="System Details" FontWeight="SemiBold">
+                            <GroupBox Header="System Details" FontWeight="SemiBold" Margin="0,0,0,15">
                                 <StackPanel Margin="8">
                                     <TextBlock Name="ProcessorText" Text="Processor: --" FontSize="12" Margin="0,0,0,6"/>
                                     <TextBlock Name="TotalRamText" Text="RAM: --" FontSize="12" Margin="0,0,0,6"/>
@@ -183,10 +188,10 @@
                             </GroupBox>
 
                             <!-- Maintenance Tools -->
-                            <StackPanel Gap="6">
-                                <TextBlock Text="Maintenance" FontSize="13" FontWeight="SemiBold"/>
-                                <Button Name="ClearCacheButton" Content="🗑️ Clear Cache" Click="ClearCacheButton_Click" Style="{StaticResource MainButton}" Height="28"/>
-                                <Button Name="RefreshProcessesBtn" Content="🔄 Refresh" Click="RefreshProcessesBtn_Click" Style="{StaticResource MainButton}" Height="28"/>
+                            <StackPanel>
+                                <TextBlock Text="Maintenance" FontSize="13" FontWeight="SemiBold" Margin="0,0,0,6"/>
+                                <Button Name="ClearCacheButton" Content="🗑️ Clear Cache" Click="ClearCacheButton_Click" Style="{StaticResource MainButton}" Height="28" Margin="0,0,0,6"/>
+                                <Button Name="RefreshProcessesBtn" Content="🔄 Refresh" Click="RefreshProcessesBtn_Click" Style="{StaticResource MainButton}" Height="28" Margin="0,0,0,6"/>
                                 <TextBlock Name="CacheStatusText" Text="" Foreground="#555" FontSize="11" FontStyle="Italic"/>
                             </StackPanel>
                         </StackPanel>
