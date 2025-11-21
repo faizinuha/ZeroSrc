@@ -1,67 +1,234 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="id">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>ZeroMix – Support</title>
+    <meta name="description" content="Support dan Hubungi ZeroMix - Lapor bug, minta fitur, atau dapatkan bantuan dari tim pengembang." />
+    <title>ZeroMix – Support & Bantuan</title>
+    <link rel="icon" href="./zeromix-high-resolution-logo-transparent.png">
     <link rel="stylesheet" href="style.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
   </head>
   <body>
-   <nav class="navbar">
+    <!-- Navigation Bar -->
+    <nav class="navbar">
         <div class="nav-container">
             <a href="index.html" class="nav-logo">ZeroMix</a>
+            <button class="menu-toggle" aria-label="Toggle menu">
+                <i class="fas fa-bars"></i>
+            </button>
             <ul class="nav-menu">
-                <li class="nav-item"><a href="#fitur">Fitur</a></li>
-                <li class="nav-item"><a href="#install">Install</a></li>
-                <li class="nav-item"><a href="#download">Download</a></li>
-                <li class="nav-item"><a href="#screenshot">Screenshot</a></li>
+                <li class="nav-item"><a href="index.html#fitur">Fitur</a></li>
+                <li class="nav-item"><a href="index.html#install">Install</a></li>
+                <li class="nav-item"><a href="index.html#download">Download</a></li>
+                <li class="nav-item"><a href="index.html#screenshot">Screenshot</a></li>
                 <li class="nav-item"><a href="Changelog.html">Changelog</a></li>
-                <li class="nav-item"><a href="About.html">About</a></li>
+                <li class="nav-item"><a href="About.html">Tentang</a></li>
                 <li class="nav-item"><a href="Support.html">Support</a></li>
+                <li class="nav-item language-switcher">
+                  <button class="lang-btn active" data-lang="id">🇮🇩 ID</button>
+                  <button class="lang-btn" data-lang="en">🇺🇸 EN</button>
+                </li>
             </ul>
         </div>
     </nav>
 
+    <!-- Hero Section -->
     <header>
       <div class="header-content">
-        <h1>Support</h1>
-        <p>Kami di sini untuk membantu Anda</p>
+        <h1>Support & Bantuan</h1>
+        <p>Kami Siap Membantu Anda</p>
       </div>
     </header>
 
+    <!-- Support Options -->
     <section>
-      <h2>Hubungi Kami</h2>
-      <div class="features">
-        <div class="card">
-          <i class="fab fa-github fa-3x"></i>
-          <h3>Lapor Bug atau Minta Fitur</h3>
-          <p>Cara terbaik untuk melaporkan bug atau meminta fitur baru adalah dengan membuat "issue" di repositori GitHub kami.</p>
-          <a href="https://github.com/faizinuha/ZeroMix/issues" class="btn" target="_blank">Buka Issue di GitHub</a>
+      <h2>📞 Hubungi Kami</h2>
+      <div class="support-grid">
+        <div class="support-card reveal">
+          <div class="support-icon">
+            <i class="fab fa-github"></i>
+          </div>
+          <h3>GitHub Issues</h3>
+          <p>Lapor bug atau minta fitur baru dengan membuat "issue" di repositori GitHub kami. Ini adalah cara terbaik untuk melacak masalah dan fitur yang direncanakan.</p>
+          <a href="https://github.com/faizinuha/ZeroMix/issues" class="btn" target="_blank" rel="noopener noreferrer">
+            <i class="fas fa-external-link-alt"></i> Buka GitHub Issues
+          </a>
         </div>
-        <div class="card">
-          <i class="fas fa-envelope fa-3x"></i>
-          <h3>Email</h3>
-          <p>Untuk pertanyaan umum atau masalah lainnya, Anda dapat menghubungi kami melalui email.</p>
-          <a href="mailto:rozakadm@gmail.com" class="btn">Kirim Email</a>
+
+        <div class="support-card reveal">
+          <div class="support-icon">
+            <i class="fas fa-envelope"></i>
+          </div>
+          <h3>Email Support</h3>
+          <p>Untuk pertanyaan umum, saran, atau masalah yang memerlukan bantuan lebih personal, silakan hubungi kami melalui email.</p>
+          <a href="mailto:rozakadm@gmail.com" class="btn">
+            <i class="fas fa-paper-plane"></i> Kirim Email
+          </a>
         </div>
-        <div class="card">
-          <i class="fas fa-hand-holding-heart fa-3x"></i>
-          <h3>Sociabuzz</h3>
-          <p>Dukung pengembangan ZeroMix melalui Sociabuzz.</p>
-          <a href="https://sociabuzz.com/zuax/tribe" class="btn" target="_blank">Dukung di Sociabuzz</a>
+
+        <div class="support-card reveal">
+          <div class="support-icon">
+            <i class="fas fa-comments"></i>
+          </div>
+          <h3>Feedback & Saran</h3>
+          <p>Kami sangat menghargai feedback Anda! Ceritakan pengalaman Anda menggunakan ZeroMix dan saran untuk improvement.</p>
+          <a href="Feedback.html" class="btn">
+            <i class="fas fa-heart"></i> Berikan Feedback
+          </a>
+        </div>
+
+        <div class="support-card reveal">
+          <div class="support-icon">
+            <i class="fas fa-heart"></i>
+          </div>
+          <h3>Dukung Pengembangan</h3>
+          <p>Jika Anda menyukai ZeroMix, dukung pengembangan kami melalui Sociabuzz. Setiap dukungan sangat berarti!</p>
+          <a href="https://sociabuzz.com/zuax/tribe" class="btn" target="_blank" rel="noopener noreferrer">
+            <i class="fas fa-hand-holding-heart"></i> Dukung di Sociabuzz
+          </a>
+        </div>
+
+        <div class="support-card reveal">
+          <div class="support-icon">
+            <i class="fab fa-github-alt"></i>
+          </div>
+          <h3>Repository GitHub</h3>
+          <p>Kunjungi repository GitHub kami untuk melihat source code, history commit, dan berkontribusi pada project.</p>
+          <a href="https://github.com/faizinuha/ZeroMix" class="btn" target="_blank" rel="noopener noreferrer">
+            <i class="fas fa-code-branch"></i> Repository GitHub
+          </a>
+        </div>
+
+        <div class="support-card reveal">
+          <div class="support-icon">
+            <i class="fas fa-home"></i>
+          </div>
+          <h3>Website & Dokumentasi</h3>
+          <p>Jelajahi website kami untuk dokumentasi, tutorial, dan informasi lebih lanjut tentang ZeroMix.</p>
+          <a href="index.html" class="btn">
+            <i class="fas fa-arrow-right"></i> Kembali ke Home
+          </a>
         </div>
       </div>
     </section>
 
+    <!-- FAQ Section -->
+    <section class="reveal">
+      <h2>❓ Pertanyaan Umum (FAQ)</h2>
+      <div class="faq-container">
+        <div class="faq-item">
+          <div class="faq-question">
+            <h4>🎯 Bagaimana cara menggunakan ZeroMix?</h4>
+            <i class="fas fa-chevron-down"></i>
+          </div>
+          <div class="faq-answer">
+            <p>Tekan <code>Alt+Space</code> untuk membuka overlay pencarian ZeroMix. Ketik nama aplikasi yang ingin Anda buka atau query pencarian untuk mencari di Google. Pilih hasil dengan keyboard atau mouse, lalu tekan Enter untuk eksekusi.</p>
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <div class="faq-question">
+            <h4>💿 Apakah ZeroMix gratis?</h4>
+            <i class="fas fa-chevron-down"></i>
+          </div>
+          <div class="faq-answer">
+            <p>Ya! ZeroMix sepenuhnya gratis dan open source. Tidak ada biaya berlangganan, iklan, atau fitur premium yang tersembunyi. Kami berkomitmen untuk memberikan tool produktivitas terbaik kepada semua orang.</p>
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <div class="faq-question">
+            <h4>🔒 Apakah data saya aman?</h4>
+            <i class="fas fa-chevron-down"></i>
+          </div>
+          <div class="faq-answer">
+            <p>Semua data Anda disimpan secara lokal di folder <code>%AppData%/ZeroMix</code>. Kami tidak mengirim data Anda ke server manapun. Anda memiliki kontrol penuh atas data pribadi Anda.</p>
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <div class="faq-question">
+            <h4>🚀 Bagaimana cara membuat shortcut custom?</h4>
+            <i class="fas fa-chevron-down"></i>
+          </div>
+          <div class="faq-answer">
+            <p>Buka ZeroMix dan cari menu "Custom Shortcut". Klik tambah shortcut baru, tentukan hotkey yang diinginkan, dan pilih aplikasi target. Shortcut akan langsung aktif tanpa perlu restart aplikasi.</p>
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <div class="faq-question">
+            <h4>🌐 Apakah ZeroMix tersedia di platform lain?</h4>
+            <i class="fas fa-chevron-down"></i>
+          </div>
+          <div class="faq-answer">
+            <p>Saat ini ZeroMix tersedia untuk Windows 10/11 sebagai aplikasi desktop dan sebagai browser extension (Chrome, Edge, Opera). Tidak ada rencana untuk platform lain saat ini, tapi kami terbuka untuk saran.</p>
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <div class="faq-question">
+            <h4>🐛 Saya menemukan bug, bagaimana cara melaporkannya?</h4>
+            <i class="fas fa-chevron-down"></i>
+          </div>
+          <div class="faq-answer">
+            <p>Buka halaman GitHub Issues kami dan klik "New Issue". Berikan deskripsi detail tentang bug, langkah-langkah untuk mereproduksi, dan informasi sistem Anda. Semakin detail, semakin baik!</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="cta-section reveal">
+      <h2>Masih Ada Pertanyaan?</h2>
+      <p>Jangan ragu untuk menghubungi kami. Tim kami siap membantu Anda kapan saja!</p>
+      <div style="display: flex; gap: 15px; justify-content: center; flex-wrap: wrap; margin-top: 30px;">
+        <a href="mailto:rozakadm@gmail.com" class="btn">📧 Kirim Email</a>
+        <a href="https://github.com/faizinuha/ZeroMix/issues" class="btn" target="_blank" rel="noopener noreferrer">🐛 Lapor Bug</a>
+      </div>
+    </section>
+
+    <!-- Footer -->
     <footer>
-      <p>© 2025 ZeroMix Project – Dibuat dengan ❤️ oleh Sayang Ku</p>
+      <p>&copy; 2025 ZeroMix Project – Dibuat dengan ❤️ oleh Zaki</p>
       <p>
-        <a href="https://github.com/faizinuha/ZeroMix">GitHub</a> |
+        <a href="https://github.com/faizinuha/ZeroMix" target="_blank" rel="noopener noreferrer">GitHub</a> |
         <a href="index.html">Home</a> |
         <a href="mailto:rozakadm@gmail.com">Email</a> |
-        <a href="https://sociabuzz.com/zuax/tribe">Sociabuzz</a>
+        <a href="https://sociabuzz.com/zuax/tribe" target="_blank" rel="noopener noreferrer">Sociabuzz</a>
       </p>
     </footer>
+
+    <script src="script.js"></script>
+    <script>
+      // FAQ Accordion
+      const faqItems = document.querySelectorAll('.faq-item');
+      
+      faqItems.forEach(item => {
+        const question = item.querySelector('.faq-question');
+        
+        question.addEventListener('click', () => {
+          const answer = item.querySelector('.faq-answer');
+          const icon = question.querySelector('i');
+          
+          item.classList.toggle('active');
+          
+          if (item.classList.contains('active')) {
+            answer.style.maxHeight = answer.scrollHeight + 'px';
+            icon.style.transform = 'rotate(180deg)';
+          } else {
+            answer.style.maxHeight = '0';
+            icon.style.transform = 'rotate(0deg)';
+          }
+        });
+      });
+    </script>
+
+    <!-- Translations & Auto-Translator -->
+    <script src="translations.js"></script>
+    <script src="auto-translator.js"></script>
+    <!-- Main Scripts -->
+    <script src="script.js"></script>
   </body>
 </html>

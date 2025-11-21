@@ -1,127 +1,252 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="id">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Changelog ZeroMix - Riwayat update dan fitur terbaru dari aplikasi Smart Launcher." />
     <title>ZeroMix – Changelog</title>
+    <link rel="icon" href="./zeromix-high-resolution-logo-transparent.png">
     <link rel="stylesheet" href="style.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+      integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    />
   </head>
   <body>
-   <nav class="navbar">
+    <!-- Navigation Bar -->
+    <nav class="navbar">
         <div class="nav-container">
             <a href="index.html" class="nav-logo">ZeroMix</a>
+            <button class="menu-toggle" aria-label="Toggle menu">
+                <i class="fas fa-bars"></i>
+            </button>
             <ul class="nav-menu">
-                <li class="nav-item"><a href="#fitur">Fitur</a></li>
-                <li class="nav-item"><a href="#install">Install</a></li>
-                <li class="nav-item"><a href="#download">Download</a></li>
-                <li class="nav-item"><a href="#screenshot">Screenshot</a></li>
+                <li class="nav-item"><a href="index.html#fitur">Fitur</a></li>
+                <li class="nav-item"><a href="index.html#install">Install</a></li>
+                <li class="nav-item"><a href="index.html#download">Download</a></li>
+                <li class="nav-item"><a href="index.html#screenshot">Screenshot</a></li>
                 <li class="nav-item"><a href="Changelog.html">Changelog</a></li>
-                <li class="nav-item"><a href="About.html">About</a></li>
+                <li class="nav-item"><a href="About.html">Tentang</a></li>
                 <li class="nav-item"><a href="Support.html">Support</a></li>
+                <li class="nav-item language-switcher">
+                  <button class="lang-btn active" data-lang="id">🇮🇩 ID</button>
+                  <button class="lang-btn" data-lang="en">🇺🇸 EN</button>
+                </li>
             </ul>
         </div>
     </nav>
 
-
+    <!-- Hero Section -->
     <header>
       <div class="header-content">
         <h1>Changelog</h1>
+        <p>Riwayat Update dan Perkembangan ZeroMix</p>
       </div>
     </header>
 
+    <!-- Changelog Content -->
     <section>
-      <h2>✨ What's New</h2>
-      <div class="changelog">
-        <h3>Versi 1.8.0 - 1.9.5</h3>
-        <p><code>Update</code></p>
-        <ul>
-          <li><strong>Perbaikan Bug:</strong> Memperbaiki masalah di mana beberapa aplikasi tidak muncul dalam daftar, terutama aplikasi yang diinstal melalui Microsoft Store.</li>
-          <li><strong>Peningkatan Performa:</strong> Optimalisasi algoritma pencarian untuk hasil yang lebih cepat dan relevan.</li>
-          <li><strong>Peningkatan UI/UX:</strong> Penyempurnaan antarmuka pengguna untuk pengalaman yang lebih mulus dan intuitif.</li>
-          <li><strong>Menambahkan Wallapers</strong></li>
-          <li><strong>Memperbaiki masalah Dalam penutupan Aplikasi </strong></li>
-          <li><strong>Menambahkan ikon di system tray dengan menu.</strong></li>
-          <li><strong>Menampilkan performa CPU & RAM.</strong></li>
-          <li><strong>Menambahkan tombol untuk proses pembersihan Temp & %Temp%.</strong></li>
-        </ul>
-
-        <h3>Versi 1.6.0 - 1.6.6</h3>
-        <ul>
-          <li><strong>Prioritas Saran Cerdas:</strong> Mengimplementasikan sistem untuk menampilkan aplikasi yang paling sering digunakan di urutan teratas.</li>
-          <li><strong>Kustomisasi Tampilan:</strong> Menambahkan opsi untuk mengubah urutan kategori (misalnya, Pencarian Web di atas Aplikasi Desktop).</li>
-          <li><strong>Optimasi Performa:</strong> Peningkatan kecepatan dalam memuat dan menampilkan daftar aplikasi, terutama untuk pengguna dengan banyak program terinstal.</li>
-          <li><strong>Pembaruan Otomatis Cerdas</strong>:
+      <h2>✨ Riwayat Update</h2>
+      
+      <div class="changelog-timeline">
+        <!-- Version 1.8.0 - 1.9.5 -->
+        <div class="timeline-item reveal">
+          <div class="timeline-marker">
+            <span class="version-badge">v1.8.0 - 1.9.5</span>
+          </div>
+          <div class="timeline-content">
+            <h3>Versi 1.8.0 - 1.9.5</h3>
+            <div class="changelog-tag tag-update">Update Besar</div>
             <ul>
-              <li><strong>Pengecekan Senyap</strong>: Aplikasi secara otomatis memeriksa pembaruan di latar belakang saat dimulai, tanpa mengganggu Anda.</li>
-              <li><strong>Notifikasi Elegan</strong>: Jika versi baru tersedia, notifikasi akan muncul di pojok layar, lengkap dengan catatan perubahan (changelog).</li>
-              <li><strong>Instalasi Mulus</strong>: Dengan satu klik, ZeroMix akan mengunduh installer baru (dengan progress bar) dan menjalankannya secara otomatis di mode senyap untuk proses update yang lancar.</li>
+              <li><strong>🐛 Perbaikan Bug:</strong> Memperbaiki masalah di mana beberapa aplikasi tidak muncul dalam daftar, terutama aplikasi yang diinstal melalui Microsoft Store.</li>
+              <li><strong>⚡ Peningkatan Performa:</strong> Optimalisasi algoritma pencarian untuk hasil yang lebih cepat dan relevan.</li>
+              <li><strong>🎨 Peningkatan UI/UX:</strong> Penyempurnaan antarmuka pengguna untuk pengalaman yang lebih mulus dan intuitif.</li>
+              <li><strong>🎨 Menambahkan Wallpaper:</strong> Koleksi wallpaper baru untuk desktop aplikasi.</li>
+              <li><strong>🐛 Perbaikan Penutupan Aplikasi:</strong> Memperbaiki issue saat menutup aplikasi.</li>
+              <li><strong>🪟 Ikon Tray dengan Menu:</strong> Menambahkan ikon di system tray dengan menu konteks.</li>
+              <li><strong>📊 Monitor CPU & RAM:</strong> Menampilkan performa real-time CPU dan RAM di dashboard.</li>
+              <li><strong>🧹 Pembersihan Temp:</strong> Menambahkan tombol untuk proses pembersihan Temp & %Temp%.</li>
             </ul>
-          </li>
-          <li><strong>Manajemen Shortcut Kustom</strong>:
+          </div>
+        </div>
+
+        <!-- Version 1.6.0 - 1.6.6 -->
+        <div class="timeline-item reveal">
+          <div class="timeline-marker">
+            <span class="version-badge">v1.6.0 - 1.6.6</span>
+          </div>
+          <div class="timeline-content">
+            <h3>Versi 1.6.0 - 1.6.6</h3>
+            <div class="changelog-tag tag-feature">Fitur Baru</div>
             <ul>
-              <li><strong>Jendela Khusus</strong>: Menambahkan antarmuka baru untuk membuat dan mengelola pintasan keyboard kustom.</li>
-              <li><strong>Perekaman Hotkey Intuitif</strong>: Merekam hotkey kini lebih mudah. Cukup tekan kombinasi tombol yang diinginkan (misal: <code>Ctrl+V</code>), dan sistem akan merekamnya secara otomatis.</li>
-              <li><strong>Penemuan Aplikasi Cerdas</strong>: Mempermudah pemilihan aplikasi dengan menampilkan daftar aplikasi yang terinstal dari Start Menu dan Desktop secara otomatis.</li>
-              <li><strong>Peningkatan UI/UX (Dalam Pengembangan)</strong>: Antarmuka untuk fitur ini masih dalam tahap awal. Peningkatan desain dan pengalaman pengguna akan menjadi fokus pada versi 1.7.0.</li>
+              <li><strong>📌 Prioritas Saran Cerdas:</strong> Implementasi sistem untuk menampilkan aplikasi yang paling sering digunakan di urutan teratas.</li>
+              <li><strong>🎯 Kustomisasi Tampilan:</strong> Opsi untuk mengubah urutan kategori (misalnya, Pencarian Web di atas Aplikasi Desktop).</li>
+              <li><strong>⚡ Optimasi Performa:</strong> Peningkatan kecepatan dalam memuat dan menampilkan daftar aplikasi.</li>
+              <li><strong>🔄 Pembaruan Otomatis Cerdas:</strong>
+                <ul>
+                  <li>Pengecekan Senyap - Memeriksa pembaruan di latar belakang tanpa mengganggu</li>
+                  <li>Notifikasi Elegan - Notifikasi di pojok layar dengan changelog</li>
+                  <li>Instalasi Mulus - Unduh dan update secara otomatis dalam mode senyap</li>
+                </ul>
+              </li>
+              <li><strong>⌨️ Manajemen Shortcut Kustom:</strong>
+                <ul>
+                  <li>Jendela khusus untuk membuat dan mengelola pintasan keyboard</li>
+                  <li>Perekaman hotkey intuitif dengan deteksi otomatis</li>
+                  <li>Penemuan aplikasi cerdas dari Start Menu dan Desktop</li>
+                </ul>
+              </li>
+              <li><strong>🎨 Ganti Logo ZeroMix</strong></li>
+              <li><strong>📦 Codesign dengan success rate 50%</strong></li>
             </ul>
-          </li>
-          <li>Ganti Logo ZeroMix</li>
-          <li>Codesign 50% Per 50% Kemungkinana berhasil</li>
-          <li>Install DI Bawa Ke Tampilan website untuk Mempercantik</li>
-          <li>Uninstall DI bawa Ke Tampilan Website Untuk Feedback</li>
-        </ul>
+          </div>
+        </div>
 
-        <h3>Versi 1.6.0</h3>
-        <ul>
-          <li><strong>Peningkatan UI/UX:</strong>
+        <!-- Version 1.6.0 -->
+        <div class="timeline-item reveal">
+          <div class="timeline-marker">
+            <span class="version-badge">v1.6.0</span>
+          </div>
+          <div class="timeline-content">
+            <h3>Versi 1.6.0</h3>
+            <div class="changelog-tag tag-feature">Fitur Baru</div>
             <ul>
-              <li>Menambahkan ikon untuk membedakan antara Aplikasi Desktop (💻) dan Pencarian Web (🔍).</li>
-              <li>Mengelompokkan hasil pencarian ke dalam kategori "Aplikasi Desktop" dan "Pencarian Web" agar lebih rapi.</li>
-              <li><strong>Tampilan Jendela Modern</strong>: Mengadopsi efek <em>blur</em> (frosted glass) dan bingkai halus ala macOS untuk tampilan yang lebih elegan dan profesional.</li>
+              <li><strong>🎨 Peningkatan UI/UX:</strong>
+                <ul>
+                  <li>Ikon untuk membedakan antara Aplikasi Desktop (💻) dan Pencarian Web (🔍)</li>
+                  <li>Pengelompokan hasil pencarian ke dalam kategori yang rapi</li>
+                  <li>Tampilan jendela modern dengan efek blur (frosted glass) ala macOS</li>
+                </ul>
+              </li>
+              <li><strong>🔍 Perbaikan Logika Pencarian:</strong>
+                <ul>
+                  <li>Perbaikan bug Enter untuk memprioritaskan saran di daftar</li>
+                  <li>Menghilangkan auto-enter yang tidak perlu saat memilih saran</li>
+                </ul>
+              </li>
+              <li><strong>🔧 Peningkatan Stabilitas:</strong> Berbagai perbaikan kecil untuk stabilitas aplikasi.</li>
             </ul>
-          </li>
-          <li><strong>Perbaikan Logika Pencarian:</strong>
+          </div>
+        </div>
+
+        <!-- Version 1.5.5 -->
+        <div class="timeline-item reveal">
+          <div class="timeline-marker">
+            <span class="version-badge">v1.5.5</span>
+          </div>
+          <div class="timeline-content">
+            <h3>Versi 1.5.5</h3>
+            <div class="changelog-tag tag-patch">Patch</div>
             <ul>
-              <li>Memperbaiki bug di mana menekan <code>Enter</code> langsung mencari di web. Sekarang, <code>Enter</code> akan memprioritaskan saran yang ada di daftar.</li>
-              <li>Menghilangkan bug "auto-enter" yang langsung menjalankan perintah saat memilih saran dengan tombol panah.</li>
+              <li>🐛 Perbaikan Bug Minor</li>
+              <li>⚡ Peningkatan Performa Aplikasi</li>
+              <li>🌙 Penambahan Fitur Dark Mode (Coming Soon)</li>
+              <li>🎨 Peningkatan UI/UX Umum</li>
             </ul>
-          </li>
-          <li><strong>Peningkatan Stabilitas:</strong> Berbagai perbaikan kecil untuk meningkatkan stabilitas dan pengalaman pengguna secara keseluruhan.</li>
-        </ul>
+          </div>
+        </div>
 
-        <h3>versi 1.5.5</h3>
-        <ul>
-          <li>Perbaikan Bug Minor</li>
-          <li>Peningkatan Performa Aplikasi</li>
-          <li>penambahan Fitur Dark Mode (Cooming soon)</li>
-          <li>peningkatan UI/UX</li>
-        </ul>
+        <!-- Version 1.2.0 - 1.4.0 -->
+        <div class="timeline-item reveal">
+          <div class="timeline-marker">
+            <span class="version-badge">v1.2.0 - 1.4.0</span>
+          </div>
+          <div class="timeline-content">
+            <h3>Versi 1.2.0 - 1.3.0 - 1.4.0</h3>
+            <div class="changelog-tag tag-maintenance">Maintenance</div>
+            <ul>
+              <li>Tidak ada pembaruan signifikan - Tahap stabilisasi awal</li>
+            </ul>
+          </div>
+        </div>
 
-        <h3>versi 1.2.0 - 1.3.0, 1.4.0</h3>
-        <ul>
-          <li>Tidak ada Pembarui Segnifikan</li>
-        </ul>
+        <!-- Version 1.1.0 -->
+        <div class="timeline-item reveal">
+          <div class="timeline-marker">
+            <span class="version-badge">v1.1.0</span>
+          </div>
+          <div class="timeline-content">
+            <h3>Versi 1.1.0</h3>
+            <div class="changelog-tag tag-maintenance">Maintenance</div>
+            <ul>
+              <li>Tidak ada pembaruan signifikan - Perbaikan kecil dan stabilisasi</li>
+            </ul>
+          </div>
+        </div>
 
-        <h3>versi 1.1.0</h3>
-        <ul>
-          <li>Tidak ada Pembarui Segnifikan</li>
-        </ul>
-
-        <h3>Versi 1.0.0</h3>
-        <ul>
-          <li>Rilis awal dengan fitur Smart Launcher, deteksi aplikasi otomatis, dan shortcut desktop otomatis.</li>
-        </ul>
+        <!-- Version 1.0.0 -->
+        <div class="timeline-item reveal">
+          <div class="timeline-marker">
+            <span class="version-badge">v1.0.0</span>
+          </div>
+          <div class="timeline-content">
+            <h3>Versi 1.0.0</h3>
+            <div class="changelog-tag tag-launch">Launch</div>
+            <ul>
+              <li>🚀 Rilis awal dengan fitur Smart Launcher</li>
+              <li>🔍 Deteksi aplikasi otomatis</li>
+              <li>⌨️ Shortcut desktop otomatis</li>
+              <li>🎯 Overlay pencarian dengan Spotlight-like interface</li>
+            </ul>
+          </div>
+        </div>
       </div>
     </section>
 
+    <!-- Coming Soon Section -->
+    <section class="reveal" style="text-align: center;">
+      <h2>🎯 Fitur yang Akan Datang</h2>
+      <div class="coming-soon-items">
+        <div class="coming-soon-card">
+          <i class="fas fa-moon"></i>
+          <h4>Dark Mode Sempurna</h4>
+          <p>Mode gelap yang lebih baik dengan tema yang dapat disesuaikan</p>
+        </div>
+        <div class="coming-soon-card">
+          <i class="fas fa-sync"></i>
+          <h4>Cloud Sync</h4>
+          <p>Sinkronisasi pengaturan di berbagai perangkat</p>
+        </div>
+        <div class="coming-soon-card">
+          <i class="fas fa-puzzle-piece"></i>
+          <h4>Plugin System</h4>
+          <p>Dukungan plugin untuk ekstensibilitas lebih lanjut</p>
+        </div>
+        <div class="coming-soon-card">
+          <i class="fas fa-code"></i>
+          <h4>Command Palette</h4>
+          <p>Palet perintah untuk power user yang lebih advanced</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="cta-section reveal">
+      <h2>Ingin Update Terbaru?</h2>
+      <p>Aktifkan update otomatis atau kunjungi GitHub untuk download versi terbaru.</p>
+      <a href="https://github.com/faizinuha/ZeroMix/releases" target="_blank" rel="noopener noreferrer" class="btn">
+        Lihat di GitHub
+      </a>
+    </section>
+
+    <!-- Footer -->
     <footer>
-      <p>© 2025 ZeroMix Project – Dibuat dengan ❤️ oleh Sayang Ku</p>
+      <p>&copy; 2025 ZeroMix Project – Dibuat dengan ❤️ oleh Zaki</p>
       <p>
-        <a href="https://github.com/faizinuha/ZeroMix">GitHub</a> |
+        <a href="https://github.com/faizinuha/ZeroMix" target="_blank" rel="noopener noreferrer">GitHub</a> |
         <a href="index.html">Home</a> |
         <a href="mailto:rozakadm@gmail.com">Email</a> |
-        <a href="https://sociabuzz.com/zuax/tribe">Sociabuzz</a>
+        <a href="https://sociabuzz.com/zuax/tribe" target="_blank" rel="noopener noreferrer">Sociabuzz</a>
       </p>
     </footer>
+
+    <!-- Translations & Auto-Translator -->
+    <script src="translations.js"></script>
+    <script src="auto-translator.js"></script>
+    <!-- Main Scripts -->
+    <script src="script.js"></script>
   </body>
 </html>
