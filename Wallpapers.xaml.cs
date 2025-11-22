@@ -1,8 +1,10 @@
 using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using System.Windows;
@@ -18,291 +20,162 @@ namespace ZeroMix
     public partial class Wallpapers : Window
     {
         private string? _selectedImagePath;
+        private ObservableCollection<WallpaperItem> _allWallpapers = new();
+        private ObservableCollection<WallpaperItem> _filteredWallpapers = new();
+        private string _currentFilter = "all";
+        private string _currentSearch = "";
+        private Random _random = new();
 
         public Wallpapers()
         {
             InitializeComponent();
+            WallpaperListPanel.ItemsSource = _filteredWallpapers;
         }
 
         private async void Window_Loaded(object sender, RoutedEventArgs e)
         {
-            // Clear existing items to prevent duplicates if this event is somehow called again.
-            WallpaperListPanel.Children.Clear();
-
+            FilterAllBtn.Background = (SolidColorBrush)FindResource("AccentBrush");
             await LoadWallpapersAsync();
-            await LoadVideoWallpapersAsync();
         }
 
         private void Window_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
             if (e.ButtonState == MouseButtonState.Pressed)
-            {
                 DragMove();
+        }
+
+        private void CloseButton_Click(object sender, RoutedEventArgs e) => Close();
+
+        // --- SEARCH & FILTER ---
+        private void SearchBox_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            _currentSearch = SearchBox.Text.ToLowerInvariant();
+            ApplyFilter();
+        }
+
+        private void FilterBtn_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is Button btn)
+            {
+                // Reset all buttons
+                FilterAllBtn.Background = (SolidColorBrush)FindResource("ControlHoverBrush");
+                FilterImagesBtn.Background = (SolidColorBrush)FindResource("ControlHoverBrush");
+                FilterVideosBtn.Background = (SolidColorBrush)FindResource("ControlHoverBrush");
+                FilterAnimatedBtn.Background = (SolidColorBrush)FindResource("ControlHoverBrush");
+
+                // Highlight selected
+                btn.Background = (SolidColorBrush)FindResource("AccentBrush");
+
+                // Set filter
+                if (btn == FilterAllBtn) _currentFilter = "all";
+                else if (btn == FilterImagesBtn) _currentFilter = "images";
+                else if (btn == FilterVideosBtn) _currentFilter = "videos";
+                else if (btn == FilterAnimatedBtn) _currentFilter = "animated";
+
+                ApplyFilter();
             }
         }
 
-        private void CloseButton_Click(object sender, RoutedEventArgs e)
+        private void ApplyFilter()
         {
-            Close();
-        }
+            _filteredWallpapers.Clear();
 
-        private async void BrowseButton_Click(object sender, RoutedEventArgs e)
-        {
-            var openFileDialog = new OpenFileDialog
+            var filtered = _allWallpapers.Where(w =>
             {
-                Title = "Select a Wallpaper Image or Video",
-                Filter = "All Media Files|*.jpg;*.jpeg;*.png;*.bmp;*.mp4;*.wmv;*.mov|Image Files|*.jpg;*.jpeg;*.png;*.bmp|Video Files|*.mp4;*.wmv;*.mov|All files (*.*)|*.*"
+                // Search filter
+                if (!string.IsNullOrEmpty(_currentSearch) && !w.Name.ToLowerInvariant().Contains(_currentSearch))
+                    return false;
 
-            };
-
-            if (openFileDialog.ShowDialog() == true)
-            {
-                _selectedImagePath = openFileDialog.FileName;
-                var ext = Path.GetExtension(_selectedImagePath).ToLowerInvariant();
-                if (new[] { ".mp4", ".wmv", ".mov", ".avi" }.Contains(ext))
+                // Type filter
+                return _currentFilter switch
                 {
-                    BitmapSource? thumbnail = await GenerateThumbnailAsync(_selectedImagePath, TimeSpan.FromSeconds(1));
-                    if (thumbnail != null)
-                    {
-                        var videoElement = CreateVideoElement(thumbnail, _selectedImagePath);
-                        WallpaperListPanel.Children.Insert(0, videoElement);
-                    }
-                    MessageBox.Show("Video selected. Setting video wallpapers is not yet supported.", "Video Ready", MessageBoxButton.OK, MessageBoxImage.Information);
-                }
-                else
-                {
-                    var bitmap = CreateBitmapFromPath(_selectedImagePath);
-                    if (bitmap != null)
-                    {
-                        var wallpaperElement = CreateWallpaperElement(bitmap, _selectedImagePath);
-                        WallpaperListPanel.Children.Insert(0, wallpaperElement);
-                        MessageBox.Show("Image selected. Click 'Set as Wallpaper' to apply.", "Image Ready", MessageBoxButton.OK, MessageBoxImage.Information);
-                    }
-                }
-            }
-        }
-
-        /// <summary>
-        /// Sets the selected image as the desktop wallpaper.
-        /// </summary>
-        private void SetWallpaperButton_Click(object sender, RoutedEventArgs e)
-        {
-            if (string.IsNullOrEmpty(_selectedImagePath) || !File.Exists(_selectedImagePath))
-            {
-                MessageBox.Show("Please select a valid image or video first.", "No File Selected", MessageBoxButton.OK, MessageBoxImage.Warning);
-                return;
-            }
-
-            var ext = Path.GetExtension(_selectedImagePath).ToLowerInvariant();
-            if (new[] { ".mp4", ".wmv", ".mov" }.Contains(ext))
-            {
-                MessageBox.Show("Setting a video as a wallpaper is not yet supported.", "Feature Not Available", MessageBoxButton.OK, MessageBoxImage.Information);
-                return;
-            }
-
-            try
-            {
-                NativeMethods.SetWallpaper(_selectedImagePath);
-                MessageBox.Show("Wallpaper has been successfully changed!", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"Failed to set wallpaper: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-                Debug.WriteLine($"[ERROR] SetWallpaper: {ex}");
-            }
-        }
-
-        private async Task LoadVideoWallpapersAsync()
-        {
-            var videoPaths = new List<string>();
-            try
-            {
-                var videoExtensions = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { ".mp4", ".wmv", ".mov", ".avi" };
-                string baseDir = AppDomain.CurrentDomain.BaseDirectory;
-                var candidateRoots = new List<string> { baseDir };
-                var dirInfo = new DirectoryInfo(baseDir);
-                for (int i = 0; i < 4 && dirInfo?.Parent != null; i++)
-                {
-                    dirInfo = dirInfo.Parent;
-                    if (dirInfo != null) candidateRoots.Add(dirInfo.FullName);
-                }
-
-                foreach (var root in candidateRoots)
-                {
-                    string videoDir = Path.Combine(root, "Resource", "Video");
-                    if (!Directory.Exists(videoDir)) continue;
-
-                    foreach (var file in Directory.EnumerateFiles(videoDir, "*.*", SearchOption.AllDirectories))
-                    {
-                        if (videoExtensions.Contains(Path.GetExtension(file)))
-                        {
-                            if (!videoPaths.Contains(file, StringComparer.OrdinalIgnoreCase))
-                            {
-                                videoPaths.Add(file);
-                            }
-                        }
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"[ERROR] Enumerating video files failed: {ex.Message}");
-            }
-
-            foreach (var videoPath in videoPaths)
-            {
-                try
-                {
-                    BitmapSource? thumbnail = await GenerateThumbnailAsync(videoPath, TimeSpan.FromSeconds(1));
-                    if (thumbnail != null)
-                    {
-                        var element = CreateVideoElement(thumbnail, videoPath);
-                        WallpaperListPanel.Children.Add(element);
-                    }
-                }
-                catch (Exception ex)
-                {
-                    Debug.WriteLine($"[ERROR] Failed to create thumbnail for {videoPath}: {ex.Message}");
-                }
-            }
-        }
-
-        private Border CreateVideoElement(BitmapSource thumbnail, string videoPath)
-        {
-            var image = new Image
-            {
-                Source = thumbnail,
-                Style = (Style)FindResource("WallpaperImageStyle")
-            };
-
-            var border = new Border
-            {
-                Style = (Style)FindResource("WallpaperBorderStyle"),
-                Child = image,
-                ToolTip = videoPath
-            };
-
-            border.MouseLeftButtonUp += (s, e) =>
-            {
-                _selectedImagePath = videoPath;
-                MessageBox.Show($"Selected video: {Path.GetFileName(videoPath)}. Setting video wallpapers is not yet supported.", "Video Selected", MessageBoxButton.OK, MessageBoxImage.Information);
-            };
-
-            return border;
-        }
-
-        private async Task<BitmapSource?> GenerateThumbnailAsync(string videoPath, TimeSpan seekTime)
-        {
-            if (!File.Exists(videoPath)) return null;
-
-            var tcs = new TaskCompletionSource<BitmapSource?>();
-
-            // MediaPlayer must be created and used on the UI thread.
-            await Application.Current.Dispatcher.InvokeAsync(() =>
-            {
-                var player = new MediaPlayer { Volume = 0, ScrubbingEnabled = true };
-                player.Open(new Uri(videoPath));
-
-                player.MediaOpened += async (s, e) =>
-                {
-                    player.Position = seekTime;
-                    await Task.Delay(200); // Give the player a moment to seek.
-
-                    try
-                    {
-                        // Define the size of the thumbnail.
-                        int width = 200;
-                        int height = 200;
-
-                        // Render the current frame of the video to a bitmap.
-                        var drawingVisual = new DrawingVisual();
-                        using (var drawingContext = drawingVisual.RenderOpen())
-                        {
-                            drawingContext.DrawVideo(player, new Rect(0, 0, width, height));
-                        }
-
-                        var renderTarget = new RenderTargetBitmap(width, height, 96, 96, PixelFormats.Pbgra32);
-                        renderTarget.Render(drawingVisual);
-                        renderTarget.Freeze(); // Important for performance and cross-thread access
-
-                        player.Close();
-                        tcs.TrySetResult(renderTarget);
-                    }
-                    catch (Exception ex)
-                    {
-                        Debug.WriteLine($"[ERROR] Thumbnail generation failed: {ex.Message}");
-                        player.Close();
-                        tcs.TrySetResult(null);
-                    }
+                    "images" => w.Type == WallpaperType.Image,
+                    "videos" => w.Type == WallpaperType.Video,
+                    "animated" => w.Type == WallpaperType.Animated,
+                    _ => true
                 };
+            }).ToList();
 
-                player.MediaFailed += (s, e) =>
-                {
-                    Debug.WriteLine($"[ERROR] MediaFailed for {videoPath}: {e.ErrorException.Message}");
-                    player.Close();
-                    tcs.TrySetResult(null);
-                };
-            });
+            foreach (var item in filtered)
+                _filteredWallpapers.Add(item);
 
-            return await tcs.Task;
+            CountLabel.Text = $"{_filteredWallpapers.Count} items";
         }
 
-        /// <summary>
-        /// Asynchronously loads the current desktop wallpaper and default wallpapers from resources.
-        /// </summary>
+        // --- RANDOM WALLPAPER ---
+        private void RandomBtn_Click(object sender, RoutedEventArgs e)
+        {
+            if (_filteredWallpapers.Count == 0) return;
+
+            int randomIndex = _random.Next(_filteredWallpapers.Count);
+            var randomWallpaper = _filteredWallpapers[randomIndex];
+            SelectWallpaper(randomWallpaper);
+        }
+
+        // --- LOAD WALLPAPERS ---
         private async Task LoadWallpapersAsync()
         {
-            // 1. Load current desktop wallpaper
+            _allWallpapers.Clear();
+
+            // Load current wallpaper
             try
             {
-                string? currentWallpaperPath = GetCurrentWallpaperPath();
-                if (!string.IsNullOrEmpty(currentWallpaperPath) && File.Exists(currentWallpaperPath))
+                string? currentPath = GetCurrentWallpaperPath();
+                if (!string.IsNullOrEmpty(currentPath) && File.Exists(currentPath))
                 {
-                    var bitmap = CreateBitmapFromPath(currentWallpaperPath);
+                    var bitmap = CreateBitmapFromPath(currentPath);
                     if (bitmap != null)
                     {
-                        var element = CreateWallpaperElement(bitmap, currentWallpaperPath);
-                        WallpaperListPanel.Children.Add(element);
+                        _allWallpapers.Add(new WallpaperItem
+                        {
+                            Name = "Current Wallpaper",
+                            Path = currentPath,
+                            Thumbnail = bitmap,
+                            Type = WallpaperType.Image,
+                            IsSelected = false
+                        });
                     }
                 }
             }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"[ERROR] Failed to load current wallpaper: {ex.Message}");
-            }
+            catch { }
 
-            // 2. Try loading default wallpapers from disk folders first
-            bool anyDiskImages = false;
+            // Load from disk
+            bool loadedFromDisk = false;
             try
             {
-                foreach (var imagePath in EnumerateResourceImagesOnDisk())
+                var diskWallpapers = EnumerateResourceImagesOnDisk();
+                foreach (var imagePath in diskWallpapers)
                 {
                     var bitmap = CreateBitmapFromPath(imagePath);
                     if (bitmap != null)
                     {
-                        anyDiskImages = true;
-                        var element = CreateWallpaperElement(bitmap, imagePath);
-                        WallpaperListPanel.Children.Add(element);
+                        loadedFromDisk = true;
+                        var type = DetermineWallpaperType(imagePath);
+                        _allWallpapers.Add(new WallpaperItem
+                        {
+                            Name = Path.GetFileNameWithoutExtension(imagePath),
+                            Path = imagePath,
+                            Thumbnail = bitmap,
+                            Type = type,
+                            IsSelected = false
+                        });
                     }
                 }
             }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"[ERROR] Loading disk images failed: {ex.Message}");
-            }
+            catch { }
 
-            // 3. Fallback to pack resources if disk images are not found
-            if (!anyDiskImages)
+            // Fallback to pack resources
+            if (!loadedFromDisk)
             {
-                var resourceImagePaths = new List<string>
+                var resourcePaths = new[]
                 {
                     "Resource/Images/1.jpg", "Resource/Images/2.jpg", "Resource/Images/3.jpg",
-                    "Resource/Images/4.jpg", "Resource/Images/5.jpg", "Resource/Images/6.jpg", "Resource/Images/7.jpg",
-                    "Resource/anim/Fieren.jpg", "Resource/anim/Fieren2.jpg", "Resource/anim/Fieren3.jpg",
-                    "Resource/anim/view.jpg", "Resource/anim/anime.jpg"
+                    "Resource/Images/4.jpg", "Resource/Images/5.jpg", "Resource/Images/6.jpg",
+                    "Resource/Images/7.jpg", "Resource/anim/Fieren.jpg", "Resource/anim/Fieren2.jpg",
+                    "Resource/anim/Fieren3.jpg", "Resource/anim/view.jpg", "Resource/anim/anime.jpg"
                 };
 
-                foreach (var path in resourceImagePaths)
+                foreach (var path in resourcePaths)
                 {
                     try
                     {
@@ -310,210 +183,112 @@ namespace ZeroMix
                         var bitmap = CreateBitmapFromUri(uri);
                         if (bitmap != null)
                         {
-                            var element = CreateWallpaperElement(bitmap, uri.ToString());
-                            WallpaperListPanel.Children.Add(element);
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        Debug.WriteLine($"[ERROR] Failed to load resource image '{path}': {ex.Message}");
-                    }
-                }
-            }
-
-            // If still nothing except possibly current wallpaper, warn user once
-            if (WallpaperListPanel.Children.Count <= 1)
-            {
-                MessageBox.Show(
-                    "Tidak ada gambar ditemukan di folder Resource/Images atau Resource/anim.\n" +
-                    "Pastikan file disalin ke folder output (bin/...) atau set 'Copy to Output Directory' atau 'Build Action: Resource'.",
-                    "Gambar Resource Tidak Ditemukan",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Information);
-            }
-        }
-
-        /// <summary>
-        /// Creates a UI element (a Border containing an Image) for a given wallpaper.
-        /// </summary>
-        /// <param name="bitmap">The BitmapSource of the image.</param>
-        /// <param name="imageIdentifier">The path or URI of the image, used for selection.</param>
-        /// <returns>A Border element ready to be added to the UI.</returns>
-        private Border CreateWallpaperElement(BitmapSource bitmap, string imageIdentifier)
-        {
-            var image = new Image
-            {
-                Source = bitmap,
-                Style = (Style)FindResource("WallpaperImageStyle")
-            };
-
-            var border = new Border
-            {
-                Style = (Style)FindResource("WallpaperBorderStyle"),
-                Child = image
-            };
-
-            // Initial state now handled by XAML style (WallpaperBorderStyle) with Loaded animation
-
-            border.MouseLeftButtonUp += (s, e) =>
-            {
-                HandleWallpaperSelection(bitmap, imageIdentifier);
-            };
-
-            return border;
-        }
-
-        private async Task AnimateEntranceAsync(UIElement element, int orderIndex)
-        {
-            try
-            {
-                // Small stagger between items
-                int delay = Math.Max(0, Math.Min(orderIndex * 30, 300));
-                if (delay > 0)
-                {
-                    await Task.Delay(delay);
-                }
-                else
-                {
-                    // Ensure there's always an await if the method is async
-                    await Task.CompletedTask; 
-                }
-
-                // Opacity animation
-                var fade = new DoubleAnimation
-                {
-                    From = 0,
-                    To = 1,
-                    Duration = TimeSpan.FromMilliseconds(250),
-                    EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut }
-                };
-
-                // Slide from top (Y: -24 -> 0)
-                var slide = new DoubleAnimation
-                {
-                    From = -24,
-                    To = 0,
-                    Duration = TimeSpan.FromMilliseconds(300),
-                    EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut }
-                };
-
-                element.BeginAnimation(UIElement.OpacityProperty, fade);
-                if (element is FrameworkElement fe && fe.RenderTransform is TranslateTransform tt)
-                {
-                    tt.BeginAnimation(TranslateTransform.YProperty, slide);
-                }
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"[ERROR] AnimateEntranceAsync: {ex.Message}");
-            }
-        }
-
-        /// <summary>
-        /// Handles the logic when a user clicks on a wallpaper image.
-        /// </summary>
-        private void HandleWallpaperSelection(BitmapSource bitmap, string imageIdentifier)
-        {
-            try
-            {
-                // If the image is from a resource pack, save it to a temporary file
-                // so the Windows API can access it.
-                if (imageIdentifier.StartsWith("pack://"))
-                {
-                    // Load full-resolution frame from the resource stream (avoid thumbnail downscale)
-                    var packUri = new Uri(imageIdentifier, UriKind.Absolute);
-                    using (var resourceStream = Application.GetResourceStream(packUri)?.Stream)
-                    {
-                        if (resourceStream == null)
-                            throw new FileNotFoundException($"Resource not found: {imageIdentifier}");
-
-                        // Decide output format based on the resource extension
-                        string ext = Path.GetExtension(packUri.AbsolutePath).ToLowerInvariant();
-                        string outExt = string.IsNullOrEmpty(ext) ? ".jpg" : ext;
-                        string tempPath = Path.Combine(Path.GetTempPath(), $"zeromix_wallpaper_{Guid.NewGuid()}{outExt}");
-
-                        BitmapEncoder encoder = CreateEncoderForExtension(outExt);
-                        var fullFrame = BitmapFrame.Create(resourceStream, BitmapCreateOptions.None, BitmapCacheOption.OnLoad);
-                        encoder.Frames.Add(fullFrame);
-                        using (var fileStream = new FileStream(tempPath, FileMode.Create))
-                        {
-                            encoder.Save(fileStream);
-                        }
-                        _selectedImagePath = tempPath;
-                    }
-                    MessageBox.Show($"Selected: {Path.GetFileName(imageIdentifier)}. Click 'Set as Wallpaper' to apply.", "Selection", MessageBoxButton.OK, MessageBoxImage.Information);
-                }
-                else
-                {
-                    _selectedImagePath = imageIdentifier;
-                    MessageBox.Show($"Selected: {Path.GetFileName(imageIdentifier)}", "Selection", MessageBoxButton.OK, MessageBoxImage.Information);
-                }
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show("Failed to prepare the selected image.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-                Debug.WriteLine($"[ERROR] HandleWallpaperSelection: {ex}");
-            }
-        }
-
-        private static IEnumerable<string> EnumerateResourceImagesOnDisk()
-        {
-            var uniquePaths = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-            try
-            {
-                var exts = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { ".jpg", ".jpeg", ".png", ".bmp" };
-                string baseDir = AppDomain.CurrentDomain.BaseDirectory;
-                var dirInfo = new DirectoryInfo(baseDir);
-
-                // Walk up a maximum of 4 levels to find the "Resource" folder.
-                for (int i = 0; i < 4 && dirInfo != null; i++)
-                {
-                    string resourceRoot = Path.Combine(dirInfo.FullName, "Resource");
-                    if (Directory.Exists(resourceRoot))
-                    {
-                        var imageDirs = new[] { Path.Combine(resourceRoot, "Images"), Path.Combine(resourceRoot, "anim") };
-                        foreach (var dir in imageDirs)
-                        {
-                            if (!Directory.Exists(dir)) continue;
-                            foreach (var file in Directory.EnumerateFiles(dir, "*.*", SearchOption.AllDirectories))
+                            _allWallpapers.Add(new WallpaperItem
                             {
-                                if (exts.Contains(Path.GetExtension(file)))
-                                {
-                                    uniquePaths.Add(file);
-                                }
-                            }
+                                Name = Path.GetFileNameWithoutExtension(path),
+                                Path = uri.ToString(),
+                                Thumbnail = bitmap,
+                                Type = WallpaperType.Image,
+                                IsSelected = false
+                            });
                         }
-                        // Once we find and process the "Resource" folder, we can stop searching further up.
-                        return uniquePaths;
                     }
-                    dirInfo = dirInfo.Parent;
+                    catch { }
                 }
+            }
+
+            ApplyFilter();
+        }
+
+        // --- SELECTION & PREVIEW ---
+        private void SelectWallpaper(WallpaperItem wallpaper)
+        {
+            // Unselect all
+            foreach (var wp in _allWallpapers)
+                wp.IsSelected = false;
+
+            // Select new
+            wallpaper.IsSelected = true;
+            _selectedImagePath = wallpaper.Path;
+            StatusLabel.Text = $"Selected: {wallpaper.Name}";
+
+            RefreshUI();
+        }
+
+        private void RefreshUI()
+        {
+            WallpaperListPanel.ItemsSource = null;
+            WallpaperListPanel.ItemsSource = _filteredWallpapers;
+        }
+
+        // --- BROWSE & SET ---
+        private async void BrowseButton_Click(object sender, RoutedEventArgs e)
+        {
+            var dialog = new OpenFileDialog
+            {
+                Title = "Select a Wallpaper",
+                Filter = "All Media|*.jpg;*.jpeg;*.png;*.bmp;*.mp4;*.wmv;*.mov|Image Files|*.jpg;*.jpeg;*.png;*.bmp|Video Files|*.mp4;*.wmv;*.mov|All files (*.*)|*.*"
+            };
+
+            if (dialog.ShowDialog() == true)
+            {
+                var bitmap = CreateBitmapFromPath(dialog.FileName);
+                if (bitmap != null)
+                {
+                    var type = DetermineWallpaperType(dialog.FileName);
+                    var item = new WallpaperItem
+                    {
+                        Name = Path.GetFileNameWithoutExtension(dialog.FileName),
+                        Path = dialog.FileName,
+                        Thumbnail = bitmap,
+                        Type = type,
+                        IsSelected = false
+                    };
+
+                    _allWallpapers.Insert(0, item);
+                    SelectWallpaper(item);
+                    ApplyFilter();
+                }
+            }
+        }
+
+        private void SetWallpaperButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (string.IsNullOrEmpty(_selectedImagePath) || !File.Exists(_selectedImagePath))
+            {
+                MessageBox.Show("Please select a valid image first.", "No File Selected", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+            var ext = Path.GetExtension(_selectedImagePath).ToLowerInvariant();
+            if (new[] { ".mp4", ".wmv", ".mov" }.Contains(ext))
+            {
+                MessageBox.Show("Video wallpapers are not yet supported on this system.", "Feature Not Available", MessageBoxButton.OK, MessageBoxImage.Information);
+                return;
+            }
+
+            try
+            {
+                NativeMethods.SetWallpaper(_selectedImagePath);
+                MessageBox.Show("Wallpaper changed successfully!", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
             }
             catch (Exception ex)
             {
-                Debug.WriteLine($"[ERROR] EnumerateResourceImagesOnDisk: {ex.Message}");
+                MessageBox.Show($"Failed to set wallpaper: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
-            return uniquePaths;
         }
 
-        private static BitmapEncoder CreateEncoderForExtension(string extension)
+        // --- HELPERS ---
+        private WallpaperType DetermineWallpaperType(string path)
         {
-            switch (extension.ToLowerInvariant())
-            {
-                case ".png":
-                    return new PngBitmapEncoder();
-                case ".bmp":
-                    return new BmpBitmapEncoder();
-                case ".jpg":
-                case ".jpeg":
-                default:
-                    return new JpegBitmapEncoder();
-            }
+            var ext = Path.GetExtension(path).ToLowerInvariant();
+            if (new[] { ".mp4", ".wmv", ".mov", ".avi" }.Contains(ext))
+                return WallpaperType.Video;
+            if (path.Contains("anim", StringComparison.OrdinalIgnoreCase))
+                return WallpaperType.Animated;
+            return WallpaperType.Image;
         }
 
-        /// <summary>
-        /// Creates a BitmapImage from a local file path.
-        /// </summary>
         private BitmapImage? CreateBitmapFromPath(string imagePath)
         {
             if (!File.Exists(imagePath)) return null;
@@ -526,19 +301,12 @@ namespace ZeroMix
                 bitmap.CacheOption = BitmapCacheOption.OnLoad;
                 bitmap.DecodePixelWidth = 200;
                 bitmap.EndInit();
-                bitmap.Freeze(); // Optimize for performance
+                bitmap.Freeze();
                 return bitmap;
             }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"[ERROR] Failed to create bitmap from path '{imagePath}': {ex.Message}");
-                return null;
-            }
+            catch { return null; }
         }
 
-        /// <summary>
-        /// Creates a BitmapImage from a resource URI.
-        /// </summary>
         private BitmapImage? CreateBitmapFromUri(Uri imageUri)
         {
             try
@@ -550,26 +318,55 @@ namespace ZeroMix
                 bitmap.CacheOption = BitmapCacheOption.OnLoad;
                 bitmap.DecodePixelWidth = 200;
                 bitmap.EndInit();
-                bitmap.Freeze(); // Optimize for performance
+                bitmap.Freeze();
                 return bitmap;
             }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"[ERROR] Failed to create bitmap from URI '{imageUri}': {ex.Message}");
-                return null;
-            }
+            catch { return null; }
         }
 
-        /// <summary>
-        /// Retrieves the path of the current desktop wallpaper from the registry.
-        /// </summary>
+        private IEnumerable<string> EnumerateResourceImagesOnDisk()
+        {
+            var uniquePaths = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            try
+            {
+                var exts = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { ".jpg", ".jpeg", ".png", ".bmp", ".mp4", ".wmv", ".mov" };
+                string baseDir = AppDomain.CurrentDomain.BaseDirectory;
+                var dirInfo = new DirectoryInfo(baseDir);
+
+                for (int i = 0; i < 4 && dirInfo != null; i++)
+                {
+                    string resourceRoot = Path.Combine(dirInfo.FullName, "Resource");
+                    if (Directory.Exists(resourceRoot))
+                    {
+                        var dirs = new[] { Path.Combine(resourceRoot, "Images"), Path.Combine(resourceRoot, "anim"), Path.Combine(resourceRoot, "Video") };
+                        foreach (var dir in dirs)
+                        {
+                            if (!Directory.Exists(dir)) continue;
+                            foreach (var file in Directory.EnumerateFiles(dir, "*.*", SearchOption.AllDirectories))
+                            {
+                                if (exts.Contains(Path.GetExtension(file)))
+                                    uniquePaths.Add(file);
+                            }
+                        }
+                        return uniquePaths;
+                    }
+                    dirInfo = dirInfo.Parent;
+                }
+            }
+            catch { }
+            return uniquePaths;
+        }
+
         private string? GetCurrentWallpaperPath()
         {
-            const string keyPath = @"Control Panel\Desktop";
-            using (RegistryKey? key = Registry.CurrentUser.OpenSubKey(keyPath))
+            try
             {
-                return key?.GetValue("Wallpaper") as string;
+                using (var key = Microsoft.Win32.Registry.CurrentUser.OpenSubKey(@"Control Panel\Desktop"))
+                {
+                    return key?.GetValue("Wallpaper") as string;
+                }
             }
+            catch { return null; }
         }
 
         private void Hyperlink_RequestNavigate(object sender, RequestNavigateEventArgs e)
@@ -579,20 +376,24 @@ namespace ZeroMix
                 Process.Start(new ProcessStartInfo(e.Uri.AbsoluteUri) { UseShellExecute = true });
                 e.Handled = true;
             }
-            catch (Exception ex)
-            {
-                MessageBox.Show("Gagal membuka tautan.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-                Debug.WriteLine($"[ERROR] OpenLink: {ex}");
-            }
+            catch { }
         }
     }
 
-    /// <summary>
-    /// Provides access to native Windows API functions.
-    /// </summary>
+    // --- HELPER CLASSES ---
+    public enum WallpaperType { Image, Video, Animated }
+
+    public class WallpaperItem
+    {
+        public string Name { get; set; } = "";
+        public string Path { get; set; } = "";
+        public BitmapImage? Thumbnail { get; set; }
+        public WallpaperType Type { get; set; }
+        public bool IsSelected { get; set; }
+    }
+
     internal static class NativeMethods
     {
-        // Imports the SystemParametersInfo function from user32.dll to set the desktop wallpaper.
         [DllImport("user32.dll", CharSet = CharSet.Auto)]
         private static extern int SystemParametersInfo(int uAction, int uParam, string lpvParam, int fuWinIni);
 
@@ -600,10 +401,6 @@ namespace ZeroMix
         private const int SPIF_UPDATEINIFILE = 0x01;
         private const int SPIF_SENDCHANGE = 0x02;
 
-        /// <summary>
-        /// Sets the desktop wallpaper to the image at the specified path.
-        /// </summary>
-        /// <param name="path">The absolute path to the image file.</param>
         public static void SetWallpaper(string path)
         {
             SystemParametersInfo(SPI_SETDESKWALLPAPER, 0, path, SPIF_UPDATEINIFILE | SPIF_SENDCHANGE);
