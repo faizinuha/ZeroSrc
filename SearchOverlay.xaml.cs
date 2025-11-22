@@ -300,7 +300,7 @@ namespace ZeroMix
             HandleSuggestionSelection((sender as ListBox)?.SelectedItem as SuggestionItem);
         }
 
-        private void SuggestionList_KeyDown(object sender, KeyEventArgs e)
+        private void SuggestionList_KeyDown(object sender, System.Windows.Input.KeyEventArgs e)
         {
             var lb = sender as ListBox;
             if (e.Key == Key.Enter && lb?.SelectedItem is SuggestionItem selectedItem)
@@ -368,7 +368,7 @@ namespace ZeroMix
                 ShowNotification($"Gagal menjalankan perintah: {ex.Message}", NotificationType.Error);
             }
         }
-        private void Window_KeyDown(object sender, KeyEventArgs e)
+        private void Window_KeyDown(object sender, System.Windows.Input.KeyEventArgs e)
         {
             if (e.Key == Key.Escape)
             {
@@ -382,7 +382,7 @@ namespace ZeroMix
         }
 
         //   Event Handlers
-        private void SearchBox_KeyDown(object sender, KeyEventArgs e)
+        private void SearchBox_KeyDown(object sender, System.Windows.Input.KeyEventArgs e)
         {
             var searchBox = sender as TextBox;
             var suggestionList = this.FindName("SuggestionList") as ListBox;

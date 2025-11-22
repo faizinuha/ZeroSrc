@@ -136,7 +136,7 @@ namespace ZeroMix
             this.Close();
         }
 
-        private void HotkeyTextBox_PreviewKeyDown(object sender, KeyEventArgs e)
+        private void HotkeyTextBox_PreviewKeyDown(object sender, System.Windows.Input.KeyEventArgs e)
         {
             // Mencegah tombol diproses oleh TextBox
             e.Handled = true;
