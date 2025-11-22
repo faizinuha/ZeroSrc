@@ -52,10 +52,10 @@ try {
 Write-Host "`nLangkah 2.5: Menandatangani installer dengan osslsigncode..." -ForegroundColor Green
 
 # Path ke osslsigncode.exe. Asumsi berada di PATH atau di folder yang sama.
-$osslsigncode = ".\Exe\bin\osslsigncode.exe"
-$sertifikat = ".\Exe\ZeroMixCert.pfx"
-$installerAsli = ".\Exe\ZeroMix-Setup-v2.1.0.exe"
-$installerSigned = ".\Exe\ZeroMix-Setup-v2.1.0-signed.exe"
+$SignTool = ".\Exe\bin\osslsigncode.exe"
+$CertFile = ".\Exe\ZeroMixCert.pfx"
+$InstallerFile = ".\Exe\ZeroMix-Setup-v2.1.0.exe"
+$TempInstallerFile = ".\Exe\ZeroMix-Setup-v2.1.0-signed.exe"
 # $password = "ZeroMixPass"
 $CertPassword = "ZeroMixPass"
 
@@ -66,7 +66,7 @@ if (-not (Test-Path $CertFile)) {
 }
 
 # Pastikan osslsigncode.exe dapat ditemukan
-if ((Get-Command $SignTool -ErrorAction SilentlyContinue) -eq $null) {
+if (-not (Test-Path $SignTool)) {
     Write-Host "❌ Perintah '$SignTool' tidak ditemukan. Pastikan osslsigncode.exe ada di PATH atau di direktori ini." -ForegroundColor Red
     exit 1
 }
