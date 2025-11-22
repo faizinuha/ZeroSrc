@@ -52,12 +52,13 @@ try {
 Write-Host "`nLangkah 2.5: Menandatangani installer dengan osslsigncode..." -ForegroundColor Green
 
 # Path ke osslsigncode.exe. Asumsi berada di PATH atau di folder yang sama.
-$SignTool = "../Exe/bin/osslsigncode.exe" 
-$CertFile = "../Exe/ZeroMixCert.pfx" # Asumsi file sertifikat ada di folder 'build'
-$InstallerFile = "./Exe/ZeroMix-Setup-v2.1.0.exe"
-$TempInstallerFile = "./Exe/ZeroMix-Setup-v2.1.0.exe"
-
+$osslsigncode = ".\Exe\bin\osslsigncode.exe"
+$sertifikat = ".\Exe\ZeroMixCert.pfx"
+$installerAsli = ".\Exe\ZeroMix-Setup-v2.1.0.exe"
+$installerSigned = ".\Exe\ZeroMix-Setup-v2.1.0-signed.exe"
+# $password = "ZeroMixPass"
 $CertPassword = "ZeroMixPass"
+
 
 if (-not (Test-Path $CertFile)) {
     Write-Host "❌ File sertifikat tidak ditemukan di $CertFile" -ForegroundColor Red
@@ -84,6 +85,7 @@ try {
     Write-Host "❌ Penandatanganan installer gagal: $_" -ForegroundColor Red
     exit 1
 }
+
 # --- Step 3: Cek Output ---
 Write-Host "`nLangkah 3: Verifikasi output..." -ForegroundColor Green
 
