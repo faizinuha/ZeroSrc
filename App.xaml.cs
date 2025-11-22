@@ -3,7 +3,7 @@ using System.Windows;
 
 namespace ZeroMix
 {
-    public partial class App : Application
+    public partial class App : System.Windows.Application
     {
         public static HotkeyCore? HotkeyCoreInstance { get; private set; }
 
