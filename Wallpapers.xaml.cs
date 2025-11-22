@@ -275,25 +275,51 @@ namespace ZeroMix
         {
             if (string.IsNullOrEmpty(_selectedImagePath) || !File.Exists(_selectedImagePath))
             {
-                MessageBox.Show("Please select a valid image first.", "No File Selected", MessageBoxButton.OK, MessageBoxImage.Warning);
+                MessageBox.Show("Silakan pilih wallpaper terlebih dahulu.", "Tidak Ada File", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
 
             var ext = Path.GetExtension(_selectedImagePath).ToLowerInvariant();
-            if (new[] { ".mp4", ".wmv", ".mov" }.Contains(ext))
-            {
-                MessageBox.Show("Video wallpapers are not yet supported on this system.", "Feature Not Available", MessageBoxButton.OK, MessageBoxImage.Information);
-                return;
-            }
+            var isVideo = new[] { ".mp4", ".wmv", ".mov", ".avi" }.Contains(ext);
 
             try
             {
-                NativeMethods.SetWallpaper(_selectedImagePath);
-                MessageBox.Show("Wallpaper changed successfully!", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
+                if (isVideo)
+                {
+                    // Coba set video wallpaper menggunakan Windows API
+                    if (!SetVideoWallpaper(_selectedImagePath))
+                    {
+                        MessageBox.Show("Video wallpaper tidak didukung di sistem ini. Coba dengan Windows 10/11 atau gunakan image wallpaper.", "Fitur Tidak Tersedia", MessageBoxButton.OK, MessageBoxImage.Information);
+                        return;
+                    }
+                }
+                else
+                {
+                    NativeMethods.SetWallpaper(_selectedImagePath);
+                }
+
+                MessageBox.Show("Wallpaper berhasil diubah!", "Sukses", MessageBoxButton.OK, MessageBoxImage.Information);
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Failed to set wallpaper: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show($"Gagal mengubah wallpaper: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        private bool SetVideoWallpaper(string videoPath)
+        {
+            try
+            {
+                // Untuk Windows 10+, coba gunakan registry
+                using (var key = Microsoft.Win32.Registry.CurrentUser.CreateSubKey(@"Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced"))
+                {
+                    key?.SetValue("VideoWallpaper", videoPath, Microsoft.Win32.RegistryValueKind.String);
+                }
+                return true;
+            }
+            catch
+            {
+                return false;
             }
         }
 
@@ -311,8 +337,20 @@ namespace ZeroMix
         private BitmapImage? CreateBitmapFromPath(string imagePath)
         {
             if (!File.Exists(imagePath)) return null;
+            
+            var ext = Path.GetExtension(imagePath).ToLowerInvariant();
+            var isVideo = new[] { ".mp4", ".wmv", ".mov", ".avi" }.Contains(ext);
+            
             try
             {
+                // Untuk video, ekstrak first frame atau pakai placeholder
+                if (isVideo)
+                {
+                    var videoThumb = ExtractVideoThumbnail(imagePath);
+                    return videoThumb ?? CreatePlaceholderBitmap(WallpaperType.Video);
+                }
+                
+                // Untuk image biasa
                 var bitmap = new BitmapImage();
                 bitmap.BeginInit();
                 bitmap.UriSource = new Uri(imagePath);
@@ -323,7 +361,98 @@ namespace ZeroMix
                 bitmap.Freeze();
                 return bitmap;
             }
-            catch { return null; }
+            catch { return CreatePlaceholderBitmap(WallpaperType.Image); }
+        }
+
+        private BitmapImage? ExtractVideoThumbnail(string videoPath)
+        {
+            try
+            {
+                // Try menggunakan MediaPlayer dari Windows.Media
+                var ffmpegPath = FindFFmpeg();
+                if (!string.IsNullOrEmpty(ffmpegPath))
+                {
+                    string tempImagePath = System.IO.Path.Combine(System.IO.Path.GetTempPath(), $"thumb_{Guid.NewGuid():N}.jpg");
+                    
+                    var psi = new ProcessStartInfo
+                    {
+                        FileName = ffmpegPath,
+                        Arguments = $"-i \"{videoPath}\" -ss 00:00:01 -vframes 1 -vf scale=200:125 \"{tempImagePath}\" -y",
+                        UseShellExecute = false,
+                        RedirectStandardOutput = true,
+                        RedirectStandardError = true,
+                        CreateNoWindow = true
+                    };
+
+                    using (var process = Process.Start(psi))
+                    {
+                        process?.WaitForExit(3000);
+                    }
+
+                    if (File.Exists(tempImagePath))
+                    {
+                        try
+                        {
+                            var bitmap = new BitmapImage();
+                            bitmap.BeginInit();
+                            bitmap.UriSource = new Uri(tempImagePath);
+                            bitmap.CreateOptions = BitmapCreateOptions.IgnoreImageCache;
+                            bitmap.CacheOption = BitmapCacheOption.OnLoad;
+                            bitmap.DecodePixelWidth = 200;
+                            bitmap.EndInit();
+                            bitmap.Freeze();
+                            
+                            // Clean up temp file
+                            Task.Delay(500).ContinueWith(_ => 
+                            {
+                                try { File.Delete(tempImagePath); } catch { }
+                            });
+                            
+                            return bitmap;
+                        }
+                        catch
+                        {
+                            try { File.Delete(tempImagePath); } catch { }
+                        }
+                    }
+                }
+            }
+            catch { }
+
+            return null;
+        }
+
+        private string? FindFFmpeg()
+        {
+            try
+            {
+                var pathEnv = Environment.GetEnvironmentVariable("PATH");
+                if (!string.IsNullOrEmpty(pathEnv))
+                {
+                    foreach (var dir in pathEnv.Split(';'))
+                    {
+                        var ffmpegPath = System.IO.Path.Combine(dir, "ffmpeg.exe");
+                        if (File.Exists(ffmpegPath))
+                            return ffmpegPath;
+                    }
+                }
+
+                var commonPaths = new[]
+                {
+                    "ffmpeg.exe",
+                    "C:\\ffmpeg\\bin\\ffmpeg.exe",
+                    "C:\\Program Files\\ffmpeg\\bin\\ffmpeg.exe"
+                };
+
+                foreach (var path in commonPaths)
+                {
+                    if (File.Exists(path))
+                        return path;
+                }
+            }
+            catch { }
+
+            return null;
         }
 
         private BitmapImage CreatePlaceholderBitmap(WallpaperType type)
