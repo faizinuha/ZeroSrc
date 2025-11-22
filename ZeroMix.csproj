@@ -6,18 +6,14 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>
-    <UseWindowsForms>true</UseWindowsForms>
     <ApplicationIcon>zeromix.ico</ApplicationIcon>
   </PropertyGroup>
 
-  <!-- Item Group -->
   <ItemGroup>
     <PackageReference Include="MegaApiClient" Version="1.10.5" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
-    <PackageReference Include="System.Management" Version="7.0.0" />
+    <PackageReference Include="System.Management" Version="9.0.0" /> 
   </ItemGroup>
-
- 
 
   <ItemGroup>
     <Resource Include="zeromix.ico" />
@@ -29,9 +25,10 @@
     </Content>
   </ItemGroup>
 
-  <Target Name="AfterPublish" AfterTargets="Publish" Condition="'$(Configuration)' == 'Release' AND '$(BuildingForLiveReload)' != 'true'">
+  <Target Name="AfterPublish" AfterTargets="Publish" Condition="'$(Configuration)' == 'Release'">
     <Message Text="Menjalankan proses signing installer ZeroMix..." Importance="High" />
-    <Exec Command='powershell -ExecutionPolicy Bypass -File "$(ProjectDir)build\build.ps1"' />
+    <Exec Command='powershell -ExecutionPolicy Bypass -File "$(ProjectDir)build\build.ps1"' Condition="Exists('$(ProjectDir)build\build.ps1')" />
+    <Warning Text="Script build.ps1 tidak ditemukan, melewati langkah signing." Condition="!Exists('$(ProjectDir)build\build.ps1')" />
   </Target>
 
 </Project>
