@@ -3,7 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="ZeroMix Dashboard"
         Icon="zeromix.ico"
-        Height="450"
+        Height="500"
         Width="700"
         WindowStartupLocation="CenterScreen"
         Loaded="Window_Loaded"
@@ -89,12 +89,6 @@
                 <Button Name="AboutButton" Content="ℹ️ About" Click="AboutButton_Click" Style="{StaticResource NavButton}" Margin="0,5,0,0"/>
                 <Button Name="PrivacyButton" Content="🔒 Privacy" Click="PrivacyButton_Click" Style="{StaticResource NavButton}" Margin="0,5,0,0"/>
                 <Button Name="WallpaperButton" Content="🖼️ Wallpapers" Click="WallpaperButton_Click" Style="{StaticResource NavButton}" Margin="0,5,0,0"/>
-                <Button Name="CustomButton" Click="CustomButton_Click" Style="{StaticResource NavButton}" Margin="0,5,0,0">
-                    <StackPanel Orientation="Horizontal">
-                        <TextBlock Text="⚙️" FontSize="14" VerticalAlignment="Center"/>
-                        <TextBlock Text="Settings" VerticalAlignment="Center" Margin="8,0,0,0"/>
-                    </StackPanel>
-                </Button>
             </StackPanel>
         </Border>
 
