@@ -98,3 +98,21 @@ begin
   ShellExec('open', 'https://zeromix.pages.dev/Feedback.html', '', '', SW_SHOWNORMAL, ewNoWait, ErrorCode);
  end;
 end;
+
+
+# 1. Build installer
+dotnet publish ZeroMixUpdateCli -c Release -r win-x64 --self-contained
+dotnet build -c Release
+iscc Exe/Setup.iss
+# Output: ZeroMix-Setup-v2.1.0.exe
+
+# 2. Push ke GitHub & create release
+git tag v2.1.0
+git push origin v2.1.0
+
+# 3. Upload di GitHub web UI:
+# - Go to Releases → New Release
+# - Tag: v2.1.0
+# - Title: "ZeroMix v2.1.0 - Update Checker & Video Support"
+# - Attach file: ZeroMix-Setup-v2.1.0.exe
+# - Click "Publish release"
