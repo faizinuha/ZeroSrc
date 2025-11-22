@@ -307,13 +307,6 @@ namespace ZeroMix
             wallpaperWindow.ShowDialog();
         }
 
-        // remove Tidak di pakek
-
-        private void CustomButton_Click(object sender, RoutedEventArgs e)
-        {
-            var customShortcutWindow = new CustomShortcutWindow();
-            customShortcutWindow.ShowDialog();
-        }
         // Remove Tidak di pakek
         // private void OpenOverlay_Click(object sender, RoutedEventArgs e)
         // {

@@ -146,11 +146,21 @@ namespace ZeroMix
                 var diskWallpapers = EnumerateResourceImagesOnDisk();
                 foreach (var imagePath in diskWallpapers)
                 {
-                    var bitmap = CreateBitmapFromPath(imagePath);
+                    var type = DetermineWallpaperType(imagePath);
+                    BitmapImage? bitmap = null;
+                    
+                    // Try to load image
+                    bitmap = CreateBitmapFromPath(imagePath);
+                    
+                    // If it's a video and no bitmap, create placeholder
+                    if (bitmap == null && type != WallpaperType.Image)
+                    {
+                        bitmap = CreatePlaceholderBitmap(type);
+                    }
+                    
                     if (bitmap != null)
                     {
                         loadedFromDisk = true;
-                        var type = DetermineWallpaperType(imagePath);
                         _allWallpapers.Add(new WallpaperItem
                         {
                             Name = Path.GetFileNameWithoutExtension(imagePath),
@@ -198,6 +208,15 @@ namespace ZeroMix
             }
 
             ApplyFilter();
+        }
+
+        // --- WALLPAPER ITEM CLICK ---
+        private void WallpaperBorder_MouseLeftButtonUp(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        {
+            if (sender is Border border && border.DataContext is WallpaperItem wallpaper)
+            {
+                SelectWallpaper(wallpaper);
+            }
         }
 
         // --- SELECTION & PREVIEW ---
@@ -307,6 +326,48 @@ namespace ZeroMix
             catch { return null; }
         }
 
+        private BitmapImage CreatePlaceholderBitmap(WallpaperType type)
+        {
+            // Create visual with text
+            var canvas = new System.Windows.Shapes.Rectangle
+            {
+                Width = 200,
+                Height = 125,
+                Fill = new SolidColorBrush(type == WallpaperType.Video ? System.Windows.Media.Colors.DarkRed : System.Windows.Media.Colors.DarkBlue)
+            };
+
+            var grid = new Grid { Width = 200, Height = 125 };
+            grid.Children.Add(canvas);
+
+            var textBlock = new System.Windows.Controls.TextBlock
+            {
+                Text = type == WallpaperType.Video ? "🎬 Video" : "✨ Animated",
+                FontSize = 16,
+                FontWeight = System.Windows.FontWeights.Bold,
+                Foreground = new SolidColorBrush(System.Windows.Media.Colors.White),
+                VerticalAlignment = System.Windows.VerticalAlignment.Center,
+                HorizontalAlignment = System.Windows.HorizontalAlignment.Center
+            };
+            grid.Children.Add(textBlock);
+
+            var renderTargetBitmap = new RenderTargetBitmap(200, 125, 96, 96, System.Windows.Media.PixelFormats.Pbgra32);
+            renderTargetBitmap.Render(grid);
+            
+            var bitmap = new BitmapImage();
+            bitmap.BeginInit();
+            var encoder = new PngBitmapEncoder();
+            encoder.Frames.Add(BitmapFrame.Create(renderTargetBitmap));
+            var ms = new System.IO.MemoryStream();
+            encoder.Save(ms);
+            ms.Seek(0, System.IO.SeekOrigin.Begin);
+            bitmap.StreamSource = ms;
+            bitmap.CacheOption = BitmapCacheOption.OnLoad;
+            bitmap.EndInit();
+            bitmap.Freeze();
+            
+            return bitmap;
+        }
+
         private BitmapImage? CreateBitmapFromUri(Uri imageUri)
         {
             try
@@ -330,30 +391,47 @@ namespace ZeroMix
             try
             {
                 var exts = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { ".jpg", ".jpeg", ".png", ".bmp", ".mp4", ".wmv", ".mov" };
-                string baseDir = AppDomain.CurrentDomain.BaseDirectory;
-                var dirInfo = new DirectoryInfo(baseDir);
-
-                for (int i = 0; i < 4 && dirInfo != null; i++)
+                
+                // Try multiple paths
+                var baseDirs = new[]
                 {
-                    string resourceRoot = Path.Combine(dirInfo.FullName, "Resource");
+                    AppDomain.CurrentDomain.BaseDirectory,
+                    System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location),
+                    System.Environment.CurrentDirectory
+                };
+
+                foreach (var baseDir in baseDirs)
+                {
+                    if (baseDir == null) continue;
+                    
+                    string resourceRoot = System.IO.Path.Combine(baseDir, "Resource");
                     if (Directory.Exists(resourceRoot))
                     {
-                        var dirs = new[] { Path.Combine(resourceRoot, "Images"), Path.Combine(resourceRoot, "anim"), Path.Combine(resourceRoot, "Video") };
+                        var dirs = new[] { 
+                            System.IO.Path.Combine(resourceRoot, "Images"), 
+                            System.IO.Path.Combine(resourceRoot, "anim"), 
+                            System.IO.Path.Combine(resourceRoot, "Video") 
+                        };
+                        
                         foreach (var dir in dirs)
                         {
                             if (!Directory.Exists(dir)) continue;
                             foreach (var file in Directory.EnumerateFiles(dir, "*.*", SearchOption.AllDirectories))
                             {
-                                if (exts.Contains(Path.GetExtension(file)))
+                                if (exts.Contains(System.IO.Path.GetExtension(file)))
                                     uniquePaths.Add(file);
                             }
                         }
-                        return uniquePaths;
+                        
+                        if (uniquePaths.Count > 0)
+                            return uniquePaths;
                     }
-                    dirInfo = dirInfo.Parent;
                 }
             }
-            catch { }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Error enumerating resources: {ex.Message}");
+            }
             return uniquePaths;
         }
 

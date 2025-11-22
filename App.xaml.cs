@@ -9,6 +9,8 @@ namespace ZeroMix
 
         protected override void OnStartup(StartupEventArgs e)
         {
+            var hotkeyCore = new HotkeyCore();
+            hotkeyCore.Show();
             base.OnStartup(e);
         }
     }

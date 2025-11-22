@@ -148,16 +148,20 @@
                 </Grid.RowDefinitions>
 
                 <!-- Title Bar -->
-                <Grid Grid.Row="0" Background="#F8F8F8" BorderBrush="#DDD" BorderThickness="0,0,0,1">
-                    <TextBlock Margin="20,0,0,0" VerticalAlignment="Center" FontSize="16" FontWeight="SemiBold" Foreground="#1C1C1C" Text="🖼️ Wallpaper Manager" />
-                    <Button Name="CloseButton" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="0,0,15,0" Click="CloseButton_Click" Style="{StaticResource CloseButton}" ToolTip="Close" />
-                </Grid>
+                <Border Grid.Row="0" Background="#F8F8F8" BorderBrush="#DDD" BorderThickness="0,0,0,1">
+                    <Grid>
+                        <TextBlock Margin="20,0,0,0" VerticalAlignment="Center" FontSize="16" FontWeight="SemiBold" Foreground="#1C1C1C" Text="🖼️ Wallpaper Manager" />
+                        <Button Name="CloseButton" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="0,0,15,0" Click="CloseButton_Click" Style="{StaticResource CloseButton}" ToolTip="Close" />
+                    </Grid>
+                </Border>
 
                 <!-- Search & Filter Bar -->
-                <Grid Grid.Row="1" Background="White" BorderBrush="#EEE" BorderThickness="0,0,0,1" Margin="0">
+                <Border Grid.Row="1" Background="White" BorderBrush="#EEE" BorderThickness="0,0,0,1" Margin="0">
                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="15,0">
                         <!-- Search Box -->
-                        <TextBox Name="SearchBox" Width="180" Height="32" Padding="10,8" Margin="0,0,15,0" TextChanged="SearchBox_TextChanged" Foreground="#666" ToolTip="Search wallpapers by name" Background="White" BorderBrush="#DDD" BorderThickness="1" CornerRadius="4" />
+                        <Border Width="180" Height="32" Background="White" BorderBrush="#DDD" BorderThickness="1" CornerRadius="4" Margin="0,0,15,0">
+                            <TextBox Name="SearchBox" Padding="10,8" TextChanged="SearchBox_TextChanged" Foreground="#666" ToolTip="Search wallpapers by name" Background="Transparent" BorderThickness="0" />
+                        </Border>
 
                         <!-- Filter Buttons -->
                         <TextBlock Text="Filter:" VerticalAlignment="Center" Margin="0,0,10,0" FontSize="11" Foreground="#666" FontWeight="SemiBold"/>
@@ -172,11 +176,21 @@
                         <!-- Count Label -->
                         <TextBlock Name="CountLabel" Text="0 items" VerticalAlignment="Center" Margin="10,0,0,0" FontSize="11" Foreground="#999" />
                     </StackPanel>
-                </Grid>
+                </Border>
 
                 <!-- Wallpaper Grid (Virtualized) -->
                 <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
                     <ItemsControl Name="WallpaperListPanel">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Border Style="{StaticResource WallpaperBorderStyle}" MouseLeftButtonUp="WallpaperBorder_MouseLeftButtonUp">
+                                    <Grid>
+                                        <Image Source="{Binding Thumbnail}" Style="{StaticResource WallpaperImageStyle}" />
+                                        <TextBlock Text="{Binding Name}" VerticalAlignment="Bottom" HorizontalAlignment="Left" Margin="8" Foreground="White" FontSize="10" FontWeight="SemiBold" Background="#00000088" Padding="4" TextWrapping="Wrap" TextTrimming="CharacterEllipsis" MaxHeight="40" />
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
                         <ItemsControl.ItemsPanel>
                             <ItemsPanelTemplate>
                                 <UniformGrid Columns="4" Margin="15" />
@@ -186,23 +200,25 @@
                 </ScrollViewer>
 
                 <!-- Action Footer -->
-                <Grid Grid.Row="3" Background="#F8F8F8" BorderBrush="#DDD" BorderThickness="0,1,0,0" Margin="0" Padding="15">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="Auto" />
-                    </Grid.ColumnDefinitions>
+                <Border Grid.Row="3" Background="#F8F8F8" BorderBrush="#DDD" BorderThickness="0,1,0,0" Margin="0" Padding="15">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
 
-                    <!-- Status Label -->
-                    <StackPanel Grid.Column="0" VerticalAlignment="Center">
-                        <TextBlock Name="StatusLabel" Text="Select a wallpaper to preview" FontSize="12" Foreground="#666" />
-                    </StackPanel>
+                        <!-- Status Label -->
+                        <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                            <TextBlock Name="StatusLabel" Text="Select a wallpaper to preview" FontSize="12" Foreground="#666" />
+                        </StackPanel>
 
-                    <!-- Action Buttons -->
-                    <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right" Gap="10">
-                        <Button Name="BrowseButton" Content="📂 Browse..." Click="BrowseButton_Click" Style="{StaticResource SecondaryButton}" Width="110" />
-                        <Button Name="SetWallpaperButton" Content="✓ Set as Wallpaper" Click="SetWallpaperButton_Click" Style="{StaticResource BaseButton}" Width="150" />
-                    </StackPanel>
-                </Grid>
+                        <!-- Action Buttons -->
+                        <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right">
+                            <Button Name="BrowseButton" Content="📂 Browse..." Click="BrowseButton_Click" Style="{StaticResource SecondaryButton}" Width="110" Margin="0,0,10,0"/>
+                            <Button Name="SetWallpaperButton" Content="✓ Set as Wallpaper" Click="SetWallpaperButton_Click" Style="{StaticResource BaseButton}" Width="150" />
+                        </StackPanel>
+                    </Grid>
+                </Border>
             </Grid>
         </Border>
     </Border>

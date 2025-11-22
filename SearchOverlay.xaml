@@ -17,7 +17,8 @@
         MouseLeftButtonDown="Window_MouseLeftButtonDown"
         Loaded="Window_Loaded"
         KeyDown="Window_KeyDown"
-        Deactivated="Window_Deactivated">
+        Deactivated="Window_Deactivated"
+        >
 
     <Window.Resources>
         <Storyboard x:Key="FadeInStoryboard">
