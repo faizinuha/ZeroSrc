@@ -48,6 +48,42 @@ try {
     exit 1
 }
 
+# --- Step 2.5: Menandatangani Installer ---
+Write-Host "`nLangkah 2.5: Menandatangani installer dengan osslsigncode..." -ForegroundColor Green
+
+# Path ke osslsigncode.exe. Asumsi berada di PATH atau di folder yang sama.
+$SignTool = "../Exe/bin/osslsigncode.exe" 
+$CertFile = "../Exe/ZeroMixCert.pfx" # Asumsi file sertifikat ada di folder 'build'
+$InstallerFile = "./Exe/ZeroMix-Setup-v2.1.0.exe"
+$TempInstallerFile = "./Exe/ZeroMix-Setup-v2.1.0.exe"
+
+$CertPassword = "ZeroMixPass"
+
+if (-not (Test-Path $CertFile)) {
+    Write-Host "❌ File sertifikat tidak ditemukan di $CertFile" -ForegroundColor Red
+    exit 1
+}
+
+# Pastikan osslsigncode.exe dapat ditemukan
+if ((Get-Command $SignTool -ErrorAction SilentlyContinue) -eq $null) {
+    Write-Host "❌ Perintah '$SignTool' tidak ditemukan. Pastikan osslsigncode.exe ada di PATH atau di direktori ini." -ForegroundColor Red
+    exit 1
+}
+
+try {
+    # Gunakan timestamp server untuk memastikan tanda tangan valid bahkan setelah sertifikat kedaluwarsa.
+    & $SignTool sign -pkcs12 $CertFile -pass $CertPassword -n "ZeroMix" -i "https://zeromix.pages.dev" -h sha256 -t http://timestamp.digicert.com -in $InstallerFile -out $TempInstallerFile
+    
+    # Hapus installer asli yang belum ditandatangani
+    Remove-Item $InstallerFile -Force
+    # Ganti nama file yang sudah ditandatangani menjadi nama file installer asli
+    Rename-Item -Path $TempInstallerFile -NewName (Split-Path $InstallerFile -Leaf)
+
+    Write-Host "✅ Installer berhasil ditandatangani" -ForegroundColor Green
+} catch {
+    Write-Host "❌ Penandatanganan installer gagal: $_" -ForegroundColor Red
+    exit 1
+}
 # --- Step 3: Cek Output ---
 Write-Host "`nLangkah 3: Verifikasi output..." -ForegroundColor Green
 
