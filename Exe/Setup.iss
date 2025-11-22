@@ -58,10 +58,10 @@ Source: "..\Resource\*"; DestDir: "{app}\Resource"; Flags: ignoreversion recurse
 Source: "..\LICENSE.txt"; DestDir: "{app}"; Flags: ignoreversion
 ; README
 Source: "..\Readme.md"; DestDir: "{app}"; Flags: ignoreversion
-; Update Checker CLI
-Source: "..\ZeroMixUpdateCli\bin\Release\net9.0\win-x64\publish\zeromix-update.exe"; DestDir: "{app}\bin"; Flags: ignoreversion
-; CLI Wrapper
-Source: "..\ZeroMixUpdateCli\zeromix.bat"; DestDir: "{app}\bin"; Flags: ignoreversion
+; Update Checker CLI (Node.js)
+Source: "..\ZeroMixUpdateCli\index.js"; DestDir: "{app}\bin"; Flags: ignoreversion
+Source: "..\ZeroMixUpdateCli\package.json"; DestDir: "{app}\bin"; Flags: ignoreversion
+Source: "..\ZeroMixUpdateCli\zeromix-cli.bat"; DestDir: "{app}\bin"; Flags: ignoreversion
 
 ; --- Shortcut ---
 [Icons]
@@ -85,8 +85,10 @@ Name: "startup"; Description: "Jalankan ZeroMix saat Windows &startup"; GroupDes
 Filename: "{app}\ZeroMix.exe"; Description: "&Jalankan ZeroMix sekarang"; Flags: nowait postinstall skipifsilent; Tasks: ; Check: not CurTaskExists('autostart')
 ; Create registry entry for startup
 Filename: "reg.exe"; Parameters: "add ""HKCU\Software\Microsoft\Windows\CurrentVersion\Run"" /V ""ZeroMix"" /t REG_SZ /D ""{app}\ZeroMix.exe"" /F"; Tasks: startup; Flags: runhidden
-; Add to PATH
+; Add CLI to PATH
 Filename: "cmd.exe"; Parameters: "/c setx PATH ""%PATH%;{app}\bin"""; Flags: runhidden
+; Install npm dependencies for CLI (optional)
+Filename: "cmd.exe"; Parameters: "/c cd /d ""{app}\bin"" && npm install --production 2>nul"; Flags: runhidden skipifsilent
 
 ; --- Bersihkan file saat uninstall ---
 [UninstallDelete]

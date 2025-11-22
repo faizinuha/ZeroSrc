@@ -1,170 +1,110 @@
 # ZeroMix Update Checker CLI
 
-CLI tool untuk memeriksa update aplikasi ZeroMix dari GitHub Releases.
+Simple update checker untuk aplikasi ZeroMix. Cek update terbaru langsung dari GitHub dengan satu perintah!
 
-## 📋 Fitur
+## 📦 Instalasi
 
-✅ Cek update Full Release dan Pre-Release
-✅ Tampilkan changelog dari GitHub
-✅ Download link langsung
-✅ Tanya user sebelum download
-✅ Link ke GitHub dan website jika tidak ada update
-✅ Fully Bahasa Indonesia
+### Windows (via Setup.iss)
+```
+ZeroMix-Setup.exe
+```
+Installer akan otomatis menambahkan CLI ke PATH.
+
+### Manual (Windows)
+```powershell
+# 1. Install Node.js dari https://nodejs.org (LTS recommended)
+
+# 2. Extract zeromix-cli ke C:\Program Files\ZeroMix\bin\
+
+# 3. Tambah PATH:
+setx PATH "%PATH%;C:\Program Files\ZeroMix\bin"
+
+# 4. Restart terminal
+```
+
+### Manual (Linux/Mac)
+```bash
+# 1. Install Node.js
+# Ubuntu/Debian: sudo apt install nodejs npm
+# Mac: brew install node
+
+# 2. Extract zeromix-cli
+cp -r zeromix-cli-folder /opt/zeromix-cli
+
+# 3. Create symlink
+sudo ln -s /opt/zeromix-cli/index.js /usr/local/bin/zeromix-cli
+```
 
 ## 🚀 Penggunaan
 
-### Dari Terminal (Setelah Install)
-
 ```bash
 # Cek update
-zeromix cek update
+zeromix-cli cek-update
 
-# Atau menggunakan path lengkap
-C:\Program Files\ZeroMix\bin\zeromix-update.exe cek update
+# Atau singkat:
+zeromix-cli
+
+# Lihat bantuan
+zeromix-cli --help
+
+# Tampilkan versi
+zeromix-cli version
 ```
 
-### Output Contoh
+## 📋 Fitur
 
-**Jika ada update:**
-```
-🔍 Memeriksa pembaruan...
+✅ Cek update dari GitHub otomatis  
+✅ Tampilkan changelog  
+✅ Buka browser ke halaman download  
+✅ User-triggered (tidak paksa)  
+✅ Bahasa Indonesia  
+✅ Cross-platform (Windows/Mac/Linux)  
+✅ Error handling dengan fallback links  
 
-📦 Versi saat ini: 2.0.0
-
-📡 Mengambil data dari GitHub...
-
-──────────────────────────────────────────────
-✅ ADA UPDATE TERSEDIA!
-Versi Terbaru: v2.1.0
-Versi Saat Ini: 2.0.0
-Tipe: Full Release
-Judul: ZeroMix v2.1.0 - Professional Release
-
-📝 Changelog:
-- Enhanced installer
-- Video wallpaper support
-- Improved performance
-...
-
-📥 Download:
-  • ZeroMix-Setup-v2.1.0.exe
-    https://github.com/faizinuha/ZeroMix/releases/download/v2.1.0/...
-
-──────────────────────────────────────────────
-
-❓ Apakah Anda ingin membuka halaman download? (Y/N)
-> y
-
-🌐 Membuka: https://github.com/faizinuha/ZeroMix/releases/tag/v2.1.0
-✅ Browser sudah dibuka.
-```
-
-**Jika tidak ada update:**
-```
-🔍 Memeriksa pembaruan...
-
-📦 Versi saat ini: 2.1.0
-
-📡 Mengambil data dari GitHub...
-
-──────────────────────────────────────────────
-✅ APLIKASI SUDAH TERBARU
-Versi: 2.1.0
-Status: Anda menggunakan versi terbaru dari ZeroMix
-
-──────────────────────────────────────────────
-
-📍 Kunjungi untuk informasi lebih lanjut:
-  🌐 GitHub Releases: https://github.com/faizinuha/ZeroMix/releases
-  🌐 Website: https://zeromix.vercel.app
-```
-
-## 🔧 Instalasi
-
-1. **Otomatis (Saat Install ZeroMix)**
-   - CLI akan di-install ke `C:\Program Files\ZeroMix\bin\`
-   - PATH akan di-update otomatis
-   - Bisa langsung dipanggil dari terminal
-
-2. **Manual**
-   - Copy `zeromix-update.exe` ke `{ZeroMix Install Dir}\bin\`
-   - Copy `zeromix.bat` ke directory yang ada di PATH
-   - Atau add `{ZeroMix Install Dir}\bin\` ke PATH
-
-## 📝 Release Channels
-
-### Full Release (`zeromix`)
-- Stable version
-- Latest stable build
-- Tag format: `v2.1.0`, `v2.0.0`, dll
-
-### Pre-Release (`zeromix-latest`)
-- Beta/Preview version
-- Marked as pre-release di GitHub
-- Testing purposes
-
-## 🌐 GitHub Integration
-
-Menggunakan GitHub API v3:
-- `https://api.github.com/repos/faizinuha/ZeroMix/releases`
-- No authentication required (public repo)
-- Rate limit: 60 requests/hour per IP
-
-## 💾 Version Detection
-
-Versi saat ini dicek dari:
-1. Registry: `HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\ZeroMix`
-2. Fallback: File version info dari `ZeroMix.exe`
-3. Default: "Unknown"
-
-## 🛠️ Development
-
-### Build CLI
+## 🔧 Development
 
 ```bash
-cd ZeroMixUpdateCli
-dotnet publish -c Release -r win-x64 --self-contained
+# Test locally
+node index.js cek-update
+
+# Test bantuan
+node index.js --help
 ```
 
-Output: `bin/Release/net8.0/win-x64/publish/zeromix-update.exe`
+## 📝 Konfigurasi
 
-### Dependencies
+Untuk mengubah repository:
 
-- .NET 8.0 Runtime (self-contained included)
-- No external NuGet packages (built-in System.Net.Http)
-- Windows 10+ untuk path environment variable
-
-## ⚙️ Configuration
-
-Tidak ada file konfigurasi. CLI menggunakan hardcoded:
-- GitHub API: `https://api.github.com/repos/faizinuha/ZeroMix/releases`
-- Release names: `zeromix` (full), `zeromix-latest` (pre)
+**index.js:**
+```javascript
+const REPO = 'username/nama-repo';
+```
 
 ## 🐛 Troubleshooting
 
-**"Command not found: zeromix"**
-- Pastikan ZeroMix sudah di-install
-- Buka terminal baru setelah install (refresh PATH)
-- Manual add `C:\Program Files\ZeroMix\bin` ke PATH
+### Node.js tidak ditemukan
+```
+Instalasi dari https://nodejs.org
+```
 
-**"Gagal terhubung ke GitHub"**
-- Check internet connection
-- GitHub server mungkin down
-- Coba lagi nanti
+### Perintah zeromix-cli tidak dikenal
+```
+1. Pastikan Node.js terinstall: node --version
+2. Cek PATH: echo %PATH% (Windows) atau echo $PATH (Linux/Mac)
+3. Restart terminal
+```
 
-**"Versi Unknown"**
-- Aplikasi tidak terinstall di tempat default
-- Registry entry tidak ada
-- Edit registry: `HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\ZeroMix` → `DisplayVersion`
+### Timeout saat cek update
+```
+Cek koneksi internet, GitHub API mungkin sedang down
+```
 
-## 📞 Support
+## 📄 License
 
-- GitHub Issues: https://github.com/faizinuha/ZeroMix/issues
-- Email: [contact email]
-- Website: https://zeromix.vercel.app
+MIT License - Bebas digunakan dan dimodifikasi
 
----
+## 🔗 Links
 
-**Version**: 1.0.0  
-**Updated**: 2025-11-22  
-**License**: MIT
+- 🌐 Website: https://zeromix.pages.dev
+- 🐙 GitHub: https://github.com/faizinuha/ZeroMix
+- 📮 Issues: https://github.com/faizinuha/ZeroMix/issues
