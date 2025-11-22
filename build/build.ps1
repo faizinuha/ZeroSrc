@@ -65,7 +65,7 @@ if (Test-Path $InstallerOutput) {
 Write-Host "`n=== Build Selesai ===" -ForegroundColor Green
 Write-Host "🎉 Siap untuk distribusi!" -ForegroundColor Green
 Write-Host "`n📝 Next Steps:" -ForegroundColor Yellow
-Write-Host "  1. Test installer di Windows 10/11" -ForegroundColor Dim
-Write-Host "  2. Jalankan: zeromix-cli cek-update" -ForegroundColor Dim
-Write-Host "  3. Upload ke GitHub Releases" -ForegroundColor Dim
+Write-Host "  1. Test installer di Windows 10/11" -ForegroundColor Gray
+Write-Host "  2. Jalankan: zeromix-cli cek-update" -ForegroundColor Gray
+Write-Host "  3. Upload ke GitHub Releases" -ForegroundColor Gray
 Write-Host ""

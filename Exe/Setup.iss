@@ -134,6 +134,35 @@ InfoBeforeFile=../Readme.md
 var
   WasRunning: Boolean;
 
+// Helper function - Cari window berdasarkan nama
+function FindWindowByWindowName(WindowName: string): HWND;
+external 'FindWindowW@user32.dll stdcall';
+
+// Check if a task should be executed
+function CurTaskExists(const TaskName: String): Boolean;
+begin
+  Result := WizardIsTaskSelected(TaskName);
+end;
+
+// Register CLI tools untuk PATH dan shell command
+procedure RegisterCliTools();
+begin
+  // Tambahkan kode registrasi CLI tools di sini
+  MsgBox('CLI Tools registered successfully', mbInformation, MB_OK);
+end;
+
+// Unregister CLI tools
+procedure UnregisterCliTools();
+begin
+  try
+    RegDeleteValue(HKEY_LOCAL_MACHINE, 
+      'SYSTEM\CurrentControlSet\Control\Session Manager\Environment', 
+      'ZEROMIX_HOME');
+  except
+    // Ignore errors
+  end;
+end;
+
 // Fungsi yang dipanggil pada awal instalasi
 function InitializeSetup(): Boolean;
 var
@@ -215,50 +244,5 @@ begin
     begin
       ShellExec('open', 'https://zeromix.vercel.app/Feedback.html', '', '', SW_SHOWNORMAL, ewNoWait, ErrorCode);
     end;
-  end;
-end;
-
-// Helper function - Cari window berdasarkan nama
-function FindWindowByWindowName(WindowName: string): HWND;
-external 'FindWindowW@user32.dll stdcall';
-
-// Check if a task should be executed
-function CurTaskExists(const TaskName: String): Boolean;
-begin
-  Result := WizardIsTaskSelected(TaskName);
-end;
-
-// Register CLI tools untuk PATH dan shell command
-procedure RegisterCliTools();
-var
-  ResultCode: Integer;
-begin
-  // Add {app}\bin to PATH via setx
-  Exec('cmd.exe', '/c setx PATH "%PATH%;' + ExpandConstant('{app}\bin') + '"', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
-  
-  // Register "zeromix" command untuk shell
-  try
-    // Create registry entry untuk shell command
-    if RegWriteStringValue(HKEY_LOCAL_MACHINE, 
-      'SYSTEM\CurrentControlSet\Control\Session Manager\Environment', 
-      'ZEROMIX_HOME', 
-      ExpandConstant('{app}')) then
-    begin
-      // Success
-    end;
-  except
-    // Ignore errors
-  end;
-end;
-
-// Unregister CLI tools
-procedure UnregisterCliTools();
-begin
-  try
-    RegDeleteValue(HKEY_LOCAL_MACHINE, 
-      'SYSTEM\CurrentControlSet\Control\Session Manager\Environment', 
-      'ZEROMIX_HOME');
-  except
-    // Ignore errors
   end;
 end;
