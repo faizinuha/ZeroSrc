@@ -117,8 +117,8 @@ ExistingFileError1=File %1 sudah ada. Pengguna tidak dapat menimpa file di lokas
 LaunchProgram=&Jalankan ZeroMix sekarang
 AdditionalTasks=Tugas tambahan:
 WindowsServiceNote=Layanan Windows:
-; Startup task description (Indonesian)
-id.StartupDescription=Jalankan ZeroMix saat Windows startup
+; Startup task description
+StartupDescription=Jalankan ZeroMix saat Windows startup
 
 [LicenseFile]
 ; Display license during installation

@@ -8,9 +8,13 @@ Write-Host "`n=== ZeroMix Build Script ===" -ForegroundColor Cyan
 # --- Step 1: Publish Aplikasi WPF ---
 Write-Host "`nLangkah 1: Mem-publish aplikasi ZeroMix..." -ForegroundColor Green
 try {
-    dotnet publish -c Release -r win-x64 -p:PublishSingleFile=true -p:PublishTrimmed=true -p:PublishReadyToRun=true --self-contained true -o "..\publish\win-x64"
+    # Change to project root directory first
+    Push-Location ..
+    dotnet publish -c Release -r win-x64 -p:PublishSingleFile=true -p:PublishTrimmed=true -p:PublishReadyToRun=true --self-contained
+    Pop-Location
     Write-Host "✅ Publish aplikasi berhasil" -ForegroundColor Green
 } catch {
+    Pop-Location
     Write-Host "❌ Publish aplikasi gagal: $_" -ForegroundColor Red
     exit 1
 }
@@ -34,6 +38,10 @@ if (-not (Test-Path $SetupScript)) {
 
 try {
     & $InnoSetup $SetupScript
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "❌ Kompilasi installer gagal (Exit code: $LASTEXITCODE)" -ForegroundColor Red
+        exit 1
+    }
     Write-Host "✅ Installer berhasil dikompilasi" -ForegroundColor Green
 } catch {
     Write-Host "❌ Kompilasi installer gagal: $_" -ForegroundColor Red
