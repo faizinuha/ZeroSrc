@@ -70,7 +70,7 @@ Name: "{group}\ZeroMix"; Filename: "{app}\ZeroMix.exe"; IconFilename: "{app}\zer
 ; Desktop shortcut (optional via Tasks)
 Name: "{commondesktop}\ZeroMix"; Filename: "{app}\ZeroMix.exe"; IconFilename: "{app}\zeromix.ico"; WorkingDir: "{app}"; Tasks: desktopicon; Flags: createonlyiffileexists
 ; Uninstall shortcut in Start Menu
-Name: "{group}\Uninstall ZeroMix"; Filename: "{uninstallexe}"
+Name: "{group}\Uninstall ZeroMix"; Filename: "{uninstallexe}"; Flags: runminimized
 
 ; --- Pilihan Tambahan ---
 [Tasks]
@@ -90,10 +90,6 @@ Filename: "cmd.exe"; Parameters: "/c setx PATH ""%PATH%;{app}\bin"""; Flags: run
 ; Install npm dependencies for CLI (optional)
 Filename: "cmd.exe"; Parameters: "/c cd /d ""{app}\bin"" && npm install --production 2>nul"; Flags: runhidden skipifsilent
 
-; --- Bersihkan file saat uninstall ---
-[UninstallDelete]
-; ⭐ PERBAIKAN: Hapus penghapusan AppData dari sini. Biarkan hanya folder instalasi utama.
-Type: filesandordirs; Name: "{app}"
 
 ; --- Teks Custom Welcome & Selesai ---
 [Messages]
