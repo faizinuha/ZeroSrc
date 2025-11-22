@@ -58,6 +58,10 @@ Source: "..\Resource\*"; DestDir: "{app}\Resource"; Flags: ignoreversion recurse
 Source: "..\LICENSE.txt"; DestDir: "{app}"; Flags: ignoreversion
 ; README
 Source: "..\Readme.md"; DestDir: "{app}"; Flags: ignoreversion
+; Update Checker CLI
+Source: "..\ZeroMixUpdateCli\bin\Release\net9.0\win-x64\publish\zeromix-update.exe"; DestDir: "{app}\bin"; Flags: ignoreversion
+; CLI Wrapper
+Source: "..\ZeroMixUpdateCli\zeromix.bat"; DestDir: "{app}\bin"; Flags: ignoreversion
 
 ; --- Shortcut ---
 [Icons]
@@ -81,6 +85,8 @@ Name: "startup"; Description: "Jalankan ZeroMix saat Windows &startup"; GroupDes
 Filename: "{app}\ZeroMix.exe"; Description: "&Jalankan ZeroMix sekarang"; Flags: nowait postinstall skipifsilent; Tasks: ; Check: not CurTaskExists('autostart')
 ; Create registry entry for startup
 Filename: "reg.exe"; Parameters: "add ""HKCU\Software\Microsoft\Windows\CurrentVersion\Run"" /V ""ZeroMix"" /t REG_SZ /D ""{app}\ZeroMix.exe"" /F"; Tasks: startup; Flags: runhidden
+; Add to PATH
+Filename: "cmd.exe"; Parameters: "/c setx PATH ""%PATH%;{app}\bin"""; Flags: runhidden
 
 ; --- Bersihkan file saat uninstall ---
 [UninstallDelete]
@@ -169,6 +175,9 @@ begin
   // Setelah instalasi selesai
   if CurStep = ssDone then
   begin
+    // Setup CLI tools
+    RegisterCliTools();
+    
     // Langsung buka halaman terima kasih (tanpa pop-up)
     if MsgBox('Instalasi ZeroMix selesai! Apakah Anda ingin membuka halaman terima kasih kami?', mbConfirmation, MB_YESNO) = IDYES then
     begin
@@ -185,6 +194,9 @@ begin
   // Selama proses uninstal
   if CurStep = usUninstall then
   begin
+    // Unregister CLI tools
+    UnregisterCliTools();
+    
     // Tanya apakah pengguna ingin menghapus data konfigurasi
     if MsgBox('Apakah Anda ingin **menghapus data konfigurasi dan pengaturan** ZeroMix dari AppData?', mbConfirmation, MB_YESNO) = IDYES then
     begin
@@ -212,4 +224,39 @@ external 'FindWindowW@user32.dll stdcall';
 function CurTaskExists(const TaskName: String): Boolean;
 begin
   Result := WizardIsTaskSelected(TaskName);
+end;
+
+// Register CLI tools untuk PATH dan shell command
+procedure RegisterCliTools();
+var
+  ResultCode: Integer;
+begin
+  // Add {app}\bin to PATH via setx
+  Exec('cmd.exe', '/c setx PATH "%PATH%;' + ExpandConstant('{app}\bin') + '"', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
+  
+  // Register "zeromix" command untuk shell
+  try
+    // Create registry entry untuk shell command
+    if RegWriteStringValue(HKEY_LOCAL_MACHINE, 
+      'SYSTEM\CurrentControlSet\Control\Session Manager\Environment', 
+      'ZEROMIX_HOME', 
+      ExpandConstant('{app}')) then
+    begin
+      // Success
+    end;
+  except
+    // Ignore errors
+  end;
+end;
+
+// Unregister CLI tools
+procedure UnregisterCliTools();
+begin
+  try
+    RegDeleteValue(HKEY_LOCAL_MACHINE, 
+      'SYSTEM\CurrentControlSet\Control\Session Manager\Environment', 
+      'ZEROMIX_HOME');
+  except
+    // Ignore errors
+  end;
 end;
