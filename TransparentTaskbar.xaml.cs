@@ -31,7 +31,7 @@ namespace ZeroMix
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Error initializing counters: {ex.Message}");
+                System.Windows.MessageBox.Show($"Error initializing counters: {ex.Message}");
             }
 
             // Start update timer
@@ -95,22 +95,22 @@ namespace ZeroMix
         private void HomeTaskbarBtn_Click(object sender, RoutedEventArgs e)
         {
             // Open home window or navigate
-            MessageBox.Show("Home clicked");
+            System.Windows.MessageBox.Show("Home clicked");
         }
 
         private void DashboardTaskbarBtn_Click(object sender, RoutedEventArgs e)
         {
-            MessageBox.Show("Dashboard clicked");
+            System.Windows.MessageBox.Show("Dashboard clicked");
         }
 
         private void LauncherTaskbarBtn_Click(object sender, RoutedEventArgs e)
         {
-            MessageBox.Show("Launcher clicked");
+            System.Windows.MessageBox.Show("Launcher clicked");
         }
 
         private void SettingsTaskbarBtn_Click(object sender, RoutedEventArgs e)
         {
-            MessageBox.Show("Settings clicked");
+            System.Windows.MessageBox.Show("Settings clicked");
         }
 
         private void PinButton_Click(object sender, RoutedEventArgs e)
@@ -123,7 +123,7 @@ namespace ZeroMix
 
         private void TaskbarSettingsBtn_Click(object sender, RoutedEventArgs e)
         {
-            MessageBox.Show("Taskbar Settings");
+            System.Windows.MessageBox.Show("Taskbar Settings");
         }
 
         private void CloseTaskbarBtn_Click(object sender, RoutedEventArgs e)

@@ -1,6 +1,6 @@
 @echo off
 REM ZeroMix CLI Wrapper
-REM Lokasi: %APPDATA%\ZeroMix\bin\zeromix-cli.bat
+REM Lokasi: %APPDATA%\ZeroMix\bin\index.js.bat
 
 setlocal enabledelayedexpansion
 
@@ -13,12 +13,12 @@ if %errorlevel% neq 0 (
 )
 
 REM Cari CLI script
-set CLI_PATH=%~dp0zeromix-cli
+set CLI_PATH=%~dp0index.js
 if not exist "%CLI_PATH%" (
-    set CLI_PATH=%APPDATA%\ZeroMix\bin\zeromix-cli
+    set CLI_PATH=%APPDATA%\ZeroMix\bin\index.js
 )
 if not exist "%CLI_PATH%" (
-    echo ❌ Error: zeromix-cli tidak ditemukan
+    echo ❌ Error: index.js tidak ditemukan
     exit /b 1
 )
 

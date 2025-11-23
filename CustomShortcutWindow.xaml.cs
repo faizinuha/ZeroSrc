@@ -97,7 +97,7 @@ namespace ZeroMix
 
         private void BrowseButton_Click(object sender, RoutedEventArgs e)
         {
-            OpenFileDialog openFileDialog = new OpenFileDialog
+            Microsoft.Win32.OpenFileDialog openFileDialog = new Microsoft.Win32.OpenFileDialog
             {
                 Filter = "Executable files (*.exe)|*.exe|All files (*.*)|*.*",
                 Title = "Pilih Aplikasi"
@@ -126,7 +126,7 @@ namespace ZeroMix
 
             this.DialogResult = true; // Tandai bahwa perubahan disimpan
             // Ubah pesan, karena restart tidak lagi diperlukan
-            MessageBox.Show("Pintasan telah diperbarui dan sekarang aktif.", "Sukses", MessageBoxButton.OK, MessageBoxImage.Information);
+            System.Windows.MessageBox.Show("Pintasan telah diperbarui dan sekarang aktif.", "Sukses", MessageBoxButton.OK, MessageBoxImage.Information);
             this.Close();
         }
 
@@ -166,7 +166,7 @@ namespace ZeroMix
             if (keyName != null)
                 hotkeyParts.Add(keyName);
 
-            (sender as TextBox)!.Text = string.Join("+", hotkeyParts);
+            (sender as System.Windows.Controls.TextBox)!.Text = string.Join("+", hotkeyParts);
         }
 
         private void AddShortcutButton_Click(object sender, RoutedEventArgs e)
@@ -178,20 +178,20 @@ namespace ZeroMix
 
             if (string.IsNullOrWhiteSpace(hotkey) || hotkey == "Klik dan tekan kombinasi tombol")
             {
-                MessageBox.Show("Silakan rekam hotkey.", "Informasi Hilang", MessageBoxButton.OK, MessageBoxImage.Warning);
+                System.Windows.MessageBox.Show("Silakan rekam hotkey.", "Informasi Hilang", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
 
             if (string.IsNullOrWhiteSpace(appPath))
             {
-                MessageBox.Show("Silakan pilih jalur aplikasi.", "Informasi Hilang", MessageBoxButton.OK, MessageBoxImage.Warning);
+                System.Windows.MessageBox.Show("Silakan pilih jalur aplikasi.", "Informasi Hilang", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
 
             // Cek duplikat hotkey
             if (Shortcuts.Any(s => s.Hotkey.Equals(hotkey, StringComparison.OrdinalIgnoreCase)))
             {
-                MessageBox.Show("Hotkey ini sudah digunakan. Silakan pilih yang lain.", "Hotkey Duplikat", MessageBoxButton.OK, MessageBoxImage.Warning);
+                System.Windows.MessageBox.Show("Hotkey ini sudah digunakan. Silakan pilih yang lain.", "Hotkey Duplikat", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
 
@@ -208,11 +208,11 @@ namespace ZeroMix
             var selectedShortcut = ShortcutListView.SelectedItem as CustomShortcut;
             if (selectedShortcut == null)
             {
-                MessageBox.Show("Silakan pilih pintasan dari daftar untuk dihapus.", "Tidak Ada Pintasan Dipilih", MessageBoxButton.OK, MessageBoxImage.Warning);
+                System.Windows.MessageBox.Show("Silakan pilih pintasan dari daftar untuk dihapus.", "Tidak Ada Pintasan Dipilih", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
 
-            var result = MessageBox.Show($"Apakah Anda yakin ingin menghapus pintasan '{selectedShortcut.Hotkey}'?", "Konfirmasi Penghapusan", MessageBoxButton.YesNo, MessageBoxImage.Question);
+            var result = System.Windows.MessageBox.Show($"Apakah Anda yakin ingin menghapus pintasan '{selectedShortcut.Hotkey}'?", "Konfirmasi Penghapusan", MessageBoxButton.YesNo, MessageBoxImage.Question);
             if (result == MessageBoxResult.Yes)
             {
                 Shortcuts.Remove(selectedShortcut);
