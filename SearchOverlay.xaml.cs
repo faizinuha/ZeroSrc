@@ -188,7 +188,7 @@ namespace ZeroMix
             MessageBoxImage icon = MessageBoxImage.Information;
             if (type == NotificationType.Error) icon = MessageBoxImage.Error;
             else if (type == NotificationType.Warning) icon = MessageBoxImage.Warning;
-            MessageBox.Show(message, type.ToString(), MessageBoxButton.OK, icon);
+            System.Windows.MessageBox.Show(message, type.ToString(), MessageBoxButton.OK, icon);
         }
 
         private bool _isSelectingSuggestion = false;
@@ -198,9 +198,9 @@ namespace ZeroMix
         {
             if (_isSelectingSuggestion) return;
 
-            var searchBox = sender as TextBox;
+            var searchBox = sender as System.Windows.Controls.TextBox;
             string query = searchBox?.Text ?? "";
-            var suggestionList = this.FindName("SuggestionList") as ListBox;
+            var suggestionList = this.FindName("SuggestionList") as System.Windows.Controls.ListBox;
 
             if (string.IsNullOrWhiteSpace(query))
             {
@@ -297,18 +297,18 @@ namespace ZeroMix
 
         private void SuggestionList_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
-            HandleSuggestionSelection((sender as ListBox)?.SelectedItem as SuggestionItem);
+            HandleSuggestionSelection((sender as System.Windows.Controls.ListBox)?.SelectedItem as SuggestionItem);
         }
 
         private void SuggestionList_KeyDown(object sender, System.Windows.Input.KeyEventArgs e)
         {
-            var lb = sender as ListBox;
+            var lb = sender as System.Windows.Controls.ListBox;
             if (e.Key == Key.Enter && lb?.SelectedItem is SuggestionItem selectedItem)
             {
                 HandleSuggestionSelection(selectedItem);
                 e.Handled = true; // Mencegah event ini diproses lebih lanjut
             }
-            var searchBox = this.FindName("SearchBox") as TextBox;
+            var searchBox = this.FindName("SearchBox") as System.Windows.Controls.TextBox;
             if (e.Key == Key.Up)
             {
                 if (lb?.SelectedIndex == 0 && searchBox != null)
@@ -384,8 +384,8 @@ namespace ZeroMix
         //   Event Handlers
         private void SearchBox_KeyDown(object sender, System.Windows.Input.KeyEventArgs e)
         {
-            var searchBox = sender as TextBox;
-            var suggestionList = this.FindName("SuggestionList") as ListBox;
+            var searchBox = sender as System.Windows.Controls.TextBox;
+            var suggestionList = this.FindName("SuggestionList") as System.Windows.Controls.ListBox;
 
             if (e.Key == Key.Enter)
             {
@@ -478,7 +478,7 @@ namespace ZeroMix
                 return;
             }
 
-            var result = MessageBox.Show($"Akan membuka {shortcutFiles.Length} shortcut di Desktop. Lanjutkan?", "Konfirmasi", MessageBoxButton.YesNo, MessageBoxImage.Question);
+            var result = System.Windows.MessageBox.Show($"Akan membuka {shortcutFiles.Length} shortcut di Desktop. Lanjutkan?", "Konfirmasi", MessageBoxButton.YesNo, MessageBoxImage.Question);
             if (result != MessageBoxResult.Yes)
             {
                 // buka folder desktop sebagai alternatif

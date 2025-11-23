@@ -55,7 +55,7 @@ namespace ZeroMix
 
         private void FilterBtn_Click(object sender, RoutedEventArgs e)
         {
-            if (sender is Button btn)
+            if (sender is System.Windows.Controls.Button btn)
             {
                 // Reset all buttons
                 FilterAllBtn.Background = (SolidColorBrush)FindResource("ControlHoverBrush");
@@ -243,7 +243,7 @@ namespace ZeroMix
         // --- BROWSE & SET ---
         private async void BrowseButton_Click(object sender, RoutedEventArgs e)
         {
-            var dialog = new OpenFileDialog
+            var dialog = new Microsoft.Win32.OpenFileDialog
             {
                 Title = "Select a Wallpaper",
                 Filter = "All Media|*.jpg;*.jpeg;*.png;*.bmp;*.mp4;*.wmv;*.mov|Image Files|*.jpg;*.jpeg;*.png;*.bmp|Video Files|*.mp4;*.wmv;*.mov|All files (*.*)|*.*"
@@ -275,7 +275,7 @@ namespace ZeroMix
         {
             if (string.IsNullOrEmpty(_selectedImagePath) || !File.Exists(_selectedImagePath))
             {
-                MessageBox.Show("Silakan pilih wallpaper terlebih dahulu.", "Tidak Ada File", MessageBoxButton.OK, MessageBoxImage.Warning);
+                System.Windows.MessageBox.Show("Silakan pilih wallpaper terlebih dahulu.", "Tidak Ada File", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
 
@@ -289,7 +289,7 @@ namespace ZeroMix
                     // Coba set video wallpaper menggunakan Windows API
                     if (!SetVideoWallpaper(_selectedImagePath))
                     {
-                        MessageBox.Show("Video wallpaper tidak didukung di sistem ini. Coba dengan Windows 10/11 atau gunakan image wallpaper.", "Fitur Tidak Tersedia", MessageBoxButton.OK, MessageBoxImage.Information);
+                        System.Windows.MessageBox.Show("Video wallpaper tidak didukung di sistem ini. Coba dengan Windows 10/11 atau gunakan image wallpaper.", "Fitur Tidak Tersedia", MessageBoxButton.OK, MessageBoxImage.Information);
                         return;
                     }
                 }
@@ -298,11 +298,11 @@ namespace ZeroMix
                     NativeMethods.SetWallpaper(_selectedImagePath);
                 }
 
-                MessageBox.Show("Wallpaper berhasil diubah!", "Sukses", MessageBoxButton.OK, MessageBoxImage.Information);
+                System.Windows.MessageBox.Show("Wallpaper berhasil diubah!", "Sukses", MessageBoxButton.OK, MessageBoxImage.Information);
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Gagal mengubah wallpaper: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                System.Windows.MessageBox.Show($"Gagal mengubah wallpaper: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 

@@ -96,7 +96,7 @@ var
 
 // FIX 1: Definisi FindWindow yang Benar (Harus 2 parameter: ClassName, WindowName)
 // Menggunakan PChar agar kompatibel dengan string null-terminated Windows
-function FindWindow(lpClassName, lpWindowName: PChar): HWND;
+function FindWindow(lpClassName, lpWindowName: String): HWND;
 external 'FindWindowW@user32.dll stdcall';
 
 // Helper untuk cek task
@@ -125,14 +125,22 @@ end;
 function InitializeSetup(): Boolean;
 var
   Wnd: HWND;
+  UninstallKey: String;
 begin
+  // --- DIAGNOSTIC CHECK ---
+  // This checks if an old version is already installed.
+  UninstallKey := 'Software\Microsoft\Windows\CurrentVersion\Uninstall\' + '{A1B2C3D4-E5F6-7890-ZEROMIX-IDENTIFIER}_is1';
+  if RegKeyExists(HKLM, UninstallKey) or RegKeyExists(HKCU, UninstallKey) then
+  begin
+    MsgBox('Installer mendeteksi bahwa ZeroMix sudah terinstal. Proses uninstall dari versi lama akan berjalan terlebih dahulu. Ini adalah bagian normal dari proses upgrade. Klik OK untuk melanjutkan.', mbInformation, MB_OK);
+  end;
+  // --- END DIAGNOSTIC ---
+
   Result := True;
   WasRunning := False;
   
-  // FIX 2: Cara pemanggilan FindWindow yang benar
-  // Parameter pertama nil (any class), Parameter kedua 'ZeroMix' (Title window)
-  // Atau jika 'ZeroMix' adalah nama Class, tukar posisinya.
-  Wnd := FindWindow(nil, 'ZeroMix');
+ 
+  Wnd := FindWindow('', 'ZeroMix');
   
   if Wnd <> 0 then
   begin

@@ -55,7 +55,7 @@ namespace ZeroMix
 
             if (!registered)
             {
-                MessageBox.Show("Failed to register the global overlay hotkey. Please check for conflicts or run as administrator.");
+                System.Windows.MessageBox.Show("Failed to register the global overlay hotkey. Please check for conflicts or run as administrator.");
             }
         }
 
