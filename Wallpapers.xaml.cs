@@ -310,16 +310,150 @@ namespace ZeroMix
         {
             try
             {
-                // Untuk Windows 10+, coba gunakan registry
+                var ffmpegPath = FindFFmpeg();
+                if (string.IsNullOrEmpty(ffmpegPath))
+                {
+                    System.Windows.MessageBox.Show(
+                        "FFmpeg tidak ditemukan di sistem Anda.\n\n" +
+                        "Untuk menggunakan video wallpaper, silakan install FFmpeg:\n" +
+                        "1. Download dari https://ffmpeg.org/download.html\n" +
+                        "2. Extract ke C:\\ffmpeg\n" +
+                        "3. Tambahkan C:\\ffmpeg\\bin ke PATH environment variable\n\n" +
+                        "Atau gunakan: winget install FFmpeg",
+                        "FFmpeg Diperlukan",
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Information);
+                    return false;
+                }
+
+                // Create optimized video for wallpaper
+                StatusLabel.Text = "🎬 Mengoptimasi video untuk wallpaper...";
+                var optimizedVideoPath = OptimizeVideoForWallpaper(videoPath, ffmpegPath);
+                
+                if (string.IsNullOrEmpty(optimizedVideoPath))
+                {
+                    System.Windows.MessageBox.Show(
+                        "Gagal mengoptimasi video. Pastikan file video valid.",
+                        "Error",
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Error);
+                    return false;
+                }
+
+                // Set registry untuk video wallpaper
                 using (var key = Microsoft.Win32.Registry.CurrentUser.CreateSubKey(@"Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced"))
                 {
-                    key?.SetValue("VideoWallpaper", videoPath, Microsoft.Win32.RegistryValueKind.String);
+                    key?.SetValue("VideoWallpaper", optimizedVideoPath, Microsoft.Win32.RegistryValueKind.String);
                 }
+
+                StatusLabel.Text = $"✓ Video wallpaper berhasil diset: {Path.GetFileName(optimizedVideoPath)}";
+                
+                // Launch video as wallpaper using Windows process
+                LaunchVideoWallpaper(optimizedVideoPath);
+                
                 return true;
             }
-            catch
+            catch (Exception ex)
             {
+                StatusLabel.Text = $"Error: {ex.Message}";
                 return false;
+            }
+        }
+
+        private string? OptimizeVideoForWallpaper(string inputPath, string ffmpegPath)
+        {
+            try
+            {
+                // Create output path in temp directory
+                var tempDir = Path.Combine(Path.GetTempPath(), "ZeroMix", "Wallpapers");
+                Directory.CreateDirectory(tempDir);
+                
+                var fileName = Path.GetFileNameWithoutExtension(inputPath);
+                var outputPath = Path.Combine(tempDir, $"{fileName}_optimized.mp4");
+
+                // Get screen resolution
+                var screenWidth = (int)SystemParameters.PrimaryScreenWidth;
+                var screenHeight = (int)SystemParameters.PrimaryScreenHeight;
+
+                // FFmpeg arguments untuk video yang ringan dan berkualitas
+                // - VP9 codec untuk ukuran file lebih kecil
+                // - CRF 30-35 untuk balance antara kualitas dan ukuran
+                // - Scale ke resolusi layar
+                // - 30fps untuk smooth playback
+                var arguments = $"-i \"{inputPath}\" " +
+                               $"-c:v libx264 " +                    // H.264 codec (lebih kompatibel daripada VP9)
+                               $"-preset veryfast " +                // Fast encoding
+                               $"-crf 28 " +                         // Constant Rate Factor (18-28 good, 28 lebih kecil)
+                               $"-vf \"scale={screenWidth}:{screenHeight}:force_original_aspect_ratio=increase,crop={screenWidth}:{screenHeight}\" " + // Scale & crop
+                               $"-r 60 " +                           // 30 FPS
+                               $"-an " +                             // No audio (lebih ringan)
+                               $"-movflags +faststart " +            // Fast start untuk streaming
+                               $"-y \"{outputPath}\"";               // Overwrite output
+
+                var psi = new ProcessStartInfo
+                {
+                    FileName = ffmpegPath,
+                    Arguments = arguments,
+                    UseShellExecute = false,
+                    RedirectStandardOutput = true,
+                    RedirectStandardError = true,
+                    CreateNoWindow = true
+                };
+
+                using (var process = Process.Start(psi))
+                {
+                    if (process == null) return null;
+
+                    // Read output untuk monitoring (opsional)
+                    var errorOutput = process.StandardError.ReadToEnd();
+                    process.WaitForExit(60000); // Max 60 detik
+
+                    if (process.ExitCode != 0)
+                    {
+                        Debug.WriteLine($"FFmpeg error: {errorOutput}");
+                        return null;
+                    }
+                }
+
+                if (File.Exists(outputPath))
+                    return outputPath;
+
+                return null;
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Error optimizing video: {ex.Message}");
+                return null;
+            }
+        }
+
+        private void LaunchVideoWallpaper(string videoPath)
+        {
+            try
+            {
+                // Option 1: Menggunakan Windows Media Player sebagai wallpaper layer
+                // Note: Untuk implementasi penuh, Anda butuh aplikasi terpisah
+                // atau library seperti mpv/vlc dengan --no-video-deco flag
+                
+                // Untuk sekarang, kita bisa menunjukkan file location
+                var message = $"Video telah dioptimasi dan disimpan di:\n{videoPath}\n\n" +
+                             "Untuk menggunakan sebagai wallpaper:\n" +
+                             "1. Gunakan aplikasi seperti Lively Wallpaper (gratis di Microsoft Store)\n" +
+                             "2. Atau gunakan VLC: Media → Open File → Tools → Effects → Advanced → Wall\n" +
+                             "3. Atau mpv dengan: mpv --loop --no-border --ontop \"" + videoPath + "\"";
+                
+                // Auto-copy path to clipboard
+                System.Windows.Clipboard.SetText(videoPath);
+                
+                System.Windows.MessageBox.Show(
+                    message + "\n\n📋 Path sudah dicopy ke clipboard!",
+                    "Video Wallpaper Ready",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Information);
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Error launching video wallpaper: {ex.Message}");
             }
         }
 
@@ -368,52 +502,58 @@ namespace ZeroMix
         {
             try
             {
-                // Try menggunakan MediaPlayer dari Windows.Media
                 var ffmpegPath = FindFFmpeg();
-                if (!string.IsNullOrEmpty(ffmpegPath))
+                if (string.IsNullOrEmpty(ffmpegPath))
+                    return null;
+
+                string tempImagePath = System.IO.Path.Combine(System.IO.Path.GetTempPath(), $"thumb_{Guid.NewGuid():N}.jpg");
+                
+                // Optimized FFmpeg arguments untuk thumbnail yang cepat
+                // -ss 00:00:01 = seek to 1 second
+                // -vframes 1 = extract only 1 frame
+                // -vf scale=200:-1 = scale width to 200px, maintain aspect ratio
+                // -q:v 5 = quality (2-31, lower = better quality, 5 is good balance)
+                var arguments = $"-ss 00:00:01 -i \"{videoPath}\" -vframes 1 -vf scale=200:-1 -q:v 5 \"{tempImagePath}\" -y";
+                
+                var psi = new ProcessStartInfo
                 {
-                    string tempImagePath = System.IO.Path.Combine(System.IO.Path.GetTempPath(), $"thumb_{Guid.NewGuid():N}.jpg");
-                    
-                    var psi = new ProcessStartInfo
-                    {
-                        FileName = ffmpegPath,
-                        Arguments = $"-i \"{videoPath}\" -ss 00:00:01 -vframes 1 -vf scale=200:125 \"{tempImagePath}\" -y",
-                        UseShellExecute = false,
-                        RedirectStandardOutput = true,
-                        RedirectStandardError = true,
-                        CreateNoWindow = true
-                    };
+                    FileName = ffmpegPath,
+                    Arguments = arguments,
+                    UseShellExecute = false,
+                    RedirectStandardOutput = true,
+                    RedirectStandardError = true,
+                    CreateNoWindow = true
+                };
 
-                    using (var process = Process.Start(psi))
-                    {
-                        process?.WaitForExit(3000);
-                    }
+                using (var process = Process.Start(psi))
+                {
+                    process?.WaitForExit(3000); // 3 second timeout
+                }
 
-                    if (File.Exists(tempImagePath))
+                if (File.Exists(tempImagePath))
+                {
+                    try
                     {
-                        try
-                        {
-                            var bitmap = new BitmapImage();
-                            bitmap.BeginInit();
-                            bitmap.UriSource = new Uri(tempImagePath);
-                            bitmap.CreateOptions = BitmapCreateOptions.IgnoreImageCache;
-                            bitmap.CacheOption = BitmapCacheOption.OnLoad;
-                            bitmap.DecodePixelWidth = 200;
-                            bitmap.EndInit();
-                            bitmap.Freeze();
-                            
-                            // Clean up temp file
-                            Task.Delay(500).ContinueWith(_ => 
-                            {
-                                try { File.Delete(tempImagePath); } catch { }
-                            });
-                            
-                            return bitmap;
-                        }
-                        catch
+                        var bitmap = new BitmapImage();
+                        bitmap.BeginInit();
+                        bitmap.UriSource = new Uri(tempImagePath);
+                        bitmap.CreateOptions = BitmapCreateOptions.IgnoreImageCache;
+                        bitmap.CacheOption = BitmapCacheOption.OnLoad;
+                        bitmap.DecodePixelWidth = 200;
+                        bitmap.EndInit();
+                        bitmap.Freeze();
+                        
+                        // Clean up temp file after a delay
+                        Task.Delay(500).ContinueWith(_ => 
                         {
                             try { File.Delete(tempImagePath); } catch { }
-                        }
+                        });
+                        
+                        return bitmap;
+                    }
+                    catch
+                    {
+                        try { File.Delete(tempImagePath); } catch { }
                     }
                 }
             }
@@ -437,11 +577,16 @@ namespace ZeroMix
                     }
                 }
 
+                // Cek di folder project dulu (FFMPEG di folder yang sama dengan exe)
+                var baseDir = AppDomain.CurrentDomain.BaseDirectory;
+                var projectFFmpeg = System.IO.Path.Combine(baseDir, "FFMPEG", "ffmpeg.exe");
+                
                 var commonPaths = new[]
                 {
-                    "ffmpeg.exe",
-                    "C:\\ffmpeg\\bin\\ffmpeg.exe",
-                    "C:\\Program Files\\ffmpeg\\bin\\ffmpeg.exe"
+                    projectFFmpeg,                                  // c:\ZeroMix\ZeroMix\FFMPEG\ffmpeg.exe
+                    "ffmpeg.exe",                                   // Current directory
+                    "C:\\ffmpeg\\bin\\ffmpeg.exe",                 // Default install location
+                    "C:\\Program Files\\ffmpeg\\bin\\ffmpeg.exe"   // Program Files location
                 };
 
                 foreach (var path in commonPaths)

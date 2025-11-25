@@ -6,13 +6,13 @@
 ; --- PENTING: AppId Unik (Dibuat Baru) ---
 AppId={{A1B2C3D4-E5F6-7890-ZEROMIX-IDENTIFIER}}
 AppName=ZeroMix
-AppVersion=2.1.0
-VersionInfoVersion=2.1.1.3
+AppVersion=2.2.2
+VersionInfoVersion=2.2.2.0
 VersionInfoCompany=Frieren
 VersionInfoDescription=ZeroMix - Smart Desktop Launcher & System Utilities
-VersionInfoTextVersion=2.1.0.0
-VersionInfoProductVersion=2.1.0.0
-AppVerName=ZeroMix v2.1.0
+VersionInfoTextVersion=2.2.2.0
+VersionInfoProductVersion=2.2.2.0
+AppVerName=ZeroMix v2.2.2
 AppPublisher=ZeroMix Team
 AppPublisherURL=https://zeromix.vercel.app
 AppCopyright=Copyright (c) 2025 - All Rights Reserved
@@ -22,7 +22,7 @@ DefaultDirName={pf}\ZeroMix
 DefaultGroupName=ZeroMix
 AllowNoIcons=yes
 OutputDir=.
-OutputBaseFilename=ZeroMix-Setup-v2.1.0
+OutputBaseFilename=ZeroMix-Setup-v2.2.2
 Compression=lzma2
 SolidCompression=yes
 DisableProgramGroupPage=no
@@ -56,10 +56,16 @@ Source: "..\Resource\*"; DestDir: "{app}\Resource"; Flags: ignoreversion recurse
 ; Docs
 Source: "..\LICENSE.txt"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\Readme.md"; DestDir: "{app}"; Flags: ignoreversion
+
 ; CLI Tools
 Source: "..\ZeroMixUpdateCli\index.js"; DestDir: "{app}\bin"; Flags: ignoreversion
 Source: "..\ZeroMixUpdateCli\package.json"; DestDir: "{app}\bin"; Flags: ignoreversion
 Source: "..\ZeroMixUpdateCli\zeromix-cli.bat"; DestDir: "{app}\bin"; Flags: ignoreversion
+
+; FFmpeg Tools
+Source: "..\FFMPEG\ffmpeg.exe"; DestDir: "{app}\FFMPEG"; Flags: ignoreversion
+Source: "..\FFMPEG\ffplay.exe"; DestDir: "{app}\FFMPEG"; Flags: ignoreversion
+Source: "..\FFMPEG\ffprobe.exe"; DestDir: "{app}\FFMPEG"; Flags: ignoreversion
 
 [Icons]
 Name: "{group}\ZeroMix"; Filename: "{app}\ZeroMix.exe"; IconFilename: "{app}\zeromix.ico"; WorkingDir: "{app}"
@@ -81,7 +87,7 @@ Filename: "cmd.exe"; Parameters: "/c cd /d ""{app}\bin"" && npm install --produc
 Filename: "{app}\ZeroMix.exe"; Description: "&Jalankan ZeroMix sekarang"; Flags: nowait postinstall skipifsilent; Tasks: ; Check: not CurTaskExists('autostart')
 
 [Messages]
-WelcomeLabel1=Selamat datang di Installer ZeroMix v2.1.0
+WelcomeLabel1=Selamat datang di Installer ZeroMix 
 WelcomeLabel2=Program ini akan menginstal ZeroMix pada komputer Anda.%n%n⚠️ Disarankan untuk menutup semua aplikasi lain sebelum melanjutkan.
 
 [CustomMessages]
