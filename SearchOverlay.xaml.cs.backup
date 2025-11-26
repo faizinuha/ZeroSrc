@@ -17,8 +17,7 @@ namespace ZeroMix
     public enum SuggestionType
     {
         App,
-        WebSearch,
-        Calculator
+        WebSearch
     }
 
     public class SuggestionItem
@@ -34,12 +33,7 @@ namespace ZeroMix
             FilePath = filePath ?? "";
             Type = type;
             // Tetapkan ikon berdasarkan tipe
-            Icon = Type switch
-            {
-                SuggestionType.App => "\uE770",        // App icon
-                SuggestionType.Calculator => "\uE8EF", // Calculator icon
-                _ => "\uE773"                           // Web search icon
-            };
+            Icon = Type == SuggestionType.App ? "\uE770" : "\uE773"; // E770: App, E773: Web
         }
     }
 
@@ -56,13 +50,7 @@ namespace ZeroMix
         {
             if (value is SuggestionType type)
             {
-                return type switch
-                {
-                    SuggestionType.App => "Aplikasi Desktop",
-                    SuggestionType.Calculator => "Calculator",
-                    SuggestionType.WebSearch => "Pencarian Web",
-                    _ => string.Empty
-                };
+                return type == SuggestionType.App ? "Aplikasi Desktop" : "Pencarian Web";
             }
             return string.Empty;
         }
@@ -221,58 +209,27 @@ namespace ZeroMix
                 return;
             }
 
-            var combined = new List<SuggestionItem>();
-
-            // ========================================
-            // 🧮 CALCULATOR FEATURE - INLINE RESULT
-            // ========================================
-            if (MathEvaluator.IsMathExpression(query))
-            {
-                var (success, result, error) = MathEvaluator.Evaluate(query);
-                
-                if (success)
-                {
-                    string formattedResult = MathEvaluator.FormatResult(result);
-                    
-                    // Add calculator result at TOP (priority #1)
-                    combined.Add(new SuggestionItem(
-                        displayText: $"= {formattedResult}",
-                        filePath: formattedResult, // Store result for copy
-                        type: SuggestionType.Calculator
-                    ));
-                }
-            }
-
-            // ========================================
-            // 📱 FUZZY MATCHING - BETTER APP SEARCH
-            // ========================================
+            // Filter local suggestions (apps)
             var localSuggestions = _allSuggestions
-                .Select(s => new
-                {
-                    Item = s,
-                    Score = CalculateMatchScore(s.DisplayText, query)
-                })
-                .Where(x => x.Score > 0)
-                .OrderByDescending(x => x.Score)
-                .Select(x => x.Item)
-                .Take(5)
+                .Where(s => s.DisplayText.StartsWith(query, StringComparison.OrdinalIgnoreCase))
                 .ToList();
 
-            combined.AddRange(localSuggestions);
-
-            // ========================================
-            // 🔍 GOOGLE SUGGESTIONS
-            // ========================================
+            // Get suggestions from Google
             var googleSuggestions = await GetGoogleSuggestionsAsync(query);
             var webSuggestions = googleSuggestions
                 .Select(s => new SuggestionItem(s, null, SuggestionType.WebSearch))
                 .ToList();
 
-            combined.AddRange(webSuggestions);
+            var combined = localSuggestions.Concat(webSuggestions).ToList();
+
+            // Add a specific option to search on Google
             combined.Add(new SuggestionItem("Search Google for \"" + query + "\"", query, SuggestionType.WebSearch));
+
 
             if (combined.Count > 0)
             {
+                // --- Dropdown suggestion ---
+                // Gunakan CollectionViewSource untuk grouping
                 var collectionView = new ListCollectionView(combined);
                 collectionView.GroupDescriptions.Add(new PropertyGroupDescription("Type"));
                 suggestionList!.ItemsSource = collectionView;
@@ -283,33 +240,6 @@ namespace ZeroMix
                 suggestionList!.ItemsSource = null;
                 suggestionList.Visibility = Visibility.Collapsed;
             }
-        }
-
-        /// <summary>
-        /// Calculate fuzzy match score (0-100)
-        /// </summary>
-        private int CalculateMatchScore(string text, string query)
-        {
-            if (string.IsNullOrWhiteSpace(text) || string.IsNullOrWhiteSpace(query))
-                return 0;
-
-            text = text.ToLower();
-            query = query.ToLower();
-
-            if (text == query) return 100;
-            if (text.StartsWith(query)) return 90;
-            if (text.Contains(" " + query)) return 70;
-            if (text.Contains(query)) return 50;
-
-            int queryIndex = 0;
-            for (int i = 0; i < text.Length && queryIndex < query.Length; i++)
-            {
-                if (text[i] == query[queryIndex])
-                    queryIndex++;
-            }
-            if (queryIndex == query.Length) return 30;
-
-            return 0;
         }
         private async Task<List<string>> GetGoogleSuggestionsAsync(string query)
         {
@@ -396,33 +326,6 @@ namespace ZeroMix
             {
                 // Langsung jalankan aplikasi
                 ExecuteCommand(selectedItem.DisplayText);
-            }
-            else if (selectedItem.Type == SuggestionType.Calculator)
-            {
-                // Copy result to clipboard
-                try
-                {
-                    System.Windows.Clipboard.SetText(selectedItem.FilePath);
-                    
-                    _notificationText.Text = $"✓ Copied: {selectedItem.FilePath}";
-                    _notificationText.Foreground = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(0, 122, 255));
-                    _notificationText.Visibility = Visibility.Visible;
-                    
-                    var timer = new System.Windows.Threading.DispatcherTimer();
-                    timer.Interval = TimeSpan.FromSeconds(1.5);
-                    timer.Tick += (s, e) =>
-                    {
-                        _notificationText.Visibility = Visibility.Collapsed;
-                        timer.Stop();
-                    };
-                    timer.Start();
-                    
-                    BeginFadeOutAndClose();
-                }
-                catch (Exception ex)
-                {
-                    ShowNotification($"Failed to copy: {ex.Message}", NotificationType.Error);
-                }
             }
             else if (selectedItem.Type == SuggestionType.WebSearch)
             {
