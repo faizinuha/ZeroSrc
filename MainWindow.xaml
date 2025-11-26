@@ -1,50 +1,68 @@
 <Window x:Class="ZeroMix.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d"
         Title="ZeroMix Dashboard"
         Icon="zeromix.ico"
-        Height="500"
-        Width="700"
+        Height="600"
+        Width="900"
         WindowStartupLocation="CenterScreen"
         Loaded="Window_Loaded"
-        Closing="Window_Closing">
+        Closing="Window_Closing"
+        Background="#F3F3F3">
 
     <Window.Resources>
-        <!-- Modern Light Color Palette -->
-        <Color x:Key="BackgroundColor">#F0F0F0</Color>
-        <Color x:Key="ForegroundColor">#1C1C1C</Color>
-        <Color x:Key="BorderColor">#DCDCDC</Color>
-        <Color x:Key="AccentColor">#0078D4</Color>
-        <Color x:Key="ControlBackgroundColor">#FFFFFF</Color>
-        <Color x:Key="ControlHoverColor">#E0E0E0</Color>
-        <Color x:Key="NavSelectedColor">#E2E2E2</Color>
+        <!-- Colors -->
+        <Color x:Key="PrimaryColor">#0078D4</Color>
+        <Color x:Key="PrimaryHoverColor">#006CC1</Color>
+        <Color x:Key="SidebarColor">#FFFFFF</Color>
+        <Color x:Key="ContentBackgroundColor">#F3F3F3</Color>
+        <Color x:Key="TextColor">#2D2D2D</Color>
+        <Color x:Key="SubTextColor">#666666</Color>
+        <Color x:Key="BorderColor">#E5E5E5</Color>
 
-        <!-- Brushes -->
-        <SolidColorBrush x:Key="BackgroundBrush" Color="{StaticResource BackgroundColor}" />
-        <SolidColorBrush x:Key="ForegroundBrush" Color="{StaticResource ForegroundColor}" />
-        <SolidColorBrush x:Key="BorderBrush" Color="{StaticResource BorderColor}" />
-        <SolidColorBrush x:Key="AccentBrush" Color="{StaticResource AccentColor}" />
-        <SolidColorBrush x:Key="ControlBackgroundBrush" Color="{StaticResource ControlBackgroundColor}" />
-        <SolidColorBrush x:Key="ControlHoverBrush" Color="{StaticResource ControlHoverColor}" />
-        <SolidColorBrush x:Key="NavSelectedBrush" Color="{StaticResource NavSelectedColor}" />
+        <SolidColorBrush x:Key="PrimaryBrush" Color="{StaticResource PrimaryColor}"/>
+        <SolidColorBrush x:Key="PrimaryHoverBrush" Color="{StaticResource PrimaryHoverColor}"/>
+        <SolidColorBrush x:Key="SidebarBrush" Color="{StaticResource SidebarColor}"/>
+        <SolidColorBrush x:Key="TextBrush" Color="{StaticResource TextColor}"/>
+        <SolidColorBrush x:Key="SubTextBrush" Color="{StaticResource SubTextColor}"/>
+        <SolidColorBrush x:Key="BorderBrush" Color="{StaticResource BorderColor}"/>
 
-        <!-- Navigation Button Style -->
-        <Style x:Key="NavButton" TargetType="Button">
+        <!-- Animations -->
+        <Storyboard x:Key="FadeIn">
+            <DoubleAnimation Storyboard.TargetProperty="Opacity" From="0" To="1" Duration="0:0:0.3"/>
+            <ThicknessAnimation Storyboard.TargetProperty="Margin" From="0,10,0,0" To="0" Duration="0:0:0.3" DecelerationRatio="0.9"/>
+        </Storyboard>
+
+        <!-- Navigation RadioButton Style -->
+        <Style x:Key="NavRadioButton" TargetType="RadioButton">
             <Setter Property="Background" Value="Transparent"/>
-            <Setter Property="Foreground" Value="{StaticResource ForegroundBrush}"/>
-            <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="Padding" Value="15,10"/>
-            <Setter Property="HorizontalContentAlignment" Value="Left"/>
+            <Setter Property="Foreground" Value="{StaticResource SubTextBrush}"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="Padding" Value="20,12"/>
             <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="BorderThickness" Value="0"/>
             <Setter Property="Template">
                 <Setter.Value>
-                    <ControlTemplate TargetType="Button">
-                        <Border x:Name="border" Background="{TemplateBinding Background}" Padding="{TemplateBinding Padding}" CornerRadius="4">
-                            <ContentPresenter VerticalAlignment="Center"/>
+                    <ControlTemplate TargetType="RadioButton">
+                        <Border x:Name="border" Background="{TemplateBinding Background}" Padding="{TemplateBinding Padding}" CornerRadius="6" Margin="8,2">
+                            <StackPanel Orientation="Horizontal">
+                                <Rectangle x:Name="Indicator" Width="3" Height="16" Fill="{StaticResource PrimaryBrush}" Visibility="Collapsed" Margin="-10,0,10,0" RadiusX="1.5" RadiusY="1.5"/>
+                                <ContentPresenter VerticalAlignment="Center"/>
+                            </StackPanel>
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="border" Property="Background" Value="{StaticResource ControlHoverBrush}"/>
+                                <Setter TargetName="border" Property="Background" Value="#F0F0F0"/>
+                                <Setter Property="Foreground" Value="{StaticResource TextBrush}"/>
+                            </Trigger>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="#EDEBE9"/>
+                                <Setter Property="Foreground" Value="{StaticResource PrimaryBrush}"/>
+                                <Setter Property="FontWeight" Value="SemiBold"/>
+                                <Setter TargetName="Indicator" Property="Visibility" Value="Visible"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -52,227 +70,255 @@
             </Setter>
         </Style>
 
-        <Style x:Key="MainButton" TargetType="Button">
-            <Setter Property="Background" Value="{StaticResource AccentBrush}" />
-            <Setter Property="Foreground" Value="White" />
-            <Setter Property="BorderThickness" Value="0" />
-            <Setter Property="Padding" Value="12,8" />
-            <Setter Property="Cursor" Value="Hand" />
+        <!-- Action Button Style -->
+        <Style x:Key="ActionButton" TargetType="Button">
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="Foreground" Value="{StaticResource TextBrush}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="15,10"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="Cursor" Value="Hand"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
-                        <Border x:Name="border" Padding="{TemplateBinding Padding}" Background="{TemplateBinding Background}" CornerRadius="4">
-                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        <Border x:Name="border" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="6">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="border" Property="Opacity" Value="0.9" />
+                                <Setter TargetName="border" Property="Background" Value="#F8F8F8"/>
+                                <Setter TargetName="border" Property="BorderBrush" Value="{StaticResource PrimaryBrush}"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="#F0F0F0"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Primary Button Style -->
+        <Style x:Key="PrimaryButton" TargetType="Button" BasedOn="{StaticResource ActionButton}">
+            <Setter Property="Background" Value="{StaticResource PrimaryBrush}"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="border" Background="{TemplateBinding Background}" CornerRadius="6">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="{StaticResource PrimaryHoverBrush}"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Card Style -->
+        <Style x:Key="CardBorder" TargetType="Border">
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="Padding" Value="20"/>
+            <Setter Property="Margin" Value="0,0,0,15"/>
+            <Setter Property="Effect">
+                <Setter.Value>
+                    <DropShadowEffect Color="Black" Opacity="0.03" BlurRadius="10" ShadowDepth="2"/>
                 </Setter.Value>
             </Setter>
         </Style>
 
     </Window.Resources>
 
-    <Grid Background="{StaticResource BackgroundBrush}">
+    <Grid>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="160"/>
+            <ColumnDefinition Width="220"/>
             <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
 
-        <!-- Left Navigation Panel -->
-        <Border Grid.Column="0" Background="{StaticResource ControlBackgroundBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,0,1,0">
-            <StackPanel Margin="10">
-                <Button Name="HomeButton" Content="🏠 Home" Click="HomeButton_Click" Style="{StaticResource NavButton}"/>
-                <Button Name="AboutButton" Content="ℹ️ About" Click="AboutButton_Click" Style="{StaticResource NavButton}" Margin="0,5,0,0"/>
-                <Button Name="PrivacyButton" Content="🔒 Privacy" Click="PrivacyButton_Click" Style="{StaticResource NavButton}" Margin="0,5,0,0"/>
-                <Button Name="WallpaperButton" Content="🖼️ Wallpapers" Click="WallpaperButton_Click" Style="{StaticResource NavButton}" Margin="0,5,0,0"/>
-            </StackPanel>
+        <!-- Sidebar -->
+        <Border Grid.Column="0" Background="{StaticResource SidebarBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,0,1,0">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <!-- App Header -->
+                <StackPanel Grid.Row="0" Margin="25,30,25,30">
+                    <TextBlock Text="ZeroMix" FontSize="24" FontWeight="Bold" Foreground="{StaticResource PrimaryBrush}"/>
+                    <TextBlock Text="Dashboard" FontSize="12" Foreground="{StaticResource SubTextBrush}" Margin="2,0,0,0"/>
+                </StackPanel>
+
+                <!-- Navigation -->
+                <StackPanel Grid.Row="1" Margin="10,0">
+                    <RadioButton x:Name="NavHome" Content="🏠  Home" GroupName="Nav" Style="{StaticResource NavRadioButton}" IsChecked="True" Checked="Nav_Checked"/>
+                    <RadioButton x:Name="NavWallpapers" Content="🖼️  Wallpapers" GroupName="Nav" Style="{StaticResource NavRadioButton}" Checked="Nav_Checked"/>
+                    <RadioButton x:Name="NavAbout" Content="ℹ️  About" GroupName="Nav" Style="{StaticResource NavRadioButton}" Checked="Nav_Checked"/>
+                    <RadioButton x:Name="NavPrivacy" Content="🔒  Privacy" GroupName="Nav" Style="{StaticResource NavRadioButton}" Checked="Nav_Checked"/>
+                </StackPanel>
+
+                <!-- Footer -->
+                <TextBlock Grid.Row="2" Text="v1.0.0" HorizontalAlignment="Center" Margin="0,0,0,20" Foreground="#AAA" FontSize="11"/>
+            </Grid>
         </Border>
 
-        <!-- Right Content Area -->
-        <Grid Grid.Column="1" Name="ContentArea">
+        <!-- Content Area -->
+        <Grid Grid.Column="1" Margin="30,30,30,0">
             
-            <!-- Home Content -->
-            <ScrollViewer Name="HomeContent">
-                <StackPanel Margin="20">
-                    <!-- Welcome Section -->
-                    <StackPanel VerticalAlignment="Top" HorizontalAlignment="Center" Margin="0,20,0,20">
-                        <TextBlock Text="ZeroMix" FontSize="32" FontWeight="Bold" Foreground="{StaticResource ForegroundBrush}" HorizontalAlignment="Center" Margin="0,0,0,8"/>
-                        <TextBlock Text="Welcome to ZeroMix Dashboard" FontSize="16" Foreground="{StaticResource ForegroundBrush}" TextAlignment="Center"/>
-                        <TextBlock Text="Press Alt+Space to open the overlay from anywhere." FontSize="14" Foreground="#888" TextAlignment="Center" Margin="0,16,0,0"/>
-                    </StackPanel>
+            <!-- Home View -->
+            <ScrollViewer x:Name="HomeContent" VerticalScrollBarVisibility="Auto" BorderThickness="0">
+                <StackPanel>
+                    <StackPanel.Triggers>
+                        <EventTrigger RoutedEvent="Loaded">
+                            <BeginStoryboard Storyboard="{StaticResource FadeIn}"/>
+                        </EventTrigger>
+                    </StackPanel.Triggers>
 
-                    <Separator Margin="0,10,0,20"/>
+                    <TextBlock Text="Welcome back!" FontSize="28" FontWeight="SemiBold" Foreground="{StaticResource TextBrush}" Margin="0,0,0,5"/>
+                    <TextBlock Text="Manage your system and shortcuts efficiently." FontSize="16" Foreground="{StaticResource SubTextBrush}" Margin="0,0,0,25"/>
 
-                    <!-- Quick Tools Section -->
-                    <StackPanel Margin="0,0,0,20">
-                        <TextBlock Text="Quick Features" FontSize="18" FontWeight="SemiBold" Margin="0,0,0,12"/>
-                        <Button Name="EnableMonitoringBtn" Content="📊 Enable System Monitoring" Click="EnableMonitoringBtn_Click" Style="{StaticResource MainButton}" Width="200" HorizontalAlignment="Left"/>
-                        <Button Name="OpenClockBtn" Content="⏰ Open Clock Widget" Click="OpenClockBtn_Click" Style="{StaticResource MainButton}" Width="200" HorizontalAlignment="Left" Margin="0,8,0,0"/>
-                        <Button Name="TaskbarToggleBtn" Content="📌 Enable Transparent Taskbar" Click="TaskbarToggleBtn_Click" Style="{StaticResource MainButton}" Width="200" HorizontalAlignment="Left" Margin="0,8,0,0"/>
-                    </StackPanel>
+                    <!-- Quick Actions -->
+                    <TextBlock Text="Quick Actions" FontSize="14" FontWeight="Bold" Foreground="{StaticResource SubTextBrush}" Margin="0,0,0,10"/>
+                    <WrapPanel Margin="0,0,0,20">
+                        <Button x:Name="EnableMonitoringBtn" Content="📊 System Monitor" Click="EnableMonitoringBtn_Click" Style="{StaticResource ActionButton}" Width="160" Margin="0,0,10,10"/>
+                        <Button x:Name="OpenClockBtn" Content="⏰ Clock Widget" Click="OpenClockBtn_Click" Style="{StaticResource ActionButton}" Width="160" Margin="0,0,10,10"/>
+                        <Button x:Name="TaskbarToggleBtn" Content="📌 Transparent Taskbar" Click="TaskbarToggleBtn_Click" Style="{StaticResource ActionButton}" Width="180" Margin="0,0,10,10"/>
+                    </WrapPanel>
 
-                    <!-- Monitoring Dashboard (Hidden by default) -->
-                    <Border Name="MonitoringPanel" Visibility="Collapsed" Background="{StaticResource ControlBackgroundBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" CornerRadius="8" Padding="15">
+                    <!-- Monitoring Panel -->
+                    <Border x:Name="MonitoringPanel" Style="{StaticResource CardBorder}" Visibility="Collapsed">
                         <StackPanel>
                             <Grid Margin="0,0,0,15">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="*"/>
-                                    <ColumnDefinition Width="Auto"/>
-                                </Grid.ColumnDefinitions>
-                                <TextBlock Text="System Monitoring" FontSize="16" FontWeight="SemiBold" VerticalAlignment="Center"/>
-                                <Button Name="DisableMonitoringBtn" Content="✕ Hide" Click="DisableMonitoringBtn_Click" Style="{StaticResource MainButton}" Padding="8,4" Height="28" Grid.Column="1"/>
+                                <TextBlock Text="System Status" FontSize="18" FontWeight="SemiBold"/>
+                                <Button x:Name="DisableMonitoringBtn" Content="✕" Click="DisableMonitoringBtn_Click" Style="{StaticResource ActionButton}" Padding="8,4" HorizontalAlignment="Right" BorderThickness="0" Background="Transparent"/>
                             </Grid>
 
-                            <!-- Quick Stats Row -->
-                            <Grid Margin="0,0,0,15">
+                            <Grid Margin="0,0,0,20">
                                 <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="*"/>
                                     <ColumnDefinition Width="*"/>
                                     <ColumnDefinition Width="*"/>
                                     <ColumnDefinition Width="*"/>
                                 </Grid.ColumnDefinitions>
 
-                                <!-- CPU Card -->
-                                <Border Grid.Column="0" Background="{StaticResource BackgroundBrush}" BorderBrush="{StaticResource AccentBrush}" BorderThickness="1" CornerRadius="8" Padding="12" Margin="4">
-                                    <StackPanel>
-                                        <TextBlock Text="CPU" Foreground="#888" FontSize="11" Margin="0,0,0,6"/>
-                                        <TextBlock Name="CpuPercentText" Text="-- %" FontSize="20" FontWeight="Bold" Foreground="{StaticResource AccentBrush}"/>
-                                        <ProgressBar Name="CpuProgressBar" Height="4" Margin="0,8,0,0" Maximum="100" Foreground="{StaticResource AccentBrush}"/>
-                                    </StackPanel>
-                                </Border>
-
-                                <!-- RAM Card -->
-                                <Border Grid.Column="1" Background="{StaticResource BackgroundBrush}" BorderBrush="{StaticResource AccentBrush}" BorderThickness="1" CornerRadius="8" Padding="12" Margin="4">
-                                    <StackPanel>
-                                        <TextBlock Text="Memory" Foreground="#888" FontSize="11" Margin="0,0,0,6"/>
-                                        <TextBlock Name="RamPercentText" Text="-- %" FontSize="20" FontWeight="Bold" Foreground="{StaticResource AccentBrush}"/>
-                                        <ProgressBar Name="RamProgressBar" Height="4" Margin="0,8,0,0" Maximum="100" Foreground="{StaticResource AccentBrush}"/>
-                                    </StackPanel>
-                                </Border>
-
-                                <!-- Disk Card -->
-                                <Border Grid.Column="2" Background="{StaticResource BackgroundBrush}" BorderBrush="{StaticResource AccentBrush}" BorderThickness="1" CornerRadius="8" Padding="12" Margin="4">
-                                    <StackPanel>
-                                        <TextBlock Text="Disk" Foreground="#888" FontSize="11" Margin="0,0,0,6"/>
-                                        <TextBlock Name="DiskPercentText" Text="-- %" FontSize="20" FontWeight="Bold" Foreground="{StaticResource AccentBrush}"/>
-                                        <ProgressBar Name="DiskProgressBar" Height="4" Margin="0,8,0,0" Maximum="100" Foreground="{StaticResource AccentBrush}"/>
-                                    </StackPanel>
-                                </Border>
-
-                                <!-- System Info Card -->
-                                <Border Grid.Column="3" Background="{StaticResource BackgroundBrush}" BorderBrush="{StaticResource AccentBrush}" BorderThickness="1" CornerRadius="8" Padding="12" Margin="4">
-                                    <StackPanel>
-                                        <TextBlock Text="OS" Foreground="#888" FontSize="11" Margin="0,0,0,6"/>
-                                        <TextBlock Name="OsVersionText" Text="Windows --" FontSize="13" FontWeight="Bold" TextTrimming="CharacterEllipsis"/>
-                                    </StackPanel>
-                                </Border>
-                            </Grid>
-
-                            <!-- System Details -->
-                            <GroupBox Header="System Details" FontWeight="SemiBold" Margin="0,0,0,15">
-                                <StackPanel Margin="8">
-                                    <TextBlock Name="ProcessorText" Text="Processor: --" FontSize="12" Margin="0,0,0,6"/>
-                                    <TextBlock Name="TotalRamText" Text="RAM: --" FontSize="12" Margin="0,0,0,6"/>
-                                    <TextBlock Name="NetworkText" Text="Network: --" FontSize="12"/>
+                                <!-- CPU -->
+                                <StackPanel Grid.Column="0" Margin="0,0,10,0">
+                                    <TextBlock Text="CPU Usage" Foreground="{StaticResource SubTextBrush}" FontSize="12"/>
+                                    <TextBlock x:Name="CpuPercentText" Text="0%" FontSize="24" FontWeight="Bold" Foreground="{StaticResource PrimaryBrush}" Margin="0,5"/>
+                                    <ProgressBar x:Name="CpuProgressBar" Height="6" Maximum="100" Foreground="{StaticResource PrimaryBrush}" Background="#EEE" BorderThickness="0"/>
                                 </StackPanel>
-                            </GroupBox>
 
-                            <!-- Maintenance Tools -->
-                            <StackPanel>
-                                <TextBlock Text="Maintenance" FontSize="13" FontWeight="SemiBold" Margin="0,0,0,6"/>
-                                <Button Name="ClearCacheButton" Content="🗑️ Clear Cache" Click="ClearCacheButton_Click" Style="{StaticResource MainButton}" Height="28" Margin="0,0,0,6"/>
-                                <Button Name="RefreshProcessesBtn" Content="🔄 Refresh" Click="RefreshProcessesBtn_Click" Style="{StaticResource MainButton}" Height="28" Margin="0,0,0,6"/>
-                                <TextBlock Name="CacheStatusText" Text="" Foreground="#555" FontSize="11" FontStyle="Italic"/>
-                            </StackPanel>
+                                <!-- RAM -->
+                                <StackPanel Grid.Column="1" Margin="10,0">
+                                    <TextBlock Text="Memory" Foreground="{StaticResource SubTextBrush}" FontSize="12"/>
+                                    <TextBlock x:Name="RamPercentText" Text="0%" FontSize="24" FontWeight="Bold" Foreground="{StaticResource PrimaryBrush}" Margin="0,5"/>
+                                    <ProgressBar x:Name="RamProgressBar" Height="6" Maximum="100" Foreground="{StaticResource PrimaryBrush}" Background="#EEE" BorderThickness="0"/>
+                                </StackPanel>
+
+                                <!-- Disk -->
+                                <StackPanel Grid.Column="2" Margin="10,0,0,0">
+                                    <TextBlock Text="Disk" Foreground="{StaticResource SubTextBrush}" FontSize="12"/>
+                                    <TextBlock x:Name="DiskPercentText" Text="0%" FontSize="24" FontWeight="Bold" Foreground="{StaticResource PrimaryBrush}" Margin="0,5"/>
+                                    <ProgressBar x:Name="DiskProgressBar" Height="6" Maximum="100" Foreground="{StaticResource PrimaryBrush}" Background="#EEE" BorderThickness="0"/>
+                                </StackPanel>
+                            </Grid>
+
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                
+                                <StackPanel Grid.Column="0">
+                                    <TextBlock Text="Details" FontWeight="SemiBold" Margin="0,0,0,10"/>
+                                    <TextBlock x:Name="OsVersionText" Text="OS: Windows" Foreground="{StaticResource SubTextBrush}" Margin="0,0,0,4"/>
+                                    <TextBlock x:Name="ProcessorText" Text="CPU: --" Foreground="{StaticResource SubTextBrush}" Margin="0,0,0,4"/>
+                                    <TextBlock x:Name="TotalRamText" Text="RAM: --" Foreground="{StaticResource SubTextBrush}" Margin="0,0,0,4"/>
+                                    <TextBlock x:Name="NetworkText" Text="Net: --" Foreground="{StaticResource SubTextBrush}"/>
+                                </StackPanel>
+
+                                <StackPanel Grid.Column="1">
+                                    <TextBlock Text="Maintenance" FontWeight="SemiBold" Margin="0,0,0,10"/>
+                                    <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+                                        <Button x:Name="ClearCacheButton" Content="Clean Cache" Click="ClearCacheButton_Click" Style="{StaticResource ActionButton}" Padding="10,5" FontSize="12"/>
+                                        <Button x:Name="RefreshProcessesBtn" Content="Refresh" Click="RefreshProcessesBtn_Click" Style="{StaticResource ActionButton}" Padding="10,5" FontSize="12" Margin="8,0,0,0"/>
+                                    </StackPanel>
+                                    <TextBlock x:Name="CacheStatusText" Text="" FontSize="11" FontStyle="Italic" Foreground="{StaticResource SubTextBrush}"/>
+                                    
+                                    <!-- Process List (Added for compatibility) -->
+                                    <ListBox x:Name="ProcessList" Height="100" Margin="0,10,0,0" BorderThickness="1" BorderBrush="#EEE" Background="#FAFAFA" FontSize="11"/>
+                                </StackPanel>
+                            </Grid>
                         </StackPanel>
                     </Border>
                 </StackPanel>
             </ScrollViewer>
 
-            <!-- Dashboard Content (Removed - now integrated in Home) -->
-            <ScrollViewer Name="DashboardContent" Visibility="Collapsed">
-            </ScrollViewer>
+            <!-- Wallpapers View -->
+            <Grid x:Name="WallpapersContent" Visibility="Collapsed">
+                <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+                    <TextBlock Text="🖼️" FontSize="48" HorizontalAlignment="Center" Margin="0,0,0,20"/>
+                    <TextBlock Text="Wallpaper Gallery" FontSize="24" FontWeight="Bold" HorizontalAlignment="Center" Margin="0,0,0,10"/>
+                    <TextBlock Text="Browse and apply beautiful wallpapers to your desktop." Foreground="{StaticResource SubTextBrush}" HorizontalAlignment="Center" Margin="0,0,0,20"/>
+                    <Button x:Name="LaunchWallpaperBtn" Content="Open Wallpaper Manager" Click="WallpaperButton_Click" Style="{StaticResource PrimaryButton}" Padding="20,12" FontSize="14"/>
+                </StackPanel>
+            </Grid>
 
-            <!-- About Content (Initially Hidden) -->
-            <ScrollViewer Name="AboutContent" Visibility="Collapsed" Margin="20">
-                <StackPanel>
-                    <TextBlock FontSize="24" FontWeight="SemiBold" Margin="0,0,0,15">About ZeroMix</TextBlock>
-                    <TextBlock TextWrapping="Wrap" FontSize="14" LineHeight="22" Margin="0,0,0,15">
-                        <Run FontWeight="Bold">ZeroMix</Run> is a smart launcher designed to speed up your workflow. With a clean and modern interface, it allows you to quickly search and launch applications, files, and even perform web searches directly from your desktop.
-                    </TextBlock>
-                    <TextBlock TextWrapping="Wrap" FontSize="14" LineHeight="22">
-                        Our browser extension brings the same functionality to your browser, providing a consistent experience wherever you work.
-                    </TextBlock>
+            <!-- About View -->
+            <ScrollViewer x:Name="AboutContent" Visibility="Collapsed" BorderThickness="0">
+                <StackPanel MaxWidth="600" HorizontalAlignment="Left">
+                    <Border Style="{StaticResource CardBorder}">
+                        <StackPanel>
+                            <TextBlock Text="About ZeroMix" FontSize="20" FontWeight="Bold" Margin="0,0,0,15"/>
+                            <TextBlock TextWrapping="Wrap" FontSize="14" LineHeight="24" Foreground="{StaticResource TextBrush}">
+                                <Run FontWeight="SemiBold">ZeroMix</Run> is your ultimate productivity companion. Designed for speed and simplicity, it helps you manage your workspace with ease.
+                            </TextBlock>
+                            <TextBlock TextWrapping="Wrap" FontSize="14" LineHeight="24" Foreground="{StaticResource TextBrush}" Margin="0,10,0,0">
+                                Whether you need to monitor system performance, launch apps quickly, or customize your desktop, ZeroMix has you covered.
+                            </TextBlock>
+                        </StackPanel>
+                    </Border>
                 </StackPanel>
             </ScrollViewer>
 
-            <!-- Privacy Content (Initially Hidden) -->
-            <ScrollViewer Name="PrivacyContent" Visibility="Collapsed" Margin="20">
-                <StackPanel>
-                    <!-- Peringatan Penggunaan -->
-                    <TextBlock FontSize="18" FontWeight="SemiBold" Margin="0,0,0,10">Peringatan Penggunaan</TextBlock>
-                    <TextBlock TextWrapping="Wrap" Margin="0,0,0,5">
-                        ZeroMix adalah aplikasi pribadi yang <Run FontWeight="Bold">tidak dipublikasikan secara massal</Run> di platform resmi.
-                        Jika Anda tetap ingin menginstal aplikasi ini, silakan klik <Run FontWeight="Bold">"More info"</Run> lalu pilih <Run FontWeight="Bold">"Run anyway"</Run> saat muncul peringatan dari sistem.
-                    </TextBlock>
-                    <TextBlock TextWrapping="Wrap" FontStyle="Italic" Foreground="#555">
-                        Gunakan aplikasi ini dengan kesadaran penuh. Segala risiko penggunaan berada di tangan pengguna.
-                    </TextBlock>
+            <!-- Privacy View -->
+            <ScrollViewer x:Name="PrivacyContent" Visibility="Collapsed" BorderThickness="0">
+                <StackPanel MaxWidth="700" HorizontalAlignment="Left">
+                    <Border Style="{StaticResource CardBorder}">
+                        <StackPanel>
+                            <TextBlock Text="Privacy Policy &amp; Usage" FontSize="20" FontWeight="Bold" Margin="0,0,0,15"/>
+                            
+                            <TextBlock Text="Important Notice" FontWeight="SemiBold" FontSize="16" Margin="0,0,0,8"/>
+                            <TextBlock TextWrapping="Wrap" Foreground="{StaticResource SubTextBrush}" Margin="0,0,0,15">
+                                ZeroMix is a personal project. It is not digitally signed by a major publisher. You may see a "Windows protected your PC" warning. This is normal for independent software. Click "More info" > "Run anyway" to proceed.
+                            </TextBlock>
 
-                    <Separator Margin="0,15,0,15"/>
+                            <Separator Background="{StaticResource BorderBrush}" Margin="0,10,0,20"/>
 
-                    <!-- Terima Kasih -->
-                    <TextBlock FontSize="18" FontWeight="SemiBold" Margin="0,0,0,10">Terima Kasih Telah Menggunakan ZeroMix</TextBlock>
-                    <TextBlock TextWrapping="Wrap" Margin="0,0,0,10">
-                        ZeroMix adalah aplikasi yang dibuat dengan tujuan untuk memudahkan akses ke aplikasi web dan desktop favorit Anda.
-                        Dengan ZeroMix, Anda bisa membuka aplikasi-aplikasi pilihan Anda dengan <Run FontWeight="Bold">lebih cepat, praktis, dan efisien</Run>.
-                    </TextBlock>
-                    <TextBlock TextWrapping="Wrap" Margin="0,0,0,10">
-                        Kami sangat menghargai Anda yang telah meluangkan waktu untuk membaca ini.
-                        Semoga aplikasi ini dapat memberikan pengalaman yang menyenangkan dan bermanfaat bagi Anda.
-                    </TextBlock>
+                            <TextBlock Text="Data Collection" FontWeight="SemiBold" FontSize="16" Margin="0,0,0,8"/>
+                            <TextBlock TextWrapping="Wrap" Foreground="{StaticResource SubTextBrush}" Margin="0,0,0,5">
+                                We respect your privacy. ZeroMix operates locally on your machine.
+                            </TextBlock>
+                            <StackPanel Margin="10,0,0,15">
+                                <TextBlock Text="• No personal data is sent to external servers." Foreground="{StaticResource SubTextBrush}" Margin="0,2"/>
+                                <TextBlock Text="• System metrics are read only for display purposes." Foreground="{StaticResource SubTextBrush}" Margin="0,2"/>
+                                <TextBlock Text="• Settings are stored locally on your device." Foreground="{StaticResource SubTextBrush}" Margin="0,2"/>
+                            </StackPanel>
 
-                    <Separator Margin="0,15,0,15"/>
-
-                    <!-- Kebijakan Privasi -->
-                    <TextBlock FontSize="18" FontWeight="SemiBold" Margin="0,0,0,10">Kebijakan Privasi</TextBlock>
-                    <TextBlock TextWrapping="Wrap" Margin="0,0,0,15">
-                        Kami berkomitmen untuk menjaga privasi Anda dan memastikan bahwa data pribadi yang dikumpulkan digunakan dengan cara yang transparan dan sesuai dengan hukum yang berlaku.
-                    </TextBlock>
-
-                    <TextBlock FontWeight="SemiBold" Margin="0,0,0,5">Apa yang Kami Kumpulkan:</TextBlock>
-                    <TextBlock TextWrapping="Wrap" Margin="15,0,0,10">• Informasi yang diperlukan untuk meningkatkan layanan seperti preferensi aplikasi dan pengaturan pengguna.</TextBlock>
-
-                    <TextBlock FontWeight="SemiBold" Margin="0,0,0,5">Bagaimana Kami Menggunakan Data:</TextBlock>
-                    <TextBlock TextWrapping="Wrap" Margin="15,0,0,2">• Untuk meningkatkan pengalaman pengguna.</TextBlock>
-                    <TextBlock TextWrapping="Wrap" Margin="15,0,0,2">• Untuk memperbaiki bug dan menambahkan fitur baru.</TextBlock>
-                    <TextBlock TextWrapping="Wrap" Margin="15,0,0,10">• Untuk memahami kebutuhan pengguna secara lebih baik.</TextBlock>
-
-                    <TextBlock FontWeight="SemiBold" Margin="0,0,0,5">Kami TIDAK akan:</TextBlock>
-                    <TextBlock TextWrapping="Wrap" Margin="15,0,0,10">• Membagikan data Anda kepada pihak ketiga tanpa izin Anda, kecuali diwajibkan oleh hukum.</TextBlock>
-
-                    <TextBlock FontWeight="SemiBold" Margin="0,0,0,5">Keamanan Data:</TextBlock>
-                    <TextBlock TextWrapping="Wrap" Margin="15,0,0,10">• Kami menggunakan enkripsi dan praktik keamanan terbaik untuk melindungi data Anda.</TextBlock>
-
-                    <Separator Margin="0,15,0,15"/>
-
-                    <!-- Penutup -->
-                    <TextBlock TextWrapping="Wrap" Margin="0,0,0,10">
-                        Terima kasih telah membaca kebijakan privasi kami.
-                        Kami menghargai kepercayaan Anda dan berkomitmen untuk menjaga keamanan data pribadi Anda.
-                        Semoga ZeroMix bisa membantu Anda mengakses aplikasi dengan lebih nyaman dan cepat.
-                    </TextBlock>
-                    <TextBlock TextWrapping="Wrap" Margin="0,10,0,0">
-                        Salam hangat,
-                        <LineBreak/>
-                        Tim ZeroMix 💻✨
-                    </TextBlock>
+                            <TextBlock Text="Thank you for using ZeroMix!" FontStyle="Italic" Foreground="{StaticResource PrimaryBrush}" Margin="0,10,0,0"/>
+                        </StackPanel>
+                    </Border>
                 </StackPanel>
             </ScrollViewer>
+
         </Grid>
     </Grid>
 </Window>
