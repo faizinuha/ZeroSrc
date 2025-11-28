@@ -21,20 +21,15 @@ namespace ZeroMix
     {
         private string? _selectedImagePath;
         private ObservableCollection<WallpaperItem> _allWallpapers = new();
-        private ObservableCollection<WallpaperItem> _filteredWallpapers = new();
-        private string _currentFilter = "all";
-        private string _currentSearch = "";
-        private Random _random = new();
 
         public Wallpapers()
         {
             InitializeComponent();
-            WallpaperListPanel.ItemsSource = _filteredWallpapers;
+            WallpaperListPanel.ItemsSource = _allWallpapers;
         }
 
         private async void Window_Loaded(object sender, RoutedEventArgs e)
         {
-            FilterAllBtn.Background = (SolidColorBrush)FindResource("AccentBrush");
             await LoadWallpapersAsync();
         }
 
@@ -45,72 +40,6 @@ namespace ZeroMix
         }
 
         private void CloseButton_Click(object sender, RoutedEventArgs e) => Close();
-
-        // --- SEARCH & FILTER ---
-        private void SearchBox_TextChanged(object sender, TextChangedEventArgs e)
-        {
-            _currentSearch = SearchBox.Text.ToLowerInvariant();
-            ApplyFilter();
-        }
-
-        private void FilterBtn_Click(object sender, RoutedEventArgs e)
-        {
-            if (sender is System.Windows.Controls.Button btn)
-            {
-                // Reset all buttons
-                FilterAllBtn.Background = (SolidColorBrush)FindResource("ControlHoverBrush");
-                FilterImagesBtn.Background = (SolidColorBrush)FindResource("ControlHoverBrush");
-                FilterVideosBtn.Background = (SolidColorBrush)FindResource("ControlHoverBrush");
-                FilterAnimatedBtn.Background = (SolidColorBrush)FindResource("ControlHoverBrush");
-
-                // Highlight selected
-                btn.Background = (SolidColorBrush)FindResource("AccentBrush");
-
-                // Set filter
-                if (btn == FilterAllBtn) _currentFilter = "all";
-                else if (btn == FilterImagesBtn) _currentFilter = "images";
-                else if (btn == FilterVideosBtn) _currentFilter = "videos";
-                else if (btn == FilterAnimatedBtn) _currentFilter = "animated";
-
-                ApplyFilter();
-            }
-        }
-
-        private void ApplyFilter()
-        {
-            _filteredWallpapers.Clear();
-
-            var filtered = _allWallpapers.Where(w =>
-            {
-                // Search filter
-                if (!string.IsNullOrEmpty(_currentSearch) && !w.Name.ToLowerInvariant().Contains(_currentSearch))
-                    return false;
-
-                // Type filter
-                return _currentFilter switch
-                {
-                    "images" => w.Type == WallpaperType.Image,
-                    "videos" => w.Type == WallpaperType.Video,
-                    "animated" => w.Type == WallpaperType.Animated,
-                    _ => true
-                };
-            }).ToList();
-
-            foreach (var item in filtered)
-                _filteredWallpapers.Add(item);
-
-            CountLabel.Text = $"{_filteredWallpapers.Count} items";
-        }
-
-        // --- RANDOM WALLPAPER ---
-        private void RandomBtn_Click(object sender, RoutedEventArgs e)
-        {
-            if (_filteredWallpapers.Count == 0) return;
-
-            int randomIndex = _random.Next(_filteredWallpapers.Count);
-            var randomWallpaper = _filteredWallpapers[randomIndex];
-            SelectWallpaper(randomWallpaper);
-        }
 
         // --- LOAD WALLPAPERS ---
         private async Task LoadWallpapersAsync()
@@ -207,7 +136,12 @@ namespace ZeroMix
                 }
             }
 
-            ApplyFilter();
+            UpdateCount();
+        }
+
+        private void UpdateCount()
+        {
+            CountLabel.Text = $"{_allWallpapers.Count} items";
         }
 
         // --- WALLPAPER ITEM CLICK ---
@@ -237,7 +171,7 @@ namespace ZeroMix
         private void RefreshUI()
         {
             WallpaperListPanel.ItemsSource = null;
-            WallpaperListPanel.ItemsSource = _filteredWallpapers;
+            WallpaperListPanel.ItemsSource = _allWallpapers;
         }
 
         // --- BROWSE & SET ---
@@ -266,12 +200,12 @@ namespace ZeroMix
 
                     _allWallpapers.Insert(0, item);
                     SelectWallpaper(item);
-                    ApplyFilter();
+                    UpdateCount();
                 }
             }
         }
 
-        private void SetWallpaperButton_Click(object sender, RoutedEventArgs e)
+        private async void SetWallpaperButton_Click(object sender, RoutedEventArgs e)
         {
             if (string.IsNullOrEmpty(_selectedImagePath) || !File.Exists(_selectedImagePath))
             {
@@ -284,81 +218,72 @@ namespace ZeroMix
 
             try
             {
+                // Disable button saat processing
+                SetWallpaperButton.IsEnabled = false;
+                
                 if (isVideo)
                 {
-                    // Coba set video wallpaper menggunakan Windows API
-                    if (!SetVideoWallpaper(_selectedImagePath))
+                    StatusLabel.Text = "🎬 Processing video wallpaper...";
+                    
+                    // Jalankan di background thread
+                    string? optimizedPath = await Task.Run(() => 
                     {
-                        System.Windows.MessageBox.Show("Video wallpaper tidak didukung di sistem ini. Coba dengan Windows 10/11 atau gunakan image wallpaper.", "Fitur Tidak Tersedia", MessageBoxButton.OK, MessageBoxImage.Information);
+                        var ffmpegPath = FindFFmpeg();
+                        if (string.IsNullOrEmpty(ffmpegPath))
+                            return null;
+                        
+                        return OptimizeVideoForWallpaper(_selectedImagePath, ffmpegPath);
+                    });
+                    
+                    if (string.IsNullOrEmpty(optimizedPath))
+                    {
+                        StatusLabel.Text = "❌ Video processing failed";
+                        System.Windows.MessageBox.Show(
+                            "Gagal memproses video. Pastikan FFmpeg tersedia dan file video valid.",
+                            "Error",
+                            MessageBoxButton.OK,
+                            MessageBoxImage.Error);
                         return;
                     }
+                    
+                    StatusLabel.Text = "✅ Video optimized successfully!";
+                    
+                    // Show success message with path
+                    System.Windows.Clipboard.SetText(optimizedPath);
+                    System.Windows.MessageBox.Show(
+                        $"Video telah dioptimasi dan disimpan di:\n{optimizedPath}\n\n" +
+                        "Untuk menggunakan sebagai wallpaper:\n" +
+                        "1. Gunakan aplikasi seperti Lively Wallpaper (gratis di Microsoft Store)\n" +
+                        "2. Atau gunakan VLC: Media → Open File → Tools → Effects → Advanced → Wall\n\n" +
+                        "📋 Path sudah dicopy ke clipboard!",
+                        "Video Wallpaper Ready",
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Information);
                 }
                 else
                 {
+                    StatusLabel.Text = "🖼️ Setting image wallpaper...";
+                    
+                    // Set image wallpaper (cepat, tidak perlu async)
                     NativeMethods.SetWallpaper(_selectedImagePath);
+                    
+                    StatusLabel.Text = "✅ Wallpaper set successfully!";
+                    
+                    System.Windows.MessageBox.Show("Wallpaper berhasil diubah!", "Sukses", MessageBoxButton.OK, MessageBoxImage.Information);
                 }
-
-                System.Windows.MessageBox.Show("Wallpaper berhasil diubah!", "Sukses", MessageBoxButton.OK, MessageBoxImage.Information);
             }
             catch (Exception ex)
             {
+                StatusLabel.Text = "❌ Error setting wallpaper";
                 System.Windows.MessageBox.Show($"Gagal mengubah wallpaper: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
-        }
-
-        private bool SetVideoWallpaper(string videoPath)
-        {
-            try
+            finally
             {
-                var ffmpegPath = FindFFmpeg();
-                if (string.IsNullOrEmpty(ffmpegPath))
-                {
-                    System.Windows.MessageBox.Show(
-                        "FFmpeg tidak ditemukan di sistem Anda.\n\n" +
-                        "Untuk menggunakan video wallpaper, silakan install FFmpeg:\n" +
-                        "1. Download dari https://ffmpeg.org/download.html\n" +
-                        "2. Extract ke C:\\ffmpeg\n" +
-                        "3. Tambahkan C:\\ffmpeg\\bin ke PATH environment variable\n\n" +
-                        "Atau gunakan: winget install FFmpeg",
-                        "FFmpeg Diperlukan",
-                        MessageBoxButton.OK,
-                        MessageBoxImage.Information);
-                    return false;
-                }
-
-                // Create optimized video for wallpaper
-                StatusLabel.Text = "🎬 Mengoptimasi video untuk wallpaper...";
-                var optimizedVideoPath = OptimizeVideoForWallpaper(videoPath, ffmpegPath);
-                
-                if (string.IsNullOrEmpty(optimizedVideoPath))
-                {
-                    System.Windows.MessageBox.Show(
-                        "Gagal mengoptimasi video. Pastikan file video valid.",
-                        "Error",
-                        MessageBoxButton.OK,
-                        MessageBoxImage.Error);
-                    return false;
-                }
-
-                // Set registry untuk video wallpaper
-                using (var key = Microsoft.Win32.Registry.CurrentUser.CreateSubKey(@"Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced"))
-                {
-                    key?.SetValue("VideoWallpaper", optimizedVideoPath, Microsoft.Win32.RegistryValueKind.String);
-                }
-
-                StatusLabel.Text = $"✓ Video wallpaper berhasil diset: {Path.GetFileName(optimizedVideoPath)}";
-                
-                // Launch video as wallpaper using Windows process
-                LaunchVideoWallpaper(optimizedVideoPath);
-                
-                return true;
-            }
-            catch (Exception ex)
-            {
-                StatusLabel.Text = $"Error: {ex.Message}";
-                return false;
+                // Re-enable button
+                SetWallpaperButton.IsEnabled = true;
             }
         }
+
 
         private string? OptimizeVideoForWallpaper(string inputPath, string ffmpegPath)
         {
@@ -375,20 +300,30 @@ namespace ZeroMix
                 var screenWidth = (int)SystemParameters.PrimaryScreenWidth;
                 var screenHeight = (int)SystemParameters.PrimaryScreenHeight;
 
-                // FFmpeg arguments untuk video yang ringan dan berkualitas
-                // - VP9 codec untuk ukuran file lebih kecil
-                // - CRF 30-35 untuk balance antara kualitas dan ukuran
-                // - Scale ke resolusi layar
-                // - 30fps untuk smooth playback
+                // FFmpeg arguments - BALANCED PRESET (Best for most PCs)
+                // - 30fps: Smooth playback
+                // - CRF 28: Good quality, small file size
+                // - veryfast: Quick encoding
+                // - scale to exact screen size: No black bars
+                // - no audio: Saves space and CPU
                 var arguments = $"-i \"{inputPath}\" " +
-                               $"-c:v libx264 " +                    // H.264 codec (lebih kompatibel daripada VP9)
-                               $"-preset veryfast " +                // Fast encoding
-                               $"-crf 28 " +                         // Constant Rate Factor (18-28 good, 28 lebih kecil)
-                               $"-vf \"scale={screenWidth}:{screenHeight}:force_original_aspect_ratio=increase,crop={screenWidth}:{screenHeight}\" " + // Scale & crop
-                               $"-r 60 " +                           // 30 FPS
-                               $"-an " +                             // No audio (lebih ringan)
-                               $"-movflags +faststart " +            // Fast start untuk streaming
-                               $"-y \"{outputPath}\"";               // Overwrite output
+                               $"-vf \"scale={screenWidth}:{screenHeight}:force_original_aspect_ratio=increase,crop={screenWidth}:{screenHeight},fps=30\" " +
+                               $"-c:v libx264 " +
+                               $"-preset veryfast " +
+                               $"-crf 28 " +
+                               $"-an " +
+                               $"-movflags +faststart " +
+                               $"-y \"{outputPath}\"";
+
+                // ALTERNATIVE PRESETS (uncomment untuk ganti):
+                
+                // HIGH QUALITY (untuk PC kuat):
+                // $"-vf \"scale={screenWidth}:{screenHeight}:force_original_aspect_ratio=increase,crop={screenWidth}:{screenHeight},fps=30\" " +
+                // $"-c:v libx264 -preset fast -crf 23 -an -movflags +faststart -y \"{outputPath}\"";
+                
+                // LOW POWER (untuk laptop/PC lemah):
+                // $"-vf \"scale={screenWidth}:{screenHeight}:force_original_aspect_ratio=increase,crop={screenWidth}:{screenHeight},fps=24\" " +
+                // $"-c:v libx264 -preset ultrafast -crf 30 -an -movflags +faststart -y \"{outputPath}\"";
 
                 var psi = new ProcessStartInfo
                 {
@@ -404,9 +339,8 @@ namespace ZeroMix
                 {
                     if (process == null) return null;
 
-                    // Read output untuk monitoring (opsional)
                     var errorOutput = process.StandardError.ReadToEnd();
-                    process.WaitForExit(60000); // Max 60 detik
+                    process.WaitForExit(90000); // Max 90 detik (lebih lama untuk video besar)
 
                     if (process.ExitCode != 0)
                     {
@@ -427,35 +361,6 @@ namespace ZeroMix
             }
         }
 
-        private void LaunchVideoWallpaper(string videoPath)
-        {
-            try
-            {
-                // Option 1: Menggunakan Windows Media Player sebagai wallpaper layer
-                // Note: Untuk implementasi penuh, Anda butuh aplikasi terpisah
-                // atau library seperti mpv/vlc dengan --no-video-deco flag
-                
-                // Untuk sekarang, kita bisa menunjukkan file location
-                var message = $"Video telah dioptimasi dan disimpan di:\n{videoPath}\n\n" +
-                             "Untuk menggunakan sebagai wallpaper:\n" +
-                             "1. Gunakan aplikasi seperti Lively Wallpaper (gratis di Microsoft Store)\n" +
-                             "2. Atau gunakan VLC: Media → Open File → Tools → Effects → Advanced → Wall\n" +
-                             "3. Atau mpv dengan: mpv --loop --no-border --ontop \"" + videoPath + "\"";
-                
-                // Auto-copy path to clipboard
-                System.Windows.Clipboard.SetText(videoPath);
-                
-                System.Windows.MessageBox.Show(
-                    message + "\n\n📋 Path sudah dicopy ke clipboard!",
-                    "Video Wallpaper Ready",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Information);
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"Error launching video wallpaper: {ex.Message}");
-            }
-        }
 
         // --- HELPERS ---
         private WallpaperType DetermineWallpaperType(string path)
@@ -477,14 +382,12 @@ namespace ZeroMix
             
             try
             {
-                // Untuk video, ekstrak first frame atau pakai placeholder
                 if (isVideo)
                 {
                     var videoThumb = ExtractVideoThumbnail(imagePath);
                     return videoThumb ?? CreatePlaceholderBitmap(WallpaperType.Video);
                 }
                 
-                // Untuk image biasa
                 var bitmap = new BitmapImage();
                 bitmap.BeginInit();
                 bitmap.UriSource = new Uri(imagePath);
@@ -506,13 +409,8 @@ namespace ZeroMix
                 if (string.IsNullOrEmpty(ffmpegPath))
                     return null;
 
-                string tempImagePath = System.IO.Path.Combine(System.IO.Path.GetTempPath(), $"thumb_{Guid.NewGuid():N}.jpg");
+                string tempImagePath = Path.Combine(Path.GetTempPath(), $"thumb_{Guid.NewGuid():N}.jpg");
                 
-                // Optimized FFmpeg arguments untuk thumbnail yang cepat
-                // -ss 00:00:01 = seek to 1 second
-                // -vframes 1 = extract only 1 frame
-                // -vf scale=200:-1 = scale width to 200px, maintain aspect ratio
-                // -q:v 5 = quality (2-31, lower = better quality, 5 is good balance)
                 var arguments = $"-ss 00:00:01 -i \"{videoPath}\" -vframes 1 -vf scale=200:-1 -q:v 5 \"{tempImagePath}\" -y";
                 
                 var psi = new ProcessStartInfo
@@ -527,7 +425,7 @@ namespace ZeroMix
 
                 using (var process = Process.Start(psi))
                 {
-                    process?.WaitForExit(3000); // 3 second timeout
+                    process?.WaitForExit(3000);
                 }
 
                 if (File.Exists(tempImagePath))
@@ -543,7 +441,6 @@ namespace ZeroMix
                         bitmap.EndInit();
                         bitmap.Freeze();
                         
-                        // Clean up temp file after a delay
                         Task.Delay(500).ContinueWith(_ => 
                         {
                             try { File.Delete(tempImagePath); } catch { }
@@ -566,43 +463,106 @@ namespace ZeroMix
         {
             try
             {
-                var pathEnv = Environment.GetEnvironmentVariable("PATH");
-                if (!string.IsNullOrEmpty(pathEnv))
+                Debug.WriteLine("=== Searching for FFmpeg ===");
+                
+                // Priority 1: Development - Project FFMPEG folder
+                // C:\ZeroMix\ZeroMix\bin\Debug\net9.0-windows\FFMPEG\ffmpeg.exe
+                var baseDir = AppDomain.CurrentDomain.BaseDirectory;
+                Debug.WriteLine($"Base Directory: {baseDir}");
+                
+                var localFFmpeg = Path.Combine(baseDir, "FFMPEG", "ffmpeg.exe");
+                Debug.WriteLine($"Checking local: {localFFmpeg}");
+                if (File.Exists(localFFmpeg))
                 {
-                    foreach (var dir in pathEnv.Split(';'))
+                    Debug.WriteLine($"✓ Found FFmpeg in bin directory: {localFFmpeg}");
+                    return localFFmpeg;
+                }
+
+                // Priority 2: Development - Go up to project root
+                // C:\ZeroMix\ZeroMix\FFMPEG\ffmpeg.exe
+                var projectRoot = Path.GetDirectoryName(Path.GetDirectoryName(Path.GetDirectoryName(baseDir)));
+                if (!string.IsNullOrEmpty(projectRoot))
+                {
+                    var projectFFmpeg = Path.Combine(projectRoot, "FFMPEG", "ffmpeg.exe");
+                    Debug.WriteLine($"Checking project root: {projectFFmpeg}");
+                    if (File.Exists(projectFFmpeg))
                     {
-                        var ffmpegPath = System.IO.Path.Combine(dir, "ffmpeg.exe");
-                        if (File.Exists(ffmpegPath))
-                            return ffmpegPath;
+                        Debug.WriteLine($"✓ Found FFmpeg in project root: {projectFFmpeg}");
+                        return projectFFmpeg;
                     }
                 }
 
-                // Cek di folder project dulu (FFMPEG di folder yang sama dengan exe)
-                var baseDir = AppDomain.CurrentDomain.BaseDirectory;
-                var projectFFmpeg = System.IO.Path.Combine(baseDir, "FFMPEG", "ffmpeg.exe");
-                
+                // Priority 3: Hardcoded development path
+                var devPath = @"C:\ZeroMix\ZeroMix\FFMPEG\ffmpeg.exe";
+                Debug.WriteLine($"Checking hardcoded dev path: {devPath}");
+                if (File.Exists(devPath))
+                {
+                    Debug.WriteLine($"✓ Found FFmpeg in dev path: {devPath}");
+                    return devPath;
+                }
+
+                // Priority 4: Installed location (C:\Program Files\ZeroMix\FFMPEG\ffmpeg.exe)
+                var programFilesFFmpeg = Path.Combine(
+                    Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles),
+                    "ZeroMix", "FFMPEG", "ffmpeg.exe"
+                );
+                Debug.WriteLine($"Checking Program Files: {programFilesFFmpeg}");
+                if (File.Exists(programFilesFFmpeg))
+                {
+                    Debug.WriteLine($"✓ Found FFmpeg in Program Files: {programFilesFFmpeg}");
+                    return programFilesFFmpeg;
+                }
+
+                // Priority 5: Check PATH environment variable
+                var pathEnv = Environment.GetEnvironmentVariable("PATH");
+                if (!string.IsNullOrEmpty(pathEnv))
+                {
+                    Debug.WriteLine("Checking PATH environment variable...");
+                    foreach (var dir in pathEnv.Split(';'))
+                    {
+                        if (string.IsNullOrWhiteSpace(dir)) continue;
+                        
+                        var ffmpegPath = Path.Combine(dir.Trim(), "ffmpeg.exe");
+                        if (File.Exists(ffmpegPath))
+                        {
+                            Debug.WriteLine($"✓ Found FFmpeg in PATH: {ffmpegPath}");
+                            return ffmpegPath;
+                        }
+                    }
+                }
+
+                // Priority 6: Common installation paths
                 var commonPaths = new[]
                 {
-                    projectFFmpeg,                                  // c:\ZeroMix\ZeroMix\FFMPEG\ffmpeg.exe
-                    "ffmpeg.exe",                                   // Current directory
-                    "C:\\ffmpeg\\bin\\ffmpeg.exe",                 // Default install location
-                    "C:\\Program Files\\ffmpeg\\bin\\ffmpeg.exe"   // Program Files location
+                    @"C:\ffmpeg\bin\ffmpeg.exe",
+                    @"C:\Program Files\ffmpeg\bin\ffmpeg.exe",
+                    Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "ffmpeg", "bin", "ffmpeg.exe")
                 };
 
+                Debug.WriteLine("Checking common paths...");
                 foreach (var path in commonPaths)
                 {
+                    Debug.WriteLine($"Checking: {path}");
                     if (File.Exists(path))
+                    {
+                        Debug.WriteLine($"✓ Found FFmpeg in common path: {path}");
                         return path;
+                    }
                 }
+
+                Debug.WriteLine("✗ FFmpeg not found in any location");
             }
-            catch { }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"✗ Error finding FFmpeg: {ex.Message}");
+                Debug.WriteLine($"Stack trace: {ex.StackTrace}");
+            }
 
             return null;
         }
 
         private BitmapImage CreatePlaceholderBitmap(WallpaperType type)
         {
-            // Create visual with text
             var canvas = new System.Windows.Shapes.Rectangle
             {
                 Width = 200,
@@ -666,25 +626,24 @@ namespace ZeroMix
             {
                 var exts = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { ".jpg", ".jpeg", ".png", ".bmp", ".mp4", ".wmv", ".mov" };
                 
-                // Try multiple paths
                 var baseDirs = new[]
                 {
                     AppDomain.CurrentDomain.BaseDirectory,
-                    System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location),
-                    System.Environment.CurrentDirectory
+                    Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location),
+                    Environment.CurrentDirectory
                 };
 
                 foreach (var baseDir in baseDirs)
                 {
                     if (baseDir == null) continue;
                     
-                    string resourceRoot = System.IO.Path.Combine(baseDir, "Resource");
+                    string resourceRoot = Path.Combine(baseDir, "Resource");
                     if (Directory.Exists(resourceRoot))
                     {
                         var dirs = new[] { 
-                            System.IO.Path.Combine(resourceRoot, "Images"), 
-                            System.IO.Path.Combine(resourceRoot, "anim"), 
-                            System.IO.Path.Combine(resourceRoot, "Video") 
+                            Path.Combine(resourceRoot, "Images"), 
+                            Path.Combine(resourceRoot, "anim"), 
+                            Path.Combine(resourceRoot, "Video") 
                         };
                         
                         foreach (var dir in dirs)
@@ -692,7 +651,7 @@ namespace ZeroMix
                             if (!Directory.Exists(dir)) continue;
                             foreach (var file in Directory.EnumerateFiles(dir, "*.*", SearchOption.AllDirectories))
                             {
-                                if (exts.Contains(System.IO.Path.GetExtension(file)))
+                                if (exts.Contains(Path.GetExtension(file)))
                                     uniquePaths.Add(file);
                             }
                         }
