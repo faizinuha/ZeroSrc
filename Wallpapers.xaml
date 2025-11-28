@@ -2,9 +2,9 @@
     x:Class="ZeroMix.Wallpapers"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    Title="Wallpaper Settings"
-    Width="950"
-    Height="700"
+    Title="Wallpaper Manager"
+    Width="1000"
+    Height="720"
     AllowsTransparency="True"
     Background="Transparent"
     Loaded="Window_Loaded"
@@ -13,27 +13,33 @@
     WindowStyle="None">
 
     <Window.Resources>
-        <!--  Updated Resources dengan UI/UX improvements  -->
+        <!-- Modern Dark Theme -->
         <ResourceDictionary>
-            <Color x:Key="AccentColor">#0078D4</Color>
-            <Color x:Key="ControlHoverColor">#E0E0E0</Color>
-            <Color x:Key="ForegroundColor">#1C1C1C</Color>
-            <Color x:Key="BackgroundColor">#F0F0F0</Color>
-            <Color x:Key="SelectedColor">#00D9FF</Color>
+            <Color x:Key="AccentColor">#0A84FF</Color>
+            <Color x:Key="ControlHoverColor">#2C2C2E</Color>
+            <Color x:Key="ForegroundColor">#FFFFFF</Color>
+            <Color x:Key="BackgroundColor">#1A1A1A</Color>
+            <Color x:Key="SelectedColor">#0A84FF</Color>
+            <Color x:Key="BorderColor">#3A3A3C</Color>
+            <Color x:Key="SubTextColor">#8E8E93</Color>
+            <Color x:Key="HeaderColor">#252525</Color>
             
             <SolidColorBrush x:Key="AccentBrush" Color="{StaticResource AccentColor}" />
             <SolidColorBrush x:Key="ControlHoverBrush" Color="{StaticResource ControlHoverColor}" />
             <SolidColorBrush x:Key="ForegroundBrush" Color="{StaticResource ForegroundColor}" />
             <SolidColorBrush x:Key="BackgroundBrush" Color="{StaticResource BackgroundColor}" />
             <SolidColorBrush x:Key="SelectedBrush" Color="{StaticResource SelectedColor}" />
+            <SolidColorBrush x:Key="BorderBrushColor" Color="{StaticResource BorderColor}" />
+            <SolidColorBrush x:Key="SubTextBrush" Color="{StaticResource SubTextColor}" />
+            <SolidColorBrush x:Key="HeaderBrush" Color="{StaticResource HeaderColor}" />
 
             <Style x:Key="BaseButton" TargetType="Button">
                 <Setter Property="Background" Value="{StaticResource AccentBrush}" />
                 <Setter Property="Foreground" Value="White" />
                 <Setter Property="BorderThickness" Value="0" />
-                <Setter Property="Padding" Value="12,8" />
+                <Setter Property="Padding" Value="16,10" />
                 <Setter Property="Cursor" Value="Hand" />
-                <Setter Property="FontSize" Value="12" />
+                <Setter Property="FontSize" Value="13" />
                 <Setter Property="Template">
                     <Setter.Value>
                         <ControlTemplate TargetType="Button">
@@ -45,19 +51,15 @@
                                     <Setter TargetName="border" Property="Opacity" Value="0.9" />
                                 </Trigger>
                                 <Trigger Property="IsPressed" Value="True">
-                                    <Setter TargetName="border" Property="Opacity" Value="0.7" />
+                                    <Setter TargetName="border" Property="Opacity" Value="0.8" />
+                                </Trigger>
+                                <Trigger Property="IsEnabled" Value="False">
+                                    <Setter TargetName="border" Property="Opacity" Value="0.5" />
                                 </Trigger>
                             </ControlTemplate.Triggers>
                         </ControlTemplate>
                     </Setter.Value>
                 </Setter>
-            </Style>
-
-            <Style x:Key="FilterButton" TargetType="Button" BasedOn="{StaticResource BaseButton}">
-                <Setter Property="Background" Value="{StaticResource ControlHoverBrush}" />
-                <Setter Property="Foreground" Value="{StaticResource ForegroundBrush}" />
-                <Setter Property="Padding" Value="10,6" />
-                <Setter Property="FontSize" Value="11" />
             </Style>
 
             <Style x:Key="SecondaryButton" BasedOn="{StaticResource BaseButton}" TargetType="Button">
@@ -67,14 +69,14 @@
 
             <Style x:Key="CloseButton" TargetType="Button">
                 <Setter Property="Background" Value="Transparent" />
-                <Setter Property="Foreground" Value="#888888" />
-                <Setter Property="Width" Value="40" />
-                <Setter Property="Height" Value="30" />
+                <Setter Property="Foreground" Value="#8E8E93" />
+                <Setter Property="Width" Value="46" />
+                <Setter Property="Height" Value="46" />
                 <Setter Property="Template">
                     <Setter.Value>
                         <ControlTemplate TargetType="Button">
-                            <Border x:Name="border" Background="Transparent">
-                                <Path x:Name="xpath" HorizontalAlignment="Center" VerticalAlignment="Center" Data="M0,0 L10,10 M10,0 L0,10" Stroke="{TemplateBinding Foreground}" StrokeThickness="1.5" />
+                            <Border x:Name="border" Background="Transparent" CornerRadius="23">
+                                <Path x:Name="xpath" HorizontalAlignment="Center" VerticalAlignment="Center" Data="M0,0 L12,12 M12,0 L0,12" Stroke="{TemplateBinding Foreground}" StrokeThickness="2" />
                             </Border>
                             <ControlTemplate.Triggers>
                                 <Trigger Property="IsMouseOver" Value="True">
@@ -88,8 +90,8 @@
             </Style>
 
             <Style x:Key="WallpaperImageStyle" TargetType="Image">
-                <Setter Property="Width" Value="160" />
-                <Setter Property="Height" Value="100" />
+                <Setter Property="Width" Value="180" />
+                <Setter Property="Height" Value="120" />
                 <Setter Property="Stretch" Value="UniformToFill" />
                 <Setter Property="Margin" Value="0" />
                 <Setter Property="RenderOptions.BitmapScalingMode" Value="HighQuality" />
@@ -97,110 +99,77 @@
             </Style>
 
             <Style x:Key="WallpaperBorderStyle" TargetType="Border">
-                <Setter Property="BorderBrush" Value="#CCC" />
-                <Setter Property="BorderThickness" Value="2" />
-                <Setter Property="CornerRadius" Value="6" />
-                <Setter Property="Margin" Value="6" />
+                <Setter Property="BorderBrush" Value="#3A3A3C" />
+                <Setter Property="BorderThickness" Value="1" />
+                <Setter Property="CornerRadius" Value="8" />
+                <Setter Property="Margin" Value="8" />
                 <Setter Property="Cursor" Value="Hand" />
-                <Setter Property="Background" Value="White" />
-                <Setter Property="Opacity" Value="0" />
-                <Setter Property="RenderTransform">
-                    <Setter.Value>
-                        <ScaleTransform ScaleX="0.95" ScaleY="0.95" CenterX="85" CenterY="55" />
-                    </Setter.Value>
-                </Setter>
+                <Setter Property="Background" Value="#252525" />
                 <Style.Triggers>
                     <Trigger Property="IsMouseOver" Value="True">
                         <Setter Property="BorderBrush" Value="{StaticResource AccentBrush}" />
-                        <Setter Property="Background" Value="#F5F5F5" />
+                        <Setter Property="BorderThickness" Value="2" />
                     </Trigger>
-                    <EventTrigger RoutedEvent="FrameworkElement.Loaded">
-                        <BeginStoryboard>
-                            <Storyboard>
-                                <DoubleAnimation Storyboard.TargetProperty="Opacity" From="0" To="1" Duration="0:0:0.2" />
-                                <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleX)" From="0.95" To="1" Duration="0:0:0.2" />
-                                <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleY)" From="0.95" To="1" Duration="0:0:0.2" />
-                            </Storyboard>
-                        </BeginStoryboard>
-                    </EventTrigger>
                 </Style.Triggers>
             </Style>
 
             <Style x:Key="SelectedBorderStyle" TargetType="Border" BasedOn="{StaticResource WallpaperBorderStyle}">
                 <Setter Property="BorderBrush" Value="{StaticResource SelectedBrush}" />
                 <Setter Property="BorderThickness" Value="3" />
-                <Setter Property="Background" Value="#E0F7FF" />
+                <Setter Property="Background" Value="#0A84FF22" />
             </Style>
         </ResourceDictionary>
     </Window.Resources>
 
-    <Border Margin="10" CornerRadius="8">
+    <Border Margin="12" CornerRadius="12">
         <Border.Effect>
-            <DropShadowEffect BlurRadius="15" Opacity="0.15" ShadowDepth="1" Color="Black" />
+            <DropShadowEffect BlurRadius="30" Opacity="0.6" ShadowDepth="0" Color="Black" />
         </Border.Effect>
-        <Border Background="#FAFAFA" BorderBrush="#DDD" BorderThickness="1" CornerRadius="8" ClipToBounds="True">
+        <Border Background="#1A1A1A" BorderBrush="#2C2C2E" BorderThickness="1" CornerRadius="12" ClipToBounds="True">
             <Grid>
                 <Grid.RowDefinitions>
-                    <RowDefinition Height="50" />
                     <RowDefinition Height="60" />
                     <RowDefinition Height="*" />
                     <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
 
                 <!-- Title Bar -->
-                <Border Grid.Row="0" Background="#F8F8F8" BorderBrush="#DDD" BorderThickness="0,0,0,1">
+                <Border Grid.Row="0" Background="#252525">
                     <Grid>
-                        <TextBlock Margin="20,0,0,0" VerticalAlignment="Center" FontSize="16" FontWeight="SemiBold" Foreground="#1C1C1C" Text="🖼️ Wallpaper Manager" />
-                        <Button Name="CloseButton" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="0,0,15,0" Click="CloseButton_Click" Style="{StaticResource CloseButton}" ToolTip="Close" />
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="24,0,0,0">
+                            <TextBlock Text="🖼️" FontSize="20" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                            <TextBlock Text="Wallpaper Manager" FontSize="18" FontWeight="SemiBold" Foreground="#FFFFFF" VerticalAlignment="Center"/>
+                            <TextBlock Name="CountLabel" Text="0 items" VerticalAlignment="Center" FontSize="12" Foreground="#8E8E93" Margin="20,0,0,0" />
+                        </StackPanel>
+                        <Button Name="CloseButton" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="0,0,12,0" Click="CloseButton_Click" Style="{StaticResource CloseButton}" ToolTip="Close" />
                     </Grid>
                 </Border>
 
-                <!-- Search & Filter Bar -->
-                <Border Grid.Row="1" Background="White" BorderBrush="#EEE" BorderThickness="0,0,0,1" Margin="0">
-                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="15,0">
-                        <!-- Search Box -->
-                        <Border Width="180" Height="32" Background="White" BorderBrush="#DDD" BorderThickness="1" CornerRadius="4" Margin="0,0,15,0">
-                            <TextBox Name="SearchBox" Padding="10,8" TextChanged="SearchBox_TextChanged" Foreground="#666" ToolTip="Search wallpapers by name" Background="Transparent" BorderThickness="0" />
-                        </Border>
-
-                        <!-- Filter Buttons -->
-                        <TextBlock Text="Filter:" VerticalAlignment="Center" Margin="0,0,10,0" FontSize="11" Foreground="#666" FontWeight="SemiBold"/>
-                        <Button Name="FilterAllBtn" Content="📋 All" Click="FilterBtn_Click" Style="{StaticResource FilterButton}" Margin="0,0,5,0" />
-                        <Button Name="FilterImagesBtn" Content="🖼️ Images" Click="FilterBtn_Click" Style="{StaticResource FilterButton}" Margin="0,0,5,0" />
-                        <Button Name="FilterVideosBtn" Content="🎬 Videos" Click="FilterBtn_Click" Style="{StaticResource FilterButton}" Margin="0,0,5,0" />
-                        <Button Name="FilterAnimatedBtn" Content="✨ Animated" Click="FilterBtn_Click" Style="{StaticResource FilterButton}" Margin="0,0,15,0" />
-
-                        <!-- Random Button -->
-                        <Button Name="RandomBtn" Content="🎲 Random" Click="RandomBtn_Click" Style="{StaticResource BaseButton}" Margin="0,0,5,0" Width="90" />
-                        
-                        <!-- Count Label -->
-                        <TextBlock Name="CountLabel" Text="0 items" VerticalAlignment="Center" Margin="10,0,0,0" FontSize="11" Foreground="#999" />
-                    </StackPanel>
-                </Border>
-
-                <!-- Wallpaper Grid (Virtualized) -->
-                <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                <!-- Wallpaper Grid (Simplified - No Search/Filter) -->
+                <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Background="#1A1A1A">
                     <ItemsControl Name="WallpaperListPanel">
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>
                                 <Border Style="{StaticResource WallpaperBorderStyle}" MouseLeftButtonUp="WallpaperBorder_MouseLeftButtonUp">
                                     <Grid>
                                         <Image Source="{Binding Thumbnail}" Style="{StaticResource WallpaperImageStyle}" />
-                                        <TextBlock Text="{Binding Name}" VerticalAlignment="Bottom" HorizontalAlignment="Left" Margin="8" Foreground="White" FontSize="10" FontWeight="SemiBold" Background="#00000088" Padding="4" TextWrapping="Wrap" TextTrimming="CharacterEllipsis" MaxHeight="40" />
+                                        <Border VerticalAlignment="Bottom" Background="#DD000000" CornerRadius="0,0,8,8">
+                                            <TextBlock Text="{Binding Name}" Margin="10,6" Foreground="White" FontSize="11" FontWeight="Medium" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" />
+                                        </Border>
                                     </Grid>
                                 </Border>
                             </DataTemplate>
                         </ItemsControl.ItemTemplate>
                         <ItemsControl.ItemsPanel>
                             <ItemsPanelTemplate>
-                                <UniformGrid Columns="4" Margin="15" />
+                                <UniformGrid Columns="4" Margin="16,8" />
                             </ItemsPanelTemplate>
                         </ItemsControl.ItemsPanel>
                     </ItemsControl>
                 </ScrollViewer>
 
                 <!-- Action Footer -->
-                <Border Grid.Row="3" Background="#F8F8F8" BorderBrush="#DDD" BorderThickness="0,1,0,0" Margin="0" Padding="15">
+                <Border Grid.Row="2" Background="#252525" Padding="24,18">
                     <Grid>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*" />
@@ -208,14 +177,12 @@
                         </Grid.ColumnDefinitions>
 
                         <!-- Status Label -->
-                        <StackPanel Grid.Column="0" VerticalAlignment="Center">
-                            <TextBlock Name="StatusLabel" Text="Select a wallpaper to preview" FontSize="12" Foreground="#666" />
-                        </StackPanel>
+                        <TextBlock Grid.Column="0" Name="StatusLabel" Text="Select a wallpaper to preview" FontSize="13" Foreground="#8E8E93" VerticalAlignment="Center" />
 
                         <!-- Action Buttons -->
                         <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right">
-                            <Button Name="BrowseButton" Content="📂 Browse..." Click="BrowseButton_Click" Style="{StaticResource SecondaryButton}" Width="110" Margin="0,0,10,0"/>
-                            <Button Name="SetWallpaperButton" Content="✓ Set as Wallpaper" Click="SetWallpaperButton_Click" Style="{StaticResource BaseButton}" Width="150" />
+                            <Button Name="BrowseButton" Content="📂 Browse..." Click="BrowseButton_Click" Style="{StaticResource SecondaryButton}" Padding="16,10" Margin="0,0,12,0"/>
+                            <Button Name="SetWallpaperButton" Content="✓ Set as Wallpaper" Click="SetWallpaperButton_Click" Style="{StaticResource BaseButton}" Padding="20,10" />
                         </StackPanel>
                     </Grid>
                 </Border>

@@ -62,8 +62,6 @@ namespace ZeroMix
         private DispatcherTimer? _performanceTimer;
         private DriveInfo? _systemDrive;
 
-
-
         public MainWindow()
         {
             InitializeComponent();
@@ -268,6 +266,7 @@ namespace ZeroMix
             if (HomeContent != null) HomeContent.Visibility = Visibility.Collapsed;
             if (AboutContent != null) AboutContent.Visibility = Visibility.Collapsed;
             if (PrivacyContent != null) PrivacyContent.Visibility = Visibility.Collapsed;
+            if (WallpapersContent != null) WallpapersContent.Visibility = Visibility.Collapsed;
 
             if (_performanceTimer != null)
             {
@@ -301,18 +300,18 @@ namespace ZeroMix
             PrivacyButton.Background = (System.Windows.Media.SolidColorBrush)FindResource("NavSelectedBrush");
         }
 
+        private void NavWallpapers_Click(object sender, RoutedEventArgs e)
+        {
+            DeactivateAllTabs();
+            WallpapersContent.Visibility = Visibility.Visible;
+            WallpaperButton.Background = (System.Windows.Media.SolidColorBrush)FindResource("NavSelectedBrush");
+        }
+
         private void WallpaperButton_Click(object sender, RoutedEventArgs e)
         {
             var wallpaperWindow = new Wallpapers();
             wallpaperWindow.ShowDialog();
         }
-
-        // Remove Tidak di pakek
-        // private void OpenOverlay_Click(object sender, RoutedEventArgs e)
-        // {
-        //     var overlay = new SearchOverlay();
-        //     overlay.Show();
-        // }
 
         // --- Dashboard Logic --- //
 
@@ -455,8 +454,7 @@ namespace ZeroMix
         {
             RefreshProcessList();
         }
-        // ...existing code...
-
+        
         private TransparentTaskbar? _taskbar;
 
         // Jika menggunakan tombol di Quick Features
@@ -487,7 +485,6 @@ namespace ZeroMix
             }
         }
 
-        // ...existing code...
         private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
             e.Cancel = true;
