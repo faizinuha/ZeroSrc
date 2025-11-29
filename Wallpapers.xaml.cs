@@ -21,6 +21,7 @@ namespace ZeroMix
     {
         private string? _selectedImagePath;
         private ObservableCollection<WallpaperItem> _allWallpapers = new();
+        private static VideoWallpaperWindow? _videoWallpaperWindow;
 
         public Wallpapers()
         {
@@ -246,23 +247,27 @@ namespace ZeroMix
                         return;
                     }
                     
-                    StatusLabel.Text = "✅ Video optimized successfully!";
-                    
-                    // Show success message with path
-                    System.Windows.Clipboard.SetText(optimizedPath);
-                    System.Windows.MessageBox.Show(
-                        $"Video telah dioptimasi dan disimpan di:\n{optimizedPath}\n\n" +
-                        "Untuk menggunakan sebagai wallpaper:\n" +
-                        "1. Gunakan aplikasi seperti Lively Wallpaper (gratis di Microsoft Store)\n" +
-                        "2. Atau gunakan VLC: Media → Open File → Tools → Effects → Advanced → Wall\n\n" +
-                        "📋 Path sudah dicopy ke clipboard!",
-                        "Video Wallpaper Ready",
-                        MessageBoxButton.OK,
-                        MessageBoxImage.Information);
+                   StatusLabel.Text = "✅ Video optimized successfully!";
+ 
+// Ask user
+var result = System.Windows.MessageBox.Show(
+    $"Video siap! Jalankan video wallpaper sekarang?\\n\\n" +
+    $"Path: {optimizedPath}",
+    "Launch Video Wallpaper?",
+    MessageBoxButton.YesNo,
+    MessageBoxImage.Question);
+
+if (result == MessageBoxResult.Yes)
+{
+    LaunchVideoWallpaper(optimizedPath);
+}
                 }
                 else
                 {
                     StatusLabel.Text = "🖼️ Setting image wallpaper...";
+                    
+                    // Stop video wallpaper if running
+                    StopVideoWallpaper();
                     
                     // Set image wallpaper (cepat, tidak perlu async)
                     NativeMethods.SetWallpaper(_selectedImagePath);
@@ -296,16 +301,24 @@ namespace ZeroMix
                 var fileName = Path.GetFileNameWithoutExtension(inputPath);
                 var outputPath = Path.Combine(tempDir, $"{fileName}_optimized.mp4");
 
+                // Delete existing file if exists (prevent FFmpeg error)
+                if (File.Exists(outputPath))
+                {
+                    try
+                    {
+                        File.Delete(outputPath);
+                        Debug.WriteLine($"Deleted existing file: {outputPath}");
+                    }
+                    catch (Exception ex)
+                    {
+                        Debug.WriteLine($"Warning: Could not delete existing file: {ex.Message}");
+                    }
+                }
+
                 // Get screen resolution
                 var screenWidth = (int)SystemParameters.PrimaryScreenWidth;
                 var screenHeight = (int)SystemParameters.PrimaryScreenHeight;
 
-                // FFmpeg arguments - BALANCED PRESET (Best for most PCs)
-                // - 30fps: Smooth playback
-                // - CRF 28: Good quality, small file size
-                // - veryfast: Quick encoding
-                // - scale to exact screen size: No black bars
-                // - no audio: Saves space and CPU
                 var arguments = $"-i \"{inputPath}\" " +
                                $"-vf \"scale={screenWidth}:{screenHeight}:force_original_aspect_ratio=increase,crop={screenWidth}:{screenHeight},fps=30\" " +
                                $"-c:v libx264 " +
@@ -314,16 +327,6 @@ namespace ZeroMix
                                $"-an " +
                                $"-movflags +faststart " +
                                $"-y \"{outputPath}\"";
-
-                // ALTERNATIVE PRESETS (uncomment untuk ganti):
-                
-                // HIGH QUALITY (untuk PC kuat):
-                // $"-vf \"scale={screenWidth}:{screenHeight}:force_original_aspect_ratio=increase,crop={screenWidth}:{screenHeight},fps=30\" " +
-                // $"-c:v libx264 -preset fast -crf 23 -an -movflags +faststart -y \"{outputPath}\"";
-                
-                // LOW POWER (untuk laptop/PC lemah):
-                // $"-vf \"scale={screenWidth}:{screenHeight}:force_original_aspect_ratio=increase,crop={screenWidth}:{screenHeight},fps=24\" " +
-                // $"-c:v libx264 -preset ultrafast -crf 30 -an -movflags +faststart -y \"{outputPath}\"";
 
                 var psi = new ProcessStartInfo
                 {

@@ -1,0 +1,30 @@
+<Window x:Class="ZeroMix.VideoWallpaperWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Video Wallpaper"
+        WindowStyle="None"
+        ResizeMode="NoResize"
+        AllowsTransparency="True"
+        Background="Transparent"
+        ShowInTaskbar="False"
+        Topmost="False"
+        Left="0"
+        Top="0"
+        WindowState="Maximized"
+        Loaded="Window_Loaded">
+    
+    <Grid>
+        <MediaElement x:Name="VideoPlayer"
+                      LoadedBehavior="Manual"
+                      UnloadedBehavior="Stop"
+                      Stretch="UniformToFill"
+                      MediaEnded="VideoPlayer_MediaEnded"
+                      MediaFailed="VideoPlayer_MediaFailed"
+                      Volume="0"
+                      RenderTransformOrigin="0.5,0.5">
+            <MediaElement.RenderTransform>
+                <ScaleTransform ScaleX="1" ScaleY="1"/>
+            </MediaElement.RenderTransform>
+        </MediaElement>
+    </Grid>
+</Window>
