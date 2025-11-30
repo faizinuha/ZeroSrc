@@ -186,6 +186,22 @@
                                 <Setter Property="Foreground"
                                         Value="White"/>
                             </Trigger>
+                            
+                            <!-- Pink Style for Terminal Commands -->
+                            <DataTrigger Binding="{Binding IsTerminal}" Value="True">
+                                <Setter TargetName="Border" Property="Background" Value="#FF007F"/>
+                                <Setter Property="Foreground" Value="White"/>
+                            </DataTrigger>
+                            
+                            <!-- Ensure Pink overrides Blue if both Selected and Terminal -->
+                            <MultiDataTrigger>
+                                <MultiDataTrigger.Conditions>
+                                    <Condition Binding="{Binding IsTerminal}" Value="True"/>
+                                    <Condition Binding="{Binding RelativeSource={RelativeSource Self}, Path=IsSelected}" Value="True"/>
+                                </MultiDataTrigger.Conditions>
+                                <Setter TargetName="Border" Property="Background" Value="#FF007F"/>
+                                <Setter Property="Foreground" Value="White"/>
+                            </MultiDataTrigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
                 </Setter.Value>
@@ -221,12 +237,21 @@
                                Visibility="{Binding IconSource, Converter={x:Static local:NullToVisibilityConverter.InstanceInverse}}"/>
                 </Grid>
 
-                <TextBlock Text="{Binding DisplayText}"
-                           Grid.Column="1"
-                           VerticalAlignment="Center"
-                           TextTrimming="CharacterEllipsis"
-                           Margin="8,0,0,0"
-                           FontSize="14"/>
+                <!-- Text Container (Title + Subtitle) -->
+                <StackPanel Grid.Column="1"
+                            VerticalAlignment="Center"
+                            Margin="8,0,0,0">
+                    <TextBlock Text="{Binding DisplayText}"
+                               TextTrimming="CharacterEllipsis"
+                               FontSize="14"
+                               FontWeight="SemiBold"/>
+                    
+                    <TextBlock Text="{Binding Subtitle}"
+                               TextTrimming="CharacterEllipsis"
+                               FontSize="11"
+                               Opacity="0.7"
+                               Visibility="{Binding Subtitle, Converter={x:Static local:StringToVisibilityConverter.Instance}}"/>
+                </StackPanel>
             </Grid>
         </DataTemplate>
     </Window.Resources>
