@@ -109,7 +109,8 @@ namespace ZeroMix
             }
             else
             {
-                _overlay.BeginFadeOutAndCloseByMain();
+                // Fal lback to Close() if a fade-out method is not available on SearchOverlay
+                _overlay.Close();
             }
         }
 

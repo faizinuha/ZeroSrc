@@ -1,21 +1,23 @@
-// File: SearchOverlay.xaml.cs
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
-using System.ComponentModel;
+using System.Linq;
+using System.Net.Http;
 using System.Runtime.InteropServices;
+using System.Text.Json;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Input;
+using System.Windows.Interop;
 using System.Windows.Media.Animation;
 using System.Windows.Media.Imaging;
-using System.Windows.Interop;
-using System.Drawing;
-
-using System.Net.Http;
-using System.Text.Json;
 using System.Windows.Threading;
+
 namespace ZeroMix
 {
     public enum SuggestionType
@@ -24,33 +26,51 @@ namespace ZeroMix
         WebSearch,
         Calculator,
         Image,
-        System
+        System,
+        Terminal
     }
 
     public class SuggestionItem
     {
         public string DisplayText { get; }
+        public string Subtitle { get; }
         public string FilePath { get; }
         public SuggestionType Type { get; }
-        public string Icon { get; } // Ikon dari font Segoe MDL2 Assets
-        public System.Windows.Media.ImageSource? IconSource { get; } // Ikon dari file .exe
+        public string Icon { get; }
+        public System.Windows.Media.ImageSource? IconSource { get; }
+        public bool IsTerminal => Type == SuggestionType.Terminal;
 
-        public SuggestionItem(string displayText, string? filePath, SuggestionType type, System.Windows.Media.ImageSource? iconSource = null)
+        public SuggestionItem(string displayText, string? filePath, SuggestionType type, System.Windows.Media.ImageSource? iconSource = null, string subtitle = "")
         {
             DisplayText = displayText;
             FilePath = filePath ?? "";
             Type = type;
             IconSource = iconSource;
-            
-            // Tetapkan ikon berdasarkan tipe
+            Subtitle = subtitle;
+
             Icon = Type switch
             {
-                SuggestionType.App => "\uE770",        // App icon
-                SuggestionType.Calculator => "\uE8EF", // Calculator icon
-                SuggestionType.Image => "\uEB9F",      // Image icon
-                SuggestionType.System => "\uE7E8",     // Power icon
-                _ => "\uE773"                           // Web search icon
+                SuggestionType.App => "\uE770",
+                SuggestionType.Calculator => "\uE8EF",
+                SuggestionType.Image => "\uEB9F",
+                SuggestionType.System => "\uE7E8",
+                SuggestionType.Terminal => "\uE756",
+                SuggestionType.WebSearch => "\uE774",
+                _ => "\uE773"
             };
+
+            if (string.IsNullOrEmpty(Subtitle))
+            {
+                Subtitle = Type switch
+                {
+                    SuggestionType.App => "Application",
+                    SuggestionType.Calculator => "Calculator Result",
+                    SuggestionType.System => "System Command",
+                    SuggestionType.WebSearch => "Search on Google",
+                    SuggestionType.Terminal => "Run command",
+                    _ => ""
+                };
+            }
         }
     }
 
@@ -74,6 +94,7 @@ namespace ZeroMix
                     SuggestionType.WebSearch => "Pencarian Web",
                     SuggestionType.Image => "Pencarian Gambar",
                     SuggestionType.System => "Sistem",
+                    SuggestionType.Terminal => "Terminal",
                     _ => string.Empty
                 };
             }
@@ -85,15 +106,15 @@ namespace ZeroMix
             throw new NotImplementedException();
         }
     }
+
     public class StringToVisibilityConverter : IValueConverter
     {
-        // Singleton biar bisa dipanggil lewat XAML: local:StringToVisibilityConverter.Instance
         public static readonly StringToVisibilityConverter Instance = new StringToVisibilityConverter();
 
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
             var text = value as string;
-            return string.IsNullOrWhiteSpace(text) ? Visibility.Visible : Visibility.Collapsed;
+            return string.IsNullOrWhiteSpace(text) ? Visibility.Collapsed : Visibility.Visible;
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
@@ -112,11 +133,9 @@ namespace ZeroMix
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
             bool isNull = value == null;
-            
             if (IsInverse)
-                return isNull ? Visibility.Visible : Visibility.Collapsed; // Jika null, tampilkan (untuk fallback text)
-            
-            return isNull ? Visibility.Collapsed : Visibility.Visible; // Jika tidak null, tampilkan (untuk image)
+                return isNull ? Visibility.Visible : Visibility.Collapsed;
+            return isNull ? Visibility.Collapsed : Visibility.Visible;
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
@@ -127,14 +146,20 @@ namespace ZeroMix
 
     public partial class SearchOverlay : Window
     {
-
         private readonly TextBlock _notificationText;
         private readonly TextBlock _clockText;
         private readonly TextBlock _dateText;
         private readonly Border _dragDropArea;
         private readonly DispatcherTimer _clockTimer;
         private readonly List<SuggestionItem> _allSuggestions = new();
-        private readonly List<string> _filteredSuggestions = new();
+        private static readonly HttpClient _httpClient = new HttpClient();
+        private bool _isSelectingSuggestion = false;
+
+        [DllImport("shell32.dll", CharSet = CharSet.Auto)]
+        private static extern IntPtr ExtractIcon(IntPtr hInst, string lpszExeFileName, int nIconIndex);
+
+        [DllImport("gdi32.dll", SetLastError = true)]
+        private static extern bool DeleteObject(IntPtr hObject);
 
         public SearchOverlay()
         {
@@ -144,16 +169,12 @@ namespace ZeroMix
             _dateText = (TextBlock)this.FindName("DateText");
             _dragDropArea = (Border)this.FindName("DragDropArea");
 
-            // Initialize clock timer
             _clockTimer = new DispatcherTimer();
             _clockTimer.Interval = TimeSpan.FromSeconds(1);
-            _clockTimer.Tick += ClockTimer_Tick;
+            _clockTimer.Tick += (s, e) => UpdateClock();
             _clockTimer.Start();
-            
-            // Update clock immediately
             UpdateClock();
 
-            // Load all suggestions on startup
             LoadAllSuggestions();
         }
 
@@ -177,7 +198,7 @@ namespace ZeroMix
         internal enum AccentState
         {
             ACCENT_DISABLED = 0,
-            ACCENT_ENABLE_BLURBEHIND = 3, // Efek blur standar
+            ACCENT_ENABLE_BLURBEHIND = 3,
         }
 
         [StructLayout(LayoutKind.Sequential)]
@@ -191,7 +212,7 @@ namespace ZeroMix
 
         internal void EnableBlur()
         {
-            var windowHelper = new System.Windows.Interop.WindowInteropHelper(this);
+            var windowHelper = new WindowInteropHelper(this);
             var accent = new AccentPolicy { AccentState = AccentState.ACCENT_ENABLE_BLURBEHIND, AccentFlags = 2, GradientColor = 0 };
             var accentStructSize = Marshal.SizeOf(accent);
             var accentPtr = Marshal.AllocHGlobal(accentStructSize);
@@ -204,59 +225,52 @@ namespace ZeroMix
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
-            // Position window like macOS Spotlight (center-top)
             var screenWidth = SystemParameters.PrimaryScreenWidth;
             var screenHeight = SystemParameters.PrimaryScreenHeight;
             this.Left = (screenWidth - this.Width) / 2;
-            this.Top = screenHeight * 0.2; // 20% from the top
+            this.Top = screenHeight * 0.2;
 
-            // Atur background window menjadi transparan agar efek blur dari DWM terlihat.
-            // Latar belakang visual sekarang diatur pada MainBorder di XAML.
             this.Background = System.Windows.Media.Brushes.Transparent;
-            // Aktifkan efek blur.
-            EnableBlur(); 
+            EnableBlur();
 
             var searchBox = this.FindName("SearchBox") as System.Windows.Controls.TextBox;
             searchBox?.Focus();
 
-            // Ensure the list is collapsed on load
             SuggestionList.Visibility = Visibility.Collapsed;
 
-            // Start fade-in animation
             var fadeIn = (Storyboard)FindResource("FadeInStoryboard");
             fadeIn.Begin(this);
         }
 
-        private void BeginFadeOutAndClose()
+        public void BeginFadeOutAndClose()
         {
             var fadeOut = (Storyboard)FindResource("FadeOutStoryboard");
             fadeOut.Completed += (s, e) => this.Close();
             fadeOut.Begin(this);
         }
 
+        private void UpdateClock()
+        {
+            var now = DateTime.Now;
+            _clockText.Text = now.ToString("HH:mm:ss");
+            _dateText.Text = now.ToString("ddd, dd MMM yyyy");
+        }
+
         private void ShowNotification(string message, NotificationType type = NotificationType.Info)
         {
             _notificationText.Text = message;
-            switch (type)
+            _notificationText.Foreground = type switch
             {
-                case NotificationType.Error:
-                    _notificationText.Foreground = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Colors.Red);
-                    break;
-                case NotificationType.Warning:
-                    _notificationText.Foreground = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Colors.Orange);
-                    break;
-                default:
-                    _notificationText.Foreground = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Colors.Black);
-                    break;
-            }
-            MessageBoxImage icon = MessageBoxImage.Information;
-            if (type == NotificationType.Error) icon = MessageBoxImage.Error;
-            else if (type == NotificationType.Warning) icon = MessageBoxImage.Warning;
-            System.Windows.MessageBox.Show(message, type.ToString(), MessageBoxButton.OK, icon);
+                NotificationType.Error => System.Windows.Media.Brushes.Red,
+                NotificationType.Warning => System.Windows.Media.Brushes.Orange,
+                _ => System.Windows.Media.Brushes.Black
+            };
+            _notificationText.Visibility = Visibility.Visible;
+            
+            var timer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(3) };
+            timer.Tick += (s, e) => { _notificationText.Visibility = Visibility.Collapsed; timer.Stop(); };
+            timer.Start();
         }
-
-        private bool _isSelectingSuggestion = false;
-        private static readonly HttpClient _httpClient = new HttpClient();
 
         private async void SearchBox_TextChanged(object sender, TextChangedEventArgs e)
         {
@@ -275,84 +289,50 @@ namespace ZeroMix
 
             var combined = new List<SuggestionItem>();
 
-            // ========================================
-            // 🧮 CALCULATOR FEATURE - INLINE RESULT
-            // ========================================
-            if (MathEvaluator.IsMathExpression(query))
+            // Terminal Command
+            if (query.StartsWith(">"))
             {
-                var (success, result, error) = MathEvaluator.Evaluate(query);
-                
-                if (success)
+                string cmd = query.Substring(1).Trim();
+                if (!string.IsNullOrEmpty(cmd))
                 {
-                    string formattedResult = MathEvaluator.FormatResult(result);
-                    
-                    // Add calculator result at TOP (priority #1)
-                    combined.Add(new SuggestionItem(
-                        displayText: $"= {formattedResult}",
-                        filePath: formattedResult, // Store result for copy
-                        type: SuggestionType.Calculator
-                    ));
+                    combined.Add(new SuggestionItem(cmd, cmd, SuggestionType.Terminal, null, "Run command in Terminal"));
+                    suggestionList!.ItemsSource = combined;
+                    suggestionList.Visibility = Visibility.Visible;
+                    return;
                 }
             }
 
-            // ========================================
-            // ⚡ SYSTEM COMMANDS - SHUTDOWN & RESTART
-            // ========================================
-            string queryLower = query.ToLower();
-            if (queryLower.Contains("shutdown") || queryLower.Contains("shut down"))
+            // Calculator
+            if (MathEvaluator.IsMathExpression(query))
             {
-                combined.Add(new SuggestionItem(
-                    displayText: "Shutdown PC",
-                    filePath: "shutdown",
-                    type: SuggestionType.System
-                ));
-            }
-            
-            if (queryLower.Contains("restart") || queryLower.Contains("reboot"))
-            {
-                combined.Add(new SuggestionItem(
-                    displayText: "Restart PC",
-                    filePath: "restart",
-                    type: SuggestionType.System
-                ));
-            }
-
-            if (queryLower.Contains("sleep"))
-            {
-                combined.Add(new SuggestionItem(
-                    displayText: "Sleep PC",
-                    filePath: "sleep",
-                    type: SuggestionType.System
-                ));
-            }
-
-            // ========================================
-            // 📱 FUZZY MATCHING - BETTER APP SEARCH
-            // ========================================
-            var localSuggestions = _allSuggestions
-                .Select(s => new
+                var (success, result, error) = MathEvaluator.Evaluate(query);
+                if (success)
                 {
-                    Item = s,
-                    Score = CalculateMatchScore(s.DisplayText, query)
-                })
+                    string formattedResult = MathEvaluator.FormatResult(result);
+                    combined.Add(new SuggestionItem($"= {formattedResult}", formattedResult, SuggestionType.Calculator));
+                }
+            }
+
+            // System Commands
+            string queryLower = query.ToLower();
+            if (queryLower.Contains("shutdown")) combined.Add(new SuggestionItem("Shutdown PC", "shutdown", SuggestionType.System));
+            if (queryLower.Contains("restart")) combined.Add(new SuggestionItem("Restart PC", "restart", SuggestionType.System));
+            if (queryLower.Contains("sleep")) combined.Add(new SuggestionItem("Sleep PC", "sleep", SuggestionType.System));
+
+            // Fuzzy Matching Apps
+            var localSuggestions = _allSuggestions
+                .Select(s => new { Item = s, Score = CalculateMatchScore(s.DisplayText, query) })
                 .Where(x => x.Score > 0)
                 .OrderByDescending(x => x.Score)
                 .Select(x => x.Item)
                 .Take(5)
                 .ToList();
-
             combined.AddRange(localSuggestions);
 
-            // ========================================
-            // 🔍 GOOGLE SUGGESTIONS
-            // ========================================
+            // Google Suggestions
             var googleSuggestions = await GetGoogleSuggestionsAsync(query);
-            var webSuggestions = googleSuggestions
-                .Select(s => new SuggestionItem(s, null, SuggestionType.WebSearch))
-                .ToList();
-
-            combined.AddRange(webSuggestions);
-            combined.Add(new SuggestionItem("Search Google for \"" + query + "\"", query, SuggestionType.WebSearch));
+            combined.AddRange(googleSuggestions.Select(s => new SuggestionItem(s, null, SuggestionType.WebSearch)));
+            combined.Add(new SuggestionItem($"Search Google for \"{query}\"", query, SuggestionType.WebSearch));
 
             if (combined.Count > 0)
             {
@@ -368,106 +348,46 @@ namespace ZeroMix
             }
         }
 
-        /// <summary>
-        /// Calculate fuzzy match score (0-100)
-        /// </summary>
         private int CalculateMatchScore(string text, string query)
         {
-            if (string.IsNullOrWhiteSpace(text) || string.IsNullOrWhiteSpace(query))
-                return 0;
-
-            text = text.ToLower();
-            query = query.ToLower();
-
+            if (string.IsNullOrWhiteSpace(text) || string.IsNullOrWhiteSpace(query)) return 0;
+            text = text.ToLower(); query = query.ToLower();
             if (text == query) return 100;
             if (text.StartsWith(query)) return 90;
             if (text.Contains(" " + query)) return 70;
             if (text.Contains(query)) return 50;
-
-            int queryIndex = 0;
-            for (int i = 0; i < text.Length && queryIndex < query.Length; i++)
-            {
-                if (text[i] == query[queryIndex])
-                    queryIndex++;
-            }
-            if (queryIndex == query.Length) return 30;
-
             return 0;
         }
+
         private async Task<List<string>> GetGoogleSuggestionsAsync(string query)
         {
             var suggestions = new List<string>();
-            if (string.IsNullOrWhiteSpace(query))
-                return suggestions;
-
             try
             {
                 var url = $"https://suggestqueries.google.com/complete/search?client=firefox&q={Uri.EscapeDataString(query)}";
                 var response = await _httpClient.GetAsync(url);
                 response.EnsureSuccessStatusCode();
                 var content = await response.Content.ReadAsStringAsync();
-
-                using (var jsonDoc = JsonDocument.Parse(content))
+                using var jsonDoc = JsonDocument.Parse(content);
+                if (jsonDoc.RootElement.GetArrayLength() > 1)
                 {
-                    var root = jsonDoc.RootElement;
-                    if (root.GetArrayLength() > 1)
-                    {
-                        var suggestionsArray = root[1];
-                        foreach (var suggestion in suggestionsArray.EnumerateArray())
-                        {
-                            string? sug = suggestion.GetString();
-                            if (sug != null)
-                                suggestions.Add(sug);
-                        }
-                    }
+                    foreach (var s in jsonDoc.RootElement[1].EnumerateArray())
+                        suggestions.Add(s.GetString() ?? "");
                 }
             }
-            catch (Exception ex)
-            {
-                // Bisa ditambahkan logging atau notifikasi jika perlu
-                Debug.WriteLine($"Failed to get Google suggestions: {ex.Message}");
-            }
-
+            catch { }
             return suggestions;
         }
 
-
-
-
-        private void SuggestionList_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            // Event ini sengaja dikosongkan untuk mencegah eksekusi otomatis
-            // saat pengguna hanya menavigasi daftar saran dengan tombol panah.
-            // Eksekusi hanya akan terjadi pada Enter atau DoubleClick.
-        }
-
-
-        private void SuggestionList_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
-        {
-            // Dihapus untuk mencegah eksekusi otomatis pada satu kali klik.
-            // Klik ganda sudah ditangani oleh SuggestionList_MouseDoubleClick.
-        }
-
-        private void SuggestionList_MouseDoubleClick(object sender, MouseButtonEventArgs e)
-        {
-            HandleSuggestionSelection((sender as System.Windows.Controls.ListBox)?.SelectedItem as SuggestionItem);
-        }
+        private void SuggestionList_SelectionChanged(object sender, SelectionChangedEventArgs e) { }
+        private void SuggestionList_MouseDoubleClick(object sender, MouseButtonEventArgs e) => HandleSuggestionSelection((sender as System.Windows.Controls.ListBox)?.SelectedItem as SuggestionItem);
 
         private void SuggestionList_KeyDown(object sender, System.Windows.Input.KeyEventArgs e)
         {
-            var lb = sender as System.Windows.Controls.ListBox;
-            if (e.Key == Key.Enter && lb?.SelectedItem is SuggestionItem selectedItem)
+            if (e.Key == Key.Enter && (sender as System.Windows.Controls.ListBox)?.SelectedItem is SuggestionItem item)
             {
-                HandleSuggestionSelection(selectedItem);
-                e.Handled = true; // Mencegah event ini diproses lebih lanjut
-            }
-            var searchBox = this.FindName("SearchBox") as System.Windows.Controls.TextBox;
-            if (e.Key == Key.Up)
-            {
-                if (lb?.SelectedIndex == 0 && searchBox != null)
-                {
-                    searchBox.Focus(); // balik ke textbox kalau sudah di item paling atas
-                }
+                HandleSuggestionSelection(item);
+                e.Handled = true;
             }
         }
 
@@ -477,260 +397,102 @@ namespace ZeroMix
 
             if (selectedItem.Type == SuggestionType.App)
             {
-                // Langsung jalankan aplikasi
                 ExecuteCommand(selectedItem.DisplayText);
             }
             else if (selectedItem.Type == SuggestionType.Calculator)
             {
-                // Copy result to clipboard
-                try
-                {
-                    System.Windows.Clipboard.SetText(selectedItem.FilePath);
-                    
-                    _notificationText.Text = $"✓ Copied: {selectedItem.FilePath}";
-                    _notificationText.Foreground = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(0, 122, 255));
-                    _notificationText.Visibility = Visibility.Visible;
-                    
-                    var timer = new System.Windows.Threading.DispatcherTimer();
-                    timer.Interval = TimeSpan.FromSeconds(1.5);
-                    timer.Tick += (s, e) =>
-                    {
-                        _notificationText.Visibility = Visibility.Collapsed;
-                        timer.Stop();
-                    };
-                    timer.Start();
-                    
-                    BeginFadeOutAndClose();
-                }
-                catch (Exception ex)
-                {
-                    ShowNotification($"Failed to copy: {ex.Message}", NotificationType.Error);
-                }
+                System.Windows.Clipboard.SetText(selectedItem.FilePath);
+                ShowNotification($"✓ Copied: {selectedItem.FilePath}");
+                BeginFadeOutAndClose();
             }
             else if (selectedItem.Type == SuggestionType.System)
             {
-                // Handle system commands (shutdown, restart, sleep)
                 ExecuteSystemCommand(selectedItem.FilePath);
+            }
+            else if (selectedItem.Type == SuggestionType.Terminal)
+            {
+                try
+                {
+                    Process.Start(new ProcessStartInfo { FileName = "cmd.exe", Arguments = $"/k {selectedItem.FilePath}", UseShellExecute = true });
+                    BeginFadeOutAndClose();
+                }
+                catch (Exception ex) { ShowNotification($"Error: {ex.Message}", NotificationType.Error); }
             }
             else if (selectedItem.Type == SuggestionType.WebSearch)
             {
-                // Jika ini adalah item "Search Google for...", gunakan query aslinya.
-                // Jika tidak, gunakan DisplayText.
-                string queryToSearch = selectedItem.DisplayText.StartsWith("Search Google for")
-                    ? selectedItem.FilePath
-                    : selectedItem.DisplayText;
-
-                ExecuteWebSearch(queryToSearch);
-                BeginFadeOutAndClose();
-            }
-            else if (selectedItem.Type == SuggestionType.Image)
-            {
-                // Handle image search or operations
-                ExecuteWebSearch(selectedItem.DisplayText + " images");
+                string q = selectedItem.DisplayText.StartsWith("Search Google for") ? selectedItem.FilePath : selectedItem.DisplayText;
+                ExecuteWebSearch(q);
                 BeginFadeOutAndClose();
             }
         }
-
 
         private void ExecuteCommand(string query)
         {
-            if (string.IsNullOrEmpty(query)) return;
-
             try
             {
-                // Find a matching app from suggestions
-                var appToLaunch = _allSuggestions.FirstOrDefault(
-                    s => s.Type == SuggestionType.App &&
-                         s.DisplayText.Equals(query, StringComparison.OrdinalIgnoreCase));
-
-                if (appToLaunch != null)
+                var app = _allSuggestions.FirstOrDefault(s => s.Type == SuggestionType.App && s.DisplayText.Equals(query, StringComparison.OrdinalIgnoreCase));
+                if (app != null)
                 {
-                    Process.Start(new ProcessStartInfo(appToLaunch.FilePath) { UseShellExecute = true });
+                    Process.Start(new ProcessStartInfo(app.FilePath) { UseShellExecute = true });
                     BeginFadeOutAndClose();
-                    return;
                 }
-
-                // If no app matches, perform a web search as a fallback
-                ExecuteWebSearch(query);
-                BeginFadeOutAndClose();
-            }
-            catch (Exception ex)
-            {
-                ShowNotification($"Gagal menjalankan perintah: {ex.Message}", NotificationType.Error);
-            }
-        }
-        private void Window_KeyDown(object sender, System.Windows.Input.KeyEventArgs e)
-        {
-            if (e.Key == Key.Escape)
-            {
-                BeginFadeOutAndClose();
-            }
-        }
-
-        private void Window_Deactivated(object sender, EventArgs e)
-        {
-            BeginFadeOutAndClose();
-        }
-
-        //   Event Handlers
-        private void SearchBox_KeyDown(object sender, System.Windows.Input.KeyEventArgs e)
-        {
-            var searchBox = sender as System.Windows.Controls.TextBox;
-            var suggestionList = this.FindName("SuggestionList") as System.Windows.Controls.ListBox;
-
-            if (e.Key == Key.Enter)
-            {
-                string query = searchBox?.Text.Trim() ?? string.Empty;
-                if (!string.IsNullOrEmpty(query))
+                else
                 {
-                    if (query.StartsWith("ytc ", StringComparison.OrdinalIgnoreCase))
-                    {
-                        string channelName = query.Substring(4).Trim();
-                        if (!string.IsNullOrEmpty(channelName))
-                        {
-                            ExecuteYouTubeSearch(channelName);
-                            BeginFadeOutAndClose();
-                            return;
-                        }
-                    }
-
-                    SuggestionItem? itemToExecute = null;
-
-                    // Prioritas 1: Item yang sedang dipilih di ListBox
-                    if (suggestionList?.Visibility == Visibility.Visible && suggestionList.SelectedItem != null)
-                    {
-                        itemToExecute = suggestionList.SelectedItem as SuggestionItem;
-                    }
-                    // Prioritas 2: Jika tidak ada yang dipilih, ambil item pertama dari daftar
-                    else if (suggestionList?.Visibility == Visibility.Visible && suggestionList.HasItems)
-                    {
-                        itemToExecute = (suggestionList.ItemsSource as ICollectionView)?.Cast<object>().FirstOrDefault() as SuggestionItem;
-                    }
-
-                    // Jika ada item dari saran, eksekusi. Jika tidak, jalankan perintah seperti biasa (fallback ke web search).
-                    if (itemToExecute != null) HandleSuggestionSelection(itemToExecute);
-                    else ExecuteCommand(query);
+                    ExecuteWebSearch(query);
+                    BeginFadeOutAndClose();
                 }
             }
-            else if (e.Key == Key.Down)
-            {
-                // var suggestionList is already defined in this scope
-                if (suggestionList?.HasItems == true)
-                {
-                    suggestionList.SelectedIndex = 0;
-                    suggestionList.Focus();
-                }
-            }
+            catch (Exception ex) { ShowNotification($"Error: {ex.Message}", NotificationType.Error); }
         }
 
         private void ExecuteWebSearch(string query)
         {
-            try
+            try { Process.Start(new ProcessStartInfo($"https://www.google.com/search?q={Uri.EscapeDataString(query)}") { UseShellExecute = true }); }
+            catch { }
+        }
+
+        private void ExecuteSystemCommand(string command)
+        {
+            string action = command.ToLower();
+            string msg = action == "shutdown" ? "Shutdown PC?" : action == "restart" ? "Restart PC?" : "Sleep PC?";
+            if (System.Windows.MessageBox.Show(msg, "Confirm", MessageBoxButton.YesNo, MessageBoxImage.Warning) == MessageBoxResult.Yes)
             {
-                string url = $"https://www.google.com/search?q={Uri.EscapeDataString(query)}";
-                Process.Start(new ProcessStartInfo(url) { UseShellExecute = true });
+                if (action == "sleep") System.Windows.Forms.Application.SetSuspendState(System.Windows.Forms.PowerState.Suspend, false, false);
+                else Process.Start(new ProcessStartInfo("shutdown", action == "shutdown" ? "/s /t 0" : "/r /t 0") { CreateNoWindow = true, UseShellExecute = false });
                 BeginFadeOutAndClose();
             }
-            catch (Exception ex)
-            {
-                ShowNotification($"Gagal membuka browser: {ex.Message}", NotificationType.Error);
-            }
         }
 
-        private void ExecuteYouTubeSearch(string channelName)
-        {
-            try
-            {
-                string url = $"https://www.youtube.com/results?search_query={Uri.EscapeDataString(channelName)}";
-                Process.Start(new ProcessStartInfo(url) { UseShellExecute = true });
-                BeginFadeOutAndClose();
-            }
-            catch (Exception ex)
-            {
-                ShowNotification($"Gagal membuka browser: {ex.Message}", NotificationType.Error);
-            }
-        }
-
-        private void Window_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
-        {
-            if (e.ChangedButton == MouseButton.Left)
-            {
-                DragMove();
-            }
-        }
-
-        private void OpenAllDesktopShortcuts()
-        {
-            string desktopPath = Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory);
-            var shortcutFiles = Directory.GetFiles(desktopPath, "*.lnk");
-            if (shortcutFiles.Length == 0)
-            {
-                ShowNotification("Tidak ada shortcut di Desktop.", NotificationType.Info);
-                return;
-            }
-
-            var result = System.Windows.MessageBox.Show($"Akan membuka {shortcutFiles.Length} shortcut di Desktop. Lanjutkan?", "Konfirmasi", MessageBoxButton.YesNo, MessageBoxImage.Question);
-            if (result != MessageBoxResult.Yes)
-            {
-                // buka folder desktop sebagai alternatif
-                Process.Start(new ProcessStartInfo(desktopPath) { UseShellExecute = true });
-                return;
-            }
-
-            foreach (var shortcut in shortcutFiles)
-            {
-                try
-                {
-                    Process.Start(new ProcessStartInfo
-                    {
-                        FileName = shortcut,
-                        UseShellExecute = true
-                    });
-                }
-                catch (Exception)
-                {
-                    // jangan ganggu loop, hanya catat.
-                }
-            }
-            ShowNotification($"Mencoba membuka {shortcutFiles.Length} shortcut.", NotificationType.Info);
-        }
 
         private void LoadAllSuggestions()
         {
             _allSuggestions.Clear();
-            var shortcutPaths = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+            string desktopPath = Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory);
+            string startMenuPath = Environment.GetFolderPath(Environment.SpecialFolder.StartMenu);
+            string commonStartMenuPath = Environment.GetFolderPath(Environment.SpecialFolder.CommonStartMenu);
 
-            string[] startMenuPaths = new[]
+            var paths = new[] { desktopPath, startMenuPath, commonStartMenuPath };
+            foreach (var path in paths)
             {
-                Environment.GetFolderPath(Environment.SpecialFolder.CommonStartMenu),
-                Environment.GetFolderPath(Environment.SpecialFolder.StartMenu)
-            };
-
-            var allLnkFiles = startMenuPaths
-                .Where(Directory.Exists)
-                .SelectMany(path => Directory.GetFiles(path, "*.lnk", SearchOption.AllDirectories));
-
-            foreach (var file in allLnkFiles)
-            {
-                string name = Path.GetFileNameWithoutExtension(file);
-                if (!string.IsNullOrEmpty(name) && !shortcutPaths.ContainsKey(name))
+                if (Directory.Exists(path))
                 {
-                    // Extract icon from the shortcut file
-                    var iconSource = ExtractIconFromFile(file);
-                    _allSuggestions.Add(new SuggestionItem(name, file, SuggestionType.App, iconSource));
+                    foreach (var file in Directory.GetFiles(path, "*.*", SearchOption.AllDirectories))
+                    {
+                        if (file.EndsWith(".lnk", StringComparison.OrdinalIgnoreCase) || file.EndsWith(".exe", StringComparison.OrdinalIgnoreCase))
+                        {
+                            string name = Path.GetFileNameWithoutExtension(file);
+                            var icon = ExtractIconFromFile(file);
+                            _allSuggestions.Add(new SuggestionItem(name, file, SuggestionType.App, icon));
+                        }
+                    }
                 }
             }
         }
-
-        #region Icon Extraction
-        [DllImport("shell32.dll", CharSet = CharSet.Auto)]
-        private static extern IntPtr ExtractIcon(IntPtr hInst, string lpszExeFileName, int nIconIndex);
 
         private System.Windows.Media.ImageSource? ExtractIconFromFile(string filePath)
         {
             try
             {
-                // Untuk .lnk file, coba resolve ke target file
                 string targetPath = filePath;
                 if (filePath.EndsWith(".lnk", StringComparison.OrdinalIgnoreCase))
                 {
@@ -740,285 +502,66 @@ namespace ZeroMix
                         dynamic shell = Activator.CreateInstance(shellType);
                         dynamic shortcut = shell.CreateShortcut(filePath);
                         targetPath = shortcut.TargetPath;
-                        if (string.IsNullOrEmpty(targetPath))
-                            targetPath = filePath;
+                        if (string.IsNullOrEmpty(targetPath)) targetPath = filePath;
                     }
-                    catch
-                    {
-                        targetPath = filePath;
-                    }
+                    catch { targetPath = filePath; }
                 }
 
-                // Extract icon dari file
                 System.Drawing.Icon? icon = null;
-                
                 if (File.Exists(targetPath))
                 {
-                    // Try to extract icon from exe/dll
                     IntPtr hIcon = ExtractIcon(IntPtr.Zero, targetPath, 0);
-                    if (hIcon != IntPtr.Zero && hIcon != (IntPtr)1)
-                    {
-                        icon = System.Drawing.Icon.FromHandle(hIcon);
-                    }
-                    else
-                    {
-                        // Fallback to Icon.ExtractAssociatedIcon
-                        icon = System.Drawing.Icon.ExtractAssociatedIcon(targetPath);
-                    }
+                    if (hIcon != IntPtr.Zero && hIcon != (IntPtr)1) icon = System.Drawing.Icon.FromHandle(hIcon);
+                    else icon = System.Drawing.Icon.ExtractAssociatedIcon(targetPath);
                 }
 
                 if (icon != null)
                 {
-                    // Convert Icon to ImageSource
-                    using (var bitmap = icon.ToBitmap())
+                    using var bitmap = icon.ToBitmap();
+                    var hBitmap = bitmap.GetHbitmap();
+                    try
                     {
-                        var hBitmap = bitmap.GetHbitmap();
-                        try
-                        {
-                            return Imaging.CreateBitmapSourceFromHBitmap(
-                                hBitmap,
-                                IntPtr.Zero,
-                                System.Windows.Int32Rect.Empty,
-                                BitmapSizeOptions.FromEmptyOptions());
-                        }
-                        finally
-                        {
-                            DeleteObject(hBitmap);
-                        }
+                        return Imaging.CreateBitmapSourceFromHBitmap(hBitmap, IntPtr.Zero, Int32Rect.Empty, BitmapSizeOptions.FromEmptyOptions());
                     }
+                    finally { DeleteObject(hBitmap); }
                 }
             }
-            catch
-            {
-                // Jika gagal extract icon, return null (akan pakai icon default)
-            }
-
+            catch { }
             return null;
         }
 
-        [DllImport("gdi32.dll")]
-        private static extern bool DeleteObject(IntPtr hObject);
-        #endregion
-
-        private void CustomShortcutButton_Click(object sender, RoutedEventArgs e)
+        private void Window_KeyDown(object sender, System.Windows.Input.KeyEventArgs e) { if (e.Key == Key.Escape) BeginFadeOutAndClose(); }
+        private void Window_Deactivated(object sender, EventArgs e) => BeginFadeOutAndClose();
+        private void SearchBox_KeyDown(object sender, System.Windows.Input.KeyEventArgs e)
         {
-            // Hide the overlay to focus on the settings window
-            this.Visibility = Visibility.Hidden;
-
-            var customShortcutWindow = new CustomShortcutWindow();
-            bool? result = customShortcutWindow.ShowDialog(); // Blocks until closed
-
-            // Karena hotkey sekarang dimuat ulang secara dinamis, kita tidak perlu menutup aplikasi.
-            // Cukup tampilkan kembali overlay.
-            // if (result == true)
-            // {
-            //     // Pengguna menyimpan, cukup tampilkan kembali overlay
-            //     this.Visibility = Visibility.Visible;
-            //     SearchBox.Focus();
-            // }
-            // else // Jika pengguna menekan "Cancel" atau menutup jendela
-            // {
-            //     this.Visibility = Visibility.Visible; // Tampilkan kembali overlay
-            //     SearchBox.Focus();
-            // }
-        }
-
-        #region Clock Methods
-        private void ClockTimer_Tick(object sender, EventArgs e)
-        {
-            UpdateClock();
-        }
-
-        private void UpdateClock()
-        {
-            var now = DateTime.Now;
-            _clockText.Text = now.ToString("HH:mm:ss");
-            _dateText.Text = now.ToString("ddd, dd MMM yyyy");
-        }
-        #endregion
-
-        #region Drag & Drop Methods
-        private void SearchBox_DragEnter(object sender, System.Windows.DragEventArgs e)
-        {
-            if (e.Data.GetDataPresent(System.Windows.DataFormats.FileDrop))
+            if (e.Key == Key.Enter)
             {
-                string[] files = (string[])e.Data.GetData(System.Windows.DataFormats.FileDrop);
-                if (files.Length > 0 && IsImageFile(files[0]))
+                string query = (sender as System.Windows.Controls.TextBox)?.Text.Trim() ?? "";
+                if (!string.IsNullOrEmpty(query))
                 {
-                    e.Effects = System.Windows.DragDropEffects.Copy;
-                    _dragDropArea.Visibility = Visibility.Visible;
-                    _dragDropArea.BorderBrush = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromArgb(0x80, 0x00, 0x7A, 0xFF));
-                    return;
+                    var list = SuggestionList;
+                    if (list.Visibility == Visibility.Visible && list.SelectedItem is SuggestionItem item) HandleSuggestionSelection(item);
+                    else if (list.Visibility == Visibility.Visible && list.HasItems) HandleSuggestionSelection(list.Items[0] as SuggestionItem);
+                    else ExecuteCommand(query);
                 }
             }
-            e.Effects = System.Windows.DragDropEffects.None;
-        }
-
-        private void SearchBox_DragLeave(object sender, System.Windows.DragEventArgs e)
-        {
-            _dragDropArea.Visibility = Visibility.Collapsed;
-        }
-
-        private void SearchBox_Drop(object sender, System.Windows.DragEventArgs e)
-        {
-            if (e.Data.GetDataPresent(System.Windows.DataFormats.FileDrop))
+            else if (e.Key == Key.Down)
             {
-                string[] files = (string[])e.Data.GetData(System.Windows.DataFormats.FileDrop);
-                if (files.Length > 0 && IsImageFile(files[0]))
-                {
-                    HandleImageDrop(files[0]);
-                }
-            }
-            _dragDropArea.Visibility = Visibility.Collapsed;
-        }
-
-        private void DragDropArea_DragEnter(object sender, System.Windows.DragEventArgs e)
-        {
-            if (e.Data.GetDataPresent(System.Windows.DataFormats.FileDrop))
-            {
-                e.Effects = System.Windows.DragDropEffects.Copy;
-                _dragDropArea.BorderBrush = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromArgb(0xFF, 0x00, 0x7A, 0xFF));
-            }
-            else
-            {
-                e.Effects = System.Windows.DragDropEffects.None;
+                if (SuggestionList.HasItems) { SuggestionList.SelectedIndex = 0; SuggestionList.Focus(); }
             }
         }
+        private void Window_MouseLeftButtonDown(object sender, MouseButtonEventArgs e) { if (e.ChangedButton == MouseButton.Left) DragMove(); }
+        private void CustomShortcutButton_Click(object sender, RoutedEventArgs e) { }
+        private void SearchBox_Drop(object sender, System.Windows.DragEventArgs e) { }
+        private void SearchBox_DragEnter(object sender, System.Windows.DragEventArgs e) { }
+        private void SearchBox_DragLeave(object sender, System.Windows.DragEventArgs e) { }
+        private void DragDropArea_Drop(object sender, System.Windows.DragEventArgs e) { }
+        private void DragDropArea_DragEnter(object sender, System.Windows.DragEventArgs e) { }
+        private void DragDropArea_DragLeave(object sender, System.Windows.DragEventArgs e) { }
 
-        private void DragDropArea_DragLeave(object sender, System.Windows.DragEventArgs e)
-        {
-            _dragDropArea.BorderBrush = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromArgb(0x30, 0x00, 0x7A, 0xFF));
-        }
-
-        private void DragDropArea_Drop(object sender, System.Windows.DragEventArgs e)
-        {
-            if (e.Data.GetDataPresent(System.Windows.DataFormats.FileDrop))
-            {
-                string[] files = (string[])e.Data.GetData(System.Windows.DataFormats.FileDrop);
-                if (files.Length > 0 && IsImageFile(files[0]))
-                {
-                    HandleImageDrop(files[0]);
-                }
-            }
-            _dragDropArea.Visibility = Visibility.Collapsed;
-        }
-
-        private bool IsImageFile(string filePath)
-        {
-            string[] imageExtensions = { ".jpg", ".jpeg", ".png", ".gif", ".bmp", ".webp", ".ico" };
-            string extension = Path.GetExtension(filePath).ToLower();
-            return imageExtensions.Contains(extension);
-        }
-
-        private void HandleImageDrop(string imagePath)
-        {
-            try
-            {
-                // Show notification
-                _notificationText.Text = $"📷 Image: {Path.GetFileName(imagePath)}";
-                _notificationText.Foreground = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(0, 122, 255));
-                _notificationText.Visibility = Visibility.Visible;
-
-                // Ask user what to do
-                var result = System.Windows.MessageBox.Show(
-                    $"What would you like to do with this image?\n\n{Path.GetFileName(imagePath)}\n\nYes: Open containing folder\nNo: Search on Google Images",
-                    "Image Action",
-                    MessageBoxButton.YesNoCancel,
-                    MessageBoxImage.Question);
-
-                if (result == MessageBoxResult.Yes)
-                {
-                    // Open folder and select the file
-                    Process.Start("explorer.exe", $"/select,\"{imagePath}\"");
-                    BeginFadeOutAndClose();
-                }
-                else if (result == MessageBoxResult.No)
-                {
-                    // Search on Google Images (open Google Images)
-                    string url = "https://images.google.com/";
-                    Process.Start(new ProcessStartInfo(url) { UseShellExecute = true });
-                    BeginFadeOutAndClose();
-                }
-                
-                _notificationText.Visibility = Visibility.Collapsed;
-            }
-            catch (Exception ex)
-            {
-                ShowNotification($"Failed to handle image: {ex.Message}", NotificationType.Error);
-            }
-        }
-        #endregion
-
-        #region Power Options
-        private void ExecuteSystemCommand(string command)
-        {
-            string action = command.ToLower();
-            string message = "";
-            string title = "";
-            string shutdownArgs = "";
-
-            switch (action)
-            {
-                case "shutdown":
-                    message = "Are you sure you want to shutdown your PC?";
-                    title = "Shutdown PC";
-                    shutdownArgs = "/s /t 0";
-                    break;
-                case "restart":
-                    message = "Are you sure you want to restart your PC?";
-                    title = "Restart PC";
-                    shutdownArgs = "/r /t 0";
-                    break;
-                case "sleep":
-                    message = "Are you sure you want to put your PC to sleep?";
-                    title = "Sleep PC";
-                    shutdownArgs = ""; // Sleep uses different approach
-                    break;
-                default:
-                    return;
-            }
-
-            var result = System.Windows.MessageBox.Show(
-                message,
-                title,
-                MessageBoxButton.YesNo,
-                MessageBoxImage.Warning);
-
-            if (result == MessageBoxResult.Yes)
-            {
-                try
-                {
-                    if (action == "sleep")
-                    {
-                        // Use Windows Forms for sleep
-                        System.Windows.Forms.Application.SetSuspendState(
-                            System.Windows.Forms.PowerState.Suspend,
-                            false,
-                            false);
-                    }
-                    else
-                    {
-                        Process.Start(new ProcessStartInfo
-                        {
-                            FileName = "shutdown",
-                            Arguments = shutdownArgs,
-                            CreateNoWindow = true,
-                            UseShellExecute = false
-                        });
-                    }
-                    BeginFadeOutAndClose();
-                }
-                catch (Exception ex)
-                {
-                    ShowNotification($"Failed to {action}: {ex.Message}", NotificationType.Error);
-                }
-            }
-        }
-        #endregion
-
-        public void BeginFadeOutAndCloseByMain()
-        {
-            BeginFadeOutAndClose();
-        }
+    internal void BeginFadeOutAndCloseByMain()
+    {
+      throw new NotImplementedException();
     }
+  }
 }
