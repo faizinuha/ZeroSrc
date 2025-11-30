@@ -9,16 +9,22 @@ using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Media.Animation;
+using System.Windows.Media.Imaging;
+using System.Windows.Interop;
+using System.Drawing;
 
 using System.Net.Http;
 using System.Text.Json;
+using System.Windows.Threading;
 namespace ZeroMix
 {
     public enum SuggestionType
     {
         App,
         WebSearch,
-        Calculator
+        Calculator,
+        Image,
+        System
     }
 
     public class SuggestionItem
@@ -27,17 +33,22 @@ namespace ZeroMix
         public string FilePath { get; }
         public SuggestionType Type { get; }
         public string Icon { get; } // Ikon dari font Segoe MDL2 Assets
+        public System.Windows.Media.ImageSource? IconSource { get; } // Ikon dari file .exe
 
-        public SuggestionItem(string displayText, string? filePath, SuggestionType type)
+        public SuggestionItem(string displayText, string? filePath, SuggestionType type, System.Windows.Media.ImageSource? iconSource = null)
         {
             DisplayText = displayText;
             FilePath = filePath ?? "";
             Type = type;
+            IconSource = iconSource;
+            
             // Tetapkan ikon berdasarkan tipe
             Icon = Type switch
             {
                 SuggestionType.App => "\uE770",        // App icon
                 SuggestionType.Calculator => "\uE8EF", // Calculator icon
+                SuggestionType.Image => "\uEB9F",      // Image icon
+                SuggestionType.System => "\uE7E8",     // Power icon
                 _ => "\uE773"                           // Web search icon
             };
         }
@@ -61,6 +72,8 @@ namespace ZeroMix
                     SuggestionType.App => "Aplikasi Desktop",
                     SuggestionType.Calculator => "Calculator",
                     SuggestionType.WebSearch => "Pencarian Web",
+                    SuggestionType.Image => "Pencarian Gambar",
+                    SuggestionType.System => "Sistem",
                     _ => string.Empty
                 };
             }
@@ -89,10 +102,37 @@ namespace ZeroMix
         }
     }
 
+    public class NullToVisibilityConverter : IValueConverter
+    {
+        public static readonly NullToVisibilityConverter Instance = new NullToVisibilityConverter();
+        public static readonly NullToVisibilityConverter InstanceInverse = new NullToVisibilityConverter { IsInverse = true };
+
+        public bool IsInverse { get; set; }
+
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            bool isNull = value == null;
+            
+            if (IsInverse)
+                return isNull ? Visibility.Visible : Visibility.Collapsed; // Jika null, tampilkan (untuk fallback text)
+            
+            return isNull ? Visibility.Collapsed : Visibility.Visible; // Jika tidak null, tampilkan (untuk image)
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            throw new NotImplementedException();
+        }
+    }
+
     public partial class SearchOverlay : Window
     {
 
         private readonly TextBlock _notificationText;
+        private readonly TextBlock _clockText;
+        private readonly TextBlock _dateText;
+        private readonly Border _dragDropArea;
+        private readonly DispatcherTimer _clockTimer;
         private readonly List<SuggestionItem> _allSuggestions = new();
         private readonly List<string> _filteredSuggestions = new();
 
@@ -100,6 +140,18 @@ namespace ZeroMix
         {
             InitializeComponent();
             _notificationText = (TextBlock)this.FindName("NotificationText");
+            _clockText = (TextBlock)this.FindName("ClockText");
+            _dateText = (TextBlock)this.FindName("DateText");
+            _dragDropArea = (Border)this.FindName("DragDropArea");
+
+            // Initialize clock timer
+            _clockTimer = new DispatcherTimer();
+            _clockTimer.Interval = TimeSpan.FromSeconds(1);
+            _clockTimer.Tick += ClockTimer_Tick;
+            _clockTimer.Start();
+            
+            // Update clock immediately
+            UpdateClock();
 
             // Load all suggestions on startup
             LoadAllSuggestions();
@@ -241,6 +293,37 @@ namespace ZeroMix
                         type: SuggestionType.Calculator
                     ));
                 }
+            }
+
+            // ========================================
+            // ⚡ SYSTEM COMMANDS - SHUTDOWN & RESTART
+            // ========================================
+            string queryLower = query.ToLower();
+            if (queryLower.Contains("shutdown") || queryLower.Contains("shut down"))
+            {
+                combined.Add(new SuggestionItem(
+                    displayText: "Shutdown PC",
+                    filePath: "shutdown",
+                    type: SuggestionType.System
+                ));
+            }
+            
+            if (queryLower.Contains("restart") || queryLower.Contains("reboot"))
+            {
+                combined.Add(new SuggestionItem(
+                    displayText: "Restart PC",
+                    filePath: "restart",
+                    type: SuggestionType.System
+                ));
+            }
+
+            if (queryLower.Contains("sleep"))
+            {
+                combined.Add(new SuggestionItem(
+                    displayText: "Sleep PC",
+                    filePath: "sleep",
+                    type: SuggestionType.System
+                ));
             }
 
             // ========================================
@@ -424,6 +507,11 @@ namespace ZeroMix
                     ShowNotification($"Failed to copy: {ex.Message}", NotificationType.Error);
                 }
             }
+            else if (selectedItem.Type == SuggestionType.System)
+            {
+                // Handle system commands (shutdown, restart, sleep)
+                ExecuteSystemCommand(selectedItem.FilePath);
+            }
             else if (selectedItem.Type == SuggestionType.WebSearch)
             {
                 // Jika ini adalah item "Search Google for...", gunakan query aslinya.
@@ -433,6 +521,12 @@ namespace ZeroMix
                     : selectedItem.DisplayText;
 
                 ExecuteWebSearch(queryToSearch);
+                BeginFadeOutAndClose();
+            }
+            else if (selectedItem.Type == SuggestionType.Image)
+            {
+                // Handle image search or operations
+                ExecuteWebSearch(selectedItem.DisplayText + " images");
                 BeginFadeOutAndClose();
             }
         }
@@ -620,9 +714,91 @@ namespace ZeroMix
             {
                 string name = Path.GetFileNameWithoutExtension(file);
                 if (!string.IsNullOrEmpty(name) && !shortcutPaths.ContainsKey(name))
-                    _allSuggestions.Add(new SuggestionItem(name, file, SuggestionType.App));
+                {
+                    // Extract icon from the shortcut file
+                    var iconSource = ExtractIconFromFile(file);
+                    _allSuggestions.Add(new SuggestionItem(name, file, SuggestionType.App, iconSource));
+                }
             }
         }
+
+        #region Icon Extraction
+        [DllImport("shell32.dll", CharSet = CharSet.Auto)]
+        private static extern IntPtr ExtractIcon(IntPtr hInst, string lpszExeFileName, int nIconIndex);
+
+        private System.Windows.Media.ImageSource? ExtractIconFromFile(string filePath)
+        {
+            try
+            {
+                // Untuk .lnk file, coba resolve ke target file
+                string targetPath = filePath;
+                if (filePath.EndsWith(".lnk", StringComparison.OrdinalIgnoreCase))
+                {
+                    try
+                    {
+                        Type shellType = Type.GetTypeFromProgID("WScript.Shell");
+                        dynamic shell = Activator.CreateInstance(shellType);
+                        dynamic shortcut = shell.CreateShortcut(filePath);
+                        targetPath = shortcut.TargetPath;
+                        if (string.IsNullOrEmpty(targetPath))
+                            targetPath = filePath;
+                    }
+                    catch
+                    {
+                        targetPath = filePath;
+                    }
+                }
+
+                // Extract icon dari file
+                System.Drawing.Icon? icon = null;
+                
+                if (File.Exists(targetPath))
+                {
+                    // Try to extract icon from exe/dll
+                    IntPtr hIcon = ExtractIcon(IntPtr.Zero, targetPath, 0);
+                    if (hIcon != IntPtr.Zero && hIcon != (IntPtr)1)
+                    {
+                        icon = System.Drawing.Icon.FromHandle(hIcon);
+                    }
+                    else
+                    {
+                        // Fallback to Icon.ExtractAssociatedIcon
+                        icon = System.Drawing.Icon.ExtractAssociatedIcon(targetPath);
+                    }
+                }
+
+                if (icon != null)
+                {
+                    // Convert Icon to ImageSource
+                    using (var bitmap = icon.ToBitmap())
+                    {
+                        var hBitmap = bitmap.GetHbitmap();
+                        try
+                        {
+                            return Imaging.CreateBitmapSourceFromHBitmap(
+                                hBitmap,
+                                IntPtr.Zero,
+                                System.Windows.Int32Rect.Empty,
+                                BitmapSizeOptions.FromEmptyOptions());
+                        }
+                        finally
+                        {
+                            DeleteObject(hBitmap);
+                        }
+                    }
+                }
+            }
+            catch
+            {
+                // Jika gagal extract icon, return null (akan pakai icon default)
+            }
+
+            return null;
+        }
+
+        [DllImport("gdi32.dll")]
+        private static extern bool DeleteObject(IntPtr hObject);
+        #endregion
 
         private void CustomShortcutButton_Click(object sender, RoutedEventArgs e)
         {
@@ -646,6 +822,199 @@ namespace ZeroMix
             //     SearchBox.Focus();
             // }
         }
+
+        #region Clock Methods
+        private void ClockTimer_Tick(object sender, EventArgs e)
+        {
+            UpdateClock();
+        }
+
+        private void UpdateClock()
+        {
+            var now = DateTime.Now;
+            _clockText.Text = now.ToString("HH:mm:ss");
+            _dateText.Text = now.ToString("ddd, dd MMM yyyy");
+        }
+        #endregion
+
+        #region Drag & Drop Methods
+        private void SearchBox_DragEnter(object sender, System.Windows.DragEventArgs e)
+        {
+            if (e.Data.GetDataPresent(System.Windows.DataFormats.FileDrop))
+            {
+                string[] files = (string[])e.Data.GetData(System.Windows.DataFormats.FileDrop);
+                if (files.Length > 0 && IsImageFile(files[0]))
+                {
+                    e.Effects = System.Windows.DragDropEffects.Copy;
+                    _dragDropArea.Visibility = Visibility.Visible;
+                    _dragDropArea.BorderBrush = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromArgb(0x80, 0x00, 0x7A, 0xFF));
+                    return;
+                }
+            }
+            e.Effects = System.Windows.DragDropEffects.None;
+        }
+
+        private void SearchBox_DragLeave(object sender, System.Windows.DragEventArgs e)
+        {
+            _dragDropArea.Visibility = Visibility.Collapsed;
+        }
+
+        private void SearchBox_Drop(object sender, System.Windows.DragEventArgs e)
+        {
+            if (e.Data.GetDataPresent(System.Windows.DataFormats.FileDrop))
+            {
+                string[] files = (string[])e.Data.GetData(System.Windows.DataFormats.FileDrop);
+                if (files.Length > 0 && IsImageFile(files[0]))
+                {
+                    HandleImageDrop(files[0]);
+                }
+            }
+            _dragDropArea.Visibility = Visibility.Collapsed;
+        }
+
+        private void DragDropArea_DragEnter(object sender, System.Windows.DragEventArgs e)
+        {
+            if (e.Data.GetDataPresent(System.Windows.DataFormats.FileDrop))
+            {
+                e.Effects = System.Windows.DragDropEffects.Copy;
+                _dragDropArea.BorderBrush = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromArgb(0xFF, 0x00, 0x7A, 0xFF));
+            }
+            else
+            {
+                e.Effects = System.Windows.DragDropEffects.None;
+            }
+        }
+
+        private void DragDropArea_DragLeave(object sender, System.Windows.DragEventArgs e)
+        {
+            _dragDropArea.BorderBrush = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromArgb(0x30, 0x00, 0x7A, 0xFF));
+        }
+
+        private void DragDropArea_Drop(object sender, System.Windows.DragEventArgs e)
+        {
+            if (e.Data.GetDataPresent(System.Windows.DataFormats.FileDrop))
+            {
+                string[] files = (string[])e.Data.GetData(System.Windows.DataFormats.FileDrop);
+                if (files.Length > 0 && IsImageFile(files[0]))
+                {
+                    HandleImageDrop(files[0]);
+                }
+            }
+            _dragDropArea.Visibility = Visibility.Collapsed;
+        }
+
+        private bool IsImageFile(string filePath)
+        {
+            string[] imageExtensions = { ".jpg", ".jpeg", ".png", ".gif", ".bmp", ".webp", ".ico" };
+            string extension = Path.GetExtension(filePath).ToLower();
+            return imageExtensions.Contains(extension);
+        }
+
+        private void HandleImageDrop(string imagePath)
+        {
+            try
+            {
+                // Show notification
+                _notificationText.Text = $"📷 Image: {Path.GetFileName(imagePath)}";
+                _notificationText.Foreground = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(0, 122, 255));
+                _notificationText.Visibility = Visibility.Visible;
+
+                // Ask user what to do
+                var result = System.Windows.MessageBox.Show(
+                    $"What would you like to do with this image?\n\n{Path.GetFileName(imagePath)}\n\nYes: Open containing folder\nNo: Search on Google Images",
+                    "Image Action",
+                    MessageBoxButton.YesNoCancel,
+                    MessageBoxImage.Question);
+
+                if (result == MessageBoxResult.Yes)
+                {
+                    // Open folder and select the file
+                    Process.Start("explorer.exe", $"/select,\"{imagePath}\"");
+                    BeginFadeOutAndClose();
+                }
+                else if (result == MessageBoxResult.No)
+                {
+                    // Search on Google Images (open Google Images)
+                    string url = "https://images.google.com/";
+                    Process.Start(new ProcessStartInfo(url) { UseShellExecute = true });
+                    BeginFadeOutAndClose();
+                }
+                
+                _notificationText.Visibility = Visibility.Collapsed;
+            }
+            catch (Exception ex)
+            {
+                ShowNotification($"Failed to handle image: {ex.Message}", NotificationType.Error);
+            }
+        }
+        #endregion
+
+        #region Power Options
+        private void ExecuteSystemCommand(string command)
+        {
+            string action = command.ToLower();
+            string message = "";
+            string title = "";
+            string shutdownArgs = "";
+
+            switch (action)
+            {
+                case "shutdown":
+                    message = "Are you sure you want to shutdown your PC?";
+                    title = "Shutdown PC";
+                    shutdownArgs = "/s /t 0";
+                    break;
+                case "restart":
+                    message = "Are you sure you want to restart your PC?";
+                    title = "Restart PC";
+                    shutdownArgs = "/r /t 0";
+                    break;
+                case "sleep":
+                    message = "Are you sure you want to put your PC to sleep?";
+                    title = "Sleep PC";
+                    shutdownArgs = ""; // Sleep uses different approach
+                    break;
+                default:
+                    return;
+            }
+
+            var result = System.Windows.MessageBox.Show(
+                message,
+                title,
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Warning);
+
+            if (result == MessageBoxResult.Yes)
+            {
+                try
+                {
+                    if (action == "sleep")
+                    {
+                        // Use Windows Forms for sleep
+                        System.Windows.Forms.Application.SetSuspendState(
+                            System.Windows.Forms.PowerState.Suspend,
+                            false,
+                            false);
+                    }
+                    else
+                    {
+                        Process.Start(new ProcessStartInfo
+                        {
+                            FileName = "shutdown",
+                            Arguments = shutdownArgs,
+                            CreateNoWindow = true,
+                            UseShellExecute = false
+                        });
+                    }
+                    BeginFadeOutAndClose();
+                }
+                catch (Exception ex)
+                {
+                    ShowNotification($"Failed to {action}: {ex.Message}", NotificationType.Error);
+                }
+            }
+        }
+        #endregion
 
         public void BeginFadeOutAndCloseByMain()
         {

@@ -54,7 +54,8 @@ Source: "zeromix.ico"; DestDir: "{app}"; Flags: ignoreversion
 ; Resources
 Source: "..\Resource\*"; DestDir: "{app}\Resource"; Flags: ignoreversion recursesubdirs createallsubdirs
 ; Docs
-Source: "..\LICENSE.txt"; DestDir: "{app}"; Flags: ignoreversion
+Source: "Privacy.txt"; DestDir: "{app}"; Flags: ignoreversion
+Source: "LICENSE.txt"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\Readme.md"; DestDir: "{app}"; Flags: ignoreversion
 
 ; CLI Tools
