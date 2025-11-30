@@ -17,8 +17,7 @@
         MouseLeftButtonDown="Window_MouseLeftButtonDown"
         Loaded="Window_Loaded"
         KeyDown="Window_KeyDown"
-        Deactivated="Window_Deactivated"
-        >
+        Deactivated="Window_Deactivated">
 
     <Window.Resources>
         <Storyboard x:Key="FadeInStoryboard">
@@ -56,7 +55,6 @@
                     <CubicEase EasingMode="EaseInOut"/>
                 </DoubleAnimation.EasingFunction>
             </DoubleAnimation>
-
         </Storyboard>
 
         <Storyboard x:Key="FadeOutStoryboard">
@@ -184,9 +182,9 @@
                                      Value="True">
                                 <Setter TargetName="Border"
                                         Property="Background"
-                                        Value="#E5E5EA"/>
+                                        Value="#007AFF"/>
                                 <Setter Property="Foreground"
-                                        Value="#000000"/>
+                                        Value="White"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -197,20 +195,38 @@
         <DataTemplate x:Key="SuggestionItemTemplate">
             <Grid>
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="30"/>
+                    <ColumnDefinition Width="40"/>
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
 
-                <TextBlock Text="{Binding Icon}"
-                           FontFamily="Segoe MDL2 Assets"
-                           FontSize="16"
-                           VerticalAlignment="Center"
-                           HorizontalAlignment="Center"/>
+                <!-- Icon Container: Prioritas Image (colorful) > TextBlock (MDL2) -->
+                <Grid Grid.Column="0" 
+                      Width="32" 
+                      Height="32"
+                      VerticalAlignment="Center"
+                      HorizontalAlignment="Center">
+                    
+                    <!-- Colorful Icon dari .exe file -->
+                    <Image Source="{Binding IconSource}"
+                           Width="24"
+                           Height="24"
+                           Visibility="{Binding IconSource, Converter={x:Static local:NullToVisibilityConverter.Instance}}"/>
+                    
+                    <!-- Fallback: Segoe MDL2 Icon -->
+                    <TextBlock Text="{Binding Icon}"
+                               FontFamily="Segoe MDL2 Assets"
+                               FontSize="20"
+                               VerticalAlignment="Center"
+                               HorizontalAlignment="Center"
+                               Visibility="{Binding IconSource, Converter={x:Static local:NullToVisibilityConverter.InstanceInverse}}"/>
+                </Grid>
 
                 <TextBlock Text="{Binding DisplayText}"
                            Grid.Column="1"
                            VerticalAlignment="Center"
-                           TextTrimming="CharacterEllipsis"/>
+                           TextTrimming="CharacterEllipsis"
+                           Margin="8,0,0,0"
+                           FontSize="14"/>
             </Grid>
         </DataTemplate>
     </Window.Resources>
@@ -240,6 +256,7 @@
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="60"/>
                         <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
 
                     <Viewbox Grid.Column="0"
@@ -269,8 +286,60 @@
                              KeyDown="SearchBox_KeyDown"
                              TextChanged="SearchBox_TextChanged"
                              Style="{StaticResource SearchBoxStyle}"
-                             Template="{StaticResource SearchBoxPlaceholderTemplate}"/>
+                             Template="{StaticResource SearchBoxPlaceholderTemplate}"
+                             AllowDrop="True"
+                             Drop="SearchBox_Drop"
+                             DragEnter="SearchBox_DragEnter"
+                             DragLeave="SearchBox_DragLeave"/>
+
+                    <!-- Clock Display -->
+                    <StackPanel Grid.Column="2"
+                                VerticalAlignment="Center"
+                                Margin="0,0,50,0">
+                        <TextBlock Name="ClockText"
+                                   FontSize="16"
+                                   FontWeight="SemiBold"
+                                   Foreground="#1A1A1A"
+                                   FontFamily="{StaticResource MacFont}"
+                                   HorizontalAlignment="Right"/>
+                        <TextBlock Name="DateText"
+                                   FontSize="11"
+                                   Foreground="#8E8E93"
+                                   FontFamily="{StaticResource MacFont}"
+                                   HorizontalAlignment="Right"
+                                   Margin="0,2,0,0"/>
+                    </StackPanel>
                 </Grid>
+
+                <!-- Drag & Drop Area -->
+                <Border Name="DragDropArea"
+                        Grid.Row="1"
+                        Margin="16,0,16,8"
+                        Height="80"
+                        CornerRadius="12"
+                        Background="#10007AFF"
+                        BorderBrush="#30007AFF"
+                        BorderThickness="2"
+                        Visibility="Collapsed"
+                        AllowDrop="True"
+                        Drop="DragDropArea_Drop"
+                        DragEnter="DragDropArea_DragEnter"
+                        DragLeave="DragDropArea_DragLeave">
+                    <StackPanel VerticalAlignment="Center"
+                                HorizontalAlignment="Center">
+                        <TextBlock Text="&#xEB9F;"
+                                   FontFamily="Segoe MDL2 Assets"
+                                   FontSize="28"
+                                   Foreground="#007AFF"
+                                   HorizontalAlignment="Center"/>
+                        <TextBlock Text="Drop image here to search"
+                                   FontSize="13"
+                                   Foreground="#8E8E93"
+                                   FontFamily="{StaticResource MacFont}"
+                                   HorizontalAlignment="Center"
+                                   Margin="0,4,0,0"/>
+                    </StackPanel>
+                </Border>
 
                 <ListBox Name="SuggestionList"
                          Grid.Row="1"
@@ -295,6 +364,7 @@
                            FontFamily="{StaticResource MacFont}"
                            Visibility="Collapsed"/>
 
+                <!-- Settings Button -->
                 <Button Name="CustomShortcutButton"
                         Grid.Row="0"
                         HorizontalAlignment="Right"
@@ -308,7 +378,8 @@
                         Background="Transparent"
                         Foreground="#555"
                         BorderThickness="0"
-                        Click="CustomShortcutButton_Click"/>
+                        Click="CustomShortcutButton_Click"
+                        ToolTip="Settings"/>
             </Grid>
         </Border>
     </Grid>
