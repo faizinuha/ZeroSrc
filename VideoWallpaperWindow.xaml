@@ -4,15 +4,13 @@
         Title="Video Wallpaper"
         WindowStyle="None"
         ResizeMode="NoResize"
-        AllowsTransparency="True"
-        Background="Transparent"
+        Background="Black"
         ShowInTaskbar="False"
         Topmost="False"
         Left="0"
         Top="0"
-        WindowState="Maximized"
         Loaded="Window_Loaded">
-    
+
     <Grid>
         <MediaElement x:Name="VideoPlayer"
                       LoadedBehavior="Manual"
@@ -20,11 +18,6 @@
                       Stretch="UniformToFill"
                       MediaEnded="VideoPlayer_MediaEnded"
                       MediaFailed="VideoPlayer_MediaFailed"
-                      Volume="0"
-                      RenderTransformOrigin="0.5,0.5">
-            <MediaElement.RenderTransform>
-                <ScaleTransform ScaleX="1" ScaleY="1"/>
-            </MediaElement.RenderTransform>
-        </MediaElement>
+                      Volume="0"/>
     </Grid>
 </Window>

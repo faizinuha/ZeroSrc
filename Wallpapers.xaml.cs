@@ -319,14 +319,18 @@ if (result == MessageBoxResult.Yes)
                 var screenWidth = (int)SystemParameters.PrimaryScreenWidth;
                 var screenHeight = (int)SystemParameters.PrimaryScreenHeight;
 
-                var arguments = $"-i \"{inputPath}\" " +
-                               $"-vf \"scale={screenWidth}:{screenHeight}:force_original_aspect_ratio=increase,crop={screenWidth}:{screenHeight},fps=30\" " +
-                               $"-c:v libx264 " +
-                               $"-preset veryfast " +
-                               $"-crf 28 " +
-                               $"-an " +
-                               $"-movflags +faststart " +
-                               $"-y \"{outputPath}\"";
+               var arguments = 
+      $"-i \"{inputPath}\" " +
+      $"-vf \"scale={screenWidth}:{screenHeight}:force_original_aspect_ratio=increase," +
+      $"crop={screenWidth}:{screenHeight},fps=60\" " +
+      $"-c:v libx264 " +
+      $"-preset fast " +
+      $"-crf 20 " +
+      $"-tune film " +
+      $"-pix_fmt yuv420p " +
+      $"-an " +
+      $"-movflags +faststart " +
+      $"-y \"{outputPath}\"";
 
                 var psi = new ProcessStartInfo
                 {
