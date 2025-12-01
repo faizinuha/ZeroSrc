@@ -3,9 +3,9 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:local="clr-namespace:ZeroMix"
         Title="ZeroMix"
-        Width="700"
+        Width="900"
         SizeToContent="Height"
-        MaxHeight="600"
+        MaxHeight="700"
         Topmost="True"
         WindowStyle="None"
         ResizeMode="NoResize"
@@ -123,7 +123,6 @@
                               SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"/>
                 <TextBlock x:Name="Placeholder"
                            Margin="{TemplateBinding Padding}"
-                           Text="Type here to search..."
                            Foreground="#8E8E93"
                            FontStyle="Normal"
                            FontSize="20"
@@ -151,9 +150,9 @@
         <Style x:Key="SuggestionItemStyle"
                TargetType="ListBoxItem">
             <Setter Property="Padding"
-                    Value="16,12"/>
+                    Value="0"/>
             <Setter Property="Margin"
-                    Value="0,1"/>
+                    Value="0"/>
             <Setter Property="Background"
                     Value="Transparent"/>
             <Setter Property="Foreground"
@@ -167,8 +166,10 @@
                     <ControlTemplate TargetType="ListBoxItem">
                         <Border x:Name="Border"
                                 Background="{TemplateBinding Background}"
-                                CornerRadius="10"
-                                Padding="{TemplateBinding Padding}">
+                                CornerRadius="0"
+                                Padding="8,10,8,10"
+                                BorderThickness="0,1,0,0"
+                                BorderBrush="#F0F0F0">
                             <ContentPresenter/>
                         </Border>
                         <ControlTemplate.Triggers>
@@ -176,7 +177,7 @@
                                      Value="True">
                                 <Setter TargetName="Border"
                                         Property="Background"
-                                        Value="#F2F2F7"/>
+                                        Value="#F8F8FA"/>
                             </Trigger>
                             <Trigger Property="IsSelected"
                                      Value="True">
@@ -185,12 +186,16 @@
                                         Value="#007AFF"/>
                                 <Setter Property="Foreground"
                                         Value="White"/>
+                                <Setter TargetName="Border"
+                                        Property="BorderBrush"
+                                        Value="#007AFF"/>
                             </Trigger>
                             
                             <!-- Pink Style for Terminal Commands -->
                             <DataTrigger Binding="{Binding IsTerminal}" Value="True">
                                 <Setter TargetName="Border" Property="Background" Value="#FF007F"/>
                                 <Setter Property="Foreground" Value="White"/>
+                                <Setter TargetName="Border" Property="BorderBrush" Value="#FF007F"/>
                             </DataTrigger>
                             
                             <!-- Ensure Pink overrides Blue if both Selected and Terminal -->
@@ -201,6 +206,7 @@
                                 </MultiDataTrigger.Conditions>
                                 <Setter TargetName="Border" Property="Background" Value="#FF007F"/>
                                 <Setter Property="Foreground" Value="White"/>
+                                <Setter TargetName="Border" Property="BorderBrush" Value="#FF007F"/>
                             </MultiDataTrigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -209,48 +215,66 @@
         </Style>
 
         <DataTemplate x:Key="SuggestionItemTemplate">
-            <Grid>
+            <Grid Background="Transparent">
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="40"/>
+                    <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
 
-                <!-- Icon Container: Prioritas Image (colorful) > TextBlock (MDL2) -->
-                <Grid Grid.Column="0" 
-                      Width="32" 
-                      Height="32"
-                      VerticalAlignment="Center"
-                      HorizontalAlignment="Center">
+                <!-- Icon Container with rounded background -->
+                <Border Grid.Column="0" 
+                        Width="40" 
+                        Height="40"
+                        CornerRadius="8"
+                        Background="#F2F2F7"
+                        VerticalAlignment="Center"
+                        HorizontalAlignment="Center"
+                        Margin="8,0,12,0">
                     
                     <!-- Colorful Icon dari .exe file -->
                     <Image Source="{Binding IconSource}"
-                           Width="24"
-                           Height="24"
+                           Width="28"
+                           Height="28"
+                           RenderOptions.BitmapScalingMode="HighQuality"
                            Visibility="{Binding IconSource, Converter={x:Static local:NullToVisibilityConverter.Instance}}"/>
-                    
-                    <!-- Fallback: Segoe MDL2 Icon -->
+                </Border>
+
+                <!-- Icon Fallback Container -->
+                <Border Grid.Column="0" 
+                        Width="40" 
+                        Height="40"
+                        CornerRadius="8"
+                        Background="#007AFF"
+                        VerticalAlignment="Center"
+                        HorizontalAlignment="Center"
+                        Margin="8,0,12,0"
+                        Visibility="{Binding IconSource, Converter={x:Static local:NullToVisibilityConverter.InstanceInverse}}">
                     <TextBlock Text="{Binding Icon}"
                                FontFamily="Segoe MDL2 Assets"
-                               FontSize="20"
+                               FontSize="18"
+                               Foreground="White"
                                VerticalAlignment="Center"
-                               HorizontalAlignment="Center"
-                               Visibility="{Binding IconSource, Converter={x:Static local:NullToVisibilityConverter.InstanceInverse}}"/>
-                </Grid>
+                               HorizontalAlignment="Center"/>
+                </Border>
 
                 <!-- Text Container (Title + Subtitle) -->
                 <StackPanel Grid.Column="1"
                             VerticalAlignment="Center"
-                            Margin="8,0,0,0">
+                            Margin="4,0,12,0">
                     <TextBlock Text="{Binding DisplayText}"
                                TextTrimming="CharacterEllipsis"
-                               FontSize="14"
-                               FontWeight="SemiBold"/>
+                               FontSize="13"
+                               FontWeight="SemiBold"
+                               Foreground="#1A1A1A"
+                               LineHeight="18"/>
                     
                     <TextBlock Text="{Binding Subtitle}"
                                TextTrimming="CharacterEllipsis"
                                FontSize="11"
-                               Opacity="0.7"
-                               Visibility="{Binding Subtitle, Converter={x:Static local:StringToVisibilityConverter.Instance}}"/>
+                               Opacity="0.6"
+                               Foreground="#666666"
+                               Visibility="{Binding Subtitle, Converter={x:Static local:StringToVisibilityConverter.Instance}}"
+                               Margin="0,2,0,0"/>
                 </StackPanel>
             </Grid>
         </DataTemplate>
@@ -259,8 +283,8 @@
     <Window.RenderTransform>
         <ScaleTransform ScaleX="1"
                         ScaleY="1"
-                        CenterX="340"
-                        CenterY="45"/>
+                        CenterX="450"
+                        CenterY="350"/>
     </Window.RenderTransform>
 
     <Grid>
@@ -277,7 +301,11 @@
                     <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
 
-                <Grid Grid.Row="0">
+                <!-- Search Bar Header -->
+                <Grid Grid.Row="0"
+                      Grid.Column="0"
+                      Grid.ColumnSpan="3"
+                      Background="Transparent">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="60"/>
                         <ColumnDefinition Width="*"/>
@@ -366,27 +394,36 @@
                     </StackPanel>
                 </Border>
 
-                <ListBox Name="SuggestionList"
-                         Grid.Row="1"
-                         Margin="16,0,16,16"
-                         MaxHeight="400"
-                         Background="Transparent"
-                         BorderThickness="0"
-                         Visibility="Collapsed"
-                         SelectionChanged="SuggestionList_SelectionChanged"
-                         MouseDoubleClick="SuggestionList_MouseDoubleClick"
-                         KeyDown="SuggestionList_KeyDown"
-                         ItemContainerStyle="{StaticResource SuggestionItemStyle}"
-                         FontFamily="{StaticResource MacFont}"
-                         ItemTemplate="{StaticResource SuggestionItemTemplate}"/>
+                <!-- Suggestion List Container with Rounded Corners -->
+                <Border Grid.Row="1"
+                        Margin="16,0,16,16"
+                        CornerRadius="12"
+                        Background="White"
+                        BorderThickness="1"
+                        BorderBrush="#E8E8E8">
+                    <ListBox Name="SuggestionList"
+                             Background="Transparent"
+                             BorderThickness="0"
+                             Visibility="Collapsed"
+                             SelectionChanged="SuggestionList_SelectionChanged"
+                             MouseDoubleClick="SuggestionList_MouseDoubleClick"
+                             KeyDown="SuggestionList_KeyDown"
+                             ItemContainerStyle="{StaticResource SuggestionItemStyle}"
+                             FontFamily="{StaticResource MacFont}"
+                             ItemTemplate="{StaticResource SuggestionItemTemplate}"
+                             ScrollViewer.VerticalScrollBarVisibility="Auto"
+                             ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                             MaxHeight="400"/>
+                </Border>
 
                 <TextBlock Name="NotificationText"
                            Grid.Row="2"
-                           Margin="16,0,16,16"
+                           Margin="16,12,16,12"
                            TextAlignment="Center"
-                           FontWeight="Medium"
+                           FontWeight="SemiBold"
                            Foreground="#007AFF"
                            FontFamily="{StaticResource MacFont}"
+                           FontSize="12"
                            Visibility="Collapsed"/>
 
                 <!-- Settings Button -->
@@ -405,6 +442,132 @@
                         BorderThickness="0"
                         Click="CustomShortcutButton_Click"
                         ToolTip="Settings"/>
+
+                <!-- PREVIEW PANEL - Modal Overlay -->
+                <Border x:Name="PreviewPanel"
+                        Grid.Row="0"
+                        Grid.RowSpan="3"
+                        Background="#E6E6E6"
+                        Opacity="0.95"
+                        Visibility="Collapsed"
+                        MouseLeftButtonDown="PreviewPanel_MouseDown">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+                        
+                        <!-- Close Header -->
+                        <Border Grid.Row="0"
+                                Background="White"
+                                Padding="16,12">
+                            <Grid>
+                                <TextBlock x:Name="PreviewTitle"
+                                           FontSize="14"
+                                           FontWeight="SemiBold"
+                                           Foreground="#1A1A1A"
+                                           VerticalAlignment="Center"/>
+                                <Button HorizontalAlignment="Right"
+                                        Content="✕"
+                                        FontSize="16"
+                                        Padding="8"
+                                        Background="Transparent"
+                                        BorderThickness="0"
+                                        Click="BackFromPreviewButton_Click"
+                                        Foreground="#666"/>
+                            </Grid>
+                        </Border>
+
+                        <!-- Content Area with Scroll -->
+                        <ScrollViewer Grid.Row="1"
+                                      Background="White"
+                                      VerticalScrollBarVisibility="Auto">
+                            <StackPanel Margin="16">
+                                <!-- Image Preview -->
+                                <Border x:Name="ImagePreviewContainer"
+                                        CornerRadius="8"
+                                        Background="#F5F5F5"
+                                        Visibility="Collapsed"
+                                        Margin="0,0,0,16">
+                                    <Image x:Name="ImagePreview"
+                                           Stretch="UniformToFill"
+                                           MaxHeight="400"
+                                           MaxWidth="300"/>
+                                </Border>
+
+                                <!-- Video Preview -->
+                                <Border x:Name="VideoPreviewContainer"
+                                        CornerRadius="8"
+                                        Background="#000000"
+                                        Visibility="Collapsed"
+                                        Margin="0,0,0,16">
+                                    <MediaElement x:Name="VideoPreview"
+                                                  LoadedBehavior="Manual"
+                                                  MaxHeight="400"
+                                                  MaxWidth="300"/>
+                                </Border>
+
+                                <!-- File Preview -->
+                                <StackPanel x:Name="FilePreviewContainer"
+                                            Visibility="Collapsed"
+                                            HorizontalAlignment="Center">
+                                    <Image x:Name="FileIconPreview"
+                                           Width="80"
+                                           Height="80"
+                                           Margin="0,0,0,12"/>
+                                    <TextBlock x:Name="FileNamePreview"
+                                               FontSize="13"
+                                               FontWeight="SemiBold"
+                                               Foreground="#1A1A1A"
+                                               TextAlignment="Center"
+                                               TextTrimming="CharacterEllipsis"
+                                               Margin="0,0,0,8"/>
+                                    <TextBlock x:Name="FileSizePreview"
+                                               FontSize="12"
+                                               Foreground="#8E8E93"
+                                               TextAlignment="Center"/>
+                                </StackPanel>
+
+                                <!-- Folder Preview -->
+                                <ListBox x:Name="FolderContentsList"
+                                         Visibility="Collapsed"
+                                         Background="Transparent"
+                                         BorderThickness="0"
+                                         ItemTemplate="{StaticResource SuggestionItemTemplate}"
+                                         ItemContainerStyle="{StaticResource SuggestionItemStyle}"
+                                         MaxHeight="400"
+                                         ScrollViewer.VerticalScrollBarVisibility="Auto"
+                                         FontFamily="{StaticResource MacFont}"/>
+                            </StackPanel>
+                        </ScrollViewer>
+
+                        <!-- Video Controls -->
+                        <StackPanel x:Name="VideoControlsPanel"
+                                    Grid.Row="2"
+                                    Orientation="Horizontal"
+                                    HorizontalAlignment="Center"
+                                    Visibility="Collapsed"
+                                    Background="White"
+                                    Margin="16">
+                            <Button Name="PlayButton"
+                                    Content="▶ Play"
+                                    Padding="12,8"
+                                    Margin="0,0,8,0"
+                                    Click="PlayButton_Click"
+                                    Background="#007AFF"
+                                    Foreground="White"
+                                    BorderThickness="0"/>
+                            <Button Name="PauseButton"
+                                    Content="⏸ Pause"
+                                    Padding="12,8"
+                                    Background="#007AFF"
+                                    Foreground="White"
+                                    BorderThickness="0"
+                                    Click="PauseButton_Click"/>
+                        </StackPanel>
+                    </Grid>
+                </Border>
             </Grid>
         </Border>
     </Grid>
