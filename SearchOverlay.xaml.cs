@@ -632,20 +632,34 @@ namespace ZeroMix
         {
             if (selectedItem == null) return;
 
-            // Show preview untuk file/folder
-            if ((selectedItem.Type == SuggestionType.File || selectedItem.Type == SuggestionType.System) && !string.IsNullOrEmpty(selectedItem.FilePath))
+            // Show preview untuk file/folder/image/video
+            if (!string.IsNullOrEmpty(selectedItem.FilePath) && File.Exists(selectedItem.FilePath))
             {
-                // Cek jika folder atau file
-                if (Directory.Exists(selectedItem.FilePath))
-                {
-                    ShowFolderPreview(selectedItem.FilePath);
-                    return;
-                }
-                else if (File.Exists(selectedItem.FilePath))
+                // Handle Image files
+                if (selectedItem.Type == SuggestionType.Image || IsImageFile(Path.GetExtension(selectedItem.FilePath)))
                 {
                     ShowFilePreview(selectedItem.FilePath);
                     return;
                 }
+                // Handle Video files
+                else if (selectedItem.Type == SuggestionType.Video || IsVideoFile(Path.GetExtension(selectedItem.FilePath)))
+                {
+                    ShowFilePreview(selectedItem.FilePath);
+                    return;
+                }
+                // Handle other files
+                else if (selectedItem.Type == SuggestionType.File)
+                {
+                    ShowFilePreview(selectedItem.FilePath);
+                    return;
+                }
+            }
+            
+            // Show preview untuk folder
+            if ((selectedItem.Type == SuggestionType.System) && !string.IsNullOrEmpty(selectedItem.FilePath) && Directory.Exists(selectedItem.FilePath))
+            {
+                ShowFolderPreview(selectedItem.FilePath);
+                return;
             }
 
             // Handle other types yang perlu close
@@ -1249,18 +1263,65 @@ namespace ZeroMix
             SuggestionList.Visibility = Visibility.Visible;
         }
 
-        private void FolderContentsList_DoubleClick(object sender, MouseButtonEventArgs e)
+        // Drag & Drop support for folder items
+        private System.Windows.Point _dragStartPoint;
+        private bool _isDragging = false;
+        
+        private void FolderContentsList_PreviewMouseDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        {
+            _dragStartPoint = e.GetPosition(null);
+            _isDragging = false;
+        }
+
+        private void FolderContentsList_MouseMove(object sender, System.Windows.Input.MouseEventArgs e)
+        {
+            if (e.LeftButton == System.Windows.Input.MouseButtonState.Pressed && !_isDragging)
+            {
+                System.Windows.Point currentPos = e.GetPosition(null);
+                System.Windows.Vector dragVector = _dragStartPoint - currentPos;
+                
+                if (dragVector.Length > System.Windows.SystemParameters.MinimumHorizontalDragDistance)
+                {
+                    _isDragging = true;
+                    var listBox = sender as System.Windows.Controls.ListBox;
+                    if (listBox?.SelectedItem is SuggestionItem item && File.Exists(item.FilePath))
+                    {
+                        try
+                        {
+                            var dataObject = new System.Windows.DataObject(System.Windows.DataFormats.FileDrop, new[] { item.FilePath });
+                            System.Windows.DragDrop.DoDragDrop(listBox, dataObject, System.Windows.DragDropEffects.Copy);
+                        }
+                        catch { }
+                    }
+                }
+            }
+        }
+
+        private void FolderContentsList_MouseUp(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        {
+            _isDragging = false;
+        }
+
+        private void FolderContentsList_DoubleClick(object sender, System.Windows.Input.MouseButtonEventArgs e)
         {
             var listBox = sender as System.Windows.Controls.ListBox;
-            if (listBox?.SelectedItem is SuggestionItem item && Directory.Exists(item.FilePath))
+            if (listBox?.SelectedItem is SuggestionItem item)
             {
-                // Navigate to the double-clicked folder
-                ShowFolderPreview(item.FilePath);
+                // If folder, navigate into it
+                if (Directory.Exists(item.FilePath))
+                {
+                    ShowFolderPreview(item.FilePath);
+                }
+                // If image/video, show preview
+                else if (File.Exists(item.FilePath))
+                {
+                    ShowFilePreview(item.FilePath);
+                }
                 e.Handled = true;
             }
         }
 
-        private void PreviewPanel_MouseDown(object sender, MouseButtonEventArgs e)
+        private void PreviewPanel_MouseDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
         {
             // Prevent closing when clicking inside panel
             e.Handled = true;
