@@ -538,7 +538,12 @@
                                          ItemContainerStyle="{StaticResource SuggestionItemStyle}"
                                          MaxHeight="400"
                                          ScrollViewer.VerticalScrollBarVisibility="Auto"
-                                         FontFamily="{StaticResource MacFont}"/>
+                                         FontFamily="{StaticResource MacFont}"
+                                         AllowDrop="True"
+                                         MouseDoubleClick="FolderContentsList_DoubleClick"
+                                         PreviewMouseLeftButtonDown="FolderContentsList_PreviewMouseDown"
+                                         MouseMove="FolderContentsList_MouseMove"
+                                         MouseLeftButtonUp="FolderContentsList_MouseUp"/>
                             </StackPanel>
                         </ScrollViewer>
 
