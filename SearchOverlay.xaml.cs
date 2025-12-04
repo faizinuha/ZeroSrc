@@ -1054,93 +1054,99 @@ namespace ZeroMix
             videoPreview?.Pause();
         }
 
-        // File Preview Logic
         private void ShowFilePreview(string filePath)
         {
-            if (!File.Exists(filePath)) return;
-
-            var previewPanel = this.FindName("PreviewPanel") as Border;
-            var imagePreviewContainer = this.FindName("ImagePreviewContainer") as Border;
-            var videoPreviewContainer = this.FindName("VideoPreviewContainer") as Border;
-            var filePreviewContainer = this.FindName("FilePreviewContainer") as Border;
-            var imagePreview = this.FindName("ImagePreview") as System.Windows.Controls.Image;
-            var videoPreview = this.FindName("VideoPreview") as MediaElement;
-            var fileIconPreview = this.FindName("FileIconPreview") as System.Windows.Controls.Image;
-            var fileNamePreview = this.FindName("FileNamePreview") as TextBlock;
-            var fileSizePreview = this.FindName("FileSizePreview") as TextBlock;
-            var previewTitle = this.FindName("PreviewTitle") as TextBlock;
-
-            // Hide all preview containers
-            imagePreviewContainer!.Visibility = Visibility.Collapsed;
-            videoPreviewContainer!.Visibility = Visibility.Collapsed;
-            filePreviewContainer!.Visibility = Visibility.Collapsed;
-
-            string extension = Path.GetExtension(filePath).ToLower();
-            FileInfo fileInfo = new FileInfo(filePath);
-
-            // Image Preview
-            if (IsImageFile(extension))
+            try
             {
-                try
+                if (!File.Exists(filePath)) return;
+
+                var previewPanel = this.FindName("PreviewPanel") as Border;
+                var imagePreviewContainer = this.FindName("ImagePreviewContainer") as Border;
+                var videoPreviewContainer = this.FindName("VideoPreviewContainer") as Border;
+                var filePreviewContainer = this.FindName("FilePreviewContainer") as StackPanel;
+                var imagePreview = this.FindName("ImagePreview") as System.Windows.Controls.Image;
+                var videoPreview = this.FindName("VideoPreview") as MediaElement;
+                var fileIconPreview = this.FindName("FileIconPreview") as System.Windows.Controls.Image;
+                var fileNamePreview = this.FindName("FileNamePreview") as TextBlock;
+                var fileSizePreview = this.FindName("FileSizePreview") as TextBlock;
+                var previewTitle = this.FindName("PreviewTitle") as TextBlock;
+
+                // Hide all preview containers
+                if (imagePreviewContainer != null) imagePreviewContainer.Visibility = Visibility.Collapsed;
+                if (videoPreviewContainer != null) videoPreviewContainer.Visibility = Visibility.Collapsed;
+                if (filePreviewContainer != null) filePreviewContainer.Visibility = Visibility.Collapsed;
+
+                string extension = Path.GetExtension(filePath).ToLower();
+                FileInfo fileInfo = new FileInfo(filePath);
+
+                // Image Preview
+                if (IsImageFile(extension))
                 {
-                    var bitmap = new BitmapImage();
-                    bitmap.BeginInit();
-                    bitmap.CacheOption = BitmapCacheOption.OnLoad;
-                    bitmap.UriSource = new Uri(filePath);
-                    bitmap.EndInit();
-                    imagePreview!.Source = bitmap;
-                    imagePreviewContainer.Visibility = Visibility.Visible;
-                    previewTitle!.Text = $"Image Preview - {Path.GetFileName(filePath)}";
-                }
-                catch { }
-            }
-            // Video Preview
-            else if (IsVideoFile(extension))
-            {
-                try
-                {
-                    videoPreview!.Source = new Uri(filePath);
-                    videoPreviewContainer.Visibility = Visibility.Visible;
-                    previewTitle!.Text = $"Video Preview - {Path.GetFileName(filePath)}";
-                }
-                catch { }
-            }
-            // File Icon Preview
-            else
-            {
-                try
-                {
-                    var icon = ExtractIconFromFile(filePath);
-                    if (icon != null)
+                    try
                     {
-                        fileIconPreview!.Source = icon;
+                        var bitmap = new BitmapImage();
+                        bitmap.BeginInit();
+                        bitmap.CacheOption = BitmapCacheOption.OnLoad;
+                        bitmap.UriSource = new Uri(filePath);
+                        bitmap.EndInit();
+                        if (imagePreview != null) imagePreview.Source = bitmap;
+                        if (imagePreviewContainer != null) imagePreviewContainer.Visibility = Visibility.Visible;
+                        if (previewTitle != null) previewTitle.Text = $"Image Preview - {Path.GetFileName(filePath)}";
                     }
-                    fileNamePreview!.Text = Path.GetFileName(filePath);
-                    fileSizePreview!.Text = FormatFileSize(fileInfo.Length);
-                    filePreviewContainer.Visibility = Visibility.Visible;
-                    previewTitle!.Text = "File Preview";
+                    catch { }
                 }
-                catch { }
+                // Video Preview
+                else if (IsVideoFile(extension))
+                {
+                    try
+                    {
+                        if (videoPreview != null) videoPreview.Source = new Uri(filePath);
+                        if (videoPreviewContainer != null) videoPreviewContainer.Visibility = Visibility.Visible;
+                        if (previewTitle != null) previewTitle.Text = $"Video Preview - {Path.GetFileName(filePath)}";
+                    }
+                    catch { }
+                }
+                // File Icon Preview
+                else
+                {
+                    try
+                    {
+                        var icon = ExtractIconFromFile(filePath);
+                        if (icon != null && fileIconPreview != null)
+                        {
+                            fileIconPreview.Source = icon;
+                        }
+                        if (fileNamePreview != null) fileNamePreview.Text = Path.GetFileName(filePath);
+                        if (fileSizePreview != null) fileSizePreview.Text = FormatFileSize(fileInfo.Length);
+                        if (filePreviewContainer != null) filePreviewContainer.Visibility = Visibility.Visible;
+                        if (previewTitle != null) previewTitle.Text = "File Preview";
+                    }
+                    catch { }
+                }
+
+                // Show preview panel
+                if (previewPanel != null) previewPanel.Visibility = Visibility.Visible;
+                SuggestionList.Visibility = Visibility.Collapsed;
+
+                // Show video controls if video
+                var videoControlsPanel = this.FindName("VideoControlsPanel") as StackPanel;
+                if (IsVideoFile(extension))
+                {
+                    if (videoControlsPanel != null) videoControlsPanel.Visibility = Visibility.Visible;
+                }
+                else
+                {
+                    if (videoControlsPanel != null) videoControlsPanel.Visibility = Visibility.Collapsed;
+                }
+
+                // Hide folder preview
+                var folderContentsList = this.FindName("FolderContentsList") as System.Windows.Controls.ListBox;
+                if (folderContentsList != null) folderContentsList.Visibility = Visibility.Collapsed;
             }
-
-            // Show preview panel
-            previewPanel!.Visibility = Visibility.Visible;
-            SuggestionList.Visibility = Visibility.Collapsed;
-
-            // Show video controls if video
-            var videoControlsPanel = this.FindName("VideoControlsPanel") as StackPanel;
-            if (IsVideoFile(extension))
+            catch (Exception ex)
             {
-                videoControlsPanel!.Visibility = Visibility.Visible;
+                ShowNotification($"Error showing preview: {ex.Message}", NotificationType.Error);
             }
-            else
-            {
-                videoControlsPanel!.Visibility = Visibility.Collapsed;
-            }
-
-            // Hide folder preview
-            var folderContentsList = this.FindName("FolderContentsList") as System.Windows.Controls.ListBox;
-            folderContentsList!.Visibility = Visibility.Collapsed;
         }
 
         private bool IsImageFile(string extension)

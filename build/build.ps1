@@ -54,8 +54,8 @@ Write-Host "`nLangkah 2.5: Menandatangani installer dengan osslsigncode..." -For
 # Path ke osslsigncode.exe. Asumsi berada di PATH atau di folder yang sama.
 $SignTool = ".\Exe\bin\osslsigncode.exe"
 $CertFile = ".\Exe\ZeroMixCert.pfx"
-$InstallerFile = ".\Exe\ZeroMix-Setup-v2.1.0.exe"
-$TempInstallerFile = ".\Exe\ZeroMix-Setup-v2.1.0-signed.exe"
+$InstallerFile = ".\Exe\ZeroMix-Setup-v2.2.2.exe"
+$TempInstallerFile = ".\Exe\ZeroMix-Setup-v2.2.2-signed.exe"
 # $password = "ZeroMixPass"
 $CertPassword = "ZeroMixPass"
 
@@ -73,7 +73,7 @@ if (-not (Test-Path $SignTool)) {
 
 try {
     # Gunakan timestamp server untuk memastikan tanda tangan valid bahkan setelah sertifikat kedaluwarsa.
-    & $SignTool sign -pkcs12 $CertFile -pass $CertPassword -n "ZeroMix" -i "https://zeromix.pages.dev" -h sha256 -t http://timestamp.digicert.com -in $InstallerFile -out $TempInstallerFile
+    & $SignTool sign -pkcs12 $CertFile -pass $CertPassword -n "ZeroMix" -i "https://zeromix.pages.dev" -t http://timestamp.digicert.com -in $InstallerFile -out $TempInstallerFile
     
     # Hapus installer asli yang belum ditandatangani
     Remove-Item $InstallerFile -Force
@@ -89,7 +89,7 @@ try {
 # --- Step 3: Cek Output ---
 Write-Host "`nLangkah 3: Verifikasi output..." -ForegroundColor Green
 
-$InstallerOutput = ".\Exe\ZeroMix-Setup-v2.1.0.exe"
+$InstallerOutput = ".\Exe\ZeroMix-Setup-v2.2.2.exe"
 if (Test-Path $InstallerOutput) {
     $Size = (Get-Item $InstallerOutput).Length / 1MB
     Write-Host "✅ Installer berhasil dibuat!" -ForegroundColor Green
