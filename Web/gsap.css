@@ -23,25 +23,25 @@
   height: 120px;
   margin-bottom: 30px;
   opacity: 0;
-  filter: drop-shadow(0 0 30px rgba(0, 188, 212, 0.8));
+  filter: drop-shadow(0 0 30px #060b0ccc);
 }
 
 .splash-title {
   font-size: 4rem;
   font-weight: 800;
-  background: linear-gradient(135deg, #00bcd4, #4dd0e1);
+  background: linear-gradient(135deg, hsl(0, 0%, 0%), hsl(0, 0%, 100%));
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
   margin: 0;
   opacity: 0;
   letter-spacing: 3px;
-  text-shadow: 0 0 30px rgba(0, 188, 212, 0.3);
+  text-shadow: 0 0 30px #060b0ccc;
 }
 
 .splash-subtitle {
   font-size: 1.2rem;
-  color: #4dd0e1;
+  color: #fff;
   margin-top: 15px;
   opacity: 0;
   font-weight: 300;
@@ -51,7 +51,7 @@
 .splash-loader {
   width: 290px;
   height: 5px;
-  background: rgba(77, 208, 225, 0.2);
+  background: #00000033;
   border-radius: 10px;
   margin-top: 40px;
   overflow: hidden;
@@ -61,7 +61,7 @@
 .loader-bar {
   height: 100%;
   width: 0%;
-  background: linear-gradient(90deg, #00bcd4, #4dd0e1);
+  background: linear-gradient(90deg, #fff, #fff);
   border-radius: 10px;
   box-shadow: 0 0 10px rgba(0, 188, 212, 0.8);
 }
@@ -74,7 +74,7 @@
 
 .splash-progress {
   font-size: 1.5rem;
-  color: #4dd0e1;
+  color: #fff;
   margin-top: 15px;
   opacity: 0;
   font-weight: 600;
