@@ -960,7 +960,21 @@ namespace ZeroMix
         }
         
         private void Window_MouseLeftButtonDown(object sender, MouseButtonEventArgs e) { if (e.ChangedButton == MouseButton.Left) DragMove(); }
-        private void CustomShortcutButton_Click(object sender, RoutedEventArgs e) { }
+        
+        private void CustomShortcutButton_Click(object sender, RoutedEventArgs e) 
+        { 
+            try
+            {
+                var shortcutWindow = new CustomShortcutWindow();
+                shortcutWindow.Show();
+                BeginFadeOutAndClose();
+            }
+            catch (Exception ex)
+            {
+                ShowNotification("Error opening settings", NotificationType.Error);
+                System.Diagnostics.Debug.WriteLine($"Error opening shortcut window: {ex.Message}");
+            }
+        }
         
         // Drag & Drop Event Handlers
         private void SearchBox_Drop(object sender, System.Windows.DragEventArgs e)
