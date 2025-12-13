@@ -1,0 +1,196 @@
+<Window x:Class="ZeroMix.Onboarding.OnboardingWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d"
+        Title="Welcome to ZeroMix" Height="700" Width="1000"
+        WindowStartupLocation="CenterScreen"
+        WindowStyle="None"
+        AllowsTransparency="True"
+        ResizeMode="NoResize"
+        Background="Transparent">
+    
+    <Window.Resources>
+        <Style TargetType="ScrollBar">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="#333"/>
+            <Setter Property="Width" Value="8"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ScrollBar">
+                        <Grid>
+                            <Track Name="PART_Track" IsDirectionReversed="true">
+                                <Track.Thumb>
+                                    <Thumb Background="#444" Margin="2">
+                                        <Thumb.Template>
+                                            <ControlTemplate TargetType="Thumb">
+                                                <Border Background="{TemplateBinding Background}" CornerRadius="4"/>
+                                            </ControlTemplate>
+                                        </Thumb.Template>
+                                    </Thumb>
+                                </Track.Thumb>
+                            </Track>
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
+
+    <!-- Main Container with Shadow and Background -->
+    <Border CornerRadius="16" ClipToBounds="True">
+        <Border.Effect>
+            <DropShadowEffect Color="Black" BlurRadius="40" ShadowDepth="10" Opacity="0.6"/>
+        </Border.Effect>
+        <Border Background="#101010" BorderBrush="#333333" BorderThickness="1" CornerRadius="16">
+            <Grid>
+                <!-- Subtle Background Gradient/Image -->
+                <Grid.Background>
+                    <RadialGradientBrush GradientOrigin="0.5,0" Center="0.5,0" RadiusX="1" RadiusY="1">
+                        <GradientStop Color="#1A2035" Offset="0"/>
+                        <GradientStop Color="#050505" Offset="1"/>
+                    </RadialGradientBrush>
+                </Grid.Background>
+                
+                <Grid Margin="50,40,50,40">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/> <!-- Header -->
+                        <RowDefinition Height="Auto"/> <!-- Features -->
+                        <RowDefinition Height="*"/>    <!-- Changelog (fills remaining) -->
+                        <RowDefinition Height="Auto"/> <!-- Footer -->
+                    </Grid.RowDefinitions>
+
+                    <!-- Header Section -->
+                    <StackPanel Grid.Row="0" Margin="0,0,0,40" HorizontalAlignment="Center">
+                         <Image Source="pack://application:,,,/assets/zeromix-high-resolution-logo-transparent.png" Height="100" RenderOptions.BitmapScalingMode="HighQuality"/>
+                         <TextBlock Text="ZeroMix" FontSize="42" FontWeight="Bold" Foreground="White" HorizontalAlignment="Center" Margin="0,15,0,5">
+                             <TextBlock.Effect>
+                                 <DropShadowEffect Color="#0A84FF" BlurRadius="25" ShadowDepth="0" Opacity="0.6"/>
+                             </TextBlock.Effect>
+                         </TextBlock>
+                         <TextBlock Text="Pengenalan Singkat" FontSize="16" Foreground="#8E8E93" HorizontalAlignment="Center"/>
+                    </StackPanel>
+
+                    <!-- Featured Section (Cards) -->
+                    <Grid Grid.Row="1" Margin="0,0,0,30">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="20"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="20"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="20"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        
+                        <!-- Feature 1 -->
+                        <Border Grid.Column="0" Background="#1C1C1E" CornerRadius="12" Padding="20" BorderBrush="#2C2C2E" BorderThickness="1">
+                             <StackPanel HorizontalAlignment="Center">
+                                 <TextBlock Text="📊" FontSize="32" HorizontalAlignment="Center" Margin="0,0,0,10"/>
+                                 <TextBlock Text="System" Foreground="White" FontWeight="Bold" FontSize="14" HorizontalAlignment="Center"/>
+                                 <TextBlock Text="Monitor" Foreground="White" FontWeight="Bold" FontSize="14" HorizontalAlignment="Center"/>
+                             </StackPanel>
+                        </Border>
+
+                        <!-- Feature 2 -->
+                        <Border Grid.Column="2" Background="#1C1C1E" CornerRadius="12" Padding="20" BorderBrush="#2C2C2E" BorderThickness="1">
+                             <StackPanel HorizontalAlignment="Center">
+                                 <TextBlock Text="📌" FontSize="32" HorizontalAlignment="Center" Margin="0,0,0,10"/>
+                                 <TextBlock Text="Taskbar" Foreground="White" FontWeight="Bold" FontSize="14" HorizontalAlignment="Center"/>
+                                 <TextBlock Text="Transparan" Foreground="White" FontWeight="Bold" FontSize="14" HorizontalAlignment="Center"/>
+                             </StackPanel>
+                        </Border>
+
+                        <!-- Feature 3 -->
+                        <Border Grid.Column="4" Background="#1C1C1E" CornerRadius="12" Padding="20" BorderBrush="#2C2C2E" BorderThickness="1">
+                             <StackPanel HorizontalAlignment="Center">
+                                 <TextBlock Text="🎥" FontSize="32" HorizontalAlignment="Center" Margin="0,0,0,10"/>
+                                 <TextBlock Text="Video" Foreground="White" FontWeight="Bold" FontSize="14" HorizontalAlignment="Center"/>
+                                 <TextBlock Text="Wallpaper" Foreground="White" FontWeight="Bold" FontSize="14" HorizontalAlignment="Center"/>
+                             </StackPanel>
+                        </Border>
+                        
+                        <!-- Feature 4 -->
+                        <Border Grid.Column="6" Background="#1C1C1E" CornerRadius="12" Padding="20" BorderBrush="#2C2C2E" BorderThickness="1">
+                             <StackPanel HorizontalAlignment="Center">
+                                 <TextBlock Text="⌨️" FontSize="32" HorizontalAlignment="Center" Margin="0,0,0,10"/>
+                                 <TextBlock Text="Quick" Foreground="White" FontWeight="Bold" FontSize="14" HorizontalAlignment="Center"/>
+                                 <TextBlock Text="Search" Foreground="White" FontWeight="Bold" FontSize="14" HorizontalAlignment="Center"/>
+                             </StackPanel>
+                        </Border>
+                    </Grid>
+
+                    <!-- Changelog Section -->
+                    <Grid Grid.Row="2">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+                        
+                        <Border Grid.Row="0" Margin="0,0,0,10" BorderBrush="#333" BorderThickness="0,0,0,1" HorizontalAlignment="Left" Padding="0,0,0,5">
+                             <TextBlock Text="Update Terbaru (GitHub)" FontSize="16" FontWeight="SemiBold" Foreground="#0A84FF"/>
+                        </Border>
+                        
+                        <Border Grid.Row="1" Background="#111111" CornerRadius="8" Padding="15" BorderBrush="#222" BorderThickness="1">
+                             <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="0,0,10,0">
+                                <ItemsControl x:Name="ReleasesParams">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Grid Margin="0,0,0,20">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                    <ColumnDefinition Width="*"/>
+                                                </Grid.ColumnDefinitions>
+                                                
+                                                <!-- Version Tag -->
+                                                <Border Grid.Column="0" Background="#1C2533" CornerRadius="6" VerticalAlignment="Top" Padding="10,6" Margin="0,0,15,0" BorderBrush="#0A84FF" BorderThickness="1">
+                                                    <TextBlock Text="{Binding TagName}" Foreground="#0A84FF" FontWeight="Bold" FontSize="13" FontFamily="Consolas"/>
+                                                </Border>
+                                                
+                                                <!-- Content -->
+                                                <StackPanel Grid.Column="1">
+                                                    <TextBlock Text="{Binding CreatedAt, StringFormat=\{0:dd MMM yyyy\}}" Foreground="#666" FontSize="12" Margin="0,0,0,5"/>
+                                                    <TextBlock Text="{Binding Body}" Foreground="#DDD" TextWrapping="Wrap" LineHeight="22" FontSize="13"/>
+                                                </StackPanel>
+                                            </Grid>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                             </ScrollViewer>
+                         </Border>
+                    </Grid>
+                    
+                    <!-- Footer / Button -->
+                    <StackPanel Grid.Row="3" Margin="0,30,0,0" HorizontalAlignment="Center">
+                        <Button Content="🚀  Mulai Sekarang" Click="Button_Click" 
+                                Width="260" Height="50" Background="#0A84FF" Foreground="White"
+                                FontSize="16" FontWeight="Bold" BorderThickness="0" Cursor="Hand">
+                             <Button.Template>
+                                 <ControlTemplate TargetType="Button">
+                                     <Border x:Name="border" Background="{TemplateBinding Background}" CornerRadius="25">
+                                         <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                     </Border>
+                                     <ControlTemplate.Triggers>
+                                         <Trigger Property="IsMouseOver" Value="True">
+                                             <Setter TargetName="border" Property="Background" Value="#0070E0"/>
+                                             <Setter TargetName="border" Property="Effect">
+                                                 <Setter.Value>
+                                                     <DropShadowEffect Color="#0A84FF" BlurRadius="20" ShadowDepth="0" Opacity="0.4"/>
+                                                 </Setter.Value>
+                                             </Setter>
+                                         </Trigger>
+                                         <Trigger Property="IsPressed" Value="True">
+                                             <Setter TargetName="border" Property="Background" Value="#005BB5"/>
+                                         </Trigger>
+                                     </ControlTemplate.Triggers>
+                                 </ControlTemplate>
+                             </Button.Template>
+                        </Button>
+                        <TextBlock Text="ZeroMix v1.0 • Made with ❤️ for Productivity" Foreground="#444" FontSize="11" HorizontalAlignment="Center" Margin="0,15,0,0"/>
+                    </StackPanel>
+                </Grid>
+            </Grid>
+        </Border>
+    </Border>    
+</Window>

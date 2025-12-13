@@ -124,7 +124,6 @@ namespace ZeroMix
             // Panggil metode reload di instance HotkeyCore yang sedang berjalan.
             App.HotkeyCoreInstance?.ReloadCustomHotkeys();
 
-            this.DialogResult = true; // Tandai bahwa perubahan disimpan
             // Ubah pesan, karena restart tidak lagi diperlukan
             System.Windows.MessageBox.Show("Pintasan telah diperbarui dan sekarang aktif.", "Sukses", MessageBoxButton.OK, MessageBoxImage.Information);
             this.Close();
@@ -132,7 +131,6 @@ namespace ZeroMix
 
         private void CancelButton_Click(object sender, RoutedEventArgs e)
         {
-            this.DialogResult = false; // Tandai bahwa dibatalkan
             this.Close();
         }
 

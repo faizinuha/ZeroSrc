@@ -19,6 +19,7 @@
 
   <ItemGroup>
     <Resource Include="zeromix.ico" />
+    <Resource Include="assets\**" />
   </ItemGroup>
 
   <ItemGroup>

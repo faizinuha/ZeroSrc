@@ -46,6 +46,10 @@ ArchitecturesInstallIn64BitMode=x64
 ArchitecturesAllowed=x64
 MinVersion=10.0.19041
 
+[Dirs]
+; Memberikan akses tulis ke folder aplikasi agar config.json bisa disimpan/diupdate oleh aplikasi (User biasa)
+Name: "{app}"; Permissions: users-modify
+
 [Files]
 ; Main application
 Source: "..\publish\win-x64\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
