@@ -22,7 +22,7 @@ jobs:
       # 3️⃣ Setup .NET
       - uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: "8.0.x"
+          dotnet-version: "9.0.x"
 
       # 4️⃣ Setup MSBuild
       - uses: microsoft/setup-msbuild@v2
@@ -35,7 +35,7 @@ jobs:
       # 6️⃣ Publish app
       - name: Publish ZeroMix
         run: |
-          dotnet publish ZeroMix/ZeroMix.csproj `
+          dotnet publish ZeroMix.csproj `
             -c Release `
             -r win-x64 `
             --self-contained true `
@@ -46,7 +46,7 @@ jobs:
       # 7️⃣ Build installer
       - name: Build Installer
         run: |
-          ISCC.exe Exe/Setup.iss
+          ISCC.exe "Exe\Setup.iss" /DAppVersion=${{ env.VERSION }}
 
       # 8️⃣ Decode certificate
       - name: Decode Certificate
