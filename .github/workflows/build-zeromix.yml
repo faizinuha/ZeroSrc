@@ -1,0 +1,77 @@
+name: Build ZeroMix Installer
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      # 1️⃣ Ambil source
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      # 2️⃣ Setup .NET
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "9.0.x"
+
+      # 3️⃣ Setup MSBuild (WPF)
+      - name: Setup MSBuild
+        uses: microsoft/setup-msbuild@v2
+
+      # 4️⃣ Install Inno Setup
+      - name: Install Inno Setup
+        uses: crazy-max/ghaction-chocolatey@v3
+        with:
+          args: install innosetup -y
+
+      # 5️⃣ Publish aplikasi
+      - name: Publish ZeroMix
+        run: |
+          dotnet publish ZeroMix/ZeroMix.csproj `
+            -c Release `
+            -r win-x64 `
+            --self-contained true `
+            -p:PublishSingleFile=true `
+            -p:PublishReadyToRun=true `
+            -p:Version=2.3.3
+
+      # 6️⃣ Build Installer (ISS)
+      - name: Build Installer
+        run: |
+          ISCC.exe Exe/Setup.iss
+
+      # 7️⃣ Upload Artifact
+      - name: Upload Installer
+        uses: actions/upload-artifact@v4
+        with:
+          name: ZeroMix-Installer
+          path: Exe/ZeroMix-Setup-v2.3.3.exe
+
+      # 8️⃣ Release ke GitHub
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v2.3.3
+          name: ZeroMix v2.3.3
+          files: Exe/ZeroMix-Setup-v2.3.3.exe
+
+      - name: Decode certificate
+        run: |
+          echo "${{ secrets.CERT_PFX_BASE64 }}" > cert.txt
+          certutil -decode cert.txt ZeroMixCert.pfx
+
+      - name: Sign Installer
+        run: |
+          signtool sign `
+            /f cert.pfx `
+            /p ${{ secrets.CERT_PASS }} `
+            /tr http://timestamp.digicert.com `
+            /td sha256 `
+            Exe/ZeroMix-Setup-v2.3.3.exe
