@@ -16,3 +16,4 @@ Exe\libcrypto-3-x86.dll
 
 # File sertifikat (jangan dimasukkan ke repositori publik)
 Exe/ZeroMixCert.pfx
+cert_base64.txt
