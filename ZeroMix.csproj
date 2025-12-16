@@ -36,8 +36,9 @@
 
   <Target Name="AfterPublish" AfterTargets="Publish" Condition="'$(Configuration)' == 'Release'">
     <Message Text="Menjalankan proses signing installer ZeroMix..." Importance="High" />
-    <Exec Command='powershell -ExecutionPolicy Bypass -File "$(ProjectDir)build\build.ps1"' Condition="Exists('$(ProjectDir)build\build.ps1')" />
-    <Warning Text="Script build.ps1 tidak ditemukan, melewati langkah signing." Condition="!Exists('$(ProjectDir)build\build.ps1')" />
+    <!-- build.ps1 disabled in favor of Makefile -->
+    <!-- <Exec Command='powershell -ExecutionPolicy Bypass -File "$(ProjectDir)build\build.ps1"' Condition="Exists('$(ProjectDir)build\build.ps1')" /> -->
+    <!-- <Warning Text="Script build.ps1 tidak ditemukan, melewati langkah signing." Condition="!Exists('$(ProjectDir)build\build.ps1')" /> -->
   </Target>
 
 </Project>

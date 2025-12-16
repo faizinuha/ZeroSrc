@@ -6,13 +6,19 @@
 ; --- PENTING: AppId Unik (Dibuat Baru) ---
 AppId={{A1B2C3D4-E5F6-7890-ZEROMIX-IDENTIFIER}}
 AppName=ZeroMix
-AppVersion=2.2.2
-VersionInfoVersion=2.2.2.0
+
+; Allow overriding AppVersion via command line: /DAppVersion=X.X.X
+#ifndef AppVersion
+  #define AppVersion "2.2.2"
+#endif
+
+AppVersion={#AppVersion}
+VersionInfoVersion={#AppVersion}.0
 VersionInfoCompany=Frieren
 VersionInfoDescription=ZeroMix - Smart Desktop Launcher & System Utilities
-VersionInfoTextVersion=2.2.2.0
-VersionInfoProductVersion=2.2.2.0
-AppVerName=ZeroMix v2.2.2
+VersionInfoTextVersion={#AppVersion}.0
+VersionInfoProductVersion={#AppVersion}.0
+AppVerName=ZeroMix v{#AppVersion}
 AppPublisher=ZeroMix Team
 AppPublisherURL=https://zeromix.vercel.app
 AppCopyright=Copyright (c) 2025 - All Rights Reserved
@@ -22,7 +28,7 @@ DefaultDirName={pf}\ZeroMix
 DefaultGroupName=ZeroMix
 AllowNoIcons=yes
 OutputDir=.
-OutputBaseFilename=ZeroMix-Setup-v2.2.2
+OutputBaseFilename=ZeroMix-Setup-v{#AppVersion}
 Compression=lzma2
 SolidCompression=yes
 DisableProgramGroupPage=no
