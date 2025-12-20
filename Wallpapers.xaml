@@ -2,9 +2,12 @@
     x:Class="ZeroMix.Wallpapers"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d"
     Title="Wallpaper Manager"
-    Width="650"
-    Height="1000"
+    Width="900"
+    Height="800"
     AllowsTransparency="True"
     Background="Transparent"
     Loaded="Window_Loaded"
@@ -13,42 +16,50 @@
     WindowStyle="None">
 
     <Window.Resources>
-        <!-- Anime Minimalist Palette -->
-        <Color x:Key="PrimaryColor">#8BE9FD</Color>
-        <Color x:Key="BackgroundColor">#161925</Color>
-        <Color x:Key="CardColor">#21222C</Color>
-        <Color x:Key="HeaderColor">#0F111A</Color>
-        <Color x:Key="TextColor">#F8F8F2</Color>
-        <Color x:Key="SubTextColor">#6272A4</Color>
+        <!-- Premium Minimal Palette -->
+        <Color x:Key="AccentColor">#007ACC</Color>
+        <Color x:Key="BgDark">#0D0D0F</Color>
+        <Color x:Key="PanelBg">#161618</Color>
+        <Color x:Key="CardBg">#1E1E20</Color>
+        <Color x:Key="TextMain">#E5E5E7</Color>
+        <Color x:Key="TextDim">#71717A</Color>
+        <Color x:Key="BorderMedium">#27272A</Color>
         
-        <SolidColorBrush x:Key="PrimaryBrush" Color="{StaticResource PrimaryColor}"/>
-        <SolidColorBrush x:Key="BackgroundBrush" Color="{StaticResource BackgroundColor}"/>
-        <SolidColorBrush x:Key="CardBrush" Color="{StaticResource CardColor}"/>
-        <SolidColorBrush x:Key="HeaderBrush" Color="{StaticResource HeaderColor}"/>
-        <SolidColorBrush x:Key="TextBrush" Color="{StaticResource TextColor}"/>
-        <SolidColorBrush x:Key="SubTextBrush" Color="{StaticResource SubTextColor}"/>
+        <SolidColorBrush x:Key="AccentBrush" Color="{StaticResource AccentColor}"/>
+        <SolidColorBrush x:Key="BgBrush" Color="{StaticResource BgDark}"/>
+        <SolidColorBrush x:Key="PanelBrush" Color="{StaticResource PanelBg}"/>
+        <SolidColorBrush x:Key="CardBrush" Color="{StaticResource CardBg}"/>
+        <SolidColorBrush x:Key="TextBrush" Color="{StaticResource TextMain}"/>
+        <SolidColorBrush x:Key="SubTextBrush" Color="{StaticResource TextDim}"/>
+        <SolidColorBrush x:Key="BorderBrush" Color="{StaticResource BorderMedium}"/>
+
+        <!-- Drop Shadows & Glow -->
+        <DropShadowEffect x:Key="StandardShadow" BlurRadius="25" ShadowDepth="0" Opacity="0.4" Color="Black"/>
+        <DropShadowEffect x:Key="AccentGlow" BlurRadius="12" ShadowDepth="0" Opacity="0.5" Color="{StaticResource AccentColor}"/>
 
         <!-- Button Styles -->
-        <Style x:Key="AnimeButton" TargetType="Button">
-            <Setter Property="Background" Value="#282A36"/>
-            <Setter Property="Foreground" Value="White"/>
+        <Style x:Key="ActionBtn" TargetType="Button">
+            <Setter Property="Background" Value="#1E1E20"/>
+            <Setter Property="Foreground" Value="{StaticResource TextBrush}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}"/>
             <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="BorderBrush" Value="#44475A"/>
-            <Setter Property="Padding" Value="20,10"/>
+            <Setter Property="Padding" Value="24,12"/>
             <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="FontWeight" Value="Medium"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
                         <Border x:Name="border" Background="{TemplateBinding Background}" 
                                 BorderBrush="{TemplateBinding BorderBrush}" 
                                 BorderThickness="{TemplateBinding BorderThickness}" 
-                                CornerRadius="12">
+                                CornerRadius="10">
                             <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter Property="Background" Value="#383A59"/>
-                                <Setter Property="BorderBrush" Value="{StaticResource PrimaryBrush}"/>
+                                <Setter TargetName="border" Property="Background" Value="#27272A"/>
+                                <Setter TargetName="border" Property="BorderBrush" Value="{StaticResource AccentBrush}"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -56,84 +67,105 @@
             </Setter>
         </Style>
 
-        <Style x:Key="PrimaryAnimeButton" BasedOn="{StaticResource AnimeButton}" TargetType="Button">
-            <Setter Property="Background" Value="{StaticResource PrimaryBrush}"/>
+        <Style x:Key="PrimaryActionBtn" BasedOn="{StaticResource ActionBtn}" TargetType="Button">
+            <Setter Property="Background" Value="{StaticResource AccentBrush}"/>
+            <Setter Property="Foreground" Value="White"/>
             <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Effect" Value="{StaticResource AccentGlow}"/>
             <Style.Triggers>
                 <Trigger Property="IsMouseOver" Value="True">
-                    <Setter Property="Background" Value="#D6BCFA"/>
+                    <Setter Property="Opacity" Value="0.9"/>
                 </Trigger>
             </Style.Triggers>
         </Style>
 
-        <Style x:Key="WallpaperBorderStyle" TargetType="Border">
+        <Style x:Key="WallpaperThumbStyle" TargetType="Border">
             <Setter Property="Background" Value="{StaticResource CardBrush}"/>
-            <Setter Property="BorderBrush" Value="#343746"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}"/>
             <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="CornerRadius" Value="15"/>
+            <Setter Property="CornerRadius" Value="12"/>
             <Setter Property="Margin" Value="10"/>
             <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="ClipToBounds" Value="True"/>
             <Style.Triggers>
-                <Trigger Property="IsMouseOver" Value="True">
-                    <Setter Property="BorderBrush" Value="{StaticResource PrimaryBrush}"/>
-                </Trigger>
+                <MultiTrigger>
+                    <MultiTrigger.Conditions>
+                        <Condition Property="IsMouseOver" Value="True"/>
+                    </MultiTrigger.Conditions>
+                    <Setter Property="BorderBrush" Value="{StaticResource AccentBrush}"/>
+                    <Setter Property="Effect">
+                        <Setter.Value>
+                            <DropShadowEffect BlurRadius="15" ShadowDepth="0" Opacity="0.3" Color="Black"/>
+                        </Setter.Value>
+                    </Setter>
+                    <Setter Property="RenderTransform">
+                        <Setter.Value>
+                            <ScaleTransform ScaleX="1.02" ScaleY="1.02" CenterX="120" CenterY="67.5"/>
+                        </Setter.Value>
+                    </Setter>
+                </MultiTrigger>
             </Style.Triggers>
         </Style>
     </Window.Resources>
 
-    <Border Margin="20" CornerRadius="20" Background="{StaticResource BackgroundBrush}" BorderBrush="#343746" BorderThickness="1">
+    <Border Margin="15" CornerRadius="16" Background="{StaticResource BgBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1">
         <Border.Effect>
-            <DropShadowEffect BlurRadius="40" Opacity="0.4" ShadowDepth="0" Color="Black"/>
+            <DropShadowEffect BlurRadius="40" Opacity="0.6" ShadowDepth="0" Color="Black"/>
         </Border.Effect>
         <Grid>
             <Grid.RowDefinitions>
-                <RowDefinition Height="80"/>
+                <RowDefinition Height="Auto"/>
                 <RowDefinition Height="*"/>
                 <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
 
-            <!-- Header -->
-            <Border Grid.Row="0" Background="{StaticResource HeaderBrush}" CornerRadius="20,20,0,0">
-                <Grid Margin="30,0">
-                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                        <Ellipse Width="12" Height="12" Fill="{StaticResource PrimaryBrush}" Margin="0,0,15,0"/>
-                        <StackPanel>
-                            <TextBlock Text="Wallpaper Manager" FontSize="20" FontWeight="SemiBold" Foreground="{StaticResource TextBrush}"/>
-                            <TextBlock Name="CountLabel" Text="0 items synchronized" FontSize="11" Foreground="{StaticResource SubTextBrush}"/>
-                        </StackPanel>
+            <!-- Top Header -->
+            <Border Grid.Row="0" Padding="35,30,35,20" Background="#0A0A0C" CornerRadius="16,16,0,0">
+                <Grid>
+                    <StackPanel>
+                        <TextBlock Text="Wallpaper Nexus" FontSize="22" FontWeight="Bold" Foreground="{StaticResource TextBrush}" />
+                        <TextBlock x:Name="CountLabel" Text="0 assets cataloged" FontSize="12" Foreground="{StaticResource SubTextBrush}" Margin="0,4,0,0"/>
                     </StackPanel>
-                    <Button Name="CloseButton" Content="✕" HorizontalAlignment="Right" VerticalAlignment="Center" 
-                            Click="CloseButton_Click" Background="Transparent" Foreground="{StaticResource SubTextBrush}" 
-                            BorderThickness="0" FontSize="18" Cursor="Hand">
-                        <Button.Style>
-                            <Style TargetType="Button">
-                                <Style.Triggers>
-                                    <Trigger Property="IsMouseOver" Value="True">
-                                        <Setter Property="Foreground" Value="#FF5555"/>
-                                    </Trigger>
-                                </Style.Triggers>
-                            </Style>
-                        </Button.Style>
-                    </Button>
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Top">
+                        <Button Content="" FontFamily="Segoe MDL2 Assets" BorderThickness="0" Background="Transparent" Foreground="{StaticResource SubTextBrush}" Padding="8" Cursor="Hand" Click="Minimize_Click"/>
+                        <Button Content="" FontFamily="Segoe MDL2 Assets" BorderThickness="0" Background="Transparent" Foreground="{StaticResource SubTextBrush}" Padding="8" Cursor="Hand" Click="CloseButton_Click"/>
+                    </StackPanel>
                 </Grid>
             </Border>
 
-            <!-- Content -->
-            <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Margin="10,20">
-                <ItemsControl Name="WallpaperListPanel">
+            <!-- Main Content Area -->
+            <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Hidden" Margin="25,10">
+                <ItemsControl x:Name="WallpaperListPanel">
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>
-                            <Border Style="{StaticResource WallpaperBorderStyle}" MouseLeftButtonUp="WallpaperBorder_MouseLeftButtonUp">
-                                <Grid>
-                                    <Border CornerRadius="20" ClipToBounds="True">
-                                        <Image Source="{Binding Thumbnail}" Stretch="UniformToFill" Height="180" Width="240"/>
-                                    </Border>
-                                    <Border VerticalAlignment="Bottom" Background="#AA0F111A" CornerRadius="0,0,20,20" Padding="12,10">
-                                        <TextBlock Text="{Binding Name}" Foreground="{StaticResource TextBrush}" FontSize="12" TextTrimming="CharacterEllipsis"/>
-                                    </Border>
-                                </Grid>
-                            </Border>
+                            <Grid Margin="10">
+                                <Border x:Name="ThumbnailBorder" Style="{StaticResource WallpaperThumbStyle}" MouseLeftButtonUp="WallpaperBorder_MouseLeftButtonUp">
+                                    <Grid>
+                                        <!-- 16:9 Aspect Ratio Container -->
+                                        <Border Width="240" Height="135">
+                                            <Image Source="{Binding Thumbnail}" Stretch="UniformToFill">
+                                                <Image.Effect>
+                                                    <BlurEffect Radius="0" x:Name="imgBlur"/>
+                                                </Image.Effect>
+                                            </Image>
+                                        </Border>
+                                        <!-- Info Overlay (Subtle) -->
+                                        <Border VerticalAlignment="Bottom" Background="#DD0D0D0F" Padding="12,8">
+                                            <TextBlock Text="{Binding Name}" Foreground="{StaticResource TextBrush}" FontSize="11" TextTrimming="CharacterEllipsis"/>
+                                        </Border>
+                                        
+                                        <!-- Select Indicator -->
+                                        <Border x:Name="SelectionGlow" BorderBrush="{StaticResource AccentBrush}" BorderThickness="2" CornerRadius="12" Opacity="0"/>
+                                    </Grid>
+                                </Border>
+                            </Grid>
+                            <DataTemplate.Triggers>
+                                <DataTrigger Binding="{Binding IsSelected}" Value="True">
+                                    <Setter TargetName="SelectionGlow" Property="Opacity" Value="1"/>
+                                    <Setter TargetName="ThumbnailBorder" Property="BorderBrush" Value="{StaticResource AccentBrush}"/>
+                                    <Setter TargetName="ThumbnailBorder" Property="Background" Value="#1A007ACC"/>
+                                </DataTrigger>
+                            </DataTemplate.Triggers>
                         </DataTemplate>
                     </ItemsControl.ItemTemplate>
                     <ItemsControl.ItemsPanel>
@@ -144,13 +176,15 @@
                 </ItemsControl>
             </ScrollViewer>
 
-            <!-- Footer -->
-            <Border Grid.Row="2" Padding="30,25" Background="{StaticResource HeaderBrush}" CornerRadius="0,0,20,20">
+            <!-- Bottom Action Footer -->
+            <Border Grid.Row="2" Padding="35,25" Background="#0A0A0C" BorderThickness="0,1,0,0" BorderBrush="{StaticResource BorderBrush}" CornerRadius="0,0,16,16">
                 <Grid>
-                    <TextBlock Name="StatusLabel" Text="Ready to harmonize your desktop" VerticalAlignment="Center" Foreground="{StaticResource SubTextBrush}" FontSize="13"/>
+                    <StackPanel VerticalAlignment="Center">
+                        <TextBlock x:Name="StatusLabel" Text="Systems ready for personalization." Cursor="Hand" Foreground="{StaticResource SubTextBrush}" FontSize="12"/>
+                    </StackPanel>
                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-                        <Button Name="BrowseButton" Content="Import Art" Click="BrowseButton_Click" Style="{StaticResource AnimeButton}" Margin="0,0,15,0"/>
-                        <Button Name="SetWallpaperButton" Content="Apply Wallpaper" Click="SetWallpaperButton_Click" Style="{StaticResource PrimaryAnimeButton}" Width="160"/>
+                        <Button x:Name="BrowseButton" Content="Import Art" Click="BrowseButton_Click" Style="{StaticResource ActionBtn}" Margin="0,0,15,0"/>
+                        <Button x:Name="SetWallpaperButton" Content="Apply Wallpaper" Click="SetWallpaperButton_Click" Style="{StaticResource PrimaryActionBtn}" Width="160"/>
                     </StackPanel>
                 </Grid>
             </Border>

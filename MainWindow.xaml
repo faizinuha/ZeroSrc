@@ -130,6 +130,32 @@
                 </Setter.Value>
             </Setter>
         </Style>
+<!-- Property Primary -->
+        <Style x:Key="PrimaryButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="{StaticResource NeonBlueBrush}"/>
+            <Setter Property="Foreground" Value="#0F131A"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Padding" Value="32,14"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="border" Background="{TemplateBinding Background}" CornerRadius="12" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="true">
+                                <Setter TargetName="border" Property="Effect">
+                                    <Setter.Value>
+                                        <DropShadowEffect BlurRadius="10" ShadowDepth="0" Color="{StaticResource NeonBlueColor}" Opacity="0.1"/>
+                                    </Setter.Value>
+                                </Setter>
+                                <Setter TargetName="border" Property="Opacity" Value="0.9"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
 
         <Style x:Key="CardBorder" TargetType="Border">
             <Setter Property="Background" Value="#0F131A"/>
@@ -137,7 +163,7 @@
             <Setter Property="BorderThickness" Value="1"/>
             <Setter Property="CornerRadius" Value="20"/>
             <Setter Property="Padding" Value="24"/>
-            <Setter Property="Margin" Value="0,0,0,20"/>
+            <Setter Property="Margin" Value="0,0,0,40"/>
             <Setter Property="Effect" Value="{StaticResource CardShadow}"/>
         </Style>
 
@@ -184,7 +210,7 @@
                                 </Border>
                                 <StackPanel Grid.Column="1" VerticalAlignment="Center">
                                     <TextBlock Text="ZeroMix" FontSize="18" FontWeight="ExtraBold" Foreground="White" />
-                                    <TextBlock Text="FUTURISTIC HUB" FontSize="9" Foreground="{StaticResource NeonBlueBrush}" FontWeight="Bold" Opacity="0.8"/>
+                                    <TextBlock Text="Zeromix Founder" FontSize="9" Foreground="{StaticResource NeonBlueBrush}" FontWeight="Bold" Opacity="0.8"/>
                                 </StackPanel>
                             </Grid>
                         </StackPanel>
@@ -360,12 +386,12 @@
                     <!-- Wallpapers View -->
                     <Grid x:Name="WallpapersContent" Visibility="Collapsed">
                         <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
-                            <Border Width="80" Height="80" CornerRadius="20" Background="#12161F" BorderThickness="1" BorderBrush="{StaticResource NeonBlueBrush}" Margin="0,0,0,30">
+                            <Border Width="100" Height="100" CornerRadius="20" Background="#12161F" BorderThickness="1" BorderBrush="{StaticResource NeonBlueBrush}" Margin="0,0,0,30">
                                 <TextBlock Text="" FontFamily="Segoe MDL2 Assets" FontSize="42" Foreground="{StaticResource NeonBlueBrush}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                             </Border>
                             <TextBlock Text="Visual Matrix" FontSize="32" FontWeight="Black" Foreground="White" HorizontalAlignment="Center" Margin="0,0,0,10"/>
                             <TextBlock Text="Personalize your workstation background with high-def streams" Foreground="{StaticResource SubTextBrush}" FontSize="15" HorizontalAlignment="Center" Margin="0,0,0,35"/>
-                            <Button x:Name="LaunchWallpaperBtn" Content="EXECUTE MANAGER" Click="WallpaperButton_Click" Style="{StaticResource QuickActionButton}" Height="Auto" Padding="40,16" FontSize="13" FontWeight="Bold"/>
+                            <Button x:Name="LaunchWallpaperBtn" Content="EXECUTE MANAGER" Click="WallpaperButton_Click" Style="{StaticResource PrimaryButtonStyle}" Height="Auto" FontSize="13" FontWeight="Bold" FocusVisualStyle="{x:Null}"/>
                         </StackPanel>
                     </Grid>
 
