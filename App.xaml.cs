@@ -17,6 +17,7 @@ namespace ZeroMix
 
             if (File.Exists("config.json"))
             {
+                
                 try
                 {
                     string jsonString = File.ReadAllText("config.json");

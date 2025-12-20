@@ -66,6 +66,13 @@ namespace ZeroMix
         {
             InitializeComponent();
             InitializeTrayIcon();
+            this.MouseLeftButtonDown += MainWindow_MouseLeftButtonDown;
+        }
+
+        private void MainWindow_MouseLeftButtonDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        {
+            if (e.ChangedButton == System.Windows.Input.MouseButton.Left)
+                this.DragMove();
         }
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
@@ -488,6 +495,16 @@ namespace ZeroMix
         private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
             e.Cancel = true;
+            this.Hide();
+        }
+
+        private void Minimize_Click(object sender, RoutedEventArgs e)
+        {
+            this.WindowState = WindowState.Minimized;
+        }
+
+        private void Close_Click(object sender, RoutedEventArgs e)
+        {
             this.Hide();
         }
     }

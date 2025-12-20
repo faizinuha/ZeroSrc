@@ -1,5 +1,8 @@
 using System;
+using System.Runtime.InteropServices;
 using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Input;
 using System.Windows.Threading;
 
 namespace ZeroMix
@@ -8,13 +11,35 @@ namespace ZeroMix
     {
         private DispatcherTimer? _clockTimer;
 
+        [DllImport("user32.dll")]
+        static extern bool SetWindowPos(IntPtr hWnd, IntPtr hWndInsertAfter, int X, int Y, int cx, int cy, uint uFlags);
+
+        static readonly IntPtr HWND_BOTTOM = new IntPtr(1);
+        const uint SWP_NOSIZE = 0x0001;
+        const uint SWP_NOMOVE = 0x0002;
+        const uint SWP_NOACTIVATE = 0x0010;
+
         public ClockWidget()
         {
             InitializeComponent();
+            SetupContextMenu();
+        }
+
+        private void SetupContextMenu()
+        {
+            ContextMenu cm = new ContextMenu();
+            MenuItem closeItem = new MenuItem { Header = "Close Clock" };
+            closeItem.Click += (s, e) => Close();
+            cm.Items.Add(closeItem);
+            this.ContextMenu = cm;
         }
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
+            // Center on Screen
+            this.Left = (SystemParameters.PrimaryScreenWidth - this.Width) / 2;
+            this.Top = (SystemParameters.PrimaryScreenHeight - this.Height) / 2;
+
             // Start clock update timer
             _clockTimer = new DispatcherTimer();
             _clockTimer.Interval = TimeSpan.FromSeconds(1);
@@ -24,9 +49,9 @@ namespace ZeroMix
             // Initial update
             UpdateClockDisplay();
 
-            // Position window ke bottom-right
-            this.Left = SystemParameters.PrimaryScreenWidth - this.Width - 20;
-            this.Top = SystemParameters.PrimaryScreenHeight - this.Height - 20;
+            // Make it stay at the bottom of Z-order (Desktop style)
+            var helper = new System.Windows.Interop.WindowInteropHelper(this);
+            SetWindowPos(helper.Handle, HWND_BOTTOM, 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE | SWP_NOACTIVATE);
         }
 
         private void ClockTimer_Tick(object? sender, EventArgs e)
@@ -37,52 +62,36 @@ namespace ZeroMix
         private void UpdateClockDisplay()
         {
             DateTime now = DateTime.Now;
-            DateTime utcNow = DateTime.UtcNow;
 
             // Update time (HH:mm:ss)
             TimeDisplay.Text = now.ToString("HH:mm:ss");
 
             // Update date
-            DateDisplay.Text = now.ToString("dddd, MMMM dd, yyyy");
+            DateDisplay.Text = now.ToString("dddd, MMMM dd, yyyy").ToUpper();
 
             // Update day of year
             int dayOfYear = now.DayOfYear;
-            int daysInYear = (DateTime.IsLeapYear(now.Year) ? 366 : 365);
-            DayOfWeekDisplay.Text = $"Day {dayOfYear}/{daysInYear}";
+            DayOfWeekDisplay.Text = $"DAY {dayOfYear}";
 
             // Update UTC offset
             TimeZoneInfo localTimeZone = TimeZoneInfo.Local;
             TimeSpan offset = localTimeZone.GetUtcOffset(now);
             string sign = offset < TimeSpan.Zero ? "-" : "+";
-            string utcText = $"UTC{sign}{Math.Abs(offset.Hours):D2}:{Math.Abs(offset.Minutes):D2}";
-            UtcDisplay.Text = utcText;
+            UtcDisplay.Text = $"UTC {sign}{Math.Abs(offset.Hours):D2}:{Math.Abs(offset.Minutes):D2}";
         }
 
-        private void Window_MouseLeftButtonDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        private void Window_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
-            // Allow dragging window
-            if (e.LeftButton == System.Windows.Input.MouseButtonState.Pressed)
+            if (e.ClickCount == 2)
+            {
+                Close();
+                return;
+            }
+
+            if (e.LeftButton == MouseButtonState.Pressed)
             {
                 DragMove();
             }
-        }
-
-        private void AlwaysOnTopButton_Click(object sender, RoutedEventArgs e)
-        {
-            Topmost = !Topmost;
-            AlwaysOnTopButton.Background = Topmost 
-                ? new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(76, 175, 80))
-                : new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(0, 120, 212));
-        }
-
-        private void MinimizeButton_Click(object sender, RoutedEventArgs e)
-        {
-            WindowState = WindowState.Minimized;
-        }
-
-        private void CloseButton_Click(object sender, RoutedEventArgs e)
-        {
-            Close();
         }
 
         private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)

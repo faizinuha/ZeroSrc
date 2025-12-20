@@ -5,136 +5,80 @@
         WindowStyle="None"
         AllowsTransparency="True"
         Background="Transparent"
-        Width="280"
-        Height="320"
+        Width="600"
+        Height="400"
         Topmost="True"
+        ShowInTaskbar="False"
         MouseLeftButtonDown="Window_MouseLeftButtonDown"
         Loaded="Window_Loaded"
         Closing="Window_Closing">
 
     <Window.Resources>
-        <!-- Colors -->
-        <Color x:Key="PrimaryColor">#0078D4</Color>
-        <Color x:Key="BackgroundColor">#1E1E2E</Color>
-        <Color x:Key="TextColor">#E0E0E0</Color>
-        <Color x:Key="AccentColor">#00D9FF</Color>
-
-        <SolidColorBrush x:Key="PrimaryBrush" Color="{StaticResource PrimaryColor}"/>
-        <SolidColorBrush x:Key="BackgroundBrush" Color="{StaticResource BackgroundColor}"/>
-        <SolidColorBrush x:Key="TextBrush" Color="{StaticResource TextColor}"/>
+        <Color x:Key="AccentColor">#8BE9FD</Color>
         <SolidColorBrush x:Key="AccentBrush" Color="{StaticResource AccentColor}"/>
+        
+        <Style x:Key="GlowText" TargetType="TextBlock">
+            <Setter Property="Effect">
+                <Setter.Value>
+                    <DropShadowEffect Color="{StaticResource AccentColor}" BlurRadius="15" ShadowDepth="0" Opacity="0.5"/>
+                </Setter.Value>
+            </Setter>
+        </Style>
     </Window.Resources>
 
-    <Border Background="{StaticResource BackgroundBrush}" 
-            CornerRadius="20"
-            BorderBrush="{StaticResource AccentBrush}"
-            BorderThickness="2"
-            Padding="20">
+    <Grid x:Name="MainContainer">
         <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
-            <!-- Time Display (Digital) -->
+            <!-- Time Display -->
             <TextBlock Name="TimeDisplay"
-                       Text="14:23:45"
-                       FontSize="48"
-                       FontWeight="Bold"
-                       Foreground="{StaticResource AccentBrush}"
+                       Text="00:00:00"
+                       FontSize="120"
+                       FontWeight="ExtraLight"
+                       Foreground="White"
                        TextAlignment="Center"
-                       Margin="0,0,0,10"
-                       FontFamily="Courier New"/>
+                       Style="{StaticResource GlowText}"
+                       FontFamily="Segoe UI Variable Display"/>
 
             <!-- Date Display -->
             <TextBlock Name="DateDisplay"
-                       Text="Monday, December 18, 2024"
-                       FontSize="14"
-                       Foreground="{StaticResource TextBrush}"
+                       Text="Loading Horizon..."
+                       FontSize="18"
+                       FontWeight="Light"
+                       Foreground="{StaticResource AccentBrush}"
                        TextAlignment="Center"
-                       Margin="0,0,0,20"
-                       FontFamily="Segoe UI"/>
+                       Opacity="0.8"
+                       Margin="0,-10,0,0"
+                       FontFamily="Segoe UI Variable Display"/>
 
-            <!-- Separator -->
-            <Border Height="1" 
-                    Background="{StaticResource AccentBrush}" 
-                    Opacity="0.3"
-                    Margin="0,0,0,15"/>
-
-            <!-- Additional Info -->
-            <Grid>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="*"/>
-                </Grid.ColumnDefinitions>
-
-                <!-- Day of Week Info -->
-                <StackPanel Grid.Column="0" HorizontalAlignment="Center">
-                    <TextBlock Text="📅" FontSize="20" TextAlignment="Center" Margin="0,0,0,5"/>
-                    <TextBlock Name="DayOfWeekDisplay"
-                               Text="Day 354/365"
-                               FontSize="11"
-                               Foreground="{StaticResource TextBrush}"
-                               TextAlignment="Center"
-                               FontFamily="Segoe UI"/>
-                </StackPanel>
-
-                <!-- UTC Info -->
-                <StackPanel Grid.Column="1" HorizontalAlignment="Center">
-                    <TextBlock Text="🌍" FontSize="20" TextAlignment="Center" Margin="0,0,0,5"/>
-                    <TextBlock Name="UtcDisplay"
-                               Text="UTC+8"
-                               FontSize="11"
-                               Foreground="{StaticResource TextBrush}"
-                               TextAlignment="Center"
-                               FontFamily="Segoe UI"/>
-                </StackPanel>
-            </Grid>
-
-            <!-- Separator -->
-            <Border Height="1" 
-                    Background="{StaticResource AccentBrush}" 
-                    Opacity="0.3"
-                    Margin="0,15,0,15"/>
-
-            <!-- Control Buttons -->
-            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                <Button Name="AlwaysOnTopButton"
-                        Content="📌"
-                        Width="40"
-                        Height="40"
-                        Background="{StaticResource PrimaryBrush}"
-                        Foreground="White"
-                        FontSize="16"
-                        Click="AlwaysOnTopButton_Click"
-                        ToolTip="Toggle Always On Top"/>
-
-                <Button Name="MinimizeButton"
-                        Content="➖"
-                        Width="40"
-                        Height="40"
-                        Background="{StaticResource PrimaryBrush}"
-                        Foreground="White"
-                        FontSize="16"
-                        Click="MinimizeButton_Click"
-                        ToolTip="Minimize"
-                        Margin="10,0,0,0"/>
-
-                <Button Name="CloseButton"
-                        Content="✕"
-                        Width="40"
-                        Height="40"
-                        Background="#D32F2F"
-                        Foreground="White"
-                        FontSize="16"
-                        Click="CloseButton_Click"
-                        ToolTip="Close"
-                        Margin="10,0,0,0"/>
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,30,0,0" Opacity="0.4">
+                <TextBlock Name="DayOfWeekDisplay" Text="DAY 000" Foreground="White" FontSize="11" Margin="0,0,20,0"/>
+                <TextBlock Name="UtcDisplay" Text="UTC+00:00" Foreground="White" FontSize="11"/>
             </StackPanel>
-
-            <!-- Tip -->
-            <TextBlock Text="💡 Drag to move | Right-click for options"
-                       FontSize="9"
-                       Foreground="{StaticResource TextBrush}"
-                       TextAlignment="Center"
-                       Margin="0,15,0,0"
-                       Opacity="0.7"
-                       FontFamily="Segoe UI"/>
         </StackPanel>
-    </Border>
+
+        <!-- Tooltip for exiting -->
+        <TextBlock Text="Double-click or Right-click to close" 
+                   VerticalAlignment="Bottom" 
+                   HorizontalAlignment="Center" 
+                   Foreground="White" 
+                   Opacity="0.1" 
+                   FontSize="10" 
+                   Margin="0,0,0,20">
+            <TextBlock.Triggers>
+                <EventTrigger RoutedEvent="MouseEnter">
+                    <BeginStoryboard>
+                        <Storyboard>
+                            <DoubleAnimation Storyboard.TargetProperty="Opacity" To="0.5" Duration="0:0:0.3"/>
+                        </Storyboard>
+                    </BeginStoryboard>
+                </EventTrigger>
+                <EventTrigger RoutedEvent="MouseLeave">
+                    <BeginStoryboard>
+                        <Storyboard>
+                            <DoubleAnimation Storyboard.TargetProperty="Opacity" To="0.1" Duration="0:0:0.3"/>
+                        </Storyboard>
+                    </BeginStoryboard>
+                </EventTrigger>
+            </TextBlock.Triggers>
+        </TextBlock>
+    </Grid>
 </Window>
