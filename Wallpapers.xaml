@@ -183,7 +183,7 @@
                         <TextBlock x:Name="StatusLabel" Text="Systems ready for personalization." Cursor="Hand" Foreground="{StaticResource SubTextBrush}" FontSize="12"/>
                     </StackPanel>
                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-                        <Button x:Name="BrowseButton" Content="Import Art" Click="BrowseButton_Click" Style="{StaticResource ActionBtn}" Margin="0,0,15,0"/>
+                        <Button x:Name="BrowseButton" Content="Import Art" Click="BrowseButton_Click" Style="{StaticResource ActionBtn}" Margin="0,0,15,0" Width="160"/>
                         <Button x:Name="SetWallpaperButton" Content="Apply Wallpaper" Click="SetWallpaperButton_Click" Style="{StaticResource PrimaryActionBtn}" Width="160"/>
                     </StackPanel>
                 </Grid>
