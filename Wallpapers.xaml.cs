@@ -41,6 +41,7 @@ namespace ZeroMix
         }
 
         private void CloseButton_Click(object sender, RoutedEventArgs e) => Close();
+        private void Minimize_Click(object sender, RoutedEventArgs e) => this.WindowState = WindowState.Minimized;
 
         // --- LOAD WALLPAPERS ---
         private async Task LoadWallpapersAsync()
@@ -165,14 +166,6 @@ namespace ZeroMix
             wallpaper.IsSelected = true;
             _selectedImagePath = wallpaper.Path;
             StatusLabel.Text = $"Selected: {wallpaper.Name}";
-
-            RefreshUI();
-        }
-
-        private void RefreshUI()
-        {
-            WallpaperListPanel.ItemsSource = null;
-            WallpaperListPanel.ItemsSource = _allWallpapers;
         }
 
         // --- BROWSE & SET ---
@@ -210,7 +203,7 @@ namespace ZeroMix
         {
             if (string.IsNullOrEmpty(_selectedImagePath) || !File.Exists(_selectedImagePath))
             {
-                System.Windows.MessageBox.Show("Silakan pilih wallpaper terlebih dahulu.", "Tidak Ada File", MessageBoxButton.OK, MessageBoxImage.Warning);
+                System.Windows.MessageBox.Show("Please select a wallpaper from the gallery before applying.", "Selection Required", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
 
@@ -274,7 +267,7 @@ if (result == MessageBoxResult.Yes)
                     
                     StatusLabel.Text = "✅ Wallpaper set successfully!";
                     
-                    System.Windows.MessageBox.Show("Wallpaper berhasil diubah!", "Sukses", MessageBoxButton.OK, MessageBoxImage.Information);
+                    System.Windows.MessageBox.Show("Desktop background has been updated successfully.", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
                 }
             }
             catch (Exception ex)
@@ -701,13 +694,49 @@ if (result == MessageBoxResult.Yes)
     // --- HELPER CLASSES ---
     public enum WallpaperType { Image, Video, Animated }
 
-    public class WallpaperItem
+    public class WallpaperItem : System.ComponentModel.INotifyPropertyChanged
     {
-        public string Name { get; set; } = "";
-        public string Path { get; set; } = "";
-        public BitmapImage? Thumbnail { get; set; }
-        public WallpaperType Type { get; set; }
-        public bool IsSelected { get; set; }
+        private string _name = "";
+        private string _path = "";
+        private BitmapImage? _thumbnail;
+        private WallpaperType _type;
+        private bool _isSelected;
+
+        public string Name 
+        { 
+            get => _name; 
+            set { _name = value; OnPropertyChanged(); } 
+        }
+        
+        public string Path 
+        { 
+            get => _path; 
+            set { _path = value; OnPropertyChanged(); } 
+        }
+
+        public BitmapImage? Thumbnail 
+        { 
+            get => _thumbnail; 
+            set { _thumbnail = value; OnPropertyChanged(); } 
+        }
+
+        public WallpaperType Type 
+        { 
+            get => _type; 
+            set { _type = value; OnPropertyChanged(); } 
+        }
+
+        public bool IsSelected 
+        { 
+            get => _isSelected; 
+            set { _isSelected = value; OnPropertyChanged(); } 
+        }
+
+        public event System.ComponentModel.PropertyChangedEventHandler? PropertyChanged;
+        protected void OnPropertyChanged([System.Runtime.CompilerServices.CallerMemberName] string? name = null)
+        {
+            PropertyChanged?.Invoke(this, new System.ComponentModel.PropertyChangedEventArgs(name));
+        }
     }
 
     internal static class NativeMethods
