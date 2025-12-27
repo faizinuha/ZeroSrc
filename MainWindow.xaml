@@ -229,6 +229,12 @@
                                     <TextBlock Text="Wallpapers" VerticalAlignment="Center"/>
                                 </StackPanel>
                             </Button>
+                            <Button x:Name="PluginsButton" Style="{StaticResource NavButtonStyle}" Click="PluginsButton_Click">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="" FontFamily="Segoe MDL2 Assets" FontSize="18" Margin="0,0,15,0" VerticalAlignment="Center"/>
+                                    <TextBlock Text="Plugins" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </Button>
                             <Button x:Name="AboutButton" Style="{StaticResource NavButtonStyle}" Click="AboutButton_Click">
                                 <StackPanel Orientation="Horizontal">
                                     <TextBlock Text="" FontFamily="Segoe MDL2 Assets" FontSize="18" Margin="0,0,15,0" VerticalAlignment="Center"/>
@@ -435,6 +441,96 @@
                                     <TextBlock Text="PROTOCOL SECURE" FontStyle="Italic" Foreground="{StaticResource NeonBlueBrush}" FontSize="14" FontWeight="Bold"/>
                                 </StackPanel>
                             </Border>
+                        </StackPanel>
+                    </ScrollViewer>
+
+                    <!-- Plugins View -->
+                    <ScrollViewer x:Name="PluginsContent" Visibility="Collapsed" VerticalScrollBarVisibility="Auto" BorderThickness="0">
+                        <StackPanel>
+                             <StackPanel.Triggers>
+                                <EventTrigger RoutedEvent="Loaded">
+                                    <BeginStoryboard Storyboard="{StaticResource FadeIn}"/>
+                                </EventTrigger>
+                            </StackPanel.Triggers>
+                            
+                            <TextBlock Text="Extensions" FontSize="36" FontWeight="ExtraBold" Foreground="White" Margin="0,0,0,5"/>
+                            <TextBlock Text="Enhance your experience with custom modules" FontSize="16" Foreground="{StaticResource SubTextBrush}" Margin="0,0,0,45"/>
+
+                            <!-- Plugin List -->
+                             <Border Style="{StaticResource CardBorder}">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    
+                                    <Border Grid.Column="0" Width="60" Height="60" CornerRadius="12" Background="#1A202C" Margin="0,0,20,0">
+                                        <TextBlock Text="☁️" FontSize="30" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </Border>
+                                    
+                                    <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                        <TextBlock Text="Dynamic Weather Wallpaper" Foreground="White" FontSize="18" FontWeight="Bold" Margin="0,0,0,4"/>
+                                        <TextBlock Text="Sync your desktop atmosphere with real-time weather data." Foreground="{StaticResource SubTextBrush}" FontSize="13"/>
+                                        
+                                        <!-- Download/Uninstall Progress -->
+                                        <StackPanel x:Name="PluginProgressPanel" Visibility="Collapsed" Margin="0,10,0,0">
+                                            <TextBlock x:Name="PluginStatusText" Text="Processing Plugin... 0%" Foreground="{StaticResource NeonBlueBrush}" FontSize="12" Margin="0,0,0,5"/>
+                                            <ProgressBar x:Name="PluginProgressBar" Height="4" Maximum="100" Foreground="{StaticResource NeonBlueBrush}" Background="#1A202C" BorderThickness="0"/>
+                                        </StackPanel>
+                                    </StackPanel>
+                                    
+                                    <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                                        <Button x:Name="UninstallPluginBtn" Content="🗑️" Style="{StaticResource ActionButton}" Padding="8" Margin="0,0,10,0" Click="UninstallPluginBtn_Click" Visibility="Collapsed"/>
+                                        <CheckBox x:Name="WeatherPluginToggle" VerticalAlignment="Center" Click="WeatherPluginToggle_Click">
+                                            <CheckBox.LayoutTransform>
+                                                <ScaleTransform ScaleX="1.5" ScaleY="1.5"/>
+                                            </CheckBox.LayoutTransform>
+                                        </CheckBox>
+                                    </StackPanel>
+                                </Grid>
+                             </Border>
+
+                             <!-- Weather Config -->
+                             <Border x:Name="WeatherConfigBorder" Style="{StaticResource CardBorder}" Visibility="Collapsed">
+                                 <StackPanel>
+                                     <TextBlock Text="WEATHER CONFIGURATION" FontWeight="Black" Foreground="{StaticResource NeonBlueBrush}" FontSize="10" Margin="0,0,0,20" />
+                                     
+                                     <TextBlock Text="City Location" Foreground="White" FontSize="12" Margin="0,0,0,8"/>
+                                     <Grid Margin="0,0,0,20">
+                                         <Grid.ColumnDefinitions>
+                                             <ColumnDefinition Width="*"/>
+                                             <ColumnDefinition Width="Auto"/>
+                                         </Grid.ColumnDefinitions>
+                                         <TextBox x:Name="WeatherCityInput" Background="#12161F" Foreground="White" BorderBrush="{StaticResource BorderBrush}" Padding="15,10" VerticalContentAlignment="Center">
+                                            <TextBox.Resources>
+                                                <Style TargetType="Border">
+                                                    <Setter Property="CornerRadius" Value="8"/>
+                                                </Style>
+                                            </TextBox.Resources>
+                                         </TextBox>
+                                         <Button Grid.Column="1" Content="Save" Style="{StaticResource ActionButton}" Padding="25,10" Margin="10,0,0,0" Click="UpdateWeatherLocation_Click"/>
+                                     </Grid>
+                                     
+                                     <TextBlock Text="Assigned Videos" Foreground="White" FontSize="12" Margin="0,0,0,8"/>
+                                     <UniformGrid Columns="3" Margin="0,0,0,10">
+                                         <StackPanel Margin="0,0,5,0">
+                                             <TextBlock Text="☀️ Sunny" Foreground="{StaticResource SubTextBrush}" FontSize="11" Margin="0,0,0,5"/>
+                                             <Button x:Name="BrowseSunnyBtn" Content="Browse" Style="{StaticResource ActionButton}" Height="35" Click="BrowseWeatherVideo_Click" Tag="Sunny"/>
+                                         </StackPanel>
+                                         <StackPanel Margin="5,0,5,0">
+                                             <TextBlock Text="🌧️ Rainy" Foreground="{StaticResource SubTextBrush}" FontSize="11" Margin="0,0,0,5"/>
+                                             <Button x:Name="BrowseRainyBtn" Content="Browse" Style="{StaticResource ActionButton}" Height="35" Click="BrowseWeatherVideo_Click" Tag="Rainy"/>
+                                         </StackPanel>
+                                         <StackPanel Margin="5,0,0,0">
+                                             <TextBlock Text="☁️ Cloudy" Foreground="{StaticResource SubTextBrush}" FontSize="11" Margin="0,0,0,5"/>
+                                             <Button x:Name="BrowseCloudyBtn" Content="Browse" Style="{StaticResource ActionButton}" Height="35" Click="BrowseWeatherVideo_Click" Tag="Cloudy"/>
+                                         </StackPanel>
+                                     </UniformGrid>
+                                 </StackPanel>
+                             </Border>
+
+                             
                         </StackPanel>
                     </ScrollViewer>
 

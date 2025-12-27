@@ -14,6 +14,10 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Media.Animation;
 using System.Windows.Navigation;
+using System.Net.Http;
+using System.Text.Json;
+using System.Threading;
+using System.Windows.Threading;
 
 namespace ZeroMix
 {
@@ -22,11 +26,31 @@ namespace ZeroMix
         private string? _selectedImagePath;
         private ObservableCollection<WallpaperItem> _allWallpapers = new();
         private static VideoWallpaperWindow? _videoWallpaperWindow;
+        private System.ComponentModel.ICollectionView _wallpaperView;
 
         public Wallpapers()
         {
             InitializeComponent();
-            WallpaperListPanel.ItemsSource = _allWallpapers;
+            _wallpaperView = System.Windows.Data.CollectionViewSource.GetDefaultView(_allWallpapers);
+            _wallpaperView.Filter = FilterCallback;
+            WallpaperListPanel.ItemsSource = _wallpaperView;
+        }
+
+        private bool FilterCallback(object item)
+        {
+            if (item is WallpaperItem wp)
+            {
+                if (FilterAll.IsChecked == true) return true;
+                if (FilterImages.IsChecked == true) return wp.Type == WallpaperType.Image;
+                if (FilterVideos.IsChecked == true) return wp.Type == WallpaperType.Video;
+            }
+            return true;
+        }
+
+        private void Filter_Click(object sender, RoutedEventArgs e)
+        {
+            _wallpaperView.Refresh();
+            UpdateCount();
         }
 
         private async void Window_Loaded(object sender, RoutedEventArgs e)
@@ -287,12 +311,12 @@ if (result == MessageBoxResult.Yes)
         {
             try
             {
-                // Create output path in temp directory
-                var tempDir = Path.Combine(Path.GetTempPath(), "ZeroMix", "Wallpapers");
-                Directory.CreateDirectory(tempDir);
+                // Create output path in Roaming directory as requested
+                var roamingDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "ZeroMix", "Temp");
+                Directory.CreateDirectory(roamingDir);
                 
                 var fileName = Path.GetFileNameWithoutExtension(inputPath);
-                var outputPath = Path.Combine(tempDir, $"{fileName}_optimized.mp4");
+                var outputPath = Path.Combine(roamingDir, $"{fileName}_optimized.mp4");
 
                 // Delete existing file if exists (prevent FFmpeg error)
                 if (File.Exists(outputPath))
