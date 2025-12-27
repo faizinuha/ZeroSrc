@@ -64,7 +64,6 @@ namespace ZeroMix
         private PerformanceCounter? _diskCounter;
         private DispatcherTimer? _performanceTimer;
         private DriveInfo? _systemDrive;
-        private Plugins.WeatherPlugin _weatherPlugin = new Plugins.WeatherPlugin();
         private string? _initialWallpaperPath;
 
         public MainWindow()
@@ -311,11 +310,6 @@ namespace ZeroMix
             DeactivateAllTabs();
             PluginsContent.Visibility = Visibility.Visible;
             PluginsButton.Background = (System.Windows.Media.SolidColorBrush)FindResource("NavSelectedBrush");
-            
-            // Sync UI state
-            WeatherPluginToggle.IsChecked = _weatherPlugin.IsActive;
-            WeatherCityInput.Text = _weatherPlugin.City;
-            WeatherConfigBorder.Visibility = _weatherPlugin.IsActive ? Visibility.Visible : Visibility.Collapsed;
         }
 
         private void HomeButton_Click(object sender, RoutedEventArgs e)
@@ -541,121 +535,6 @@ namespace ZeroMix
         }
 
         // --- Plugins Logic ---
-
-        private async void WeatherPluginToggle_Click(object sender, RoutedEventArgs e)
-        {
-            if (WeatherPluginToggle.IsChecked == true)
-            {
-                // Simulate Download
-                PluginProgressPanel.Visibility = Visibility.Visible;
-                WeatherPluginToggle.IsEnabled = false;
-
-                for (int i = 0; i <= 100; i += 5)
-                {
-                    PluginStatusText.Text = $"Downloading Plugin Dynamic Progress... {i}%";
-                    PluginProgressBar.Value = i;
-                    await Task.Delay(100);
-                }
-
-                PluginProgressPanel.Visibility = Visibility.Collapsed;
-                WeatherPluginToggle.IsEnabled = true;
-                UninstallPluginBtn.Visibility = Visibility.Visible;
-                
-                WeatherConfigBorder.Visibility = Visibility.Visible;
-                _weatherPlugin.Start();
-            }
-            else
-            {
-                WeatherConfigBorder.Visibility = Visibility.Collapsed;
-                UninstallPluginBtn.Visibility = Visibility.Collapsed;
-                _weatherPlugin.Stop();
-                Wallpapers.StopVideoWallpaper();
-            }
-        }
-
-        private async void UninstallPluginBtn_Click(object sender, RoutedEventArgs e)
-        {
-            var result = System.Windows.MessageBox.Show("Are you sure you want to uninstall this plugin? Settings will be reset.", "Confirm Uninstall", MessageBoxButton.YesNo, MessageBoxImage.Warning);
-            if (result != MessageBoxResult.Yes) return;
-
-            PluginProgressPanel.Visibility = Visibility.Visible;
-            UninstallPluginBtn.IsEnabled = false;
-            WeatherPluginToggle.IsEnabled = false;
-
-            for (int i = 100; i >= 0; i -= 5)
-            {
-                PluginStatusText.Text = $"Uninstalling Plugin... {i}%";
-                PluginProgressBar.Value = i;
-                await Task.Delay(50);
-            }
-
-            WeatherPluginToggle.IsChecked = false;
-            WeatherPluginToggle.IsEnabled = true;
-            UninstallPluginBtn.IsEnabled = true;
-            UninstallPluginBtn.Visibility = Visibility.Collapsed;
-            PluginProgressPanel.Visibility = Visibility.Collapsed;
-            WeatherConfigBorder.Visibility = Visibility.Collapsed;
-            
-            _weatherPlugin.Stop();
-            Wallpapers.StopVideoWallpaper();
-            
-            // Auto revert to default
-            RestoreDefaultWallpaper();
-            
-            System.Windows.MessageBox.Show("Plugin uninstalled and wallpaper reverted.", "Success");
-        }
-
-        private void RestoreDefaultWallpaper()
-        {
-            Wallpapers.StopVideoWallpaper();
-            if (!string.IsNullOrEmpty(_initialWallpaperPath) && File.Exists(_initialWallpaperPath))
-            {
-                try
-                {
-                    NativeMethods.SetWallpaper(_initialWallpaperPath);
-                }
-                catch (Exception ex)
-                {
-                    System.Diagnostics.Debug.WriteLine($"Failed to restore wallpaper: {ex.Message}");
-                }
-            }
-        }
-
-       
-
-        private void BrowseWeatherVideo_Click(object sender, RoutedEventArgs e)
-        {
-            var btn = (System.Windows.Controls.Button)sender;
-            string type = btn.Tag.ToString();
-
-            var dialog = new Microsoft.Win32.OpenFileDialog
-            {
-                Title = $"Select Video for {type} Weather",
-                Filter = "Video Files|*.mp4;*.wmv;*.mov;*.avi|All files (*.*)|*.*"
-            };
-
-            if (dialog.ShowDialog() == true)
-            {
-                switch (type)
-                {
-                    case "Sunny": _weatherPlugin.SunnyVideoPath = dialog.FileName; btn.Content = "☀️ Selected"; break;
-                    case "Rainy": _weatherPlugin.RainyVideoPath = dialog.FileName; btn.Content = "🌧️ Selected"; break;
-                    case "Cloudy": _weatherPlugin.CloudyVideoPath = dialog.FileName; btn.Content = "☁️ Selected"; break;
-                }
-                
-                if (_weatherPlugin.IsActive) _ = _weatherPlugin.CheckWeatherAsync();
-            }
-        }
-
-        private void UpdateWeatherLocation_Click(object sender, RoutedEventArgs e)
-        {
-            if (!string.IsNullOrWhiteSpace(WeatherCityInput.Text))
-            {
-                _weatherPlugin.City = WeatherCityInput.Text;
-                _ = _weatherPlugin.CheckWeatherAsync();
-                System.Windows.MessageBox.Show($"Location updated to {_weatherPlugin.City}", "Success");
-            }
-        }
 
     }
 }
