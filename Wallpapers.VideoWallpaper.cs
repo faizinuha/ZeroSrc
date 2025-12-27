@@ -52,5 +52,12 @@ namespace ZeroMix
                 Debug.WriteLine($"Error stopping video wallpaper: {ex.Message}");
             }
         }
+
+        public static void LaunchVideoWallpaperStatic(string videoPath)
+        {
+            StopVideoWallpaper();
+            _videoWallpaperWindow = new VideoWallpaperWindow(videoPath);
+            _videoWallpaperWindow.Show();
+        }
     }
 }

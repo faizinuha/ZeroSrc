@@ -117,6 +117,7 @@
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="*"/>
                 <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
 
             <!-- Top Header -->
@@ -132,6 +133,13 @@
                     </StackPanel>
                 </Grid>
             </Border>
+
+            <!-- Filters Section -->
+            <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="35,10" VerticalAlignment="Bottom">
+                <RadioButton Content="All" x:Name="FilterAll" IsChecked="True" Style="{StaticResource {x:Type ToggleButton}}" Margin="0,0,10,0" Padding="15,5" Click="Filter_Click"/>
+                <RadioButton Content="Images" x:Name="FilterImages" Style="{StaticResource {x:Type ToggleButton}}" Margin="0,0,10,0" Padding="15,5" Click="Filter_Click"/>
+                <RadioButton Content="Videos" x:Name="FilterVideos" Style="{StaticResource {x:Type ToggleButton}}" Padding="15,5" Click="Filter_Click"/>
+            </StackPanel>
 
             <!-- Main Content Area -->
             <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Hidden" Margin="25,10">
@@ -176,8 +184,9 @@
                 </ItemsControl>
             </ScrollViewer>
 
+
             <!-- Bottom Action Footer -->
-            <Border Grid.Row="2" Padding="35,25" Background="#0A0A0C" BorderThickness="0,1,0,0" BorderBrush="{StaticResource BorderBrush}" CornerRadius="0,0,16,16">
+            <Border Grid.Row="3" Padding="35,25" Background="#0A0A0C" BorderThickness="0,1,0,0" BorderBrush="{StaticResource BorderBrush}" CornerRadius="0,0,16,16">
                 <Grid>
                     <StackPanel VerticalAlignment="Center">
                         <TextBlock x:Name="StatusLabel" Text="Systems ready for personalization." Cursor="Hand" Foreground="{StaticResource SubTextBrush}" FontSize="12"/>
