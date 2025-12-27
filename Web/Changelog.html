@@ -1,326 +1,392 @@
 <!DOCTYPE html>
 <html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="Changelog ZeroMix - Riwayat update dan fitur terbaru dari aplikasi Smart Launcher."
+    />
+    <title>ZeroMix – Changelog</title>
+    <link rel="icon" href="./zeromix-high-resolution-logo-transparent.png" />
+    <link rel="stylesheet" href="style.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+      integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    />
+    <style>
+      .timeline-content.card {
+        background: #0a0a0f;
+        border-radius: 19px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        border: 1px solid #0a0a0f;
+        padding: 25px;
+        position: relative;
+      }
+      .release-actions {
+        margin-top: 20px;
+      }
+      .assets-sidebar {
+        position: fixed;
+        top: 0;
+        right: -400px; /* Start off-screen */
+        width: 350px;
+        height: 100%;
+        background-color: #fff;
+        box-shadow: -2px 0 15px rgba(0, 0, 0, 0.15);
+        z-index: 1001;
+        transition: right 0.3s ease-in-out;
+        display: flex;
+        flex-direction: column;
+        border-left: 1px solid #ddd;
+      }
+      .assets-sidebar.show {
+        right: 0;
+      }
+      .sidebar-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1rem 1.25rem;
+        background-color: #f7f7f7;
+        border-bottom: 1px solid #ddd;
+      }
+      .sidebar-header h4 {
+        margin: 0;
+        font-size: 1.1rem;
+        font-weight: 600;
+      }
+      .close-btn {
+        background: none;
+        border: none;
+        color: #555;
+        font-size: 28px;
+        cursor: pointer;
+        line-height: 1;
+        padding: 0;
+      }
+      .close-btn:hover {
+        color: #000;
+      }
+      .sidebar-content {
+        padding: 20px;
+        overflow-y: auto;
+        flex-grow: 1;
+      }
+      #sidebar-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.4);
+        z-index: 1000;
+        backdrop-filter: blur(2px);
+      }
+      #sidebar-overlay.show {
+        display: block;
+      }
+      .asset-link {
+        display: block;
+        padding: 12px 18px;
+        background: #f9f9f9;
+        color: #333;
+        margin-bottom: 12px;
+        border-radius: 6px;
+        text-decoration: none;
+        transition: background-color 0.2s, box-shadow 0.2s;
+        border: 1px solid #eee;
+      }
+      .asset-link:hover {
+        background-color: #f0f0f0;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+      }
+      .asset-link .file-name {
+        font-weight: 600;
+        color: #007bff;
+      }
+      .asset-link .file-size {
+        font-size: 0.85em;
+        color: #666;
+        margin-top: 4px;
+      }
+    </style>
+  </head>
 
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description"
-    content="Changelog ZeroMix - Riwayat update dan fitur terbaru dari aplikasi Smart Launcher." />
-  <title>ZeroMix – Changelog</title>
-  <link rel="icon" href="./zeromix-high-resolution-logo-transparent.png">
-  <link rel="stylesheet" href="style.css" />
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
-    integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA=="
-    crossorigin="anonymous" referrerpolicy="no-referrer" />
-</head>
+  <body>
+    <!-- Navigation Bar -->
+    <nav class="navbar">
+      <div class="nav-container">
+        <a href="index.html" class="nav-logo">ZeroMix</a>
+        <button class="menu-toggle" aria-label="Toggle menu">
+          <i class="fas fa-bars"></i>
+        </button>
+        <ul class="nav-menu">
+          <li class="nav-item">
+            <a href="Documents.html" data-translate="Documents">Documents</a>
+          </li>
+          <li class="nav-item">
+            <a href="Changelog.html" data-translate="Changelog">Changelog</a>
+          </li>
+          <li class="nav-item">
+            <a href="About.html" data-translate="Tentang">Tentang</a>
+          </li>
+          <li class="nav-item">
+            <a href="Support.html" data-translate="Support">Support</a>
+          </li>
+          <li class="nav-item language-switcher">
+            <button class="lang-btn active" data-lang="id">🇮🇩 ID</button>
+            <button class="lang-btn" data-lang="en">🇺🇸 EN</button>
+          </li>
+        </ul>
+      </div>
+    </nav>
 
-<body>
-  <!-- Navigation Bar -->
-  <nav class="navbar">
-    <div class="nav-container">
-      <a href="index.html" class="nav-logo">ZeroMix</a>
-      <button class="menu-toggle" aria-label="Toggle menu">
-        <i class="fas fa-bars"></i>
-      </button>
-      <ul class="nav-menu">
-        <li class="nav-item"><a href="Documents.html" data-translate="Documents">Documents</a></li>
-        <li class="nav-item"><a href="Changelog.html" data-translate="Changelog">Changelog</a></li>
-        <li class="nav-item"><a href="About.html" data-translate="Tentang">Tentang</a></li>
-        <li class="nav-item"><a href="Support.html" data-translate="Support">Support</a></li>
-        <li class="nav-item language-switcher">
-          <button class="lang-btn active" data-lang="id">🇮🇩 ID</button>
-          <button class="lang-btn" data-lang="en">🇺🇸 EN</button>
-        </li>
-      </ul>
-    </div>
-  </nav>
+    <!-- Hero Section -->
+    <header>
+      <div class="header-content">
+        <h1>Changelog</h1>
+        <p>Riwayat Update dan Perkembangan ZeroMix</p>
+      </div>
+    </header>
 
-  <!-- Hero Section -->
-  <header>
-    <div class="header-content">
-      <h1>Changelog</h1>
-      <p>Riwayat Update dan Perkembangan ZeroMix</p>
-    </div>
-  </header>
+    <!-- Changelog Content -->
+    <section>
+      <h2>✨ Riwayat Update</h2>
 
-  <!-- Changelog Content -->
-  <section>
-    <h2>✨ Riwayat Update</h2>
+      <div class="changelog-timeline">
+        <!-- Release data will be loaded here automatically -->
+      </div>
+    </section>
 
-    <div class="changelog-timeline">
-      <!-- Version 2.2.2 - 2.3.4 - Beta Pre-release -->
-      <div class="timeline-item reveal">
-        <div class="timeline-marker">
-          <span class="version-badge">v2.2.2 - v2.3.4</span>
+    <!-- Coming Soon Section -->
+    <section class="reveal" style="text-align: center">
+      <h2>🎯 Simulasi Update</h2>
+      <p>Ini Hanya Demo ya</p>
+      <div class="coming-soon-items">
+        <div class="coming-soon-card">
+          <i class="fas fa-moon"></i>
+          <h4>Dark Mode Sempurna</h4>
+          <p>Mode gelap yang lebih baik dengan tema yang dapat disesuaikan</p>
         </div>
-        <div class="timeline-content">
-          <h3>v2.2.2 - v2.3.4 - Beta Pre-release</h3>
-          <div class="changelog-tag tag-update">Beta</div>
-          <div class="changelog-tag tag-feature">RoadMap</div>
-
-          <h4>🚧 RoadMap — Update Terbaru</h4>
-          <p style="font-style: italic; color: #888;">Versi beta dengan berbagai fitur eksperimental yang sedang
-            dikembangkan</p>
-
-          <h4>🚀 Peningkatan Performa</h4>
-          <ul>
-            <li><strong>Logika Match SearchOverlay:</strong> Penambahan logika pencarian yang lebih canggih
-              <ul>
-                <li><em>(2 + 2 * 4 = … masih jadi misteri developer)</em> 🤔</li>
-              </ul>
-            </li>
-            <li><strong>FFMPEG untuk Optimalisasi Wallpaper Video:</strong> Integrasi FFMPEG untuk performa wallpaper
-              video yang lebih baik</li>
-            <li><strong>…</strong></li>
-            <li><strong>…</strong></li>
-            <li><strong>Coming Soon…</strong> 🔜</li>
-          </ul>
-
-          <h4>🐛 Perbaikan Bug</h4>
-          <ul>
-            <li><strong>CLI Versi Sebelumnya:</strong> Perbaikan pada CLI versi sebelumnya (masih dalam proses
-              penyempurnaan).</li>
-            <li><strong>Wallpaper Video:</strong> Perbaikan fitur Wallpaper Video agar lebih stabil.</li>
-            <li><strong>…</strong></li>
-          </ul>
-
-          <h4>📝 Catatan Beta</h4>
-          <ul>
-            <li>⚠️ Ini adalah versi <strong>Beta Pre-release</strong> - beberapa fitur mungkin belum stabil</li>
-            <li>🔧 Masih dalam tahap pengembangan aktif</li>
-            <li>💡 Feedback dan bug report sangat dihargai!</li>
-            <li>📖 Pantau terus update selanjutnya untuk fitur-fitur baru</li>
-          </ul>
+        <div class="coming-soon-card">
+          <i class="fas fa-sync"></i>
+          <h4>Cloud Sync</h4>
+          <p>Sinkronisasi pengaturan di berbagai perangkat</p>
+        </div>
+        <div class="coming-soon-card">
+          <i class="fas fa-puzzle-piece"></i>
+          <h4>Plugin System</h4>
+          <p>Dukungan plugin untuk ekstensibilitas lebih lanjut</p>
+        </div>
+        <div class="coming-soon-card">
+          <i class="fas fa-code"></i>
+          <h4>Command Palette</h4>
+          <p>Palet perintah untuk power user yang lebih advanced</p>
         </div>
       </div>
+    </section>
 
-      <!-- Version 2.0.0 - 2.2.2 -->
-      <div class="timeline-item reveal">
-        <div class="timeline-marker">
-          <span class="version-badge">v2.0.0 - 2.2.2</span>
-        </div>
-        <div class="timeline-content">
-          <h3>Versi 2.0.0 - 2.2.2</h3>
-          <div class="changelog-tag tag-update">Update Besar</div>
-          <ul>
-            <li><strong>🐛 Perbaikan Bug:</strong> Memperbaiki masalah di mana beberapa aplikasi tidak muncul dalam
-              daftar, terutama aplikasi yang diinstal melalui Microsoft Store.</li>
-            <li><strong>⚡ Peningkatan Performa:</strong> Optimalisasi algoritma pencarian untuk hasil yang lebih cepat
-              dan relevan.</li>
-            <li><strong>🎨 Peningkatan UI/UX:</strong> Penyempurnaan antarmuka pengguna untuk pengalaman yang lebih
-              mulus dan intuitif.</li>
-            <li><strong>🎨 Menambahkan Wallpaper:</strong> Koleksi wallpaper baru untuk desktop aplikasi.</li>
-            <li><strong>🐛 Perbaikan Penutupan Aplikasi:</strong> Memperbaiki issue saat menutup aplikasi.</li>
-            <li><strong>🪟 Ikon Tray dengan Menu:</strong> Menambahkan ikon di system tray dengan menu konteks.</li>
-            <li><strong>📊 Monitor CPU & RAM:</strong> Menampilkan performa real-time CPU dan RAM di dashboard.</li>
-            <li><strong>🧹 Pembersihan Temp:</strong> Menambahkan tombol untuk proses pembersihan Temp & %Temp%.</li>
-          </ul>
-        </div>
+    <!-- CTA Section -->
+    <section class="cta-section reveal">
+      <h2>Ingin Update Terbaru?</h2>
+      <p>
+        Aktifkan update otomatis atau kunjungi GitHub untuk download versi
+        terbaru.
+      </p>
+      <a
+        href="https://github.com/faizinuha/ZeroMix/releases"
+        target="_blank"
+        rel="noopener noreferrer"
+        class="btn"
+      >
+        Lihat di GitHub
+      </a>
+    </section>
+
+    <!-- Assets Sidebar -->
+    <div id="assets-sidebar" class="assets-sidebar">
+      <div class="sidebar-header">
+        <h4>Download Files</h4>
+        <button
+          onclick="hideAssetsSidebar()"
+          class="close-btn"
+          aria-label="Close"
+        >
+          &times;
+        </button>
       </div>
-
-      <!-- Version 1.8.0 - 1.9.5 -->
-      <div class="timeline-item reveal">
-        <div class="timeline-marker">
-          <span class="version-badge">v1.8.0 - 1.9.5</span>
-        </div>
-        <div class="timeline-content">
-          <h3>Versi 1.8.0 - 1.9.5</h3>
-          <div class="changelog-tag tag-update">Update Besar</div>
-          <ul>
-            <li><strong>🐛 Perbaikan Bug:</strong> Memperbaiki masalah di mana beberapa aplikasi tidak muncul dalam
-              daftar, terutama aplikasi yang diinstal melalui Microsoft Store.</li>
-            <li><strong>⚡ Peningkatan Performa:</strong> Optimalisasi algoritma pencarian untuk hasil yang lebih cepat
-              dan relevan.</li>
-            <li><strong>🎨 Peningkatan UI/UX:</strong> Penyempurnaan antarmuka pengguna untuk pengalaman yang lebih
-              mulus dan intuitif.</li>
-            <li><strong>🎨 Menambahkan Wallpaper:</strong> Koleksi wallpaper baru untuk desktop aplikasi.</li>
-            <li><strong>🐛 Perbaikan Penutupan Aplikasi:</strong> Memperbaiki issue saat menutup aplikasi.</li>
-            <li><strong>🪟 Ikon Tray dengan Menu:</strong> Menambahkan ikon di system tray dengan menu konteks.</li>
-            <li><strong>📊 Monitor CPU & RAM:</strong> Menampilkan performa real-time CPU dan RAM di dashboard.</li>
-            <li><strong>🧹 Pembersihan Temp:</strong> Menambahkan tombol untuk proses pembersihan Temp & %Temp%.</li>
-          </ul>
-        </div>
-      </div>
-
-      <!-- Version 1.6.0 - 1.6.6 -->
-      <div class="timeline-item reveal">
-        <div class="timeline-marker">
-          <span class="version-badge">v1.6.0 - 1.6.6</span>
-        </div>
-        <div class="timeline-content">
-          <h3>Versi 1.6.0 - 1.6.6</h3>
-          <div class="changelog-tag tag-feature">Fitur Baru</div>
-          <ul>
-            <li><strong>📌 Prioritas Saran Cerdas:</strong> Implementasi sistem untuk menampilkan aplikasi yang paling
-              sering digunakan di urutan teratas.</li>
-            <li><strong>🎯 Kustomisasi Tampilan:</strong> Opsi untuk mengubah urutan kategori (misalnya, Pencarian Web
-              di atas Aplikasi Desktop).</li>
-            <li><strong>⚡ Optimasi Performa:</strong> Peningkatan kecepatan dalam memuat dan menampilkan daftar
-              aplikasi.</li>
-            <li><strong>🔄 Pembaruan Otomatis Cerdas:</strong>
-              <ul>
-                <li>Pengecekan Senyap - Memeriksa pembaruan di latar belakang tanpa mengganggu</li>
-                <li>Notifikasi Elegan - Notifikasi di pojok layar dengan changelog</li>
-                <li>Instalasi Mulus - Unduh dan update secara otomatis dalam mode senyap</li>
-              </ul>
-            </li>
-            <li><strong>⌨️ Manajemen Shortcut Kustom:</strong>
-              <ul>
-                <li>Jendela khusus untuk membuat dan mengelola pintasan keyboard</li>
-                <li>Perekaman hotkey intuitif dengan deteksi otomatis</li>
-                <li>Penemuan aplikasi cerdas dari Start Menu dan Desktop</li>
-              </ul>
-            </li>
-            <li><strong>🎨 Ganti Logo ZeroMix</strong></li>
-            <li><strong>📦 Codesign dengan success rate 50%</strong></li>
-          </ul>
-        </div>
-      </div>
-
-      <!-- Version 1.6.0 -->
-      <div class="timeline-item reveal">
-        <div class="timeline-marker">
-          <span class="version-badge">v1.6.0</span>
-        </div>
-        <div class="timeline-content">
-          <h3>Versi 1.6.0</h3>
-          <div class="changelog-tag tag-feature">Fitur Baru</div>
-          <ul>
-            <li><strong>🎨 Peningkatan UI/UX:</strong>
-              <ul>
-                <li>Ikon untuk membedakan antara Aplikasi Desktop (💻) dan Pencarian Web (🔍)</li>
-                <li>Pengelompokan hasil pencarian ke dalam kategori yang rapi</li>
-                <li>Tampilan jendela modern dengan efek blur (frosted glass) ala macOS</li>
-              </ul>
-            </li>
-            <li><strong>🔍 Perbaikan Logika Pencarian:</strong>
-              <ul>
-                <li>Perbaikan bug Enter untuk memprioritaskan saran di daftar</li>
-                <li>Menghilangkan auto-enter yang tidak perlu saat memilih saran</li>
-              </ul>
-            </li>
-            <li><strong>🔧 Peningkatan Stabilitas:</strong> Berbagai perbaikan kecil untuk stabilitas aplikasi.</li>
-          </ul>
-        </div>
-      </div>
-
-      <!-- Version 1.5.5 -->
-      <div class="timeline-item reveal">
-        <div class="timeline-marker">
-          <span class="version-badge">v1.5.5</span>
-        </div>
-        <div class="timeline-content">
-          <h3>Versi 1.5.5</h3>
-          <div class="changelog-tag tag-patch">Patch</div>
-          <ul>
-            <li>🐛 Perbaikan Bug Minor</li>
-            <li>⚡ Peningkatan Performa Aplikasi</li>
-            <li>🌙 Penambahan Fitur Dark Mode (Coming Soon)</li>
-            <li>🎨 Peningkatan UI/UX Umum</li>
-          </ul>
-        </div>
-      </div>
-
-      <!-- Version 1.2.0 - 1.4.0 -->
-      <div class="timeline-item reveal">
-        <div class="timeline-marker">
-          <span class="version-badge">v1.2.0 - 1.4.0</span>
-        </div>
-        <div class="timeline-content">
-          <h3>Versi 1.2.0 - 1.3.0 - 1.4.0</h3>
-          <div class="changelog-tag tag-maintenance">Maintenance</div>
-          <ul>
-            <li>Tidak ada pembaruan signifikan - Tahap stabilisasi awal</li>
-          </ul>
-        </div>
-      </div>
-
-      <!-- Version 1.1.0 -->
-      <div class="timeline-item reveal">
-        <div class="timeline-marker">
-          <span class="version-badge">v1.1.0</span>
-        </div>
-        <div class="timeline-content">
-          <h3>Versi 1.1.0</h3>
-          <div class="changelog-tag tag-maintenance">Maintenance</div>
-          <ul>
-            <li>Tidak ada pembaruan signifikan - Perbaikan kecil dan stabilisasi</li>
-          </ul>
-        </div>
-      </div>
-
-      <!-- Version 1.0.0 -->
-      <div class="timeline-item reveal">
-        <div class="timeline-marker">
-          <span class="version-badge">v1.0.0</span>
-        </div>
-        <div class="timeline-content">
-          <h3>Versi 1.0.0</h3>
-          <div class="changelog-tag tag-launch">Launch</div>
-          <ul>
-            <li>🚀 Rilis awal dengan fitur Smart Launcher</li>
-            <li>🔍 Deteksi aplikasi otomatis</li>
-            <li>⌨️ Shortcut desktop otomatis</li>
-            <li>🎯 Overlay pencarian dengan Spotlight-like interface</li>
-          </ul>
-        </div>
+      <div id="assets-list" class="sidebar-content">
+        <!-- Asset links will be injected here -->
       </div>
     </div>
-  </section>
+    <div id="sidebar-overlay" onclick="hideAssetsSidebar()"></div>
 
-  <!-- Coming Soon Section -->
-  <section class="reveal" style="text-align: center;">
-    <h2>🎯 Simulasi Update</h2>
-    <p>Ini Hanya Demo ya</p>
-    <div class="coming-soon-items">
-      <div class="coming-soon-card">
-        <i class="fas fa-moon"></i>
-        <h4>Dark Mode Sempurna</h4>
-        <p>Mode gelap yang lebih baik dengan tema yang dapat disesuaikan</p>
-      </div>
-      <div class="coming-soon-card">
-        <i class="fas fa-sync"></i>
-        <h4>Cloud Sync</h4>
-        <p>Sinkronisasi pengaturan di berbagai perangkat</p>
-      </div>
-      <div class="coming-soon-card">
-        <i class="fas fa-puzzle-piece"></i>
-        <h4>Plugin System</h4>
-        <p>Dukungan plugin untuk ekstensibilitas lebih lanjut</p>
-      </div>
-      <div class="coming-soon-card">
-        <i class="fas fa-code"></i>
-        <h4>Command Palette</h4>
-        <p>Palet perintah untuk power user yang lebih advanced</p>
-      </div>
-    </div>
-  </section>
+    <!-- Footer -->
+    <footer>
+      <p>&copy; 2025 ZeroMix Project – Dibuat dengan ❤️ oleh Zaki</p>
+      <p>
+        <a
+          href="https://github.com/faizinuha/ZeroMix"
+          target="_blank"
+          rel="noopener noreferrer"
+          >GitHub</a
+        >
+        | <a href="index.html">Home</a> |
+        <a href="mailto:rozakadm@gmail.com">Email</a> |
+        <a
+          href="https://sociabuzz.com/zuax/tribe"
+          target="_blank"
+          rel="noopener noreferrer"
+          >Sociabuzz</a
+        >
+      </p>
+    </footer>
 
-  <!-- CTA Section -->
-  <section class="cta-section reveal">
-    <h2>Ingin Update Terbaru?</h2>
-    <p>Aktifkan update otomatis atau kunjungi GitHub untuk download versi terbaru.</p>
-    <a href="https://github.com/faizinuha/ZeroMix/releases" target="_blank" rel="noopener noreferrer" class="btn">
-      Lihat di GitHub
-    </a>
-  </section>
+    <!-- Translations & Auto-Translator -->
+    <script src="translations.js"></script>
+    <script src="auto-translator.js"></script>
+    <!-- Main Scripts -->
+    <script src="script.js"></script>
+    <script>
+      // Global store for release assets
+      window.releaseAssets = {};
 
-  <!-- Footer -->
-  <footer>
-    <p>&copy; 2025 ZeroMix Project – Dibuat dengan ❤️ oleh Zaki</p>
-    <p>
-      <a href="https://github.com/faizinuha/ZeroMix" target="_blank" rel="noopener noreferrer">GitHub</a> |
-      <a href="index.html">Home</a> |
-      <a href="mailto:rozakadm@gmail.com">Email</a> |
-      <a href="https://sociabuzz.com/zuax/tribe" target="_blank" rel="noopener noreferrer">Sociabuzz</a>
-    </p>
-  </footer>
+      function showAssetsSidebar(releaseId) {
+        const assets = window.releaseAssets[releaseId];
+        if (!assets) return;
 
-  <!-- Translations & Auto-Translator -->
-  <script src="translations.js"></script>
-  <script src="auto-translator.js"></script>
-  <!-- Main Scripts -->
-  <script src="script.js"></script>
-</body>
+        const assetsListDiv = document.getElementById("assets-list");
+        assetsListDiv.innerHTML = ""; // Clear previous assets
 
+        assets.forEach((asset) => {
+          const sizeInMB = (asset.size / 1024 / 1024).toFixed(2);
+          const assetLink = document.createElement("a");
+          assetLink.href = asset.browser_download_url;
+          assetLink.target = "_blank";
+          assetLink.rel = "noopener noreferrer";
+          assetLink.classList.add("asset-link");
+          assetLink.innerHTML = `
+                <div class="file-name">${asset.name}</div>
+                <div class="file-size">${sizeInMB} MB</div>
+            `;
+          assetsListDiv.appendChild(assetLink);
+        });
+
+        document.getElementById("assets-sidebar").classList.add("show");
+        document.getElementById("sidebar-overlay").classList.add("show");
+      }
+
+      function hideAssetsSidebar() {
+        document.getElementById("assets-sidebar").classList.remove("show");
+        document.getElementById("sidebar-overlay").classList.remove("show");
+      }
+
+      async function fetchReleases() {
+        try {
+          const response = await fetch(
+            "https://api.github.com/repos/faizinuha/ZeroMix-Win64Bit/releases"
+          );
+          if (!response.ok) {
+            console.error("GitHub API request failed:", response.status);
+            const timeline = document.querySelector(".changelog-timeline");
+            timeline.innerHTML =
+              '<p style="text-align: center; color: #ff6b6b;">Failed to load changelog. Please try again later.</p>';
+            return;
+          }
+          const releases = await response.json();
+
+          // Store assets in the global variable
+          window.releaseAssets = {};
+          releases.forEach((release) => {
+            window.releaseAssets[release.id] = release.assets;
+          });
+
+          const changelogTimeline = document.querySelector(
+            ".changelog-timeline"
+          );
+
+          // Clear the timeline before adding new elements
+          changelogTimeline.innerHTML = "";
+
+          if (releases.length > 0) {
+            document.querySelector("section h2").style.display = "block";
+          } else {
+            document.querySelector("section h2").style.display = "none";
+          }
+
+          releases.forEach((release) => {
+            // Do not display if there is no release tag
+            if (!release.tag_name) {
+              return;
+            }
+
+            // Simple Markdown to HTML conversion
+            let releaseBody =
+              release.body || "No description for this release.";
+            releaseBody = releaseBody
+              .replace(/&/g, "&amp;")
+              .replace(/</g, "&lt;")
+              .replace(/>/g, "&gt;")
+              .replace(/\r\n/g, "<br>")
+              .replace(/### (.*)/g, "<h4>$1</h4>")
+              .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>")
+              .replace(/\* (.*)/g, "<li>$1</li>");
+
+            const timelineItem = document.createElement("div");
+            timelineItem.classList.add("timeline-item");
+            timelineItem.setAttribute("data-version", release.tag_name);
+
+            let downloadHtml = "";
+            if (release.assets && release.assets.length > 0) {
+              if (release.assets.length === 1) {
+                downloadHtml = `<a href="${release.assets[0].browser_download_url}" target="_blank" rel="noopener noreferrer" class="btn">Download</a>`;
+              } else {
+                downloadHtml = `<button class="btn" onclick="showAssetsSidebar('${release.id}')">View Downloads</button>`;
+              }
+            }
+
+            timelineItem.innerHTML = `
+                    <div class="timeline-marker">
+                        <span class="version-badge">${release.tag_name}</span>
+                    </div>
+                    <div class="timeline-content card">
+                        <h3>${release.name}</h3>
+                        <div class="changelog-tag ${
+                          release.prerelease ? "tag-beta" : "tag-update"
+                        }">${
+              release.prerelease ? "Pre-release" : "Stable"
+            }</div>
+                        <p style="font-size: 0.9em; color: #888;">Released on: ${new Date(
+                          release.published_at
+                        ).toLocaleDateString("id-ID", {
+                          day: "numeric",
+                          month: "long",
+                          year: "numeric",
+                        })}</p>
+                        <ul>${releaseBody}</ul>
+                        <div class="release-actions">
+                            ${downloadHtml}
+                        </div>
+                    </div>
+                `;
+
+            changelogTimeline.appendChild(timelineItem);
+          });
+        } catch (error) {
+          console.error("Error fetching or processing releases:", error);
+          const timeline = document.querySelector(".changelog-timeline");
+          timeline.innerHTML =
+            '<p style="text-align: center; color: #ff6b6b;">Error loading changelog data.</p>';
+        }
+      }
+
+      // Run the function when the page is loaded
+      document.addEventListener("DOMContentLoaded", fetchReleases);
+    </script>
+  </body>
 </html>
