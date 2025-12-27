@@ -8,7 +8,7 @@ namespace ZeroMix.Plugins
 {
     public class WeatherPlugin
     {
-        public string City { get; set; } = "Jakarta";
+        public string City { get; set; } = "Jambewangi";
         public bool IsActive { get; private set; }
         
         public string? SunnyVideoPath { get; set; }
