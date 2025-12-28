@@ -9,7 +9,7 @@ AppName=ZeroMix
 
 ; Allow overriding AppVersion via command line: /DAppVersion=X.X.X
 #ifndef AppVersion
-  #define AppVersion "2.2.2"
+  #define AppVersion "2.3.7"
 #endif
 
 AppVersion={#AppVersion}
@@ -65,16 +65,16 @@ Source: "zeromix.ico"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\Resource\*"; DestDir: "{app}\Resource"; Flags: ignoreversion recursesubdirs createallsubdirs
 ; Docs
 Source: "Privacy.txt"; DestDir: "{app}"; Flags: ignoreversion
-Source: "LICENSE.txt"; DestDir: "{app}"; Flags: ignoreversion
-Source: "..\Readme.md"; DestDir: "{app}"; Flags: ignoreversion
+Source: "../LICENSE.txt"; DestDir: "{app}"; Flags: ignoreversion
+Source: "../Readme.md"; DestDir: "{app}"; Flags: ignoreversion
 
 ; CLI Tools
-Source: "..\ZeroMixUpdateCli\index.js"; DestDir: "{app}\bin"; Flags: ignoreversion
-Source: "..\ZeroMixUpdateCli\package.json"; DestDir: "{app}\bin"; Flags: ignoreversion
-Source: "..\ZeroMixUpdateCli\zeromix-cli.bat"; DestDir: "{app}\bin"; Flags: ignoreversion
+Source: "../ZeroMixUpdateCli/index.js"; DestDir: "{app}\bin"; Flags: ignoreversion
+Source: "../ZeroMixUpdateCli/package.json"; DestDir: "{app}\bin"; Flags: ignoreversion
+Source: "../ZeroMixUpdateCli/zeromix-cli.bat"; DestDir: "{app}\bin"; Flags: ignoreversion
 
 ; FFmpeg Tools
-Source: "..\FFMPEG\ffmpeg.exe"; DestDir: "{app}\FFMPEG"; Flags: ignoreversion
+Source: "FFMPEG\ffmpeg.exe"; DestDir: "{app}\FFMPEG"; Flags: ignoreversion
 
 [Icons]
 Name: "{group}\ZeroMix"; Filename: "{app}\ZeroMix.exe"; IconFilename: "{app}\zeromix.ico"; WorkingDir: "{app}"
