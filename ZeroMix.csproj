@@ -9,6 +9,13 @@
     <UseWindowsForms>true</UseWindowsForms>
     <ApplicationIcon>zeromix.ico</ApplicationIcon>
     <EnableWindowsTargeting>true</EnableWindowsTargeting>
+    
+    <!-- Optimasi Ukuran (Hanya aktif saat Publish) -->
+    <PublishSingleFile>true</PublishSingleFile>
+    <SelfContained>true</SelfContained>
+    <EnableCompressionInSingleFile>true</EnableCompressionInSingleFile>
+    <DebugType>none</DebugType>
+    <DebugSymbols>false</DebugSymbols>
   </PropertyGroup>
 
   <ItemGroup>
