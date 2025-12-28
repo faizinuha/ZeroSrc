@@ -14,7 +14,7 @@ $SetupScript      = "$ExeDir\Setup.iss"
 $InnoSetup        = "C:\Program Files (x86)\Inno Setup 6\ISCC.exe"
 
 $AppName          = "ZeroMix"
-$Version          = "2.2.2"
+$Version          = "2.3.7"
 
 $InstallerName    = "$AppName-Setup-v$Version.exe"
 $InstallerPath    = "$ExeDir\$InstallerName"
@@ -104,7 +104,7 @@ if (-not (Test-Path $InstallerPath)) {
     -pkcs12 $CertFile `
     -pass $CertPassword `
     -n $AppName `
-    -i "https://zeromix.pages.dev" `
+    -i "https://zeromix.vercel.app" `
     -t $TimestampServer `
     -in  $InstallerPath `
     -out $SignedInstaller
