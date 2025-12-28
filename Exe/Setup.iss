@@ -75,8 +75,6 @@ Source: "..\ZeroMixUpdateCli\zeromix-cli.bat"; DestDir: "{app}\bin"; Flags: igno
 
 ; FFmpeg Tools
 Source: "..\FFMPEG\ffmpeg.exe"; DestDir: "{app}\FFMPEG"; Flags: ignoreversion
-Source: "..\FFMPEG\ffplay.exe"; DestDir: "{app}\FFMPEG"; Flags: ignoreversion
-Source: "..\FFMPEG\ffprobe.exe"; DestDir: "{app}\FFMPEG"; Flags: ignoreversion
 
 [Icons]
 Name: "{group}\ZeroMix"; Filename: "{app}\ZeroMix.exe"; IconFilename: "{app}\zeromix.ico"; WorkingDir: "{app}"
