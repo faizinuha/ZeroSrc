@@ -1,0 +1,79 @@
+<UserControl x:Class="ZeroMix.Plugins.BatteryPluginUI"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             mc:Ignorable="d" 
+             d:DesignHeight="150" d:DesignWidth="800">
+    <UserControl.Resources>
+        <ResourceDictionary Source="Styles.xaml"/>
+    </UserControl.Resources>
+    
+    <StackPanel>
+    <Border x:Name="BatteryCard" Style="{StaticResource CardBorder}" MouseDoubleClick="BatteryCard_MouseDoubleClick">
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+
+            <Border Grid.Column="0" Width="60" Height="60" CornerRadius="12" Background="#1A202C" Margin="0,0,20,0">
+                <TextBlock Text="🔋" FontSize="30" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+            </Border>
+
+            <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                <TextBlock Text="Battery Assistant Mascot" Foreground="White" FontSize="18" FontWeight="Bold" Margin="0,0,0,4"/>
+                <TextBlock Text="Dapatkan notifikasi lucu dari maskot anime saat baterai laptop menipis." Foreground="{StaticResource SubTextBrush}" FontSize="13"/>
+
+                <!-- Download/Uninstall Progress -->
+                <StackPanel x:Name="PluginProgressPanel" Visibility="Collapsed" Margin="0,10,0,0">
+                    <TextBlock x:Name="PluginStatusText" Text="Processing Plugin... 0%" Foreground="{StaticResource NeonBlueBrush}" FontSize="12" Margin="0,0,0,5"/>
+                    <ProgressBar x:Name="PluginProgressBar" Height="4" Maximum="100" Foreground="{StaticResource NeonBlueBrush}" Background="#1A202C" BorderThickness="0"/>
+                </StackPanel>
+            </StackPanel>
+
+            <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                <Button x:Name="SetupBatteryBtn" Content="⚙️" Style="{StaticResource ActionButton}" Padding="8" Margin="0,0,10,0" Click="SetupBatteryBtn_Click"/>
+                <CheckBox x:Name="BatteryPluginToggle" VerticalAlignment="Center" Click="BatteryPluginToggle_Click">
+                    <CheckBox.LayoutTransform>
+                        <ScaleTransform ScaleX="1.5" ScaleY="1.5"/>
+                    </CheckBox.LayoutTransform>
+                </CheckBox>
+            </StackPanel>
+        </Grid>
+    </Border>
+
+    <!-- Settings Panel (Expanded) -->
+    <Border x:Name="BatterySettingsBorder" Style="{StaticResource CardBorder}" Visibility="Collapsed" Margin="20,0,0,0">
+        <StackPanel>
+            <TextBlock Text="CUSTOMIZE MASCOT DIALOG" FontWeight="Black" Foreground="{StaticResource NeonBlueBrush}" FontSize="10" Margin="0,0,0,15" />
+            
+            <UniformGrid Columns="2">
+                <StackPanel Margin="0,0,10,10">
+                    <TextBlock Text="🌅 Pagi" Foreground="{StaticResource SubTextBrush}" FontSize="11" Margin="0,0,0,5"/>
+                    <TextBox x:Name="TxtMorning" Background="#12161F" Foreground="White" Padding="8" BorderThickness="1" BorderBrush="#333"/>
+                </StackPanel>
+                <StackPanel Margin="0,0,0,10">
+                    <TextBlock Text="☀️ Siang" Foreground="{StaticResource SubTextBrush}" FontSize="11" Margin="0,0,0,5"/>
+                    <TextBox x:Name="TxtAfternoon" Background="#12161F" Foreground="White" Padding="8" BorderThickness="1" BorderBrush="#333"/>
+                </StackPanel>
+                <StackPanel Margin="0,0,10,10">
+                    <TextBlock Text="🌇 Sore" Foreground="{StaticResource SubTextBrush}" FontSize="11" Margin="0,0,0,5"/>
+                    <TextBox x:Name="TxtEvening" Background="#12161F" Foreground="White" Padding="8" BorderThickness="1" BorderBrush="#333"/>
+                </StackPanel>
+                <StackPanel Margin="0,0,0,10">
+                    <TextBlock Text="🌙 Malam" Foreground="{StaticResource SubTextBrush}" FontSize="11" Margin="0,0,0,5"/>
+                    <TextBox x:Name="TxtNight" Background="#12161F" Foreground="White" Padding="8" BorderThickness="1" BorderBrush="#333"/>
+                </StackPanel>
+            </UniformGrid>
+
+            <TextBlock Text="⚠️ Battery Warnings" Foreground="{StaticResource SubTextBrush}" FontSize="11" Margin="0,10,0,5"/>
+            <TextBox x:Name="TxtBattWarn" Background="#12161F" Foreground="White" Padding="8" Margin="0,0,0,10" BorderThickness="1" BorderBrush="#333"/>
+            <TextBox x:Name="TxtBattCrit" Background="#12161F" Foreground="White" Padding="8" BorderThickness="1" BorderBrush="#333"/>
+            
+            <Button Content="Save Custom Dialog" Style="{StaticResource ActionButton}" Margin="0,15,0,0" Click="SaveDialog_Click"/>
+        </StackPanel>
+    </Border>
+</StackPanel>
+</UserControl>

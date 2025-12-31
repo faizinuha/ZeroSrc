@@ -1,0 +1,70 @@
+<Window x:Class="ZeroMix.Plugins.BatteryNotificationWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Battery Assistant" Height="110" Width="560"
+        WindowStyle="None" AllowsTransparency="True" Background="Transparent"
+        Topmost="True" ShowInTaskbar="False" WindowStartupLocation="Manual">
+    
+    <Window.Resources>
+        <Storyboard x:Key="FadeIn">
+            <DoubleAnimation Storyboard.TargetProperty="Opacity" From="0" To="1" Duration="0:0:0.5"/>
+            <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(TranslateTransform.Y)" From="50" To="0" Duration="0:0:0.5">
+                <DoubleAnimation.EasingFunction>
+                    <CubicEase EasingMode="EaseOut"/>
+                </DoubleAnimation.EasingFunction>
+            </DoubleAnimation>
+        </Storyboard>
+    </Window.Resources>
+    
+    <Window.RenderTransform>
+        <TranslateTransform Y="0"/>
+    </Window.RenderTransform>
+
+    <Grid>
+        <!-- Horizontal Card -->
+        <Border CornerRadius="12" BorderThickness="1.5" x:Name="MainBorder" Margin="5">
+            <Border.BorderBrush>
+                <SolidColorBrush Color="#FFD1D9" /> <!-- Soft Pink Border -->
+            </Border.BorderBrush>
+            <Border.Background>
+                <SolidColorBrush Color="#FFFFFF" />
+            </Border.Background>
+            <Border.Effect>
+                <DropShadowEffect BlurRadius="15" ShadowDepth="2" Opacity="0.2" Color="Black"/>
+            </Border.Effect>
+            
+            <Grid ClipToBounds="True">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="100"/> <!-- Small Icon Mascot -->
+                    <ColumnDefinition Width="*"/>   <!-- Main Content Area -->
+                </Grid.ColumnDefinitions>
+
+                <!-- 1. Small Mascot Icon on the left -->
+                <Border Grid.Column="0" Background="#F8F8F8" BorderBrush="#FFD1D9" BorderThickness="0,0,1,0">
+                    <Image x:Name="MascotImgIcon" Stretch="Uniform" Margin="10"/>
+                </Border>
+
+                <!-- 2. Main Content Area (Yellow area in your sketch) -->
+                <Grid Grid.Column="1">
+                    <!-- Background Maskot (Zoomed/Opacity) - Ini yang "ditimpa" teks -->
+                    <Image x:Name="MascotImgBg" Stretch="UniformToFill" Opacity="0.15" HorizontalAlignment="Right" RenderTransformOrigin="0.5,0.5">
+                        <Image.RenderTransform>
+                            <ScaleTransform ScaleX="1.2" ScaleY="1.2"/>
+                        </Image.RenderTransform>
+                    </Image>
+
+                    <!-- Area Teks (Padding Abu-abu dalam coretan) -->
+                    <StackPanel VerticalAlignment="Center" Margin="20,10,40,10">
+                        <TextBlock x:Name="MsgTitle" Text="Selamat Pagi!" Foreground="#D81B60" FontSize="18" FontWeight="ExtraBold" Margin="0,0,0,4"/>
+                        <TextBlock x:Name="MsgBody" Text="Semangat ya kak buat hari ini!" 
+                                   Foreground="#444" FontSize="14" FontWeight="Medium" TextWrapping="Wrap"/>
+                    </StackPanel>
+
+                    <!-- Close Button -->
+                    <Button Content="✕" Click="Close_Click" Background="Transparent" BorderThickness="0" 
+                            Foreground="#CCC" FontSize="12" VerticalAlignment="Top" HorizontalAlignment="Right" Margin="0,8,12,0" Cursor="Hand"/>
+                </Grid>
+            </Grid>
+        </Border>
+    </Grid>
+</Window>

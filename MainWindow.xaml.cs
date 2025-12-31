@@ -305,11 +305,21 @@ namespace ZeroMix
             if (PluginsContent != null) PluginsContent.Visibility = Visibility.Collapsed;
         }
 
+        private void PlayTransition(UIElement content)
+        {
+            if (content is FrameworkElement fe)
+            {
+                var sb = (System.Windows.Media.Animation.Storyboard)FindResource("FadeIn");
+                sb.Begin(fe);
+            }
+        }
+
         private void PluginsButton_Click(object sender, RoutedEventArgs e)
         {
             DeactivateAllTabs();
             PluginsContent.Visibility = Visibility.Visible;
             PluginsButton.Background = (System.Windows.Media.SolidColorBrush)FindResource("NavSelectedBrush");
+            PlayTransition(PluginsContent);
         }
 
         private void HomeButton_Click(object sender, RoutedEventArgs e)
@@ -317,6 +327,7 @@ namespace ZeroMix
             DeactivateAllTabs();
             HomeContent.Visibility = Visibility.Visible;
             HomeButton.Background = (System.Windows.Media.SolidColorBrush)FindResource("NavSelectedBrush");
+            PlayTransition(HomeContent);
         }
 
         private void AboutButton_Click(object sender, RoutedEventArgs e)
@@ -324,6 +335,7 @@ namespace ZeroMix
             DeactivateAllTabs();
             AboutContent.Visibility = Visibility.Visible;
             AboutButton.Background = (System.Windows.Media.SolidColorBrush)FindResource("NavSelectedBrush");
+            PlayTransition(AboutContent);
         }
 
         private void PrivacyButton_Click(object sender, RoutedEventArgs e)
@@ -331,6 +343,7 @@ namespace ZeroMix
             DeactivateAllTabs();
             PrivacyContent.Visibility = Visibility.Visible;
             PrivacyButton.Background = (System.Windows.Media.SolidColorBrush)FindResource("NavSelectedBrush");
+            PlayTransition(PrivacyContent);
         }
 
         private void NavWallpapers_Click(object sender, RoutedEventArgs e)
@@ -338,6 +351,7 @@ namespace ZeroMix
             DeactivateAllTabs();
             WallpapersContent.Visibility = Visibility.Visible;
             WallpaperButton.Background = (System.Windows.Media.SolidColorBrush)FindResource("NavSelectedBrush");
+            PlayTransition(WallpapersContent);
         }
 
         private void WallpaperButton_Click(object sender, RoutedEventArgs e)

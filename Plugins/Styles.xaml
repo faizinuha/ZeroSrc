@@ -1,0 +1,58 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    
+    <!-- Modern Dark Theme Colors -->
+    <Color x:Key="NeonBlueColor">#00A3FF</Color>
+    <Color x:Key="DeepNavyColor">#0B0E14</Color>
+    <Color x:Key="GlassColor">#151921</Color>
+    <Color x:Key="BorderColor">#1E2633</Color>
+    
+    <SolidColorBrush x:Key="NeonBlueBrush" Color="{StaticResource NeonBlueColor}"/>
+    <SolidColorBrush x:Key="DeepNavyBrush" Color="{StaticResource DeepNavyColor}"/>
+    <SolidColorBrush x:Key="GlassBrush" Color="{StaticResource GlassColor}" Opacity="0.8"/>
+    <SolidColorBrush x:Key="BorderBrush" Color="{StaticResource BorderColor}"/>
+    <SolidColorBrush x:Key="TextBrush" Color="#E1E1E1"/>
+    <SolidColorBrush x:Key="SubTextBrush" Color="#8A8D91"/>
+
+    <!-- Drop Shadows & Glows -->
+    <DropShadowEffect x:Key="NeonGlow" Color="{StaticResource NeonBlueColor}" BlurRadius="15" ShadowDepth="0" Opacity="0.6"/>
+    <DropShadowEffect x:Key="CardShadow" BlurRadius="20" ShadowDepth="0" Opacity="0.3" Color="Black"/>
+
+    <!-- Common Button Style -->
+    <Style x:Key="ActionButton" TargetType="Button">
+        <Setter Property="Background" Value="#1C212B"/>
+        <Setter Property="Foreground" Value="{StaticResource TextBrush}"/>
+        <Setter Property="BorderBrush" Value="#2D3440"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="Padding" Value="15,8"/>
+        <Setter Property="FontSize" Value="12"/>
+        <Setter Property="Cursor" Value="Hand"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border x:Name="border" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="8">
+                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="border" Property="Background" Value="#252B38"/>
+                            <Setter TargetName="border" Property="BorderBrush" Value="{StaticResource NeonBlueBrush}"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- Card Border Style -->
+    <Style x:Key="CardBorder" TargetType="Border">
+        <Setter Property="Background" Value="#0F131A"/>
+        <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="CornerRadius" Value="20"/>
+        <Setter Property="Padding" Value="24"/>
+        <Setter Property="Margin" Value="0,0,0,8"/>
+        <Setter Property="Effect" Value="{StaticResource CardShadow}"/>
+    </Style>
+
+</ResourceDictionary>

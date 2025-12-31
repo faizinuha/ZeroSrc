@@ -78,9 +78,9 @@
                             <ColumnDefinition Width="*"/>
                             <ColumnDefinition Width="20"/>
                             <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="20"/>
+                            <ColumnDefinition Width="40"/>
                             <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="20"/>
+                            <ColumnDefinition Width="40"/>
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
                         
@@ -162,7 +162,7 @@
                     </Grid>
                     
                     <!-- Footer / Button -->
-                    <StackPanel Grid.Row="3" Margin="0,30,0,0" HorizontalAlignment="Center">
+                    <StackPanel Grid.Row="3" Margin="0,40,0,0" HorizontalAlignment="Center">
                         <Button Content="🚀  Mulai Sekarang" Click="Button_Click" 
                                 Width="260" Height="50" Background="#0A84FF" Foreground="White"
                                 FontSize="16" FontWeight="Bold" BorderThickness="0" Cursor="Hand">
@@ -187,7 +187,7 @@
                                  </ControlTemplate>
                              </Button.Template>
                         </Button>
-                        <TextBlock Text="ZeroMix v1.0 • Made with ❤️ for Productivity" Foreground="#444" FontSize="11" HorizontalAlignment="Center" Margin="0,15,0,0"/>
+                        <TextBlock Text="ZeroMix• Made with ❤️ for Productivity" Foreground="#444" FontSize="11" HorizontalAlignment="Center" Margin="0,15,0,0"/>
                     </StackPanel>
                 </Grid>
             </Grid>
