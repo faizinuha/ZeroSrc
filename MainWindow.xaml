@@ -18,157 +18,113 @@
         AllowsTransparency="True">
 
     <Window.Resources>
-        <!-- Modern Dark Theme Colors -->
-        <Color x:Key="NeonBlueColor">#00A3FF</Color>
-        <Color x:Key="DeepNavyColor">#0B0E14</Color>
-        <Color x:Key="GlassColor">#151921</Color>
-        <Color x:Key="BorderColor">#1E2633</Color>
-        
-        <SolidColorBrush x:Key="NeonBlueBrush" Color="{StaticResource NeonBlueColor}"/>
-        <SolidColorBrush x:Key="DeepNavyBrush" Color="{StaticResource DeepNavyColor}"/>
-        <SolidColorBrush x:Key="GlassBrush" Color="{StaticResource GlassColor}" Opacity="0.8"/>
-        <SolidColorBrush x:Key="BorderBrush" Color="{StaticResource BorderColor}"/>
-        <SolidColorBrush x:Key="TextBrush" Color="#E1E1E1"/>
-        <SolidColorBrush x:Key="SubTextBrush" Color="#8A8D91"/>
-        <SolidColorBrush x:Key="NavSelectedBrush" Color="{StaticResource NeonBlueColor}"/>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="Plugins/Styles.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
 
-        <!-- Drop Shadows & Glows -->
-        <DropShadowEffect x:Key="NeonGlow" Color="{StaticResource NeonBlueColor}" BlurRadius="15" ShadowDepth="0" Opacity="0.6"/>
-        <DropShadowEffect x:Key="CardShadow" BlurRadius="20" ShadowDepth="0" Opacity="0.3" Color="Black"/>
+            <SolidColorBrush x:Key="NavSelectedBrush" Color="{StaticResource NeonBlueColor}"/>
 
-        <!-- Animations -->
-        <Storyboard x:Key="FadeIn">
-            <DoubleAnimation Storyboard.TargetProperty="Opacity" From="0" To="1" Duration="0:0:0.6"/>
-            <ThicknessAnimation Storyboard.TargetProperty="Margin" From="0,30,0,0" To="0" Duration="0:0:0.6" DecelerationRatio="0.9"/>
-        </Storyboard>
+            <!-- Animations -->
+            <Storyboard x:Key="FadeIn">
+                <DoubleAnimation Storyboard.TargetProperty="Opacity" From="0" To="1" Duration="0:0:0.6"/>
+                <ThicknessAnimation Storyboard.TargetProperty="Margin" From="0,30,0,0" To="0" Duration="0:0:0.6" DecelerationRatio="0.9"/>
+            </Storyboard>
 
-        <!-- Navigation Button Style (Futuristic) -->
-        <Style x:Key="NavButtonStyle" TargetType="Button">
-            <Setter Property="Background" Value="Transparent"/>
-            <Setter Property="Foreground" Value="{StaticResource SubTextBrush}"/>
-            <Setter Property="FontSize" Value="14"/>
-            <Setter Property="Padding" Value="25,12"/>
-            <Setter Property="Cursor" Value="Hand"/>
-            <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="HorizontalContentAlignment" Value="Left"/>
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="Button">
-                        <Border x:Name="border" Background="{TemplateBinding Background}" Padding="{TemplateBinding Padding}" CornerRadius="12" Margin="15,4">
-                            <ContentPresenter VerticalAlignment="Center" HorizontalAlignment="Left"/>
-                        </Border>
-                        <ControlTemplate.Triggers>
-                            <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="border" Property="Background" Value="#1A202C"/>
-                                <Setter Property="Foreground" Value="White"/>
-                            </Trigger>
-                        </ControlTemplate.Triggers>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
+            <!-- Navigation Button Style (Futuristic) -->
+            <Style x:Key="NavButtonStyle" TargetType="Button">
+                <Setter Property="Background" Value="Transparent"/>
+                <Setter Property="Foreground" Value="{StaticResource SubTextBrush}"/>
+                <Setter Property="FontSize" Value="14"/>
+                <Setter Property="Padding" Value="25,12"/>
+                <Setter Property="Cursor" Value="Hand"/>
+                <Setter Property="BorderThickness" Value="0"/>
+                <Setter Property="HorizontalContentAlignment" Value="Left"/>
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="Button">
+                            <Border x:Name="border" Background="{TemplateBinding Background}" Padding="{TemplateBinding Padding}" CornerRadius="12" Margin="15,4">
+                                <ContentPresenter VerticalAlignment="Center" HorizontalAlignment="Left"/>
+                            </Border>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter TargetName="border" Property="Background" Value="#1A202C"/>
+                                    <Setter Property="Foreground" Value="White"/>
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
 
-        <!-- Quick Action Card Style -->
-        <Style x:Key="QuickActionButton" TargetType="Button">
-            <Setter Property="Background" Value="#12161F"/>
-            <Setter Property="Foreground" Value="{StaticResource TextBrush}"/>
-            <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}"/>
-            <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="Padding" Value="20"/>
-            <Setter Property="Cursor" Value="Hand"/>
-            <Setter Property="Height" Value="140"/>
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="Button">
-                        <Border x:Name="border" 
-                                Background="{TemplateBinding Background}" 
-                                BorderBrush="{TemplateBinding BorderBrush}" 
-                                BorderThickness="{TemplateBinding BorderThickness}" 
-                                CornerRadius="16"
-                                Padding="{TemplateBinding Padding}">
-                            <Grid>
-                                <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
-                                    <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                </StackPanel>
-                                <Border x:Name="glow" CornerRadius="16" BorderThickness="1" BorderBrush="{StaticResource NeonBlueBrush}" Opacity="0" Effect="{StaticResource NeonGlow}"/>
-                            </Grid>
-                        </Border>
-                        <ControlTemplate.Triggers>
-                            <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="border" Property="Background" Value="#161B26"/>
-                                <Setter TargetName="border" Property="BorderBrush" Value="{StaticResource NeonBlueBrush}"/>
-                                <Setter TargetName="glow" Property="Opacity" Value="0.3"/>
-                            </Trigger>
-                            <Trigger Property="IsPressed" Value="True">
-                                <Setter TargetName="border" Property="Background" Value="#0D1117"/>
-                            </Trigger>
-                        </ControlTemplate.Triggers>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
+            <!-- Quick Action Card Style -->
+            <Style x:Key="QuickActionButton" TargetType="Button">
+                <Setter Property="Background" Value="#12161F"/>
+                <Setter Property="Foreground" Value="{StaticResource TextBrush}"/>
+                <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}"/>
+                <Setter Property="BorderThickness" Value="1"/>
+                <Setter Property="Padding" Value="20"/>
+                <Setter Property="Cursor" Value="Hand"/>
+                <Setter Property="Height" Value="140"/>
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="Button">
+                            <Border x:Name="border" 
+                                    Background="{TemplateBinding Background}" 
+                                    BorderBrush="{TemplateBinding BorderBrush}" 
+                                    BorderThickness="{TemplateBinding BorderThickness}" 
+                                    CornerRadius="16"
+                                    Padding="{TemplateBinding Padding}">
+                                <Grid>
+                                    <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                    <Border x:Name="glow" CornerRadius="16" BorderThickness="1" BorderBrush="{StaticResource NeonBlueBrush}" Opacity="0" Effect="{StaticResource NeonGlow}"/>
+                                </Grid>
+                            </Border>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter TargetName="border" Property="Background" Value="#161B26"/>
+                                    <Setter TargetName="border" Property="BorderBrush" Value="{StaticResource NeonBlueBrush}"/>
+                                    <Setter TargetName="glow" Property="Opacity" Value="0.3"/>
+                                </Trigger>
+                                <Trigger Property="IsPressed" Value="True">
+                                    <Setter TargetName="border" Property="Background" Value="#0D1117"/>
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
 
-        <Style x:Key="ActionButton" TargetType="Button">
-            <Setter Property="Background" Value="#1C212B"/>
-            <Setter Property="Foreground" Value="{StaticResource TextBrush}"/>
-            <Setter Property="BorderBrush" Value="#2D3440"/>
-            <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="Padding" Value="15,8"/>
-            <Setter Property="FontSize" Value="12"/>
-            <Setter Property="Cursor" Value="Hand"/>
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="Button">
-                        <Border x:Name="border" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="8">
-                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                        </Border>
-                        <ControlTemplate.Triggers>
-                            <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="border" Property="Background" Value="#252B38"/>
-                                <Setter TargetName="border" Property="BorderBrush" Value="{StaticResource NeonBlueBrush}"/>
-                            </Trigger>
-                        </ControlTemplate.Triggers>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
-<!-- Property Primary -->
-        <Style x:Key="PrimaryButtonStyle" TargetType="Button">
-            <Setter Property="Background" Value="{StaticResource NeonBlueBrush}"/>
-            <Setter Property="Foreground" Value="#0F131A"/>
-            <Setter Property="FontWeight" Value="Bold"/>
-            <Setter Property="Padding" Value="32,14"/>
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="Button">
-                        <Border x:Name="border" Background="{TemplateBinding Background}" CornerRadius="12" Padding="{TemplateBinding Padding}">
-                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                        </Border>
-                        <ControlTemplate.Triggers>
-                            <Trigger Property="IsMouseOver" Value="true">
-                                <Setter TargetName="border" Property="Effect">
-                                    <Setter.Value>
-                                        <DropShadowEffect BlurRadius="10" ShadowDepth="0" Color="{StaticResource NeonBlueColor}" Opacity="0.1"/>
-                                    </Setter.Value>
-                                </Setter>
-                                <Setter TargetName="border" Property="Opacity" Value="0.9"/>
-                            </Trigger>
-                        </ControlTemplate.Triggers>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
+            <!-- Property Primary -->
+            <Style x:Key="PrimaryButtonStyle" TargetType="Button">
+                <Setter Property="Background" Value="{StaticResource NeonBlueBrush}"/>
+                <Setter Property="Foreground" Value="#0F131A"/>
+                <Setter Property="FontWeight" Value="Bold"/>
+                <Setter Property="Padding" Value="32,14"/>
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="Button">
+                            <Border x:Name="border" Background="{TemplateBinding Background}" CornerRadius="12" Padding="{TemplateBinding Padding}">
+                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsMouseOver" Value="true">
+                                    <Setter TargetName="border" Property="Effect">
+                                        <Setter.Value>
+                                            <DropShadowEffect BlurRadius="10" ShadowDepth="0" Color="{StaticResource NeonBlueColor}" Opacity="0.1"/>
+                                        </Setter.Value>
+                                    </Setter>
+                                    <Setter TargetName="border" Property="Opacity" Value="0.9"/>
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
 
-        <Style x:Key="CardBorder" TargetType="Border">
-            <Setter Property="Background" Value="#0F131A"/>
-            <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}"/>
-            <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="CornerRadius" Value="20"/>
-            <Setter Property="Padding" Value="24"/>
-            <Setter Property="Margin" Value="0,0,0,40"/>
-            <Setter Property="Effect" Value="{StaticResource CardShadow}"/>
-        </Style>
-
+        </ResourceDictionary>
     </Window.Resources>
 
     <Border CornerRadius="20" Background="{StaticResource DeepNavyBrush}" BorderThickness="1" BorderBrush="#1F2937" ClipToBounds="True">
@@ -182,6 +138,9 @@
                 <Image.Effect>
                     <BlurEffect Radius="40"/>
                 </Image.Effect>
+                <Image.CacheMode>
+                    <BitmapCache/>
+                </Image.CacheMode>
             </Image>
 
             <!-- Main Layout -->
@@ -456,14 +415,17 @@
                             </StackPanel.Triggers>
                             
                             <TextBlock Text="Extensions" FontSize="36" FontWeight="ExtraBold" Foreground="White" Margin="0,0,0,5"/>
-                            <TextBlock Text="Enhance your experience with custom modules" FontSize="16" Foreground="{StaticResource SubTextBrush}" Margin="0,0,0,45"/>
+                            <TextBlock Text="Enhance your experience with custom modules" FontSize="16" Foreground="{StaticResource SubTextBrush}" Margin="0,0,0,25"/>
 
                             <!-- Plugin List -->
                              <StackPanel x:Name="PluginsListPanel" Margin="30,0">
-                             <TextBlock Text="PLUGINS &amp; EXTENSIONS" FontWeight="Black" Foreground="{StaticResource NeonBlueBrush}" FontSize="12" Margin="0,0,0,30" />
+                             <TextBlock Text="PLUGINS &amp; EXTENSIONS" FontWeight="Black" Foreground="{StaticResource NeonBlueBrush}" FontSize="12" Margin="0,0,0,15" />
                              
                              <!-- Weather Plugin Component -->
                              <plugins:WeatherPluginUI />
+                             
+                             <!-- Battery Assistant Component -->
+                             <plugins:BatteryPluginUI />
                              
                         </StackPanel>
                         </StackPanel>

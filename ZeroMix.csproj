@@ -41,6 +41,12 @@
     </Content>
   </ItemGroup>
 
+  <ItemGroup>
+    <Content Include="Plugins\**\*.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
   <Target Name="AfterPublish" AfterTargets="Publish" Condition="'$(Configuration)' == 'Release'">
     <Message Text="Menjalankan proses signing installer ZeroMix..." Importance="High" />
     <!-- build.ps1 disabled in favor of Makefile -->
