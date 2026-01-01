@@ -70,7 +70,7 @@ namespace ZeroMix.Plugins
                     title = "KRITIS! 😱";
                     body = plugin.TextBatteryCritical;
                 }else if (percent <= 60) {
-                   mascotFIle = "50_%.png";
+                   mascotFile = "50_%.png";
                    title = "Baterai 60% 🔋";
                    body = plugin.TextBatteryWarn;
                 }else if (percent <= 50)

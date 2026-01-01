@@ -40,6 +40,14 @@ namespace ZeroMix
         {
             if (item is WallpaperItem wp)
             {
+                bool matchesSearch = true;
+                if (!string.IsNullOrWhiteSpace(SearchBox.Text))
+                {
+                    matchesSearch = wp.Name.Contains(SearchBox.Text, StringComparison.OrdinalIgnoreCase);
+                }
+
+                if (!matchesSearch) return false;
+
                 if (FilterAll.IsChecked == true) return true;
                 if (FilterImages.IsChecked == true) return wp.Type == WallpaperType.Image;
                 if (FilterVideos.IsChecked == true) return wp.Type == WallpaperType.Video;
@@ -48,6 +56,12 @@ namespace ZeroMix
         }
 
         private void Filter_Click(object sender, RoutedEventArgs e)
+        {
+            _wallpaperView.Refresh();
+            UpdateCount();
+        }
+
+        private void SearchBox_TextChanged(object sender, TextChangedEventArgs e)
         {
             _wallpaperView.Refresh();
             UpdateCount();

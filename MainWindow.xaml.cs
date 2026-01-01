@@ -65,12 +65,28 @@ namespace ZeroMix
         private DispatcherTimer? _performanceTimer;
         private DriveInfo? _systemDrive;
         private string? _initialWallpaperPath;
+        private ClockWidget? _clockWidget;
+        private DispatcherTimer? _taskbarWatcher;
 
         public MainWindow()
         {
             InitializeComponent();
             InitializeTrayIcon();
+            InitializeTaskbarWatcher();
             this.MouseLeftButtonDown += MainWindow_MouseLeftButtonDown;
+        }
+
+        private void InitializeTaskbarWatcher()
+        {
+            _taskbarWatcher = new DispatcherTimer();
+            _taskbarWatcher.Interval = TimeSpan.FromMilliseconds(500);
+            _taskbarWatcher.Tick += (s, e) =>
+            {
+                if (_isTaskbarTransparent)
+                {
+                    EnableTransparentTaskbar();
+                }
+            };
         }
 
         private void MainWindow_MouseLeftButtonDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
@@ -377,8 +393,23 @@ namespace ZeroMix
 
         private void OpenClockBtn_Click(object sender, RoutedEventArgs e)
         {
-            var clockWidget = new ClockWidget();
-            clockWidget.Show();
+            if (_clockWidget == null || !IsWindowOpen<ClockWidget>())
+            {
+                _clockWidget = new ClockWidget();
+                _clockWidget.Show();
+            }
+            else
+            {
+                if (_clockWidget.IsVisible)
+                    _clockWidget.Hide();
+                else
+                    _clockWidget.Show();
+            }
+        }
+
+        private bool IsWindowOpen<T>(string name = "") where T : Window
+        {
+            return System.Windows.Application.Current.Windows.OfType<T>().Any(w => string.IsNullOrEmpty(name) || w.Name == name);
         }
 
         private void TaskbarToggleBtn_Click(object sender, RoutedEventArgs e)
@@ -387,17 +418,19 @@ namespace ZeroMix
             {
                 if (!_isTaskbarTransparent)
                 {
-                    // Enable transparent taskbar
-                    EnableTransparentTaskbar();
                     _isTaskbarTransparent = true;
-                    TaskbarToggleBtn.Content = "📌 Disable Transparent Taskbar";
+                    _taskbarWatcher?.Start();
+                    EnableTransparentTaskbar(); 
+                    // StatusLabel.Text = "Ghost Taskbar: Clear Mode Active";
+                    TaskbarToggleBtn.Opacity = 1.0;
                 }
                 else
                 {
-                    // Disable transparent taskbar (return to normal)
-                    DisableTransparentTaskbar();
                     _isTaskbarTransparent = false;
-                    TaskbarToggleBtn.Content = "📌 Enable Transparent Taskbar";
+                    _taskbarWatcher?.Stop();
+                    DisableTransparentTaskbar();
+                    // StatusLabel.Text = "Ghost Taskbar: Returned to Default";
+                    TaskbarToggleBtn.Opacity = 0.7;
                 }
             }
             catch (Exception ex)
@@ -408,29 +441,48 @@ namespace ZeroMix
 
         private void EnableTransparentTaskbar()
         {
+            // Shell_TrayWnd is the main taskbar
             IntPtr taskbarHandle = FindWindow("Shell_TrayWnd", null);
-            if (taskbarHandle == IntPtr.Zero) return;
+            
+            // Mode Clear: ACCENT_ENABLE_TRANSPARENTGRADIENT (2)
+            // Color: 0x00000000 (Full Transparent)
+            // Flags: 2 (Draw borders/refresh policy)
+            ApplyTaskbarAccent(taskbarHandle, AccentState.ACCENT_ENABLE_TRANSPARENTGRADIENT, 2, 0x00000000);
 
-            var accent = new AccentPolicy();
-            accent.AccentState = AccentState.ACCENT_ENABLE_TRANSPARENTGRADIENT;
-
-            var data = new WindowCompositionAttributeData();
-            data.Attribute = WindowCompositionAttribute.WCA_ACCENT_POLICY;
-            data.SizeOfData = Marshal.SizeOf(accent);
-            data.Data = Marshal.AllocHGlobal(data.SizeOfData);
-            Marshal.StructureToPtr(accent, data.Data, false);
-
-            SetWindowCompositionAttribute(taskbarHandle, ref data);
-            Marshal.FreeHGlobal(data.Data);
+            // Shell_SecondaryTrayWnd for extra monitors
+            IntPtr secondaryTaskbarHandle = FindWindow("Shell_SecondaryTrayWnd", null);
+            if (secondaryTaskbarHandle != IntPtr.Zero)
+            {
+                ApplyTaskbarAccent(secondaryTaskbarHandle, AccentState.ACCENT_ENABLE_TRANSPARENTGRADIENT, 2, 0x00000000);
+            }
         }
 
         private void DisableTransparentTaskbar()
         {
+            // Shell_TrayWnd is the main taskbar
             IntPtr taskbarHandle = FindWindow("Shell_TrayWnd", null);
-            if (taskbarHandle == IntPtr.Zero) return;
+            
+            // On Windows 10/11, state 0 (Disabled) often results in a solid black bar.
+            // Using state 1 (Gradient) with color 0 often tells Windows to go back 
+            // to its own internal theme-based rendering (Default/Blur/Acrylic).
+            ApplyTaskbarAccent(taskbarHandle, AccentState.ACCENT_ENABLE_GRADIENT, 0, 0x00000000);
+
+            // Re-apply for secondary taskbar
+            IntPtr secondaryTaskbarHandle = FindWindow("Shell_SecondaryTrayWnd", null);
+            if (secondaryTaskbarHandle != IntPtr.Zero)
+            {
+                ApplyTaskbarAccent(secondaryTaskbarHandle, AccentState.ACCENT_ENABLE_GRADIENT, 0, 0x00000000);
+            }
+        }
+
+        private void ApplyTaskbarAccent(IntPtr handle, AccentState state, int flags, int color)
+        {
+            if (handle == IntPtr.Zero) return;
 
             var accent = new AccentPolicy();
-            accent.AccentState = AccentState.ACCENT_DISABLED;
+            accent.AccentState = state;
+            accent.AccentFlags = flags;
+            accent.GradientColor = color;
 
             var data = new WindowCompositionAttributeData();
             data.Attribute = WindowCompositionAttribute.WCA_ACCENT_POLICY;
@@ -438,7 +490,7 @@ namespace ZeroMix
             data.Data = Marshal.AllocHGlobal(data.SizeOfData);
             Marshal.StructureToPtr(accent, data.Data, false);
 
-            SetWindowCompositionAttribute(taskbarHandle, ref data);
+            SetWindowCompositionAttribute(handle, ref data);
             Marshal.FreeHGlobal(data.Data);
         }
 
@@ -454,29 +506,40 @@ namespace ZeroMix
         private async void ClearCacheButton_Click(object sender, RoutedEventArgs e)
         {
             ClearCacheButton.IsEnabled = false;
-            CacheStatusText.Text = "Pembersihan Segeara Mohon tunggu..";
+            CacheStatusText.Text = "Menganalisis file sampah...";
+            
+            // Show the monitoring panel if hidden to see status
+            MonitoringPanel.Visibility = Visibility.Visible;
 
-            int skippedFiles = 0;
-
-            await Task.Run(() =>
+            await Task.Run(async () =>
             {
-                string[] tempPaths = { Path.GetTempPath(), Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Windows), "Temp") };
+                string[] tempPaths = { 
+                    Path.GetTempPath(), 
+                    Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Windows), "Temp"),
+                    Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Temp")
+                };
+
+                int deletedCount = 0;
+                int skippedCount = 0;
+                long totalSize = 0;
 
                 foreach (var path in tempPaths)
                 {
                     var directory = new DirectoryInfo(path);
                     if (!directory.Exists) continue;
 
+                    // Update UI status
+                    this.Dispatcher.Invoke(() => CacheStatusText.Text = $"Cleaning: {path}");
+
                     foreach (var file in directory.GetFiles())
                     {
                         try
                         {
+                            totalSize += file.Length;
                             file.Delete();
+                            deletedCount++;
                         }
-                        catch (Exception)
-                        {
-                            skippedFiles++;
-                        }
+                        catch { skippedCount++; }
                     }
 
                     foreach (var dir in directory.GetDirectories())
@@ -484,17 +547,21 @@ namespace ZeroMix
                         try
                         {
                             dir.Delete(true);
+                            deletedCount++;
                         }
-                        catch (Exception)
-                        {
-                            skippedFiles++;
-                        }
+                        catch { skippedCount++; }
                     }
+                    
+                    await Task.Delay(10); // Prevent total UI freeze
                 }
-            });
 
-            CacheStatusText.Text = $"Cleaning complete. Skipped {skippedFiles} files that were in use.";
-            ClearCacheButton.IsEnabled = true;
+                this.Dispatcher.Invoke(() => {
+                    CacheStatusText.Text = $"Purge Complete! Cleared {deletedCount} items ({totalSize / (1024 * 1024)} MB). Skipped {skippedCount} files in use.";
+                    ClearCacheButton.IsEnabled = true;
+                    // Trigger a process refresh
+                    RefreshProcessList();
+                });
+            });
         }
 
         private void RefreshProcessesBtn_Click(object sender, RoutedEventArgs e)

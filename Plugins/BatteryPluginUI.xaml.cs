@@ -38,11 +38,8 @@ namespace ZeroMix.Plugins
             {
                 await RunPluginProcess("Downloading Mascot Assets...");
                 _plugin.Start();
-                // Gunakan Task.Run agar tidak menghambat tombol saat memicu jendela
-                System.Threading.Tasks.Task.Run(async () => {
-                    await System.Threading.Tasks.Task.Delay(200);
-                    ShowNotification(0, false, true); 
-                });
+                await System.Threading.Tasks.Task.Delay(200);
+                ShowNotification(0, false, true); 
             }
             else
             {
@@ -55,8 +52,10 @@ namespace ZeroMix.Plugins
             BatterySettingsBorder.Visibility = BatterySettingsBorder.Visibility == Visibility.Visible ? Visibility.Collapsed : Visibility.Visible;
         }
 
-        private async void BatteryCard_MouseDoubleClick(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        private async void BatteryCard_MouseDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
         {
+            if (e.ClickCount != 2) return;
+
             var result = System.Windows.MessageBox.Show(
                 "Apakah Anda yakin ingin menghapus (uninstall) Plugin Battery Assistant?",
                 "Konfirmasi Uninstall",

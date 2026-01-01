@@ -211,9 +211,10 @@
                         </StackPanel>
 
                         <!-- Footer -->
-                        <StackPanel Grid.Row="2" Margin="0,0,0,30">
-                            <Separator Background="#1A202C" Margin="30,0,30,20"/>
-                            <TextBlock Text="v1.0.0" HorizontalAlignment="Center" Foreground="#3F4E64" FontSize="10" FontWeight="Bold"/>
+                        <StackPanel Grid.Row="2" Margin="30,0,30,30">
+                            <TextBlock x:Name="StatusLabel" Text="Systems Initialized" FontSize="10" Foreground="{StaticResource NeonBlueBrush}" Opacity="0.5" Margin="0,0,0,10" TextWrapping="Wrap" />
+                            <Separator Background="#1A202C" Margin="0,0,0,20"/>
+                            <TextBlock Text="v2.5.4" HorizontalAlignment="Center" Foreground="#3F4E64" FontSize="10" FontWeight="Bold"/>
                         </StackPanel>
                     </Grid>
                 </Border>
@@ -356,9 +357,9 @@
                             <Border Width="100" Height="100" CornerRadius="20" Background="#12161F" BorderThickness="1" BorderBrush="{StaticResource NeonBlueBrush}" Margin="0,0,0,30">
                                 <TextBlock Text="" FontFamily="Segoe MDL2 Assets" FontSize="42" Foreground="{StaticResource NeonBlueBrush}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                             </Border>
-                            <TextBlock Text="Visual Matrix" FontSize="32" FontWeight="Black" Foreground="White" HorizontalAlignment="Center" Margin="0,0,0,10"/>
-                            <TextBlock Text="Personalize your workstation background with high-def streams" Foreground="{StaticResource SubTextBrush}" FontSize="15" HorizontalAlignment="Center" Margin="0,0,0,35"/>
-                            <Button x:Name="LaunchWallpaperBtn" Content="EXECUTE MANAGER" Click="WallpaperButton_Click" Style="{StaticResource PrimaryButtonStyle}" Height="Auto" FontSize="13" FontWeight="Bold" FocusVisualStyle="{x:Null}"/>
+                            <TextBlock Text="Wallpaper Engine" FontSize="32" FontWeight="Black" Foreground="White" HorizontalAlignment="Center" Margin="0,0,0,10"/>
+                            <TextBlock Text="Launch Wallpaper Engine Manager Free wallpaper tools" Foreground="{StaticResource SubTextBrush}" FontSize="15" HorizontalAlignment="Center" Margin="0,0,0,35"/>
+                            <Button x:Name="LaunchWallpaperBtn" Content="Launch Wallpaper Engine" Click="WallpaperButton_Click" Style="{StaticResource PrimaryButtonStyle}" Height="Auto" FontSize="13" FontWeight="Bold" FocusVisualStyle="{x:Null}"/>
                         </StackPanel>
                     </Grid>
 
