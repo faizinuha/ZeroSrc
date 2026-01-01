@@ -48,7 +48,6 @@ namespace ZeroMix.Plugins
 
                 PluginProgressPanel.Visibility = Visibility.Collapsed;
                 WeatherPluginToggle.IsEnabled = true;
-                UninstallPluginBtn.Visibility = Visibility.Visible;
                 
                 // Auto-integrate default videos (Optional custom files)
                 string baseDir = AppDomain.CurrentDomain.BaseDirectory;
@@ -62,19 +61,19 @@ namespace ZeroMix.Plugins
             else
             {
                 WeatherConfigBorder.Visibility = Visibility.Collapsed;
-                UninstallPluginBtn.Visibility = Visibility.Collapsed;
                 _plugin.Stop();
                 Wallpapers.StopVideoWallpaper();
             }
         }
 
-        private async void UninstallPluginBtn_Click(object sender, RoutedEventArgs e)
+        private async void WeatherCard_MouseDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
         {
+            if (e.ClickCount != 2) return;
+
             var result = System.Windows.MessageBox.Show("Are you sure you want to uninstall this plugin? Settings will be reset.", "Confirm Uninstall", MessageBoxButton.YesNo, MessageBoxImage.Warning);
             if (result != MessageBoxResult.Yes) return;
 
             PluginProgressPanel.Visibility = Visibility.Visible;
-            UninstallPluginBtn.IsEnabled = false;
             WeatherPluginToggle.IsEnabled = false;
 
             for (int i = 100; i >= 0; i -= 5)
@@ -86,8 +85,6 @@ namespace ZeroMix.Plugins
 
             WeatherPluginToggle.IsChecked = false;
             WeatherPluginToggle.IsEnabled = true;
-            UninstallPluginBtn.IsEnabled = true;
-            UninstallPluginBtn.Visibility = Visibility.Collapsed;
             PluginProgressPanel.Visibility = Visibility.Collapsed;
             WeatherConfigBorder.Visibility = Visibility.Collapsed;
             

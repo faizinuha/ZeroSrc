@@ -10,7 +10,7 @@
     </UserControl.Resources>
     
     <StackPanel>
-    <Border x:Name="BatteryCard" Style="{StaticResource CardBorder}" MouseDoubleClick="BatteryCard_MouseDoubleClick">
+    <Border x:Name="BatteryCard" Style="{StaticResource CardBorder}" MouseDown="BatteryCard_MouseDown">
         <Grid>
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto"/>
