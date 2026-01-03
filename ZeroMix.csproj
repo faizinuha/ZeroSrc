@@ -10,12 +10,12 @@
     <ApplicationIcon>zeromix.ico</ApplicationIcon>
     <EnableWindowsTargeting>true</EnableWindowsTargeting>
     
-    <!-- Optimasi Ukuran (Hanya aktif saat Publish) -->
-    <PublishSingleFile>true</PublishSingleFile>
+    <!-- Optimasi Ukuran (Dinonaktifkan agar stabil dan file terlihat) -->
+    <PublishSingleFile>false</PublishSingleFile>
     <SelfContained>true</SelfContained>
-    <EnableCompressionInSingleFile>true</EnableCompressionInSingleFile>
-    <DebugType>none</DebugType>
-    <DebugSymbols>false</DebugSymbols>
+    <EnableCompressionInSingleFile>false</EnableCompressionInSingleFile>
+    <DebugType>embedded</DebugType>
+    <DebugSymbols>true</DebugSymbols>
   </PropertyGroup>
 
   <ItemGroup>
@@ -46,12 +46,5 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
-
-  <Target Name="AfterPublish" AfterTargets="Publish" Condition="'$(Configuration)' == 'Release'">
-    <Message Text="Menjalankan proses signing installer ZeroMix..." Importance="High" />
-    <!-- build.ps1 disabled in favor of Makefile -->
-    <!-- <Exec Command='powershell -ExecutionPolicy Bypass -File "$(ProjectDir)build\build.ps1"' Condition="Exists('$(ProjectDir)build\build.ps1')" /> -->
-    <!-- <Warning Text="Script build.ps1 tidak ditemukan, melewati langkah signing." Condition="!Exists('$(ProjectDir)build\build.ps1')" /> -->
-  </Target>
 
 </Project>

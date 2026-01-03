@@ -4,7 +4,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d"
-        Title="Welcome to ZeroMix" Height="700" Width="1000"
+        Title="Welcome to ZeroMix" Height="650" Width="900"
         WindowStartupLocation="CenterScreen"
         WindowStyle="None"
         AllowsTransparency="True"
@@ -12,185 +12,229 @@
         Background="Transparent">
     
     <Window.Resources>
-        <Style TargetType="ScrollBar">
-            <Setter Property="Background" Value="Transparent"/>
-            <Setter Property="Foreground" Value="#333"/>
-            <Setter Property="Width" Value="8"/>
-            <Setter Property="Template">
+        <!-- Fade Animation for Slides -->
+        <Storyboard x:Key="FadeIn">
+            <DoubleAnimation Storyboard.TargetProperty="Opacity" From="0" To="1" Duration="0:0:0.4"/>
+            <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(TranslateTransform.Y)" From="20" To="0" Duration="0:0:0.4">
+                <DoubleAnimation.EasingFunction>
+                    <CubicEase EasingMode="EaseOut"/>
+                </DoubleAnimation.EasingFunction>
+            </DoubleAnimation>
+        </Storyboard>
+
+        <Style x:Key="SlideContentStyle" TargetType="Grid">
+            <Setter Property="RenderTransform">
                 <Setter.Value>
-                    <ControlTemplate TargetType="ScrollBar">
-                        <Grid>
-                            <Track Name="PART_Track" IsDirectionReversed="true">
-                                <Track.Thumb>
-                                    <Thumb Background="#444" Margin="2">
-                                        <Thumb.Template>
-                                            <ControlTemplate TargetType="Thumb">
-                                                <Border Background="{TemplateBinding Background}" CornerRadius="4"/>
-                                            </ControlTemplate>
-                                        </Thumb.Template>
-                                    </Thumb>
-                                </Track.Thumb>
-                            </Track>
-                        </Grid>
-                    </ControlTemplate>
+                    <TranslateTransform/>
                 </Setter.Value>
             </Setter>
         </Style>
+
+        <Style x:Key="NavButtonStyle" TargetType="Button">
+             <Setter Property="Background" Value="#252525"/>
+             <Setter Property="Foreground" Value="White"/>
+             <Setter Property="Padding" Value="20,10"/>
+             <Setter Property="FontSize" Value="14"/>
+             <Setter Property="FontWeight" Value="SemiBold"/>
+             <Setter Property="Cursor" Value="Hand"/>
+             <Setter Property="Template">
+                 <Setter.Value>
+                     <ControlTemplate TargetType="Button">
+                         <Border x:Name="border" Background="{TemplateBinding Background}" CornerRadius="8" BorderBrush="#444" BorderThickness="1">
+                             <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" Margin="{TemplateBinding Padding}"/>
+                         </Border>
+                         <ControlTemplate.Triggers>
+                             <Trigger Property="IsMouseOver" Value="True">
+                                 <Setter TargetName="border" Property="Background" Value="#333"/>
+                                 <Setter TargetName="border" Property="BorderBrush" Value="#0A84FF"/>
+                             </Trigger>
+                             <Trigger Property="IsEnabled" Value="False">
+                                 <Setter TargetName="border" Property="Opacity" Value="0.3"/>
+                             </Trigger>
+                         </ControlTemplate.Triggers>
+                     </ControlTemplate>
+                 </Setter.Value>
+             </Setter>
+        </Style>
     </Window.Resources>
 
-    <!-- Main Container with Shadow and Background -->
-    <Border CornerRadius="16" ClipToBounds="True">
+    <Border CornerRadius="20" Background="#0F0F0F" BorderBrush="#222" BorderThickness="1" ClipToBounds="True">
         <Border.Effect>
-            <DropShadowEffect Color="Black" BlurRadius="40" ShadowDepth="10" Opacity="0.6"/>
+            <DropShadowEffect Color="Black" BlurRadius="40" ShadowDepth="0" Opacity="0.5"/>
         </Border.Effect>
-        <Border Background="#101010" BorderBrush="#333333" BorderThickness="1" CornerRadius="16">
-            <Grid>
-                <!-- Subtle Background Gradient/Image -->
-                <Grid.Background>
-                    <RadialGradientBrush GradientOrigin="0.5,0" Center="0.5,0" RadiusX="1" RadiusY="1">
-                        <GradientStop Color="#1A2035" Offset="0"/>
-                        <GradientStop Color="#050505" Offset="1"/>
-                    </RadialGradientBrush>
-                </Grid.Background>
-                
-                <Grid Margin="50,40,50,40">
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto"/> <!-- Header -->
-                        <RowDefinition Height="Auto"/> <!-- Features -->
-                        <RowDefinition Height="*"/>    <!-- Changelog (fills remaining) -->
-                        <RowDefinition Height="Auto"/> <!-- Footer -->
-                    </Grid.RowDefinitions>
+        <Grid>
+            <!-- Background Decoration -->
+            <Ellipse Fill="#0A84FF" Opacity="0.05" Width="400" Height="400" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,-150,-150"/>
+            <Ellipse Fill="#5E5CE6" Opacity="0.05" Width="300" Height="300" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="-100,-100,0,0"/>
 
-                    <!-- Header Section -->
-                    <StackPanel Grid.Row="0" Margin="0,0,0,40" HorizontalAlignment="Center">
-                         <Image Source="pack://application:,,,/assets/zeromix-high-resolution-logo-transparent.png" Height="100" RenderOptions.BitmapScalingMode="HighQuality"/>
-                         <TextBlock Text="ZeroMix" FontSize="42" FontWeight="Bold" Foreground="White" HorizontalAlignment="Center" Margin="0,15,0,5">
-                             <TextBlock.Effect>
-                                 <DropShadowEffect Color="#0A84FF" BlurRadius="25" ShadowDepth="0" Opacity="0.6"/>
-                             </TextBlock.Effect>
-                         </TextBlock>
-                         <TextBlock Text="Pengenalan Singkat" FontSize="16" Foreground="#8E8E93" HorizontalAlignment="Center"/>
+            <Grid Margin="40">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <!-- Slides Container -->
+                <Grid x:Name="SlidesContainer" Grid.Row="0">
+                    
+                    <!-- SLIDE 0: Welcome -->
+                    <Grid x:Name="Slide0" Style="{StaticResource SlideContentStyle}" Visibility="Visible">
+                        <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+                            <Image Source="pack://application:,,,/assets/zeromix-high-resolution-logo-transparent.png" Height="120" Margin="0,0,0,30">
+                                <Image.Effect>
+                                    <DropShadowEffect Color="#0A84FF" BlurRadius="30" ShadowDepth="0" Opacity="0.4"/>
+                                </Image.Effect>
+                            </Image>
+                            <TextBlock Text="Welcome to ZeroMix" FontSize="36" FontWeight="Bold" Foreground="White" HorizontalAlignment="Center"/>
+                            <TextBlock Text="Smart Workspace, Redefined." FontSize="16" Foreground="#888" Margin="0,10,0,0" HorizontalAlignment="Center"/>
+                        </StackPanel>
+                    </Grid>
+
+                    <!-- SLIDE 1: System Monitoring -->
+                    <Grid x:Name="Slide1" Style="{StaticResource SlideContentStyle}" Visibility="Collapsed">
+                        <Grid VerticalAlignment="Center">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0" Margin="0,0,40,0">
+                                <TextBlock Text="📊" FontSize="64" Margin="0,0,0,20"/>
+                                <TextBlock Text="System Monitoring" FontSize="28" FontWeight="Bold" Foreground="#0A84FF" Margin="0,0,0,15"/>
+                                <TextBlock Text="Pantau performa PC Anda secara real-time langsung dari dashboard. Cek penggunaan CPU, RAM, dan Disk dengan tampilan yang estetik dan minimalis." 
+                                           Foreground="#BBB" FontSize="15" TextWrapping="Wrap" LineHeight="24"/>
+                            </StackPanel>
+                            <Border Grid.Column="1" Background="#1A1A1A" CornerRadius="12" BorderBrush="#333" BorderThickness="1" Height="250">
+                                <Grid>
+                                    <TextBlock Text="Real-time Performance Metrics" Foreground="#444" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                                    <StackPanel VerticalAlignment="Bottom" Margin="20">
+                                        <Border Height="4" Background="#333" CornerRadius="2">
+                                            <Border Width="150" Background="#0A84FF" HorizontalAlignment="Left" CornerRadius="2"/>
+                                        </Border>
+                                        <TextBlock Text="CPU Usage: 42%" Foreground="#666" FontSize="10" Margin="0,5,0,0"/>
+                                    </StackPanel>
+                                </Grid>
+                            </Border>
+                        </Grid>
+                    </Grid>
+
+                    <!-- SLIDE 2: Transparent Taskbar -->
+                    <Grid x:Name="Slide2" Style="{StaticResource SlideContentStyle}" Visibility="Collapsed">
+                        <Grid VerticalAlignment="Center">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0" Margin="0,0,40,0">
+                                <TextBlock Text="🪄" FontSize="64" Margin="0,0,0,20"/>
+                                <TextBlock Text="Ghost Taskbar" FontSize="28" FontWeight="Bold" Foreground="#30D158" Margin="0,0,0,15"/>
+                                <TextBlock Text="Ubah taskbar Windows Anda menjadi sepenuhnya transparan. Memberikan kesan desktop yang jauh lebih bersih dan modern tanpa gangguan visual." 
+                                           Foreground="#BBB" FontSize="15" TextWrapping="Wrap" LineHeight="24"/>
+                            </StackPanel>
+                            <Border Grid.Column="1" Background="#1A1A1A" CornerRadius="12" BorderBrush="#333" BorderThickness="1" Height="250">
+                                <Grid>
+                                    <Rectangle Height="40" Fill="#222" VerticalAlignment="Bottom" Margin="20" Opacity="0.5"/>
+                                    <TextBlock Text="Seamless Window Experience" Foreground="#444" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                                </Grid>
+                            </Border>
+                        </Grid>
+                    </Grid>
+
+                    <!-- SLIDE 3: Video Wallpaper -->
+                    <Grid x:Name="Slide3" Style="{StaticResource SlideContentStyle}" Visibility="Collapsed">
+                         <Grid VerticalAlignment="Center">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0" Margin="0,0,40,0">
+                                <TextBlock Text="🎥" FontSize="64" Margin="0,0,0,20"/>
+                                <TextBlock Text="Live Wallpapers" FontSize="28" FontWeight="Bold" Foreground="#FF9F0A" Margin="0,0,0,15"/>
+                                <TextBlock Text="Hidupkan desktop Anda dengan video wallpaper favorit. Mendukung berbagai format video dengan konsumsi sumber daya yang sangat rendah." 
+                                           Foreground="#BBB" FontSize="15" TextWrapping="Wrap" LineHeight="24"/>
+                            </StackPanel>
+                            <Border Grid.Column="1" Background="#1A1A1A" CornerRadius="12" BorderBrush="#333" BorderThickness="1" Height="250">
+                                <Grid>
+                                    <Path Data="M0,0 L20,10 L0,20 Z" Fill="#444" HorizontalAlignment="Center" VerticalAlignment="Center" Stretch="Fill" Width="40" Height="40"/>
+                                    <TextBlock Text="Animated Background System" Foreground="#444" VerticalAlignment="Bottom" HorizontalAlignment="Center" Margin="0,0,0,40"/>
+                                </Grid>
+                            </Border>
+                        </Grid>
+                    </Grid>
+
+                    <!-- SLIDE 4: Quick Search -->
+                    <Grid x:Name="Slide4" Style="{StaticResource SlideContentStyle}" Visibility="Collapsed">
+                         <Grid VerticalAlignment="Center">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0" Margin="0,0,40,0">
+                                <TextBlock Text="🔍" FontSize="64" Margin="0,0,0,20"/>
+                                <TextBlock Text="Unified Search" FontSize="28" FontWeight="Bold" Foreground="#5E5CE6" Margin="0,0,0,15"/>
+                                <TextBlock Text="Cari aplikasi, file, hitung kalkulator, atau cari di web hanya dengan satu shortcut. Cepat, cerdas, dan langsung tersedia di mana saja." 
+                                           Foreground="#BBB" FontSize="15" TextWrapping="Wrap" LineHeight="24"/>
+                            </StackPanel>
+                            <Border Grid.Column="1" Background="#1A1A1A" CornerRadius="12" BorderBrush="#333" BorderThickness="1" Height="250">
+                                <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+                                    <Border Background="#222" CornerRadius="20" Padding="15,8" Width="200">
+                                        <TextBlock Text="Type anything..." Foreground="#666"/>
+                                    </Border>
+                                    <TextBlock Text="Smart Result Engine" Foreground="#444" Margin="0,15,0,0" HorizontalAlignment="Center"/>
+                                </StackPanel>
+                            </Border>
+                        </Grid>
+                    </Grid>
+
+                    <!-- SLIDE 5: Final / Changelog -->
+                    <Grid x:Name="Slide5" Style="{StaticResource SlideContentStyle}" Visibility="Collapsed">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="*"/>
+                            </Grid.RowDefinitions>
+                            <TextBlock Grid.Row="0" Text="You're all set!" FontSize="28" FontWeight="Bold" Foreground="White" Margin="0,0,0,20" HorizontalAlignment="Left"/>
+                            <Border Grid.Row="1" Background="#151515" CornerRadius="12" Padding="20" BorderBrush="#222" BorderThickness="1">
+                                <Grid>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="*"/>
+                                    </Grid.RowDefinitions>
+                                    <TextBlock Grid.Row="0" Text="What's New (GitHub)" Foreground="#0A84FF" FontWeight="Bold" Margin="0,0,0,15"/>
+                                    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+                                        <ItemsControl x:Name="ReleasesParams">
+                                            <ItemsControl.ItemTemplate>
+                                                <DataTemplate>
+                                                    <Border Margin="0,0,0,15" BorderBrush="#222" BorderThickness="0,0,0,1" Padding="0,0,0,10">
+                                                        <StackPanel>
+                                                            <Grid>
+                                                                <TextBlock Text="{Binding TagName}" FontWeight="Bold" Foreground="#DDD"/>
+                                                                <TextBlock Text="{Binding CreatedAt, StringFormat=\{0:dd MMM yyyy\}}" Foreground="#444" FontSize="10" HorizontalAlignment="Right"/>
+                                                            </Grid>
+                                                            <TextBlock Text="{Binding Body}" Foreground="#666" FontSize="12" TextWrapping="Wrap" Margin="0,5,0,0"/>
+                                                        </StackPanel>
+                                                    </Border>
+                                                </DataTemplate>
+                                            </ItemsControl.ItemTemplate>
+                                        </ItemsControl>
+                                    </ScrollViewer>
+                                </Grid>
+                            </Border>
+                        </Grid>
+                    </Grid>
+
+                </Grid>
+
+                <!-- Navigation Bottom Bar -->
+                <Grid Grid.Row="1" Margin="0,30,0,0">
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
+                        <TextBlock x:Name="SlideIndicator" Text="STEP 1 OF 6" Foreground="#444" VerticalAlignment="Center" FontSize="10" FontWeight="Bold" LetterSpacing="1"/>
                     </StackPanel>
 
-                    <!-- Featured Section (Cards) -->
-                    <Grid Grid.Row="1" Margin="0,0,0,30">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="20"/>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="40"/>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="40"/>
-                            <ColumnDefinition Width="*"/>
-                        </Grid.ColumnDefinitions>
-                        
-                        <!-- Feature 1 -->
-                        <Border Grid.Column="0" Background="#1C1C1E" CornerRadius="12" Padding="20" BorderBrush="#2C2C2E" BorderThickness="1">
-                             <StackPanel HorizontalAlignment="Center">
-                                 <TextBlock Text="📊" FontSize="32" HorizontalAlignment="Center" Margin="0,0,0,10"/>
-                                 <TextBlock Text="System" Foreground="White" FontWeight="Bold" FontSize="14" HorizontalAlignment="Center"/>
-                                 <TextBlock Text="Monitor" Foreground="White" FontWeight="Bold" FontSize="14" HorizontalAlignment="Center"/>
-                             </StackPanel>
-                        </Border>
-
-                        <!-- Feature 2 -->
-                        <Border Grid.Column="2" Background="#1C1C1E" CornerRadius="12" Padding="20" BorderBrush="#2C2C2E" BorderThickness="1">
-                             <StackPanel HorizontalAlignment="Center">
-                                 <TextBlock Text="📌" FontSize="32" HorizontalAlignment="Center" Margin="0,0,0,10"/>
-                                 <TextBlock Text="Taskbar" Foreground="White" FontWeight="Bold" FontSize="14" HorizontalAlignment="Center"/>
-                                 <TextBlock Text="Transparan" Foreground="White" FontWeight="Bold" FontSize="14" HorizontalAlignment="Center"/>
-                             </StackPanel>
-                        </Border>
-
-                        <!-- Feature 3 -->
-                        <Border Grid.Column="4" Background="#1C1C1E" CornerRadius="12" Padding="20" BorderBrush="#2C2C2E" BorderThickness="1">
-                             <StackPanel HorizontalAlignment="Center">
-                                 <TextBlock Text="🎥" FontSize="32" HorizontalAlignment="Center" Margin="0,0,0,10"/>
-                                 <TextBlock Text="Video" Foreground="White" FontWeight="Bold" FontSize="14" HorizontalAlignment="Center"/>
-                                 <TextBlock Text="Wallpaper" Foreground="White" FontWeight="Bold" FontSize="14" HorizontalAlignment="Center"/>
-                             </StackPanel>
-                        </Border>
-                        
-                        <!-- Feature 4 -->
-                        <Border Grid.Column="6" Background="#1C1C1E" CornerRadius="12" Padding="20" BorderBrush="#2C2C2E" BorderThickness="1">
-                             <StackPanel HorizontalAlignment="Center">
-                                 <TextBlock Text="⌨️" FontSize="32" HorizontalAlignment="Center" Margin="0,0,0,10"/>
-                                 <TextBlock Text="Quick" Foreground="White" FontWeight="Bold" FontSize="14" HorizontalAlignment="Center"/>
-                                 <TextBlock Text="Search" Foreground="White" FontWeight="Bold" FontSize="14" HorizontalAlignment="Center"/>
-                             </StackPanel>
-                        </Border>
-                    </Grid>
-
-                    <!-- Changelog Section -->
-                    <Grid Grid.Row="2">
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="*"/>
-                        </Grid.RowDefinitions>
-                        
-                        <Border Grid.Row="0" Margin="0,0,0,10" BorderBrush="#333" BorderThickness="0,0,0,1" HorizontalAlignment="Left" Padding="0,0,0,5">
-                             <TextBlock Text="Update Terbaru (GitHub)" FontSize="16" FontWeight="SemiBold" Foreground="#0A84FF"/>
-                        </Border>
-                        
-                        <Border Grid.Row="1" Background="#111111" CornerRadius="8" Padding="15" BorderBrush="#222" BorderThickness="1">
-                             <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="0,0,10,0">
-                                <ItemsControl x:Name="ReleasesParams">
-                                    <ItemsControl.ItemTemplate>
-                                        <DataTemplate>
-                                            <Grid Margin="0,0,0,20">
-                                                <Grid.ColumnDefinitions>
-                                                    <ColumnDefinition Width="Auto"/>
-                                                    <ColumnDefinition Width="*"/>
-                                                </Grid.ColumnDefinitions>
-                                                
-                                                <!-- Version Tag -->
-                                                <Border Grid.Column="0" Background="#1C2533" CornerRadius="6" VerticalAlignment="Top" Padding="10,6" Margin="0,0,15,0" BorderBrush="#0A84FF" BorderThickness="1">
-                                                    <TextBlock Text="{Binding TagName}" Foreground="#0A84FF" FontWeight="Bold" FontSize="13" FontFamily="Consolas"/>
-                                                </Border>
-                                                
-                                                <!-- Content -->
-                                                <StackPanel Grid.Column="1">
-                                                    <TextBlock Text="{Binding CreatedAt, StringFormat=\{0:dd MMM yyyy\}}" Foreground="#666" FontSize="12" Margin="0,0,0,5"/>
-                                                    <TextBlock Text="{Binding Body}" Foreground="#DDD" TextWrapping="Wrap" LineHeight="22" FontSize="13"/>
-                                                </StackPanel>
-                                            </Grid>
-                                        </DataTemplate>
-                                    </ItemsControl.ItemTemplate>
-                                </ItemsControl>
-                             </ScrollViewer>
-                         </Border>
-                    </Grid>
-                    
-                    <!-- Footer / Button -->
-                    <StackPanel Grid.Row="3" Margin="0,40,0,0" HorizontalAlignment="Center">
-                        <Button Content="🚀  Mulai Sekarang" Click="Button_Click" 
-                                Width="260" Height="50" Background="#0A84FF" Foreground="White"
-                                FontSize="16" FontWeight="Bold" BorderThickness="0" Cursor="Hand">
-                             <Button.Template>
-                                 <ControlTemplate TargetType="Button">
-                                     <Border x:Name="border" Background="{TemplateBinding Background}" CornerRadius="25">
-                                         <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                     </Border>
-                                     <ControlTemplate.Triggers>
-                                         <Trigger Property="IsMouseOver" Value="True">
-                                             <Setter TargetName="border" Property="Background" Value="#0070E0"/>
-                                             <Setter TargetName="border" Property="Effect">
-                                                 <Setter.Value>
-                                                     <DropShadowEffect Color="#0A84FF" BlurRadius="20" ShadowDepth="0" Opacity="0.4"/>
-                                                 </Setter.Value>
-                                             </Setter>
-                                         </Trigger>
-                                         <Trigger Property="IsPressed" Value="True">
-                                             <Setter TargetName="border" Property="Background" Value="#005BB5"/>
-                                         </Trigger>
-                                     </ControlTemplate.Triggers>
-                                 </ControlTemplate>
-                             </Button.Template>
-                        </Button>
-                        <TextBlock Text="ZeroMix• Made with ❤️ for Productivity" Foreground="#444" FontSize="11" HorizontalAlignment="Center" Margin="0,15,0,0"/>
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                        <Button x:Name="BtnBack" Content="Back" Click="BtnBack_Click" Style="{StaticResource NavButtonStyle}" Visibility="Collapsed" Margin="0,0,10,0"/>
+                        <Button x:Name="BtnNext" Content="Next →" Click="BtnNext_Click" Style="{StaticResource NavButtonStyle}" Background="#0A84FF" Foreground="White" Padding="30,12"/>
                     </StackPanel>
                 </Grid>
             </Grid>
-        </Border>
+        </Grid>
     </Border>    
 </Window>
