@@ -49,12 +49,12 @@ class AutoTranslator {
   }
 
   // Translate semua teks di halaman
-  translatePage() {
+  async translatePage() {
     // Translate text nodes (teks biasa)
-    this.translateTextNodes(document.body);
+    await this.translateTextNodes(document.body);
     
     // Translate attributes (placeholder, title, alt, aria-label)
-    this.translateAttributes(document.body);
+    await this.translateAttributes(document.body);
     
     // Update active button
     this.updateLanguageButton();
@@ -63,77 +63,127 @@ class AutoTranslator {
     document.documentElement.lang = this.currentLang;
   }
 
-  // Translate text nodes secara rekursif
-  translateTextNodes(node) {
-    const walker = document.createTreeWalker(
-      node,
-      NodeFilter.SHOW_TEXT,
-      null,
-      false
-    );
-
+  // Translate serta mengelompokkan teks (Batch Processing)
+  async translateTextNodes(node) {
+    const walker = document.createTreeWalker(node, NodeFilter.SHOW_TEXT, null, false);
     let currentNode;
     const nodesToTranslate = [];
+    const textsToTranslate = [];
 
-    // Collect semua text nodes
     while (currentNode = walker.nextNode()) {
       const text = currentNode.nodeValue.trim();
-      
-      // Skip empty nodes dan ignored elements
-      if (text.length > 0 && !this.isIgnoredElement(currentNode.parentElement)) {
-        nodesToTranslate.push(currentNode);
+      if (text.length > 2 && !this.isIgnoredElement(currentNode.parentElement)) {
+        const normalized = this.normalizeText(text);
+        // Jika ada di dictionary manual, translate langsung (Instan)
+        if (this.translationCache[normalized]) {
+          const trans = this.translationCache[normalized];
+          currentNode.nodeValue = currentNode.nodeValue.replace(text, trans);
+        } else if (this.currentLang !== 'id') {
+          // Jika tidak ada di dict, masukkan ke antrian batch Google
+          nodesToTranslate.push(currentNode);
+          textsToTranslate.push(text);
+        }
       }
     }
 
-    // Translate setiap text node
-    nodesToTranslate.forEach(textNode => {
-      const originalText = textNode.nodeValue.trim();
-      const translatedText = this.findTranslation(originalText);
-      
-      if (translatedText && translatedText !== originalText) {
-        // Preserve whitespace - jika ada whitespace di awal/akhir, pertahankan
-        const leadingSpace = textNode.nodeValue.match(/^\s*/)[0];
-        const trailingSpace = textNode.nodeValue.match(/\s*$/)[0];
-        textNode.nodeValue = leadingSpace + translatedText + trailingSpace;
+    // Kirim Batch ke Google (Max 100 strings per request agar tidak error)
+    if (textsToTranslate.length > 0) {
+      const batchSize = 30; // Ukuran paket optimal
+      for (let i = 0; i < textsToTranslate.length; i += batchSize) {
+        const batchTexts = textsToTranslate.slice(i, i + batchSize);
+        const batchNodes = nodesToTranslate.slice(i, i + batchSize);
+        
+        try {
+          const results = await this.fetchBatchGoogleTranslation(batchTexts, this.currentLang);
+          batchNodes.forEach((node, idx) => {
+            if (results[idx]) {
+                const leadingSpace = node.nodeValue.match(/^\s*/)[0];
+                const trailingSpace = node.nodeValue.match(/\s*$/)[0];
+                node.nodeValue = leadingSpace + results[idx] + trailingSpace;
+            }
+          });
+        } catch (e) {
+          console.error("Batch translate failed", e);
+        }
       }
-    });
+    }
+  }
+
+  async fetchBatchGoogleTranslation(texts, targetLang) {
+    // Teknik penggabungan teks dengan separator unik untuk batching gratis
+    const separator = " ||| ";
+    const combinedText = texts.join(separator);
+    const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=${targetLang}&dt=t&q=${encodeURIComponent(combinedText)}`;
+    
+    const response = await fetch(url);
+    const data = await response.json();
+    
+    if (data && data[0]) {
+      const fullTranslatedBody = data[0].map(x => x[0]).join('');
+      // Pecah kembali berdasarkan separator
+      return fullTranslatedBody.split("|||").map(s => s.trim());
+    }
+    return texts;
   }
 
   // Translate attributes seperti placeholder, title, alt
-  translateAttributes(node) {
+  async translateAttributes(node) {
     const elements = node.querySelectorAll('[placeholder], [title], [aria-label]');
     
-    elements.forEach(el => {
+    for (const el of elements) {
       if (el.placeholder) {
-        const translated = this.findTranslation(el.placeholder);
+        const translated = await this.findTranslation(el.placeholder);
         if (translated) el.placeholder = translated;
       }
       if (el.title) {
-        const translated = this.findTranslation(el.title);
+        const translated = await this.findTranslation(el.title);
         if (translated) el.title = translated;
       }
       if (el.getAttribute('aria-label')) {
         const ariaLabel = el.getAttribute('aria-label');
-        const translated = this.findTranslation(ariaLabel);
+        const translated = await this.findTranslation(ariaLabel);
         if (translated) el.setAttribute('aria-label', translated);
       }
-    });
+    }
   }
 
-  // Cari terjemahan dari string - gunakan cache
-  findTranslation(text) {
-    if (!text) return null;
+  // Cari terjemahan dari string - gunakan cache atau Google Translate fallback
+  async findTranslation(text) {
+    if (!text || text.trim().length === 0) return null;
     
+    // Jangan translate angka saja
+    if (/^\d+$/.test(text.trim())) return text;
+
     const normalizedText = this.normalizeText(text);
     
-    // Cek cache dulu
+    // 1. Cek cache (Dictionary manual)
     if (this.translationCache[normalizedText]) {
       return this.translationCache[normalizedText];
     }
     
-    // Jika tidak ditemukan di cache, return null
-    // (Ini berarti teks tidak ada di translations dictionary)
-    return null;
+    // 2. Jika bahasa adalah ID (default), tidak perlu translate jika tidak ada di dict
+    if (this.currentLang === 'id') return text;
+
+    // 3. Fallback ke Google Translate API (Gratis/Public Client)
+    try {
+      return await this.fetchGoogleTranslation(text, this.currentLang);
+    } catch (error) {
+      console.error('Google Translate Error:', error);
+      return text; // Return original on error
+    }
+  }
+
+  async fetchGoogleTranslation(text, targetLang) {
+    const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=${targetLang}&dt=t&q=${encodeURIComponent(text)}`;
+    
+    const response = await fetch(url);
+    const data = await response.json();
+    
+    if (data && data[0]) {
+      // Gabungkan hasil jika teks terdiri dari beberapa baris/array
+      return data[0].map(x => x[0]).join('');
+    }
+    return text;
   }
 
   // Normalize text untuk perbandingan (lowercase, trim, normalize spaces)
@@ -164,18 +214,18 @@ class AutoTranslator {
 
   // Observer untuk elemen yang ditambahkan dynamically
   observeDOM() {
-    this.observer = new MutationObserver((mutations) => {
-      mutations.forEach((mutation) => {
+    this.observer = new MutationObserver(async (mutations) => {
+      for (const mutation of mutations) {
         if (mutation.type === 'childList') {
           // Translate elemen baru
-          mutation.addedNodes.forEach(node => {
+          for (const node of mutation.addedNodes) {
             if (node.nodeType === 1) { // Element node
-              this.translateTextNodes(node);
-              this.translateAttributes(node);
+              await this.translateTextNodes(node);
+              await this.translateAttributes(node);
             }
-          });
+          }
         }
-      });
+      }
     });
 
     this.observer.observe(document.body, {
