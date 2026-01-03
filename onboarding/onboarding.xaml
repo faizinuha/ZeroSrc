@@ -226,7 +226,7 @@
                 <!-- Navigation Bottom Bar -->
                 <Grid Grid.Row="1" Margin="0,30,0,0">
                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
-                        <TextBlock x:Name="SlideIndicator" Text="STEP 1 OF 6" Foreground="#444" VerticalAlignment="Center" FontSize="10" FontWeight="Bold" LetterSpacing="1"/>
+                        <TextBlock x:Name="SlideIndicator" Text="STEP 1 OF 6" Foreground="#444" VerticalAlignment="Center" FontSize="10" FontWeight="Bold" Padding="1"/>
                     </StackPanel>
 
                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
