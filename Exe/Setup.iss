@@ -63,10 +63,6 @@ Source: "..\publish\win-x64\*"; DestDir: "{app}"; Flags: ignoreversion recursesu
 Source: "zeromix.ico"; DestDir: "{app}"; Flags: ignoreversion
 ; Resources
 Source: "..\Resource\*"; DestDir: "{app}\Resource"; Flags: ignoreversion recursesubdirs createallsubdirs
-; Web Files
-Source: "..\Web\*"; DestDir: "{app}\Web"; Flags: ignoreversion recursesubdirs createallsubdirs
-; Translations
-Source: "..\Translate\*"; DestDir: "{app}\Translate"; Flags: ignoreversion recursesubdirs createallsubdirs
 ; Docs
 Source: "Privacy.txt"; DestDir: "{app}"; Flags: ignoreversion
 Source: "../LICENSE.txt"; DestDir: "{app}"; Flags: ignoreversion
