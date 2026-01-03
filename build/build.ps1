@@ -12,7 +12,7 @@
     Values: Clean, Build, Installer, Sign, All
 
 .PARAMETER Version
-    The version number to build. Defaults to '2.2.3'.
+    The version number to build. Defaults to '2.3.7'.
 
 .EXAMPLE
     .\build.ps1
@@ -69,7 +69,7 @@ function Task-Clean {
 function Task-Build {
     Log-Info "Publishing Application v$Version..."
     $OutDir = Join-Path $PublishDir "win-x64"
-    $Proc = Start-Process "dotnet" -ArgumentList "publish `"$ProjectFile`" -c Release -r win-x64 -p:PublishSingleFile=true -p:PublishReadyToRun=true --self-contained -o `"$OutDir`"" -NoNewWindow -PassThru -Wait
+    $Proc = Start-Process "dotnet" -ArgumentList "publish `"$ProjectFile`" -c Release -r win-x64 -p:PublishSingleFile=false -p:PublishReadyToRun=true --self-contained -o `"$OutDir`"" -NoNewWindow -PassThru -Wait
     if ($Proc.ExitCode -ne 0) { throw "Dotnet publish failed." }
 }
 

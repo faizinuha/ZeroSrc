@@ -67,7 +67,7 @@ clean:
 
 build:
 	@echo "[BUILD] Publishing Application v$(VERSION)..."
-	@$(DOTNET) publish "$(PROJECT_FILE)" -c Release -r win-x64 -p:PublishSingleFile=true -p:PublishTrimmed=true -p:PublishReadyToRun=true --self-contained -o "$(PUBLISH_DIR)\win-x64"
+	@$(DOTNET) publish "$(PROJECT_FILE)" -c Release -r win-x64 -p:PublishReadyToRun=true --self-contained -o "$(PUBLISH_DIR)\win-x64"
 
 installer:
 	@echo "[INSTALLER] Compiling Inno Setup Script..."
