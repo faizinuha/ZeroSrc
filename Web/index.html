@@ -1,299 +1,468 @@
 <!DOCTYPE html>
 <html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="ZeroMix - Smart Launcher Desktop & Extension untuk produktivitas tanpa batas. Buka aplikasi dengan hotkey, pencarian web real-time, dan banyak lagi."
+    />
+    <meta
+      name="keywords"
+      content="launcher, aplikasi, produktivitas, desktop, extension, zeromix"
+    />
+    <meta name="author" content="Zaki" />
+    <title>ZeroMix – Desktop & Extension | Smart Launcher</title>
+    <link rel="icon" href="./zeromix-high-resolution-logo-transparent.png" />
+    <link rel="stylesheet" href="style.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+      integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    />
+    <link rel="stylesheet" href="gsap.css" />
+  </head>
 
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description"
-    content="ZeroMix - Smart Launcher Desktop & Extension untuk produktivitas tanpa batas. Buka aplikasi dengan hotkey, pencarian web real-time, dan banyak lagi." />
-  <meta name="keywords" content="launcher, aplikasi, produktivitas, desktop, extension, zeromix" />
-  <meta name="author" content="Zaki" />
-  <title>ZeroMix – Desktop & Extension | Smart Launcher</title>
-  <link rel="icon" href="./zeromix-high-resolution-logo-transparent.png">
-  <link rel="stylesheet" href="style.css" />
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
-    integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA=="
-    crossorigin="anonymous" referrerpolicy="no-referrer" />
-  <link rel="stylesheet" href="gsap.css">
-</head>
-
-<body>
-  <!--splash screen / Intro animation -->
-  <div class="splash-screen" id="splashScreen">
-    <div class="splash-content">
-      <img src="zeromix-high-resolution-logo-transparent.png" alt="zeromix" class="splash-logo">
-      <h1 class="splash-title">ZeroMix</h1>
-      <p class="splash-subtitle">Smart Launcher Desktop</p>
-      <div class="splash-loader">
-        <div class="loader-bar"></div>
+  <body>
+    <!--splash screen / Intro animation -->
+    <div class="splash-screen" id="splashScreen">
+      <div class="splash-content">
+        <img
+          src="zeromix-high-resolution-logo-transparent.png"
+          alt="zeromix"
+          class="splash-logo"
+        />
+        <h1 class="splash-title">ZeroMix</h1>
+        <p class="splash-subtitle">Smart Launcher Desktop</p>
+        <div class="splash-loader">
+          <div class="loader-bar"></div>
+        </div>
       </div>
     </div>
-  </div>
 
-  <!-- Navigation Bar -->
-  <nav class="navbar">
-    <div class="nav-container">
-      <a href="index.html" class="nav-logo">ZeroMix</a>
-      <button class="menu-toggle" aria-label="Toggle menu">
-        <i class="fas fa-bars"></i>
-      </button>
-      <ul class="nav-menu">
-        <li class="nav-item"><a href="Documents.html" data-translate="Documents">Documents</a></li>
-        <li class="nav-item"><a href="Changelog.html" data-translate="Changelog">Changelog</a></li>
-        <li class="nav-item"><a href="About.html" data-translate="Tentang">Tentang</a></li>
-        <li class="nav-item"><a href="Support.html" data-translate="Support">Support</a></li>
-        <li class="nav-item language-switcher">
-          <button class="lang-btn active" data-lang="id">🇮🇩 ID</button>
-          <button class="lang-btn" data-lang="en">🇺🇸 EN</button>
-        </li>
-      </ul>
-    </div>
-  </nav>
+    <!-- Navigation Bar -->
+    <nav class="navbar">
+      <div class="nav-container">
+        <a href="index.html" class="nav-logo">ZeroMix</a>
+        <button class="menu-toggle" aria-label="Toggle menu">
+          <i class="fas fa-bars"></i>
+        </button>
+        <ul class="nav-menu">
+          <li class="nav-item">
+            <a href="Documents.html" data-translate="Documents">Documents</a>
+          </li>
+          <li class="nav-item">
+            <a href="Changelog.html" data-translate="Changelog">Changelog</a>
+          </li>
+          <li class="nav-item">
+            <a href="About.html" data-translate="Tentang">Tentang</a>
+          </li>
+          <li class="nav-item">
+            <a href="Support.html" data-translate="Support">Support</a>
+          </li>
+          <li class="nav-item language-switcher">
+            <button class="lang-btn active" data-lang="id">🇮🇩 ID</button>
+            <button class="lang-btn" data-lang="en">🇺🇸 EN</button>
+            <button class="lang-btn" data-lang="ja">🇯🇵 JP</button>
+          </li>
+        </ul>
+      </div>
+    </nav>
 
-  <!-- Hero Section -->
-  <header>
-    <div class="header-content">
-      <img src="zeromix-high-resolution-logo-transparent.png" alt="ZeroMix Logo" class="logo" loading="lazy" />
-      <h1 data-translate="ZeroMix">ZeroMix</h1>
-      <p data-translate="Selamat Datang di Website Resmi ZeroMix">Selamat Datang di Website Resmi ZeroMix</p>
-      <p data-translate="Aplikasi Desktop & Extension untuk Produktivitas Tanpa Batas 🚀">Aplikasi Desktop & Extension
-        untuk Produktivitas Tanpa Batas 🚀</p>
-      <a href="#download" class="btn" data-translate="Download Sekarang">Download Sekarang</a>
-    </div>
-  </header>
-
-  <!-- Why ZeroMix Section -->
-  <section id="fitur" class="whyzeromix-section">
-    <h2>Mengapa Memilih ZeroMix?</h2>
-    <div class="whyzeromix-features">
-      <div class="feature-item reveal">
-        <h3>⚡ Overlay Cepat</h3>
-        <p>Buka overlay ala Spotlight dengan Alt+Space untuk akses instan ke aplikasi favorit Anda.</p>
-      </div>
-      <div class="feature-item reveal">
-        <h3>🔍 Saran Cerdas</h3>
-        <p>Kombinasi saran aplikasi lokal (Start Menu/Desktop) dan saran Google secara real-time.</p>
-      </div>
-      <div class="feature-item reveal">
-        <h3>🎛️ Custom Shortcut</h3>
-        <p>Buat hotkey kustom untuk aplikasi favorit. Tersimpan di %AppData% dan aktif tanpa restart.</p>
-      </div>
-      <div class="feature-item reveal">
-        <h3>🪟 Tray & Dashboard</h3>
-        <p>Ikon tray dengan Dashboard CPU/RAM dan tombol pembersih file sementara.</p>
-      </div>
-      <div class="feature-item reveal">
-        <h3>⬆️ Auto-Update</h3>
-        <p>Cek rilis GitHub, unduh installer, dan update senyap ketika Anda setuju.</p>
-      </div>
-      <div class="feature-item reveal">
-        <h3>🌐 Browser Extension</h3>
-        <p>Popup pencarian cepat di Chrome/Edge/Opera dengan saran Google. <a href="Feedback.html">Kirim Feedback</a>
+    <!-- Hero Section -->
+    <header>
+      <div class="header-content">
+        <img
+          src="zeromix-high-resolution-logo-transparent.png"
+          alt="ZeroMix Logo"
+          class="logo"
+          loading="lazy"
+        />
+        <h1 data-translate="ZeroMix">ZeroMix</h1>
+        <p data-translate="Selamat Datang di Website Resmi ZeroMix">
+          Selamat Datang di Website Resmi ZeroMix
         </p>
+        <p
+          data-translate="Aplikasi Desktop & Extension untuk Produktivitas Tanpa Batas 🚀"
+        >
+          Aplikasi Desktop & Extension untuk Produktivitas Tanpa Batas 🚀
+        </p>
+        <a href="#download" class="btn" data-translate="Download Sekarang"
+          >Download Sekarang</a
+        >
       </div>
-      <div class="feature-item reveal">
-        <h3>💰 Gratis Sepenuhnya</h3>
-        <p>Tanpa biaya berlangganan atau fitur premium tersembunyi. Selamanya gratis dan open source.</p>
-      </div>
-      <div class="feature-item reveal">
-        <h3>⚙️ Dapat Dikustomisasi</h3>
-        <p>Shortcut & workflow yang dapat disesuaikan dengan kebutuhan Anda tanpa restart.</p>
-      </div>
-      <div class="feature-item reveal">
-        <h3>🔄 Multi-Platform Sync</h3>
-        <p>Sinkronisasi seamless antara aplikasi desktop dan browser extension Anda.</p>
-      </div>
-    </div>
-  </section>
+    </header>
 
-  <!-- Installation Section -->
-  <section id="install">
-    <h2>📥 Cara Instalasi</h2>
-    <div class="install-steps">
-      <div class="reveal">
-        <h3>💻 Aplikasi Desktop</h3>
-        <ol>
-          <li>Download <strong>ZeroMix-Setup.exe</strong> dari halaman download</li>
-          <li>Jalankan installer dan ikuti langkah-langkahnya dengan seksama</li>
-          <li>Selesai! ZeroMix siap dipakai di komputer Anda</li>
-          <li>Gunakan <code>Alt+Space</code> untuk membuka overlay pencarian</li>
-        </ol>
+    <!-- Why ZeroMix Section -->
+    <section id="fitur" class="whyzeromix-section">
+      <h2>Mengapa Memilih ZeroMix?</h2>
+      <div class="whyzeromix-features">
+        <div class="feature-item reveal">
+          <h3>⚡ Overlay Cepat</h3>
+          <p>
+            Buka overlay ala Spotlight dengan Alt+Space untuk akses instan ke
+            aplikasi favorit Anda.
+          </p>
+        </div>
+        <div class="feature-item reveal">
+          <h3>🔍 Saran Cerdas</h3>
+          <p>
+            Kombinasi saran aplikasi lokal (Start Menu/Desktop) dan saran Google
+            secara real-time.
+          </p>
+        </div>
+        <div class="feature-item reveal">
+          <h3>🎛️ Custom Shortcut</h3>
+          <p>
+            Buat hotkey kustom untuk aplikasi favorit. Tersimpan di %AppData%
+            dan aktif tanpa restart.
+          </p>
+        </div>
+        <div class="feature-item reveal">
+          <h3>🪟 Tray & Dashboard</h3>
+          <p>
+            Ikon tray dengan Dashboard CPU/RAM dan tombol pembersih file
+            sementara.
+          </p>
+        </div>
+        <div class="feature-item reveal">
+          <h3>⬆️ Auto-Update</h3>
+          <p>
+            Cek rilis GitHub, unduh installer, dan update senyap ketika Anda
+            setuju.
+          </p>
+        </div>
+        <div class="feature-item reveal">
+          <h3>🌐 Browser Extension</h3>
+          <p>
+            Popup pencarian cepat di Chrome/Edge/Opera dengan saran Google.
+            <a href="Feedback.html">Kirim Feedback</a>
+          </p>
+        </div>
+        <div class="feature-item reveal">
+          <h3>💰 Gratis Sepenuhnya</h3>
+          <p>
+            Tanpa biaya berlangganan atau fitur premium tersembunyi. Selamanya
+            gratis dan open source.
+          </p>
+        </div>
+        <div class="feature-item reveal">
+          <h3>⚙️ Dapat Dikustomisasi</h3>
+          <p>
+            Shortcut & workflow yang dapat disesuaikan dengan kebutuhan Anda
+            tanpa restart.
+          </p>
+        </div>
+        <div class="feature-item reveal">
+          <h3>🔄 Multi-Platform Sync</h3>
+          <p>
+            Sinkronisasi seamless antara aplikasi desktop dan browser extension
+            Anda.
+          </p>
+        </div>
       </div>
-      <div class="reveal">
-        <h3>🌐 Browser Extension</h3>
-        <ol>
-          <li>Buka browser Anda (Chrome/Edge/Opera)</li>
-          <li>Aktifkan <strong>Developer Mode</strong> di pengaturan extension</li>
-          <li>Pilih <strong>Load unpacked</strong> dan arahkan ke folder extension ZeroMix</li>
-          <li>Extension ZeroMix siap digunakan di browser Anda</li>
-        </ol>
-      </div>
-    </div>
-  </section>
+    </section>
 
-  <!-- Download Section -->
-  <section id="download">
-    <h2>⬇️ Download ZeroMix</h2>
-    <div class="download-cards">
-      <div class="download-card reveal">
-        <h3>💻 ZeroMix Desktop</h3>
-        <p>Installer untuk Windows – Versi Terbaru 1.5.5</p>
-        <p style="color: var(--text-tertiary); font-size: 0.9rem;">Kompatibel dengan Windows 10 & 11</p>
-        <div class="download-buttons">
-          <a href="https://github.com/faizinuha/ZeroMix/releases" class="btn-1" target="_blank"
-            rel="noopener noreferrer">📥 Download EXE</a>
-          <a href="https://github.com/faizinuha/ZeroMix/releases" class="btn-2" target="_blank"
-            rel="noopener noreferrer">📦 Download ZIP</a>
-          <a href="https://github.com/faizinuha/ZeroMix/releases" class="btn-3" target="_blank"
-            rel="noopener noreferrer">🔗 GitHub</a>
+    <!-- Installation Section -->
+    <section id="install">
+      <h2>📥 Cara Instalasi</h2>
+      <div class="install-steps">
+        <div class="reveal">
+          <h3>💻 Aplikasi Desktop</h3>
+          <ol>
+            <li>
+              Download <strong>ZeroMix-Setup.exe</strong> dari halaman download
+            </li>
+            <li>
+              Jalankan installer dan ikuti langkah-langkahnya dengan seksama
+            </li>
+            <li>Selesai! ZeroMix siap dipakai di komputer Anda</li>
+            <li>
+              Gunakan <code>Alt+Space</code> untuk membuka overlay pencarian
+            </li>
+          </ol>
+        </div>
+        <div class="reveal">
+          <h3>🌐 Browser Extension</h3>
+          <ol>
+            <li>Buka browser Anda (Chrome/Edge/Opera)</li>
+            <li>
+              Aktifkan <strong>Developer Mode</strong> di pengaturan extension
+            </li>
+            <li>
+              Pilih <strong>Load unpacked</strong> dan arahkan ke folder
+              extension ZeroMix
+            </li>
+            <li>Extension ZeroMix siap digunakan di browser Anda</li>
+          </ol>
         </div>
       </div>
+    </section>
 
-      <div class="download-card reveal">
-        <h3>🌐 ZeroMix Extension</h3>
-        <p>Paket Extension untuk Chrome / Edge / Opera</p>
-        <p style="color: var(--text-tertiary); font-size: 0.9rem;">Sinkronisasi otomatis dengan Desktop App</p>
-        <div class="download-buttons">
-          <button class="btn-1" onclick="handleExtensionDownload()">📦 Download ZIP</button>
-          <a href="https://github.com/faizinuha/ZeroMix/releases" class="btn-3" target="_blank"
-            rel="noopener noreferrer">🔗 Alternatif Link</a>
+    <!-- Download Section -->
+    <section id="download">
+      <h2>⬇️ Download ZeroMix</h2>
+      <div class="download-cards">
+        <div class="download-card reveal">
+          <h3>💻 ZeroMix Desktop</h3>
+          <p>Installer untuk Windows – Versi Terbaru 1.5.5</p>
+          <p style="color: var(--text-tertiary); font-size: 0.9rem">
+            Kompatibel dengan Windows 10 & 11
+          </p>
+          <div class="download-buttons">
+            <a
+              href="https://github.com/faizinuha/ZeroMix/releases"
+              class="btn-1"
+              target="_blank"
+              rel="noopener noreferrer"
+              >📥 Download EXE</a
+            >
+            <a
+              href="https://github.com/faizinuha/ZeroMix/releases"
+              class="btn-2"
+              target="_blank"
+              rel="noopener noreferrer"
+              >📦 Download ZIP</a
+            >
+            <a
+              href="https://github.com/faizinuha/ZeroMix/releases"
+              class="btn-3"
+              target="_blank"
+              rel="noopener noreferrer"
+              >🔗 GitHub</a
+            >
+          </div>
         </div>
-      </div>
-    </div>
-  </section>
 
-  <!-- Screenshots Section -->
-  <section id="screenshot">
-    <h2 class="reveal" data-translate="🖼️ Tangkapan Layar">🖼️ Tangkapan Layar</h2>
-    <!-- Screenshot Grid -->
-    <div class="screenshots-grid four-images reveal">
-      <div class="screenshot-item">
-        <img src="assets/1.png" alt="ZeroMix Desktop - Overlay Pencarian" loading="lazy" />
-      </div>
-      <div class="screenshot-item">
-        <img src="assets/2.png" alt="ZeroMix Desktop - Dashboard" loading="lazy" />
-      </div>
-      <div class="screenshot-item">
-        <img src="assets/3.png" alt="ZeroMix Extension - Chrome" loading="lazy" />
-      </div>
-      <div class="screenshot-item">
-        <img src="assets/4.png" alt="ZeroMix Extension - Pencarian" loading="lazy" />
-      </div>
-      <div class="screenshot-item">
-        <img src="assets/5.png" alt="ZeroMix Extension - Pencarian" loading="lazy" />
-      </div>
-      <div class="screenshot-item">
-        <img src="assets/6.png" alt="ZeroMix Extension - Pencarian" loading="lazy" />
-      </div>
-    </div>
-  </section>
-  <section class="reveal">
-    <h2>❓ Pertanyaan Umum (FAQ)</h2>
-    <div class="faq-container">
-      <div class="faq-item">
-        <div class="faq-question">
-          <h4>🎯 Bagaimana cara menggunakan ZeroMix?</h4>
-          <i class="fas fa-chevron-down"></i>
-        </div>
-        <div class="faq-answer">
-          <p>Tekan <code>Alt+Space</code> untuk membuka overlay pencarian ZeroMix. Ketik nama aplikasi yang ingin Anda
-            buka atau query pencarian untuk mencari di Google. Pilih hasil dengan keyboard atau mouse, lalu tekan Enter
-            untuk eksekusi.</p>
+        <div class="download-card reveal">
+          <h3>🌐 ZeroMix Extension</h3>
+          <p>Paket Extension untuk Chrome / Edge / Opera</p>
+          <p style="color: var(--text-tertiary); font-size: 0.9rem">
+            Sinkronisasi otomatis dengan Desktop App
+          </p>
+          <div class="download-buttons">
+            <button class="btn-1" onclick="handleExtensionDownload()">
+              📦 Download ZIP
+            </button>
+            <a
+              href="https://github.com/faizinuha/ZeroMix/releases"
+              class="btn-3"
+              target="_blank"
+              rel="noopener noreferrer"
+              >🔗 Alternatif Link</a
+            >
+          </div>
         </div>
       </div>
+    </section>
 
-      <div class="faq-item">
-        <div class="faq-question">
-          <h4>💿 Apakah ZeroMix gratis?</h4>
-          <i class="fas fa-chevron-down"></i>
+    <!-- Screenshots Section -->
+    <section id="screenshot">
+      <h2 class="reveal" data-translate="🖼️ Tangkapan Layar">
+        🖼️ Tangkapan Layar
+      </h2>
+      <!-- Screenshot Grid -->
+      <div class="screenshots-grid four-images reveal">
+        <div class="screenshot-item">
+          <img
+            src="assets/1.png"
+            alt="ZeroMix Desktop - Overlay Pencarian"
+            loading="lazy"
+          />
         </div>
-        <div class="faq-answer">
-          <p>Ya! ZeroMix sepenuhnya gratis dan open source. Tidak ada biaya berlangganan, iklan, atau fitur premium yang
-            tersembunyi. Kami berkomitmen untuk memberikan tool produktivitas terbaik kepada semua orang.</p>
+        <div class="screenshot-item">
+          <img
+            src="assets/2.png"
+            alt="ZeroMix Desktop - Dashboard"
+            loading="lazy"
+          />
         </div>
-      </div>
-
-      <div class="faq-item">
-        <div class="faq-question">
-          <h4>🔒 Apakah data saya aman?</h4>
-          <i class="fas fa-chevron-down"></i>
+        <div class="screenshot-item">
+          <img
+            src="assets/3.png"
+            alt="ZeroMix Extension - Chrome"
+            loading="lazy"
+          />
         </div>
-        <div class="faq-answer">
-          <p>Semua data Anda disimpan secara lokal di folder <code>%AppData%/ZeroMix</code>. Kami tidak mengirim data
-            Anda ke server manapun. Anda memiliki kontrol penuh atas data pribadi Anda.</p>
+        <div class="screenshot-item">
+          <img
+            src="assets/4.png"
+            alt="ZeroMix Extension - Pencarian"
+            loading="lazy"
+          />
         </div>
-      </div>
-
-      <div class="faq-item">
-        <div class="faq-question">
-          <h4>🚀 Bagaimana cara membuat shortcut custom?</h4>
-          <i class="fas fa-chevron-down"></i>
+        <div class="screenshot-item">
+          <img
+            src="assets/5.png"
+            alt="ZeroMix Extension - Pencarian"
+            loading="lazy"
+          />
         </div>
-        <div class="faq-answer">
-          <p>Buka ZeroMix dan cari menu "Custom Shortcut". Klik tambah shortcut baru, tentukan hotkey yang diinginkan,
-            dan pilih aplikasi target. Shortcut akan langsung aktif tanpa perlu restart aplikasi.</p>
-        </div>
-      </div>
-
-      <div class="faq-item">
-        <div class="faq-question">
-          <h4>🌐 Apakah ZeroMix tersedia di platform lain?</h4>
-          <i class="fas fa-chevron-down"></i>
-        </div>
-        <div class="faq-answer">
-          <p>Saat ini ZeroMix tersedia untuk Windows 10/11 sebagai aplikasi desktop dan sebagai browser extension
-            (Chrome, Edge, Opera). Tidak ada rencana untuk platform lain saat ini, tapi kami terbuka untuk saran.</p>
-        </div>
-      </div>
-
-      <div class="faq-item">
-        <div class="faq-question">
-          <h4>🐛 Saya menemukan bug, bagaimana cara melaporkannya?</h4>
-          <i class="fas fa-chevron-down"></i>
-        </div>
-        <div class="faq-answer">
-          <p>Buka halaman GitHub Issues kami dan klik "New Issue". Berikan deskripsi detail tentang bug, langkah-langkah
-            untuk mereproduksi, dan informasi sistem Anda. Semakin detail, semakin baik!</p>
+        <div class="screenshot-item">
+          <img
+            src="assets/6.png"
+            alt="ZeroMix Extension - Pencarian"
+            loading="lazy"
+          />
         </div>
       </div>
-    </div>
-  </section>
+    </section>
+    <section class="reveal">
+      <h2>❓ Pertanyaan Umum (FAQ)</h2>
+      <div class="faq-container">
+        <div class="faq-item">
+          <div class="faq-question">
+            <h4>🎯 Bagaimana cara menggunakan ZeroMix?</h4>
+            <i class="fas fa-chevron-down"></i>
+          </div>
+          <div class="faq-answer">
+            <p>
+              Tekan <code>Alt+Space</code> untuk membuka overlay pencarian
+              ZeroMix. Ketik nama aplikasi yang ingin Anda buka atau query
+              pencarian untuk mencari di Google. Pilih hasil dengan keyboard
+              atau mouse, lalu tekan Enter untuk eksekusi.
+            </p>
+          </div>
+        </div>
 
-  <!-- CTA Section -->
-  <section class="cta-section reveal">
-    <h2>Masih Ada Pertanyaan?</h2>
-    <p>Jangan ragu untuk menghubungi kami. Tim kami siap membantu Anda kapan saja!</p>
-    <div style="display: flex; gap: 15px; justify-content: center; flex-wrap: wrap; margin-top: 30px;">
-      <a href="mailto:rozakadm@gmail.com" class="btn">📧 Kirim Email</a>
-      <a href="https://github.com/faizinuha/ZeroMix/issues" class="btn" target="_blank" rel="noopener noreferrer">🐛
-        Lapor Bug</a>
-    </div>
-  </section>
-  <!-- Footer -->
-  <footer>
-    <p>&copy; 2025 ZeroMix Project – Dibuat dengan ❤️ oleh Zaki</p>
-    <p>
-      <a href="https://github.com/faizinuha/ZeroMix" target="_blank" rel="noopener noreferrer">GitHub</a> |
-      <a href="index.html">Home</a> |
-      <a href="mailto:rozakadm@gmail.com">Email</a> |
-      <a href="https://sociabuzz.com/zuax/tribe" target="_blank" rel="noopener noreferrer">Sociabuzz</a>
-    </p>
-    <div class="easter-egg">
-      🤫 Psst... Terima kasih sudah scroll sampai sini. Kamu luar biasa! 💖
-    </div>
-  </footer>
-  <!-- Pustaka Eksternal -->
-  <!-- GSAP Library -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
-  <!-- GSAP Splash Screen Animation -->
-  <script src="gsap.js"></script>
-  <!-- Translations Dictionary -->
-  <script src="translations.js"></script>
-  <!-- Auto Translator -->
-  <script src="auto-translator.js"></script>
-  <script>
-    function handleExtensionDownload() {
-      const message = `
+        <div class="faq-item">
+          <div class="faq-question">
+            <h4>💿 Apakah ZeroMix gratis?</h4>
+            <i class="fas fa-chevron-down"></i>
+          </div>
+          <div class="faq-answer">
+            <p>
+              Ya! ZeroMix sepenuhnya gratis dan open source. Tidak ada biaya
+              berlangganan, iklan, atau fitur premium yang tersembunyi. Kami
+              berkomitmen untuk memberikan tool produktivitas terbaik kepada
+              semua orang.
+            </p>
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <div class="faq-question">
+            <h4>🔒 Apakah data saya aman?</h4>
+            <i class="fas fa-chevron-down"></i>
+          </div>
+          <div class="faq-answer">
+            <p>
+              Semua data Anda disimpan secara lokal di folder
+              <code>%AppData%/ZeroMix</code>. Kami tidak mengirim data Anda ke
+              server manapun. Anda memiliki kontrol penuh atas data pribadi
+              Anda.
+            </p>
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <div class="faq-question">
+            <h4>🚀 Bagaimana cara membuat shortcut custom?</h4>
+            <i class="fas fa-chevron-down"></i>
+          </div>
+          <div class="faq-answer">
+            <p>
+              Buka ZeroMix dan cari menu "Custom Shortcut". Klik tambah shortcut
+              baru, tentukan hotkey yang diinginkan, dan pilih aplikasi target.
+              Shortcut akan langsung aktif tanpa perlu restart aplikasi.
+            </p>
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <div class="faq-question">
+            <h4>🌐 Apakah ZeroMix tersedia di platform lain?</h4>
+            <i class="fas fa-chevron-down"></i>
+          </div>
+          <div class="faq-answer">
+            <p>
+              Saat ini ZeroMix tersedia untuk Windows 10/11 sebagai aplikasi
+              desktop dan sebagai browser extension (Chrome, Edge, Opera). Tidak
+              ada rencana untuk platform lain saat ini, tapi kami terbuka untuk
+              saran.
+            </p>
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <div class="faq-question">
+            <h4>🐛 Saya menemukan bug, bagaimana cara melaporkannya?</h4>
+            <i class="fas fa-chevron-down"></i>
+          </div>
+          <div class="faq-answer">
+            <p>
+              Buka halaman GitHub Issues kami dan klik "New Issue". Berikan
+              deskripsi detail tentang bug, langkah-langkah untuk mereproduksi,
+              dan informasi sistem Anda. Semakin detail, semakin baik!
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="cta-section reveal">
+      <h2>Masih Ada Pertanyaan?</h2>
+      <p>
+        Jangan ragu untuk menghubungi kami. Tim kami siap membantu Anda kapan
+        saja!
+      </p>
+      <div
+        style="
+          display: flex;
+          gap: 15px;
+          justify-content: center;
+          flex-wrap: wrap;
+          margin-top: 30px;
+        "
+      >
+        <a href="mailto:rozakadm@gmail.com" class="btn">📧 Kirim Email</a>
+        <a
+          href="https://github.com/faizinuha/ZeroMix/issues"
+          class="btn"
+          target="_blank"
+          rel="noopener noreferrer"
+          >🐛 Lapor Bug</a
+        >
+      </div>
+    </section>
+    <!-- Footer -->
+    <footer>
+      <p>&copy; 2025 ZeroMix Project – Dibuat dengan ❤️ oleh Zaki</p>
+      <p>
+        <a
+          href="https://github.com/faizinuha/ZeroMix"
+          target="_blank"
+          rel="noopener noreferrer"
+          >GitHub</a
+        >
+        | <a href="index.html">Home</a> |
+        <a href="mailto:rozakadm@gmail.com">Email</a> |
+        <a
+          href="https://sociabuzz.com/zuax/tribe"
+          target="_blank"
+          rel="noopener noreferrer"
+          >Sociabuzz</a
+        >
+      </p>
+      <div class="easter-egg">
+        🤫 Psst... Terima kasih sudah scroll sampai sini. Kamu luar biasa! 💖
+      </div>
+    </footer>
+    <!-- Pustaka Eksternal -->
+    <!-- GSAP Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <!-- GSAP Splash Screen Animation -->
+    <script src="gsap.js"></script>
+    <!-- Translations Dictionary -->
+    <script src="translations.js"></script>
+    <!-- Auto Translator -->
+    <script src="auto-translator.js"></script>
+    <script>
+      function handleExtensionDownload() {
+        const message = `
 Terima kasih telah tertarik dengan ZeroMix Extension!
 
 Pengembang saat ini mengirim update langsung ke link GitHub.
@@ -301,34 +470,33 @@ Silakan kunjungi halaman GitHub untuk download terbaru.
 
 Jangan lupa untuk memberikan star ⭐ jika Anda menyukai project ini!
         `;
-      alert(message);
-      window.location.href = 'https://github.com/faizinuha/ZeroMix/releases';
-    }
-  </script>
-  <script>
-    // FAQ Accordion
-    const faqItems = document.querySelectorAll('.faq-item');
+        alert(message);
+        window.location.href = "https://github.com/faizinuha/ZeroMix/releases";
+      }
+    </script>
+    <script>
+      // FAQ Accordion
+      const faqItems = document.querySelectorAll(".faq-item");
 
-    faqItems.forEach(item => {
-      const question = item.querySelector('.faq-question');
+      faqItems.forEach((item) => {
+        const question = item.querySelector(".faq-question");
 
-      question.addEventListener('click', () => {
-        const answer = item.querySelector('.faq-answer');
-        const icon = question.querySelector('i');
+        question.addEventListener("click", () => {
+          const answer = item.querySelector(".faq-answer");
+          const icon = question.querySelector("i");
 
-        item.classList.toggle('active');
+          item.classList.toggle("active");
 
-        if (item.classList.contains('active')) {
-          answer.style.maxHeight = answer.scrollHeight + 'px';
-          icon.style.transform = 'rotate(180deg)';
-        } else {
-          answer.style.maxHeight = '0';
-          icon.style.transform = 'rotate(0deg)';
-        }
+          if (item.classList.contains("active")) {
+            answer.style.maxHeight = answer.scrollHeight + "px";
+            icon.style.transform = "rotate(180deg)";
+          } else {
+            answer.style.maxHeight = "0";
+            icon.style.transform = "rotate(0deg)";
+          }
+        });
       });
-    });
-  </script>
-  <script src="script.js"></script>
-</body>
-
+    </script>
+    <script src="script.js"></script>
+  </body>
 </html>
