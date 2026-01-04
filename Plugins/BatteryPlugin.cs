@@ -6,7 +6,7 @@ namespace ZeroMix.Plugins
 {
     public class BatteryPlugin
     {
-        public event Action<int, bool, bool>? OnBatteryThresholdReached;
+        public event Action<int, bool, bool, bool>? OnBatteryStatusChanged;
         
         // Custom Texts
         public string TextMorning { get; set; } = "Selamat pagi kak! Udah siap buat produktif hari ini? Nyam2~";
@@ -19,6 +19,7 @@ namespace ZeroMix.Plugins
 
         private DispatcherTimer _timer;
         private int _lastThreshold = -1;
+        private int _periodicCounter = 0;
 
         public BatteryPlugin()
         {
@@ -30,7 +31,7 @@ namespace ZeroMix.Plugins
         public void Start()
         {
             _timer.Start();
-            CheckBattery();
+            CheckBattery(false);
         }
 
         public void Stop()
@@ -40,14 +41,25 @@ namespace ZeroMix.Plugins
 
         private void Timer_Tick(object? sender, EventArgs e)
         {
-            CheckBattery();
+            _periodicCounter++;
+            bool isPeriodic = false;
+            
+            if (_periodicCounter >= 3)
+            {
+                _periodicCounter = 0;
+                isPeriodic = true;
+            }
+            
+            CheckBattery(isPeriodic);
         }
 
-        private void CheckBattery()
+        private void CheckBattery(bool isPeriodic)
         {
             var status = SystemInformation.PowerStatus;
             int percent = (int)(status.BatteryLifePercent * 100);
             bool isCharging = status.PowerLineStatus == PowerLineStatus.Online;
+
+            bool shouldNotify = isPeriodic;
 
             // Trigger based on specific thresholds if not charging
             if (!isCharging)
@@ -60,12 +72,17 @@ namespace ZeroMix.Plugins
                 if (currentThreshold != -1 && currentThreshold != _lastThreshold)
                 {
                     _lastThreshold = currentThreshold;
-                    OnBatteryThresholdReached?.Invoke(percent, isCharging, false);
+                    shouldNotify = true;
                 }
             }
             else
             {
                 _lastThreshold = -1; // Reset when charging
+            }
+
+            if (shouldNotify)
+            {
+                OnBatteryStatusChanged?.Invoke(percent, isCharging, false, isPeriodic);
             }
         }
     }

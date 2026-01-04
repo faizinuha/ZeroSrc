@@ -39,22 +39,16 @@ namespace ZeroMix.Plugins
                 PluginProgressPanel.Visibility = Visibility.Visible;
                 WeatherPluginToggle.IsEnabled = false;
 
-                for (int i = 0; i <= 100; i += 5)
+                for (int i = 0; i <= 100; i += 10)
                 {
-                    PluginStatusText.Text = $"Downloading Plugin Dynamic Progress... {i}%";
+                    PluginStatusText.Text = $"Fetching Weather API Progress... {i}%";
                     PluginProgressBar.Value = i;
-                    await Task.Delay(100);
+                    await Task.Delay(50);
                 }
 
                 PluginProgressPanel.Visibility = Visibility.Collapsed;
                 WeatherPluginToggle.IsEnabled = true;
                 
-                // Auto-integrate default videos (Optional custom files)
-                string baseDir = AppDomain.CurrentDomain.BaseDirectory;
-                _plugin.SunnyVideoPath = Path.Combine(baseDir, "Resource", "Video", "Vs (1).mp4");
-                _plugin.RainyVideoPath = Path.Combine(baseDir, "Resource", "Video", "Vs (2).mp4");
-                _plugin.CloudyVideoPath = Path.Combine(baseDir, "Resource", "Video", "Vs (3).mp4");
-
                 WeatherConfigBorder.Visibility = Visibility.Visible;
                 _plugin.Start();
             }
@@ -62,7 +56,7 @@ namespace ZeroMix.Plugins
             {
                 WeatherConfigBorder.Visibility = Visibility.Collapsed;
                 _plugin.Stop();
-                Wallpapers.StopVideoWallpaper();
+                RestoreDefaultWallpaper();
             }
         }
 
@@ -76,11 +70,11 @@ namespace ZeroMix.Plugins
             PluginProgressPanel.Visibility = Visibility.Visible;
             WeatherPluginToggle.IsEnabled = false;
 
-            for (int i = 100; i >= 0; i -= 5)
+            for (int i = 100; i >= 0; i -= 10)
             {
                 PluginStatusText.Text = $"Uninstalling Plugin... {i}%";
                 PluginProgressBar.Value = i;
-                await Task.Delay(50);
+                await Task.Delay(30);
             }
 
             WeatherPluginToggle.IsChecked = false;
@@ -89,7 +83,6 @@ namespace ZeroMix.Plugins
             WeatherConfigBorder.Visibility = Visibility.Collapsed;
             
             _plugin.Stop();
-            Wallpapers.StopVideoWallpaper();
             RestoreDefaultWallpaper();
             
             System.Windows.MessageBox.Show("Plugin uninstalled and wallpaper reverted.", "Success");
@@ -98,33 +91,20 @@ namespace ZeroMix.Plugins
         private void RestoreDefaultWallpaper()
         {
             Wallpapers.StopVideoWallpaper();
+            
+            // Explicitly set the original wallpaper to ensure clean return
             if (!string.IsNullOrEmpty(_initialWallpaperPath) && File.Exists(_initialWallpaperPath))
             {
                 try { NativeMethods.SetWallpaper(_initialWallpaperPath); } catch { }
             }
+            
+            // Refresh desktop one last time
+            Wallpapers.RefreshDesktop();
         }
 
         private void BrowseWeatherVideo_Click(object sender, RoutedEventArgs e)
         {
-            var btn = (System.Windows.Controls.Button)sender;
-            string type = btn.Tag.ToString();
-
-            var dialog = new Microsoft.Win32.OpenFileDialog
-            {
-                Title = $"Select Video for {type} Weather",
-                Filter = "Video Files|*.mp4;*.wmv;*.mov;*.avi|All files (*.*)|*.*"
-            };
-
-            if (dialog.ShowDialog() == true)
-            {
-                switch (type)
-                {
-                    case "Sunny": _plugin.SunnyVideoPath = dialog.FileName; btn.Content = "☀️ Selected"; break;
-                    case "Rainy": _plugin.RainyVideoPath = dialog.FileName; btn.Content = "🌧️ Selected"; break;
-                    case "Cloudy": _plugin.CloudyVideoPath = dialog.FileName; btn.Content = "☁️ Selected"; break;
-                }
-                if (_plugin.IsActive) _ = _plugin.CheckWeatherAsync();
-            }
+            System.Windows.MessageBox.Show("Using automated high-quality weather videos from API. Browse option is disabled for better performance optimization.", "Info", MessageBoxButton.OK, MessageBoxImage.Information);
         }
 
         private void UpdateWeatherLocation_Click(object sender, RoutedEventArgs e)
@@ -133,7 +113,7 @@ namespace ZeroMix.Plugins
             {
                 _plugin.City = WeatherCityInput.Text;
                 _ = _plugin.CheckWeatherAsync();
-                System.Windows.MessageBox.Show($"Location updated to {_plugin.City}", "Success");
+                System.Windows.MessageBox.Show($"Location updated to {_plugin.City}. Weather assets will sync.", "Success");
             }
         }
     }

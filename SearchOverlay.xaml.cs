@@ -259,6 +259,7 @@ namespace ZeroMix
         {
             ACCENT_DISABLED = 0,
             ACCENT_ENABLE_BLURBEHIND = 3,
+            ACCENT_ENABLE_ACRYLICBLURBEHIND = 4,
         }
 
         [StructLayout(LayoutKind.Sequential)]
@@ -273,11 +274,27 @@ namespace ZeroMix
         internal void EnableBlur()
         {
             var windowHelper = new WindowInteropHelper(this);
-            var accent = new AccentPolicy { AccentState = AccentState.ACCENT_ENABLE_BLURBEHIND, AccentFlags = 2, GradientColor = 0 };
+            
+            // ACCENT_ENABLE_ACRYLICBLURBEHIND = 4 (Modern Windows 10/11)
+            // ACCENT_ENABLE_BLURBEHIND = 3 (Legacy Windows 10)
+            var accent = new AccentPolicy 
+            { 
+                AccentState = AccentState.ACCENT_ENABLE_ACRYLICBLURBEHIND, 
+                AccentFlags = 2, 
+                GradientColor = 0x01FFFFFF // Very slight tint
+            };
+
             var accentStructSize = Marshal.SizeOf(accent);
             var accentPtr = Marshal.AllocHGlobal(accentStructSize);
             Marshal.StructureToPtr(accent, accentPtr, false);
-            var data = new WindowCompositionAttributeData { Attribute = WindowCompositionAttribute.WCA_ACCENT_POLICY, SizeOfData = accentStructSize, Data = accentPtr };
+
+            var data = new WindowCompositionAttributeData 
+            { 
+                Attribute = WindowCompositionAttribute.WCA_ACCENT_POLICY, 
+                SizeOfData = accentStructSize, 
+                Data = accentPtr 
+            };
+
             SetWindowCompositionAttribute(windowHelper.Handle, ref data);
             Marshal.FreeHGlobal(accentPtr);
         }
@@ -336,7 +353,6 @@ namespace ZeroMix
         {
             if (_isSelectingSuggestion) return;
 
-            // Cancel previous search
             _searchCts?.Cancel();
             _searchCts = new CancellationTokenSource();
             var ct = _searchCts.Token;
@@ -354,76 +370,76 @@ namespace ZeroMix
 
             try
             {
-                // Small delay to avoid searching on every keystroke
-                await Task.Delay(100, ct);
-                
-                var combined = new List<SuggestionItem>();
+                await Task.Delay(150, ct); // Debounce a bit longer for smoother feel
 
-                // Check if it's a folder path
-                if (IsFolderPath(query))
+                // Offload all logic to background thread except UI component access
+                var combined = await Task.Run(async () =>
                 {
-                    var folderSuggestions = GetFolderSuggestions(query);
-                    combined.AddRange(folderSuggestions);
-                    
-                    if (combined.Count > 0)
+                    var results = new List<SuggestionItem>();
+                    string queryLower = query.ToLower();
+
+                    // 1. Folder Path detection
+                    if (IsFolderPath(query))
                     {
-                        suggestionList!.ItemsSource = combined;
-                        suggestionList.Visibility = Visibility.Visible;
-                        return;
+                        var folderSuggestions = GetFolderSuggestions(query);
+                        results.AddRange(folderSuggestions);
                     }
-                }
 
-                // Terminal Command - NO PREFIX NEEDED, auto-detect
-                if (IsTerminalCommand(query))
-                {
-                    var terminalIcon = GetTerminalIcon();
-                    combined.Add(new SuggestionItem(query, query, SuggestionType.Terminal, terminalIcon, "Run in Terminal"));
-                }
+                    if (ct.IsCancellationRequested) return results;
 
-                // Calculator - ONLY if contains numbers
-                if (ContainsNumbers(query) && MathEvaluator.IsMathExpression(query))
-                {
-                    var (success, result, error) = MathEvaluator.Evaluate(query);
-                    if (success)
+                    // 2. Terminal
+                    if (IsTerminalCommand(query))
                     {
-                        string formattedResult = MathEvaluator.FormatResult(result);
-                        combined.Add(new SuggestionItem($"= {formattedResult}", formattedResult, SuggestionType.Calculator));
+                        var terminalIcon = GetTerminalIcon();
+                        results.Add(new SuggestionItem(query, query, SuggestionType.Terminal, terminalIcon, "Run in Terminal"));
                     }
-                }
 
-                // System Commands
-                string queryLower = query.ToLower();
-                if (queryLower.Contains("shutdown")) combined.Add(new SuggestionItem("Shutdown PC", "shutdown", SuggestionType.System));
-                if (queryLower.Contains("restart")) combined.Add(new SuggestionItem("Restart PC", "restart", SuggestionType.System));
-                if (queryLower.Contains("sleep")) combined.Add(new SuggestionItem("Sleep PC", "sleep", SuggestionType.System));
+                    // 3. Calculator
+                    if (ContainsNumbers(query) && MathEvaluator.IsMathExpression(query))
+                    {
+                        var (success, result, _) = MathEvaluator.Evaluate(query);
+                        if (success)
+                        {
+                            string formattedResult = MathEvaluator.FormatResult(result);
+                            results.Add(new SuggestionItem($"= {formattedResult}", formattedResult, SuggestionType.Calculator));
+                        }
+                    }
 
-                // Fuzzy Matching Apps - LIMIT TO 5 for better results
-                var localSuggestions = _allSuggestions
-                    .AsParallel()
-                    .Select(s => new { Item = s, Score = CalculateMatchScore(s.DisplayText, query) })
-                    .Where(x => x.Score > 0)
-                    .OrderByDescending(x => x.Score)
-                    .Take(5)
-                    .Select(x => x.Item)
-                    .ToList();
-                combined.AddRange(localSuggestions);
+                    // 4. System Commands
+                    if (queryLower.Contains("shutdown")) results.Add(new SuggestionItem("Shutdown PC", "shutdown", SuggestionType.System));
+                    if (queryLower.Contains("restart")) results.Add(new SuggestionItem("Restart PC", "restart", SuggestionType.System));
+                    if (queryLower.Contains("sleep")) results.Add(new SuggestionItem("Sleep PC", "sleep", SuggestionType.System));
 
-                if (ct.IsCancellationRequested) return;
+                    // 5. Fuzzy Matching Apps
+                    var appMatches = _allSuggestions
+                        .Where(s => CalculateMatchScore(s.DisplayText, query) > 0)
+                        .OrderByDescending(s => CalculateMatchScore(s.DisplayText, query))
+                        .Take(6)
+                        .ToList();
+                    results.AddRange(appMatches);
 
-                // Google Suggestions - LIMIT TO 3 for better UX
-                var googleSuggestions = await GetGoogleSuggestionsAsync(query, ct);
-                combined.AddRange(googleSuggestions.Take(3).Select(s => new SuggestionItem(s, s, SuggestionType.WebSearch)));
-                
+                    if (ct.IsCancellationRequested) return results;
+
+                    // 6. Google Suggestions
+                    try
+                    {
+                        var googleResults = await GetGoogleSuggestionsAsync(query, ct);
+                        foreach (var s in googleResults.Take(4))
+                        {
+                            results.Add(new SuggestionItem(s, s, SuggestionType.WebSearch));
+                        }
+                    }
+                    catch { }
+
+                    return results;
+                }, ct);
+
                 if (ct.IsCancellationRequested) return;
 
                 if (combined.Count > 0)
                 {
-                    // Sort by type priority for better organization
-                    var sortedSuggestions = combined
-                        .OrderBy(x => GetTypePriority(x.Type))
-                        .ToList();
-                    
-                    suggestionList!.ItemsSource = sortedSuggestions;
+                    var sorted = combined.OrderBy(x => GetTypePriority(x.Type)).ToList();
+                    suggestionList!.ItemsSource = sorted;
                     suggestionList.Visibility = Visibility.Visible;
                 }
                 else
@@ -432,10 +448,7 @@ namespace ZeroMix
                     suggestionList.Visibility = Visibility.Collapsed;
                 }
             }
-            catch (OperationCanceledException)
-            {
-                // Search was canceled, ignore
-            }
+            catch (OperationCanceledException) { }
         }
 
         private int GetTypePriority(SuggestionType type)

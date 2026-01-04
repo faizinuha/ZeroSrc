@@ -64,19 +64,25 @@
                     <Button Grid.Column="1" Content="Save" Style="{StaticResource ActionButton}" Padding="25,10" Margin="10,0,0,0" Click="UpdateWeatherLocation_Click"/>
                 </Grid>
 
-                <TextBlock Text="Assigned Videos" Foreground="White" FontSize="12" Margin="0,0,0,8"/>
+                <TextBlock Text="Weather Assets (Automated)" Foreground="White" FontSize="12" Margin="0,0,0,8"/>
                 <UniformGrid Columns="3" Margin="0,0,0,10">
                     <StackPanel Margin="0,0,5,0">
                         <TextBlock Text="☀️ Sunny" Foreground="{StaticResource SubTextBrush}" FontSize="11" Margin="0,0,0,5"/>
-                        <Button x:Name="BrowseSunnyBtn" Content="Browse" Style="{StaticResource ActionButton}" Height="35" Click="BrowseWeatherVideo_Click" Tag="Sunny"/>
+                        <Border Background="#1A202C" CornerRadius="8" Height="35">
+                            <TextBlock Text="Auto Sync" VerticalAlignment="Center" HorizontalAlignment="Center" Foreground="{StaticResource NeonBlueBrush}" FontSize="10"/>
+                        </Border>
                     </StackPanel>
                     <StackPanel Margin="5,0,5,0">
                         <TextBlock Text="🌧️ Rainy" Foreground="{StaticResource SubTextBrush}" FontSize="11" Margin="0,0,0,5"/>
-                        <Button x:Name="BrowseRainyBtn" Content="Browse" Style="{StaticResource ActionButton}" Height="35" Click="BrowseWeatherVideo_Click" Tag="Rainy"/>
+                        <Border Background="#1A202C" CornerRadius="8" Height="35">
+                            <TextBlock Text="Auto Sync" VerticalAlignment="Center" HorizontalAlignment="Center" Foreground="{StaticResource NeonBlueBrush}" FontSize="10"/>
+                        </Border>
                     </StackPanel>
                     <StackPanel Margin="5,0,0,0">
                         <TextBlock Text="☁️ Cloudy" Foreground="{StaticResource SubTextBrush}" FontSize="11" Margin="0,0,0,5"/>
-                        <Button x:Name="BrowseCloudyBtn" Content="Browse" Style="{StaticResource ActionButton}" Height="35" Click="BrowseWeatherVideo_Click" Tag="Cloudy"/>
+                        <Border Background="#1A202C" CornerRadius="8" Height="35">
+                            <TextBlock Text="Auto Sync" VerticalAlignment="Center" HorizontalAlignment="Center" Foreground="{StaticResource NeonBlueBrush}" FontSize="10"/>
+                        </Border>
                     </StackPanel>
                 </UniformGrid>
             </StackPanel>

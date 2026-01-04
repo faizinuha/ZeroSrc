@@ -3,6 +3,7 @@ using System.IO;
 using System.Net.Http;
 using System.Threading.Tasks;
 using System.Windows.Threading;
+using System.Diagnostics;
 
 namespace ZeroMix.Plugins
 {
@@ -11,12 +12,20 @@ namespace ZeroMix.Plugins
         public string City { get; set; } = "Jambewangi";
         public bool IsActive { get; private set; }
         
-        public string? SunnyVideoPath { get; set; }
-        public string? RainyVideoPath { get; set; }
-        public string? CloudyVideoPath { get; set; }
+        // Curated high quality video links (Acting as the "API" videos)
+        private const string RainUrl = "https://assets.mixkit.co/videos/preview/mixkit-heavy-rain-in-the-city-at-night-27515-large.mp4";
+        private const string CloudUrl = "https://assets.mixkit.co/videos/preview/mixkit-clouds-moving-fast-in-the-sky-4024-large.mp4";
+        private const string SunUrl = "https://assets.mixkit.co/videos/preview/mixkit-sun-beams-shining-through-tree-leaves-2158-large.mp4";
 
         private DispatcherTimer? _timer;
         private readonly HttpClient _httpClient = new HttpClient();
+        private readonly string _cacheDir;
+
+        public WeatherPlugin()
+        {
+            _cacheDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "ZeroMix", "WeatherCache");
+            Directory.CreateDirectory(_cacheDir);
+        }
 
         public void Start()
         {
@@ -43,45 +52,68 @@ namespace ZeroMix.Plugins
 
             try
             {
+                // Format %C to get condition string
                 string url = $"https://wttr.in/{Uri.EscapeDataString(City)}?format=%C";
                 var response = await _httpClient.GetStringAsync(url);
                 string condition = response.Trim().ToLower();
                 
-                ApplyWeatherWallpaper(condition);
+                await ApplyWeatherWallpaperAsync(condition);
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"Weather Plugin Error: {ex.Message}");
+                Debug.WriteLine($"Weather Plugin Error: {ex.Message}");
             }
         }
 
-        private void ApplyWeatherWallpaper(string condition)
+        private async Task ApplyWeatherWallpaperAsync(string condition)
         {
-            string? videoPath = null;
+            string targetUrl = SunUrl;
+            string fileName = "sunny.mp4";
 
-            if (condition.Contains("rain") || condition.Contains("drizzle") || condition.Contains("storm"))
-                videoPath = RainyVideoPath;
-            else if (condition.Contains("cloud") || condition.Contains("overcast") || condition.Contains("mist"))
-                videoPath = CloudyVideoPath;
-            else
-                videoPath = SunnyVideoPath;
-
-            // Fallback to defaults
-            if (string.IsNullOrEmpty(videoPath) || !File.Exists(videoPath))
+            if (condition.Contains("rain") || condition.Contains("drizzle") || condition.Contains("storm") || condition.Contains("thunder"))
             {
-                string videoFile = "Vs (1).mp4";
-                if (condition.Contains("rain") || condition.Contains("drizzle") || condition.Contains("storm"))
-                    videoFile = "Vs (2).mp4";
-                else if (condition.Contains("cloud") || condition.Contains("overcast") || condition.Contains("mist"))
-                    videoFile = "Vs (3).mp4";
-
-                string baseDir = AppDomain.CurrentDomain.BaseDirectory;
-                videoPath = Path.Combine(baseDir, "Resource", "Video", videoFile);
+                targetUrl = RainUrl;
+                fileName = "rainy.mp4";
             }
-            
-            if (File.Exists(videoPath))
+            else if (condition.Contains("cloud") || condition.Contains("overcast") || condition.Contains("mist") || condition.Contains("fog") || condition.Contains("haze"))
             {
-                Wallpapers.LaunchVideoWallpaperStatic(videoPath);
+                targetUrl = CloudUrl;
+                fileName = "cloudy.mp4";
+            }
+
+            string localPath = Path.Combine(_cacheDir, fileName);
+
+            // 1. Download if not exists
+            if (!File.Exists(localPath))
+            {
+                try
+                {
+                    var data = await _httpClient.GetByteArrayAsync(targetUrl);
+                    await File.WriteAllBytesAsync(localPath, data);
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"Failed to download weather video: {ex.Message}");
+                    // Fallback to internal if download fails
+                    string fallbackName = fileName == "rainy.mp4" ? "Vs (2).mp4" : (fileName == "cloudy.mp4" ? "Vs (3).mp4" : "Vs (1).mp4");
+                    localPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Resource", "Video", fallbackName);
+                }
+            }
+
+            if (File.Exists(localPath))
+            {
+                // 2. Optimize for performance (using Wallpapers helper)
+                string? optimizedPath = await Task.Run(() => Wallpapers.OptimizeVideoForWallpaperStatic(localPath));
+                
+                if (!string.IsNullOrEmpty(optimizedPath) && File.Exists(optimizedPath))
+                {
+                    Wallpapers.LaunchVideoWallpaperStatic(optimizedPath);
+                }
+                else
+                {
+                    // Fallback to non-optimized if FFmpeg fails
+                    Wallpapers.LaunchVideoWallpaperStatic(localPath);
+                }
             }
         }
     }
