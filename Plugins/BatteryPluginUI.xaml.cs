@@ -11,7 +11,7 @@ namespace ZeroMix.Plugins
         public BatteryPluginUI()
         {
             InitializeComponent();
-            _plugin.OnBatteryThresholdReached += (percent, isCharging, isGreeting) => ShowNotification(percent, isCharging, isGreeting);
+            _plugin.OnBatteryStatusChanged += (percent, isCharging, isGreeting, isPeriodic) => ShowNotification(percent, isCharging, isGreeting, isPeriodic);
             
             // Fill initial values
             TxtMorning.Text = _plugin.TextMorning;
@@ -22,12 +22,11 @@ namespace ZeroMix.Plugins
             TxtBattCrit.Text = _plugin.TextBatteryCritical;
 
             this.Loaded += async (s, e) => {
-                // Beri jeda sebentar agar UI utama stabil dulu sebelum buka window baru
                 await System.Threading.Tasks.Task.Delay(800);
                 
                 if (BatteryPluginToggle.IsChecked == true)
                 {
-                    ShowNotification(0, false, true); 
+                    ShowNotification(0, false, true, false); 
                 }
             };
         }
@@ -39,7 +38,7 @@ namespace ZeroMix.Plugins
                 await RunPluginProcess("Downloading Mascot Assets...");
                 _plugin.Start();
                 await System.Threading.Tasks.Task.Delay(200);
-                ShowNotification(0, false, true); 
+                ShowNotification(0, false, true, false); 
             }
             else
             {
@@ -65,7 +64,6 @@ namespace ZeroMix.Plugins
             if (result == MessageBoxResult.Yes)
             {
                 await RunPluginProcess("Uninstalling Battery Assistant...");
-                // Hide the card after uninstall (mocking uninstall)
                 this.Visibility = Visibility.Collapsed;
             }
         }
@@ -99,7 +97,7 @@ namespace ZeroMix.Plugins
             BatterySettingsBorder.Visibility = Visibility.Collapsed;
         }
 
-        private void ShowNotification(int percent, bool isCharging, bool isGreeting = false)
+        private void ShowNotification(int percent, bool isCharging, bool isGreeting = false, bool isPeriodic = false)
         {
             var app = System.Windows.Application.Current;
             if (app == null) return;
@@ -107,7 +105,7 @@ namespace ZeroMix.Plugins
             app.Dispatcher.BeginInvoke(new Action(() => {
                 try
                 {
-                    var win = new BatteryNotificationWindow(percent, _plugin, isGreeting);
+                    var win = new BatteryNotificationWindow(percent, _plugin, isGreeting, isPeriodic);
                     win.Show();
                 }
                 catch (Exception ex)

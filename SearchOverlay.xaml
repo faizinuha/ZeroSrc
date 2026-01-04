@@ -20,27 +20,26 @@
         Deactivated="Window_Deactivated">
 
     <Window.Resources>
+    <Window.Resources>
         <Storyboard x:Key="FadeInStoryboard">
             <DoubleAnimation Storyboard.TargetProperty="Opacity"
                              From="0"
                              To="1"
-                             Duration="0:0:0.25"/>
+                             Duration="0:0:0.2"/>
             <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleX)"
-                             From="0.95"
+                             From="0.98"
                              To="1"
-                             Duration="0:0:0.25">
+                             Duration="0:0:0.2">
                 <DoubleAnimation.EasingFunction>
-                    <ExponentialEase Exponent="4"
-                                     EasingMode="EaseOut"/>
+                    <QuarticEase EasingMode="EaseOut"/>
                 </DoubleAnimation.EasingFunction>
             </DoubleAnimation>
             <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleY)"
-                             From="0.95"
+                             From="0.98"
                              To="1"
-                             Duration="0:0:0.25">
+                             Duration="0:0:0.2">
                 <DoubleAnimation.EasingFunction>
-                    <ExponentialEase Exponent="4"
-                                     EasingMode="EaseOut"/>
+                    <QuarticEase EasingMode="EaseOut"/>
                 </DoubleAnimation.EasingFunction>
             </DoubleAnimation>
             
@@ -49,8 +48,8 @@
                              Storyboard.TargetProperty="StrokeDashOffset"
                              From="80" 
                              To="0"
-                             BeginTime="0:0:0.1"
-                             Duration="0:0:0.6">
+                             BeginTime="0:0:0.05"
+                             Duration="0:0:0.4">
                 <DoubleAnimation.EasingFunction>
                     <CubicEase EasingMode="EaseInOut"/>
                 </DoubleAnimation.EasingFunction>
@@ -61,16 +60,17 @@
             <DoubleAnimation Storyboard.TargetProperty="Opacity"
                              From="1"
                              To="0"
-                             Duration="0:0:0.15"/>
+                             Duration="0:0:0.1"/>
         </Storyboard>
 
         <local:SuggestionTypeToStringConverter x:Key="SuggestionTypeConverter"/>
 
         <DropShadowEffect x:Key="MacShadow"
-                          BlurRadius="30"
+                          BlurRadius="25"
                           ShadowDepth="0"
                           Color="#000000"
-                          Opacity="0.2"/>
+                          Opacity="0.25"
+                          RenderingBias="Performance"/>
 
         <LinearGradientBrush x:Key="ZGradient"
                              StartPoint="0,0"
@@ -293,7 +293,8 @@
                 Background="#CCF2F2F7"
                 BorderBrush="#20000000"
                 BorderThickness="1"
-                Effect="{StaticResource MacShadow}">
+                Effect="{StaticResource MacShadow}"
+                CacheMode="BitmapCache">
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>

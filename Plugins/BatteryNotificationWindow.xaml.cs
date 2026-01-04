@@ -9,18 +9,18 @@ namespace ZeroMix.Plugins
 {
     public partial class BatteryNotificationWindow : Window
     {
-        public BatteryNotificationWindow(int percent, BatteryPlugin plugin, bool isGreeting = false)
+        public BatteryNotificationWindow(int percent, BatteryPlugin plugin, bool isGreeting = false, bool isPeriodic = false)
         {
             InitializeComponent();
-            SetupUI(percent, plugin, isGreeting);
+            SetupUI(percent, plugin, isGreeting, isPeriodic);
             PositionWindow();
             
             Loaded += (s, e) => {
                 var sb = (Storyboard)FindResource("FadeIn");
                 sb.Begin(this); // Target the window itself
                 
-                // Auto close greeting after 8 seconds
-                if (isGreeting)
+                // Auto close greeting or periodic info after seconds
+                if (isGreeting || isPeriodic)
                 {
                     var timer = new System.Windows.Threading.DispatcherTimer { Interval = TimeSpan.FromSeconds(8) };
                     timer.Tick += (ss, ee) => { try { this.Close(); } catch { } timer.Stop(); };
@@ -29,13 +29,13 @@ namespace ZeroMix.Plugins
             };
         }
 
-        private void SetupUI(int percent, BatteryPlugin plugin, bool isGreeting)
+        private void SetupUI(int percent, BatteryPlugin plugin, bool isGreeting, bool isPeriodic)
         {
             string baseDir = AppDomain.CurrentDomain.BaseDirectory;
             string mascotFile = "Say_1.png";
             string title = "Battery Assistant";
             string body = "Kak, cek baterainya yuk?";
-// Sapaan
+
             if (isGreeting)
             {
                 int hour = DateTime.Now.Hour;
@@ -61,7 +61,13 @@ namespace ZeroMix.Plugins
                 }
                 mascotFile = "Say_1.png";
             }
-            // Baterai
+            else if (isPeriodic)
+            {
+                title = "Info Baterai 🔋";
+                body = $"Sekedar info, Kak, Baterai sekarang di {percent}%";
+                mascotFile = "Say_1.png";
+            }
+            // Baterai Threshold
             else
             {
                 if (percent <= 10)
@@ -69,24 +75,21 @@ namespace ZeroMix.Plugins
                     mascotFile = "10-5_%.png";
                     title = "KRITIS! 😱";
                     body = plugin.TextBatteryCritical;
-                }else if (percent <= 60) {
-                   mascotFile = "50_%.png";
-                   title = "Baterai 60% 🔋";
-                   body = plugin.TextBatteryWarn;
-                }else if (percent <= 50)
+                }
+                else if (percent <= 60) 
                 {
                     mascotFile = "50_%.png";
-                    title = "Baterai 50% 🔋";
+                    title = "Baterai Rendah 🔋";
                     body = plugin.TextBatteryWarn;
                 }
                 else
                 {
                     mascotFile = "Say_1.png";
-                    title = "Info Baterai";
-                    body = "Sekedar info kak, baterai sekarang ada di " + percent + "%. Masih aman kok!";
+                    title = "Status Baterai";
+                    body = $"Baterai kakak sekarang ada di {percent}%.";
                 }
             }
-    // FindResource
+
             try
             {
                 string imgPath = Path.Combine(baseDir, "Plugins", "Maskot", mascotFile);
@@ -98,7 +101,6 @@ namespace ZeroMix.Plugins
                     bitmap.CacheOption = BitmapCacheOption.OnLoad;
                     bitmap.EndInit();
                     
-                    // Assign to both icon and background overlay
                     MascotImgIcon.Source = bitmap;
                     MascotImgBg.Source = bitmap;
                 }
