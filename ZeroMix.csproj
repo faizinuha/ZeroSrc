@@ -20,6 +20,7 @@
 
   <ItemGroup>
     <PackageReference Include="MegaApiClient" Version="1.10.5" />
+    <PackageReference Include="MoonSharp" Version="2.0.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageReference Include="System.Management" Version="9.0.0" /> 
   </ItemGroup>

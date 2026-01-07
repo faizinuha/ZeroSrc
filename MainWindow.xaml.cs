@@ -16,6 +16,8 @@ using System.Threading;
 
 namespace ZeroMix
 {
+    using ZeroMix.zeromix.CreatePlugins;
+    
     public partial class MainWindow : Window
     {
         // Windows API for Taskbar transparency
@@ -67,9 +69,13 @@ namespace ZeroMix
         private string? _initialWallpaperPath;
         private ClockWidget? _clockWidget;
         private DispatcherTimer? _taskbarWatcher;
+        private Plugins.PluginEngine? _pluginEngine;
 
         public MainWindow()
         {
+            // Register Lua Bridge
+            MoonSharp.Interpreter.UserData.RegisterType<Plugins.ZeroMixLuaApi>();
+            
             InitializeComponent();
             InitializeTrayIcon();
             InitializeTaskbarWatcher();
@@ -100,6 +106,10 @@ namespace ZeroMix
             // Set initial view after the window has loaded
             HomeButton_Click(this, new RoutedEventArgs());
             _initialWallpaperPath = GetSystemWallpaperPath();
+
+            // Initialize Lua Engine
+            _pluginEngine = new Plugins.PluginEngine(this);
+            _pluginEngine.Start();
         }
 
         private string? GetSystemWallpaperPath()
@@ -617,7 +627,68 @@ namespace ZeroMix
             App.OptimizeMemory();
         }
 
-        // --- Plugins Logic ---
+        // --- Plugin Creation System ---
+        private async void CreatePluginBtn_Click(object sender, RoutedEventArgs e)
+        {
+            // Use the new minimalist window
+            var inputWin = new CreatePluginWindow();
+            inputWin.Owner = this;
+            inputWin.ShowDialog();
 
+            if (!inputWin.IsConfirmed) return;
+
+            string pluginName = inputWin.PluginName;
+            bool isPublic = inputWin.IsPublic;
+            
+            string folderName = $"user.{(isPublic ? "pub" : "priv")}.{pluginName}";
+            string pluginDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Plugins", folderName);
+
+            try
+            {
+                // Create Directory
+                Directory.CreateDirectory(pluginDir);
+
+                // Create Lua Template
+                string luaTemplate = @$"-- ZeroMix Plugin: {pluginName}
+-- Created: {DateTime.Now}
+-- Type: {(isPublic ? "Public" : "Private")}
+
+function OnLoad()
+    ZeroMix.Log('Plugin {pluginName} aktif!')
+    ZeroMix.SetStatusText('Plugin {pluginName} Berjalan...')
+end
+
+function OnUpdate()
+    -- Contoh: Cek CPU setiap detik
+    local cpu = ZeroMix.GetCpuUsage()
+    if cpu > 80 then
+        ZeroMix.Log('Peringatan: CPU Tinggi! ' .. cpu .. '%')
+    end
+end";
+                
+                await File.WriteAllTextAsync(Path.Combine(pluginDir, "script.lua"), luaTemplate);
+
+                if (isPublic)
+                {
+                    string metadata = $"{{\"name\": \"{pluginName}\", \"author\": \"User\", \"version\": \"1.0.0\"}}";
+                    await File.WriteAllTextAsync(Path.Combine(pluginDir, "manifest.json"), metadata);
+                }
+
+                System.Windows.MessageBox.Show(
+                    $"Berhasil membuat Plugin '{pluginName}'.\n\nFolder: {folderName}\nSilakan cek folder Plugins untuk mulai mengedit.", 
+                    "Sukses", 
+                    MessageBoxButton.OK, 
+                    MessageBoxImage.Information);
+
+                // Instant Load!
+                _pluginEngine?.LoadPluginFromDirectory(pluginDir);
+
+                Process.Start("explorer.exe", pluginDir);
+            }
+            catch (Exception ex)
+            {
+                System.Windows.MessageBox.Show("Gagal membuat plugin: " + ex.Message);
+            }
+        }
     }
 }

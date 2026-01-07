@@ -126,7 +126,7 @@ async function checkForUpdates() {
 
     // Cek apakah ada update
     if (latestNorm <= currentNorm) {
-      log('\n✅ Aplikasi sudah terbaru!', 'green');
+      log('\n✅ Aplikasi sudah terbaru Kak...!', 'green');
       log(`\n📍 Release terbaru: ${stableRelease.tag_name}`, 'dim');
       if (stableRelease.body) {
         log(`\n📝 Changelog:\n${stableRelease.body.substring(0, 300)}...`, 'dim');
@@ -165,7 +165,7 @@ async function checkForUpdates() {
   } catch (error) {
     log(`\n❌ Error: ${error.message}`, 'red');
     log(`\n💡 Alternatif:\n   📍 GitHub: ${GITHUB_RELEASE_URL}`, 'yellow');
-    log(`   🌐 Website: https://zeromix.pages.dev`, 'yellow');
+    log(`   🌐 Website: https://zeromix.vercel.app`, 'yellow');
   }
 }
 

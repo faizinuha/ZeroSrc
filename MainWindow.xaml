@@ -416,11 +416,23 @@
                                 </EventTrigger>
                             </StackPanel.Triggers>
                             
-                            <TextBlock Text="Extensions" FontSize="36" FontWeight="ExtraBold" Foreground="White" Margin="0,0,0,5"/>
-                            <TextBlock Text="Enhance your experience with custom modules" FontSize="16" Foreground="{StaticResource SubTextBrush}" Margin="0,0,0,25"/>
+                            <Grid Margin="0,0,0,25">
+                                <StackPanel>
+                                    <TextBlock Text="Extensions" FontSize="36" FontWeight="ExtraBold" Foreground="White" Margin="0,0,0,5"/>
+                                    <TextBlock Text="Enhance your experience with custom modules" FontSize="16" Foreground="{StaticResource SubTextBrush}"/>
+                                </StackPanel>
+                                
+                                <Button x:Name="CreatePluginBtn" HorizontalAlignment="Right" VerticalAlignment="Bottom" 
+                                        Style="{StaticResource ActionButton}" Padding="15,8" Click="CreatePluginBtn_Click">
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="" FontFamily="Segoe MDL2 Assets" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                                        <TextBlock Text="Buat Plugin" VerticalAlignment="Center" FontWeight="SemiBold"/>
+                                    </StackPanel>
+                                </Button>
+                            </Grid>
 
                             <!-- Plugin List -->
-                             <StackPanel x:Name="PluginsListPanel" Margin="30,0">
+                             <StackPanel x:Name="PluginsListPanel" Margin="0,0">
                              <TextBlock Text="PLUGINS &amp; EXTENSIONS" FontWeight="Black" Foreground="{StaticResource NeonBlueBrush}" FontSize="12" Margin="0,0,0,15" />
                              
                              <!-- Weather Plugin Component -->
