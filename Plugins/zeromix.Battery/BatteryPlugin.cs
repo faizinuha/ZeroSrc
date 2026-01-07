@@ -2,7 +2,7 @@ using System;
 using System.Windows.Forms;
 using System.Windows.Threading;
 
-namespace ZeroMix.Plugins
+namespace ZeroMix.Plugins.Battery
 {
     public class BatteryPlugin
     {

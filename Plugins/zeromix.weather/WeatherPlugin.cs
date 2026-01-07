@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using System.Windows.Threading;
 using System.Diagnostics;
 
-namespace ZeroMix.Plugins
+namespace ZeroMix.Plugins.Weather
 {
     public class WeatherPlugin
     {

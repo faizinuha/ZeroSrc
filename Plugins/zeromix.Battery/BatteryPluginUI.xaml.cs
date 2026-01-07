@@ -2,7 +2,7 @@ using System;
 using System.Windows;
 using System.Windows.Controls;
 
-namespace ZeroMix.Plugins
+namespace ZeroMix.Plugins.Battery
 {
     public partial class BatteryPluginUI : System.Windows.Controls.UserControl
     {
