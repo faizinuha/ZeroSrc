@@ -296,6 +296,7 @@ namespace ZeroMix
             // Instead of closing, hide the window
             e.Cancel = true;
             this.Hide();
+            App.OptimizeMemory(); // Trim memory when hidden
             base.OnClosing(e);
         }
 
@@ -613,6 +614,7 @@ namespace ZeroMix
         private void Close_Click(object sender, RoutedEventArgs e)
         {
             this.Hide();
+            App.OptimizeMemory();
         }
 
         // --- Plugins Logic ---
