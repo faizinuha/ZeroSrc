@@ -654,16 +654,12 @@ namespace ZeroMix
 -- Type: {(isPublic ? "Public" : "Private")}
 
 function OnLoad()
+    -- Masukkan logika kustom kamu di sini
     ZeroMix.Log('Plugin {pluginName} aktif!')
-    ZeroMix.SetStatusText('Plugin {pluginName} Berjalan...')
 end
 
 function OnUpdate()
-    -- Contoh: Cek CPU setiap detik
-    local cpu = ZeroMix.GetCpuUsage()
-    if cpu > 80 then
-        ZeroMix.Log('Peringatan: CPU Tinggi! ' .. cpu .. '%')
-    end
+    -- Masukkan logika kustom kamu di sini
 end";
                 
                 await File.WriteAllTextAsync(Path.Combine(pluginDir, "script.lua"), luaTemplate);
