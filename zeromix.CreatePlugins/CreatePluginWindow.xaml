@@ -1,0 +1,48 @@
+<Window x:Class="ZeroMix.zeromix.CreatePlugins.CreatePluginWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Buat Plugin Baru" Height="300" Width="400"
+        WindowStyle="None" AllowsTransparency="True" Background="Transparent"
+        WindowStartupLocation="CenterOwner" ShowInTaskbar="False">
+
+    <Border Background="White" CornerRadius="8" BorderBrush="#EEEEEE" BorderThickness="1">
+        <Border.Effect>
+            <DropShadowEffect BlurRadius="15" ShadowDepth="0" Opacity="0.1"/>
+        </Border.Effect>
+        
+        <Grid Margin="25">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <!-- Header -->
+            <TextBlock Text="Buat Plugin Baru" FontSize="20" FontWeight="Bold" Foreground="#333" Margin="0,0,0,20"/>
+
+            <!-- Form -->
+            <StackPanel Grid.Row="1">
+                <TextBlock Text="Nama Plugin:" Foreground="#666" FontSize="12" Margin="0,0,0,5"/>
+                <TextBox x:Name="PluginNameInput" Padding="10" Background="#F9F9F9" BorderBrush="#DDD" BorderThickness="1" FontSize="14" Margin="0,0,0,15"/>
+
+                <TextBlock Text="Opsi Publikasi:" Foreground="#666" FontSize="12" Margin="0,0,0,5"/>
+                <StackPanel Orientation="Horizontal">
+                    <RadioButton x:Name="PrivateRadio" Content="Private (Lokal)" IsChecked="True" Margin="0,0,20,0" Foreground="#444"/>
+                    <RadioButton x:Name="PublicRadio" Content="Public (Bagikan)" Foreground="#444"/>
+                </StackPanel>
+            </StackPanel>
+
+            <!-- Buttons -->
+            <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,20,0,0">
+                <Button Content="Batal" Click="Cancel_Click" Background="Transparent" BorderThickness="0" Foreground="#999" Padding="15,8" Margin="0,0,10,0" Cursor="Hand"/>
+                <Button Content="Ciptakan" Click="Create_Click" Background="#0078D4" Foreground="White" BorderThickness="0" Padding="25,8" FontWeight="Bold" Cursor="Hand">
+                    <Button.Resources>
+                        <Style TargetType="Border">
+                            <Setter Property="CornerRadius" Value="4"/>
+                        </Style>
+                    </Button.Resources>
+                </Button>
+            </StackPanel>
+        </Grid>
+    </Border>
+</Window>

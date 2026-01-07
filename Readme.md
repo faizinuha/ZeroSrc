@@ -15,14 +15,14 @@
 
 ---
 
-**ZeroMix** is a high-performance, lightweight utility suite designed to transform your Windows experience. From real-time system monitoring to immersive video wallpapers, ZeroMix brings pro-level tools into a beautiful, modern interface.
+**ZeroMix** is a high-performance, lightweight utility suite designed to transform your Windows experience. From real-time system monitoring to immersive video wallpapers and a **Lua-powered plugin system**, ZeroMix brings pro-level tools into a beautiful, modern interface.
 
-[Features](#-core-features) • [Installation](#-quick-installation) • [Shortcuts](#-keyboard-shortcuts) • [Contributing](#-community--contribution)
+[Features](#-core-features) • [Installation](#-quick-installation) • [Shortcuts](#-keyboard-shortcuts) • [Plugins](#-lua-plugin-system) • [Contributing](#-community--contribution)
 
 </div>
 
----
 
+<!-- 
 ## 🎥 Video Demo
 
 <div align="center">
@@ -30,22 +30,41 @@
     <img src="https://img.youtube.com/vi/y9yz7ZPh_Bo/maxresdefault.jpg" alt="ZeroMix Demo Video" width="85%">
   </a>
   <p><i>Click above to watch ZeroMix in action on YouTube</i></p>
-</div>
+</div> -->
 
----
+
 
 ## 🚀 Core Features
 
 ZeroMix is packed with features that keep your system fast and your desktop stunning.
 
-| Feature                | Description                                                             |
-| :--------------------- | :---------------------------------------------------------------------- |
-| **📊 System Monitor**  | Real-time tracking of CPU, RAM, and Disk directly from your dashboard.  |
-| **🎨 Ghost Taskbar**   | Instantly make your taskbar transparent for a clean, professional look. |
-| **🎬 Video Wallpaper** | Immersive animated wallpapers with high-performance video engine.       |
-| **🔍 Search Overlay**  | A lightning-fast search bar (`Ctrl + Space`) for apps, files, and web.  |
-| **🧹 System Purge**    | One-click cache cleaning to free up space and maintain performance.     |
-| **🔋 Battery Guard**   | Smart battery notifications with friendly mascot interactions.          |
+| Feature                  | Description                                                             |
+| :----------------------- | :---------------------------------------------------------------------- |
+| **🧩 Lua Plugin system** | **(NEW)** Create and share your own plugins using simple Lua scripts!   |
+| **📊 System Monitor**    | Real-time tracking of CPU, RAM, and Disk directly from your dashboard.  |
+| **🎨 Ghost Taskbar**     | Instantly make your taskbar transparent for a clean, professional look. |
+| **🎬 Video Wallpaper**   | Immersive animated wallpapers with high-performance video engine.       |
+| **🔍 Search Overlay**    | High-performance search bar (`Ctrl + Space`) for apps, files, and web.  |
+| **🧹 Memory Optimizer**  | **(NEW)** Smart background GC collection and working set trimming.      |
+| **🔋 Battery Guard**     | Refactored mascot notifications with personalized dialogs.              |
+
+---
+
+## 🧩 Lua Plugin System
+
+Empower your ZeroMix experience by creating your own modules. No C# knowledge required!
+
+1.  **Open Extensions**: Click the "Buat Plugin" button in the dashboard.
+2.  **Scaffold**: Choose Private or Public. ZeroMix creates the folder automatically.
+3.  **Code**: Open `script.lua` in Notepad and start coding!
+4.  **BOM!**: Your plugin is instantly loaded into the system.
+
+```lua
+function OnLoad()
+    ZeroMix.Log("Hello from my first plugin!")
+    ZeroMix.Notify("ZeroMix", "Plugin Loaded Successfully!")
+end
+```
 
 ---
 
@@ -77,10 +96,11 @@ Workflow is everything. Master ZeroMix with these shortcuts:
 
 High-performance technologies for a smooth experience.
 
-- **Frontend**: WPF (Windows Presentation Foundation) with Modern UI
+- **Frontend**: WPF (Windows Presentation Foundation)
 - **Core**: .NET 9.0 (C#)
+- **Scripting**: MoonSharp (Lua Engine)
 - **Engine**: FFmpeg for Video Processing
-- **Logic**: Async-heavy, Low-memory footrpint design
+- **Optimization**: Native Windows API (User32.dll), Active GC Trimming
 
 ---
 
