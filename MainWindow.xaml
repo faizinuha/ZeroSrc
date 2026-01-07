@@ -5,7 +5,8 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d"
         xmlns:local="clr-namespace:ZeroMix"
-        xmlns:plugins="clr-namespace:ZeroMix.Plugins"
+        xmlns:battery="clr-namespace:ZeroMix.Plugins.Battery"
+        xmlns:weather="clr-namespace:ZeroMix.Plugins.Weather"
         Title="ZeroMix"
         Icon="zeromix.ico"
         Height="650"
@@ -423,10 +424,10 @@
                              <TextBlock Text="PLUGINS &amp; EXTENSIONS" FontWeight="Black" Foreground="{StaticResource NeonBlueBrush}" FontSize="12" Margin="0,0,0,15" />
                              
                              <!-- Weather Plugin Component -->
-                             <plugins:WeatherPluginUI />
+                             <weather:WeatherPluginUI />
                              
                              <!-- Battery Assistant Component -->
-                             <plugins:BatteryPluginUI />
+                             <battery:BatteryPluginUI />
                              
                         </StackPanel>
                         </StackPanel>

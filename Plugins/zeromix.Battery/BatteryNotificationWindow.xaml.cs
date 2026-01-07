@@ -5,7 +5,7 @@ using System.Windows;
 using System.Windows.Media.Imaging;
 using System.Windows.Media.Animation;
 
-namespace ZeroMix.Plugins
+namespace ZeroMix.Plugins.Battery
 {
     public partial class BatteryNotificationWindow : Window
     {
@@ -92,7 +92,7 @@ namespace ZeroMix.Plugins
 
             try
             {
-                string imgPath = Path.Combine(baseDir, "Plugins", "Maskot", mascotFile);
+                string imgPath = Path.Combine(baseDir, "Plugins", "zeromix.Battery", "Maskot", mascotFile);
                 if (File.Exists(imgPath))
                 {
                     var bitmap = new BitmapImage();

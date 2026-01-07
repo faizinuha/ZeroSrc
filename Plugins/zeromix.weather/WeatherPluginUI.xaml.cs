@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 
-namespace ZeroMix.Plugins
+namespace ZeroMix.Plugins.Weather
 {
     public partial class WeatherPluginUI : System.Windows.Controls.UserControl
     {

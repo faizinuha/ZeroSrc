@@ -1,4 +1,4 @@
-<Window x:Class="ZeroMix.Plugins.BatteryNotificationWindow"
+<Window x:Class="ZeroMix.Plugins.Battery.BatteryNotificationWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="Battery Assistant" Height="110" Width="560"
