@@ -20,7 +20,6 @@
         Deactivated="Window_Deactivated">
 
     <Window.Resources>
-    <Window.Resources>
         <Storyboard x:Key="FadeInStoryboard">
             <DoubleAnimation Storyboard.TargetProperty="Opacity"
                              From="0"
