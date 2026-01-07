@@ -1,0 +1,31 @@
+<Window x:Class="ZeroMix.Plugins.DynamicPluginWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="ZeroMix Plugin" Height="300" Width="400"
+        WindowStyle="None" AllowsTransparency="True" Background="Transparent"
+        WindowStartupLocation="CenterScreen" ShowInTaskbar="False">
+
+    <Border Background="White" CornerRadius="12" BorderBrush="#EEEEEE" BorderThickness="1">
+        <Border.Effect>
+            <DropShadowEffect BlurRadius="15" ShadowDepth="0" Opacity="0.1"/>
+        </Border.Effect>
+        
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/> <!-- Title Bar -->
+                <RowDefinition Height="*"/>    <!-- Content Area -->
+            </Grid.RowDefinitions>
+
+            <!-- Custom Title Bar -->
+            <Grid Grid.Row="0" Background="#FBFBFB" MouseLeftButtonDown="TitleBar_MouseDown">
+                <TextBlock x:Name="TitleText" Text="Plugin" FontWeight="Bold" Foreground="#333" Margin="15,10"/>
+                <Button Content="✕" Click="Close_Click" HorizontalAlignment="Right" Background="Transparent" BorderThickness="0" Foreground="#999" Margin="10,0" Cursor="Hand"/>
+            </Grid>
+
+            <!-- Dinamic Content Container -->
+            <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+                <StackPanel x:Name="MainContainer" Margin="20"/>
+            </ScrollViewer>
+        </Grid>
+    </Border>
+</Window>

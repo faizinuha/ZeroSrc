@@ -13,7 +13,7 @@ namespace ZeroMix.Plugins
         private readonly MainWindow _main;
         private readonly string _pluginsDir;
         private readonly List<Script> _activeScripts = new List<Script>();
-        private readonly DispatcherTimer _updateTimer;
+        private readonly FileSystemWatcher _watcher;
 
         public PluginEngine(MainWindow main)
         {
@@ -23,6 +23,18 @@ namespace ZeroMix.Plugins
             _updateTimer = new DispatcherTimer();
             _updateTimer.Interval = TimeSpan.FromSeconds(1);
             _updateTimer.Tick += (s, e) => UpdatePlugins();
+
+            // Setup Real-time Watcher
+            _watcher = new FileSystemWatcher(_pluginsDir);
+            _watcher.NotifyFilter = NotifyFilters.DirectoryName | NotifyFilters.FileName;
+            _watcher.Created += (s, e) => {
+                // Jika folder baru user.* dibuat/di-paste
+                if (e.Name != null && e.Name.StartsWith("user.")) {
+                    _main.Dispatcher.Invoke(() => LoadPluginFromDirectory(e.FullPath));
+                    Debug.WriteLine($"[SYSTEM] New Plugin Detected & Loaded: {e.Name}");
+                }
+            };
+            _watcher.EnableRaisingEvents = true;
         }
 
         public void Start()
@@ -68,8 +80,21 @@ namespace ZeroMix.Plugins
         {
             Script script = new Script();
             
-            // Expose ZeroMix API to Lua
-            script.Globals["ZeroMix"] = new ZeroMixLuaApi(_main);
+            // Expose API directly to Globals for shorter calls
+            var api = new ZeroMixLuaApi(_main);
+            api.SetActiveScript(script);
+            
+            // Map common functions directly to Global scope
+            script.Globals["CreateUI"] = (Action<string, int, int>)api.CreateUI;
+            script.Globals["AddLabel"] = (Action<string>)api.AddLabel;
+            script.Globals["AddInput"] = (Action<string, string>)api.AddInput;
+            script.Globals["AddButton"] = (Action<string, string>)api.AddButton;
+            script.Globals["GetInput"] = (Func<string, string>)api.GetInput;
+            script.Globals["Notify"] = (Action<string, string>)api.Notify;
+            script.Globals["Log"] = (Action<string>)api.Log;
+            
+            // Also keep the ZeroMix object for backwards compatibility
+            script.Globals["ZeroMix"] = api;
             
             string content = File.ReadAllText(path);
             script.DoString(content);
@@ -114,6 +139,85 @@ namespace ZeroMix.Plugins
             _main = main;
         }
 
+        private DynamicPluginWindow? _currentWin;
+        private Dictionary<string, TextBox> _inputs = new Dictionary<string, TextBox>();
+        private Script? _activeScript; // To call callbacks back
+
+        public void SetActiveScript(Script script) => _activeScript = script;
+
+        public void CreateUI(string title, int width, int height)
+        {
+            _main.Dispatcher.Invoke(() =>
+            {
+                _currentWin = new DynamicPluginWindow();
+                _currentWin.TitleText.Text = title;
+                _currentWin.Width = width;
+                _currentWin.Height = height;
+                _currentWin.Show();
+                _inputs.Clear();
+            });
+        }
+
+        public void AddLabel(string text)
+        {
+            _main.Dispatcher.Invoke(() =>
+            {
+                var label = new TextBlock { Text = text, Foreground = new SolidColorBrush(Color.FromRgb(87, 96, 111)), FontSize = 12, FontWeight = FontWeights.SemiBold };
+                _currentWin?.AddControl(label);
+            });
+        }
+
+        public void AddInput(string id, string placeholder)
+        {
+            _main.Dispatcher.Invoke(() =>
+            {
+                var input = new TextBox { 
+                    Tag = id, 
+                    Text = placeholder, 
+                    Padding = new Thickness(10), 
+                    Background = new SolidColorBrush(Color.FromRgb(249, 249, 249)),
+                    BorderBrush = new SolidColorBrush(Color.FromRgb(221, 221, 221)),
+                    BorderThickness = new Thickness(1)
+                };
+                _inputs[id] = input;
+                _currentWin?.AddControl(input);
+            });
+        }
+
+        public void AddButton(string text, string callbackName)
+        {
+            _main.Dispatcher.Invoke(() =>
+            {
+                var btn = new Button { 
+                    Content = text, 
+                    Padding = new Thickness(20, 10, 20, 10),
+                    Background = new SolidColorBrush(Color.FromRgb(0, 120, 212)),
+                    Foreground = Brushes.White,
+                    FontWeight = FontWeights.Bold,
+                    BorderThickness = new Thickness(0),
+                    Cursor = Cursors.Hand
+                };
+                
+                btn.Click += (s, e) => {
+                    if (_activeScript != null) {
+                        var func = _activeScript.Globals[callbackName];
+                        if (func != null) _activeScript.Call(func);
+                    }
+                };
+
+                _currentWin?.AddControl(btn);
+            });
+        }
+
+        public string GetInput(string id)
+        {
+            string val = "";
+            _main.Dispatcher.Invoke(() => {
+                if (_inputs.ContainsKey(id)) val = _inputs[id].Text;
+            });
+            return val;
+        }
+
         public void Log(string message)
         {
             Debug.WriteLine($"[LUA] {message}");
@@ -123,7 +227,6 @@ namespace ZeroMix.Plugins
         {
             _main.Dispatcher.Invoke(() =>
             {
-                // Simple Toast using MessageBox for now, could be upgraded
                 System.Windows.MessageBox.Show(message, title, System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Information);
             });
         }
@@ -147,6 +250,9 @@ namespace ZeroMix.Plugins
             });
             return val;
         }
+
+        public int GetTimeHour() => DateTime.Now.Hour;
+        public int GetTimeMin() => DateTime.Now.Minute;
 
         public void SetStatusText(string text)
         {
