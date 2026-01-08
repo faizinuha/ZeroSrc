@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="Modul Developer ZeroMix - Pelajari cara membuat plugin kustom untuk smart launcher desktop Anda."
+    />
+    <title>ZeroMix – Modul </title>
+    <link rel="icon" href="./zeromix-high-resolution-logo-transparent.png" />
+    <link rel="stylesheet" href="style.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+    />
+  </head>
+  <body>
+    <!-- Navigation Bar -->
+    <nav class="navbar">
+      <div class="nav-container">
+        <a href="index.html" class="nav-logo">ZeroMix</a>
+        <button class="menu-toggle" aria-label="Toggle menu">
+          <i class="fas fa-bars"></i>
+        </button>
+        <ul class="nav-menu">
+          <li class="nav-item">
+            <a href="Documents.html" data-translate="Documents">Documents</a>
+          </li>
+          <li class="nav-item">
+            <a href="Changelog.html" data-translate="Changelog">Changelog</a>
+          </li>
+          <li class="nav-item">
+            <a href="About.html" data-translate="Tentang">Tentang</a>
+          </li>
+          <li class="nav-item">
+            <a href="Support.html" data-translate="Support">Support</a>
+          </li>
+          <li class="nav-item language-switcher">
+            <button class="lang-btn active" data-lang="id">🇮🇩 ID</button>
+            <button class="lang-btn" data-lang="en">🇺🇸 EN</button>
+            <button class="lang-btn" data-lang="ja">🇯🇵 JP</button>
+          </li>
+        </ul>
+      </div>
+    </nav>
+
+    <!-- Header -->
+    <header>
+      <div class="header-content">
+        <span
+          style="
+            color: var(--primary-accent);
+            font-weight: 700;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            font-size: 0.8rem;
+            margin-bottom: 10px;
+            display: block;
+          "
+          >DEVELOPER MODUL</span
+        >
+        <h1 data-translate="Plugin Creator Guru">Plugin Creator </h1>
+        <p
+          data-translate="Pelajari cara membuat dan mengintegrasikan plugin Lua buatan sendiri ke dalam ZeroMix Desktop."
+        >
+          Pelajari cara membuat dan mengintegrasikan plugin Lua buatan sendiri
+          ke dalam ZeroMix Desktop.
+        </p>
+      </div>
+    </header>
+
+    <!-- GitHub Library Section -->
+    <section class="reveal">
+      <center>
+        <div class="download-card" style="max-width: 600px; margin: 0 auto">
+          <h3 data-translate="GitHub Template Library">
+            GitHub Template Library
+          </h3>
+          <p
+            data-translate="Dapatkan inspirasi dan kode dasar dari koleksi template resmi kami untuk mempercepat pengembangan plugin Kakak."
+          >
+            Dapatkan inspirasi dan kode dasar dari koleksi template resmi kami
+            untuk mempercepat pengembangan plugin Kakak.
+          </p>
+          <div class="download-buttons">
+            <a
+              href="https://github.com/faizinuha/ZeroMix/tree/main/Plugins"
+              class="btn-1"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <i class="fab fa-github"></i> Buka Plugin Folder di GitHub
+            </a>
+          </div>
+        </div>
+      </center>
+    </section>
+
+    <!-- Steps Section -->
+    <section class="reveal">
+      <h2 data-translate="Langkah-Langkah Membuat Plugin">
+        Langkah-Langkah Membuat Plugin
+      </h2>
+      <div class="install-steps">
+        <div class="reveal">
+          <h3 data-translate="Inisialisasi Plugin">1. Inisialisasi Plugin</h3>
+          <p
+            data-translate='Klik tombol "+" di dashboard ZeroMix, masukkan nama plugin, dan pilih opsi "Template" untuk mendapatkan kode dasar To-Do List.'
+          >
+            Klik tombol <b>"+"</b> di dashboard ZeroMix, masukkan nama plugin,
+            dan pilih opsi "Template" untuk mendapatkan kode dasar To-Do List.
+          </p>
+        </div>
+        <div class="reveal">
+          <h3 data-translate="Coding Lua">2. Coding Lua</h3>
+          <p
+            data-translate="Buka folder plugin (ikon folder ) dan edit file script.lua. Gunakan fungsi CreateUI, AddButton, dan AddInput."
+          >
+            Buka folder plugin (ikon folder ) dan edit file
+            <code>script.lua</code>. Gunakan fungsi <code>CreateUI</code>,
+            <code>AddButton</code>, dan <code>AddInput</code>.
+          </p>
+        </div>
+        <div class="reveal">
+          <h3 data-translate="Manajemen Data">3. Manajemen Data</h3>
+          <p
+            data-translate="Gunakan fungsi SaveConfig('key', json_string) untuk menyimpan data secara permanen di file JSON lokal."
+          >
+            Gunakan fungsi <code>SaveConfig('key', json_string)</code> untuk
+            menyimpan data secara permanen di file JSON lokal.
+          </p>
+        </div>
+        <div class="reveal">
+          <h3 data-translate="Tampilkan di Desktop">4. Tampilkan di Desktop</h3>
+          <p
+            data-translate="Aktifkan toggle di Dashboard atau buat Shortcut Desktop untuk akses cepat jagoan plugin buatan Kakak!"
+          >
+            Aktifkan toggle di Dashboard atau buat <b>Shortcut Desktop</b> untuk
+            akses cepat jagoan plugin buatan Kakak!
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+      <p>&copy; 2025 ZeroMix Project – Dibuat dengan ❤️ oleh Zaki</p>
+      <p>
+        <a
+          href="https://github.com/faizinuha/ZeroMix"
+          target="_blank"
+          rel="noopener noreferrer"
+          >GitHub</a
+        >
+        | <a href="index.html">Home</a> |
+        <a href="mailto:rozakadm@gmail.com">Email</a>
+      </p>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="translations.js"></script>
+    <script src="auto-translator.js"></script>
+    <script src="script.js"></script>
+  </body>
+</html>

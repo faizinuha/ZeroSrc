@@ -438,8 +438,9 @@
                              <!-- Weather Plugin Component -->
                              <weather:WeatherPluginUI />
                              
-                             <!-- Battery Assistant Component -->
                              <battery:BatteryPluginUI />
+                             
+                             <StackPanel x:Name="UserPluginsContainer" Margin="0,15,0,0" />
                              
                         </StackPanel>
                         </StackPanel>
