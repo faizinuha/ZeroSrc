@@ -13,6 +13,20 @@ using System.Windows.Threading;
 using System.Net.Http;
 using System.Text.Json;
 using System.Threading;
+using System.Windows.Media;
+using System.Windows.Input;
+
+using CheckBox = System.Windows.Controls.CheckBox;
+using Grid = System.Windows.Controls.Grid;
+using GridLength = System.Windows.GridLength;
+using GridUnitType = System.Windows.GridUnitType;
+using FontFamily = System.Windows.Media.FontFamily;
+using Brushes = System.Windows.Media.Brushes;
+using Cursor = System.Windows.Input.Cursor;
+using Cursors = System.Windows.Input.Cursors;
+using Button = System.Windows.Controls.Button;
+using Orientation = System.Windows.Controls.Orientation;
+using Brush = System.Windows.Media.Brush;
 
 namespace ZeroMix
 {
@@ -71,8 +85,11 @@ namespace ZeroMix
         private DispatcherTimer? _taskbarWatcher;
         private Plugins.PluginEngine? _pluginEngine;
 
-        public MainWindow()
+        private string[]? _startupArgs;
+
+        public MainWindow(string[]? args = null)
         {
+            _startupArgs = args;
             // Register Lua Bridge
             MoonSharp.Interpreter.UserData.RegisterType<Plugins.ZeroMixLuaApi>();
             
@@ -110,6 +127,17 @@ namespace ZeroMix
             // Initialize Lua Engine
             _pluginEngine = new Plugins.PluginEngine(this);
             _pluginEngine.Start();
+
+            // Handle Startup Args (Toggle Plugins via Shortcut)
+            if (_startupArgs != null && _startupArgs.Length >= 2 && _startupArgs[0] == "--plugin")
+            {
+                string targetPlugin = _startupArgs[1];
+                var plugin = _pluginEngine.GetPlugins().FirstOrDefault(p => p.Name == targetPlugin);
+                if (plugin != null)
+                {
+                    _pluginEngine.TogglePlugin(plugin);
+                }
+            }
         }
 
         private string? GetSystemWallpaperPath()
@@ -639,8 +667,10 @@ namespace ZeroMix
 
             string pluginName = inputWin.PluginName;
             bool isPublic = inputWin.IsPublic;
+            bool isTemplate = inputWin.IsTemplate;
             
-            string folderName = $"user.{(isPublic ? "pub" : "priv")}.{pluginName}";
+            // folder prefix: user.pub for public/template, user.priv for private
+            string folderName = $"user.{(isPublic || isTemplate ? "pub" : "priv")}.{pluginName}";
             string pluginDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Plugins", folderName);
 
             try
@@ -649,18 +679,58 @@ namespace ZeroMix
                 Directory.CreateDirectory(pluginDir);
 
                 // Create Lua Template
-                string luaTemplate = @$"-- ZeroMix Plugin: {pluginName}
+                string luaTemplate = "";
+                
+                if (isTemplate)
+                {
+                    luaTemplate = @$"-- ZeroMix Plugin: {pluginName} (Template)
+-- Deskripsi: To-Do List dengan sistem simpan data.
+
+function OnLoad()
+    CreateUI('{pluginName}', 300, 400)
+    AddLabel('APA RENCANA KAMU HARI INI?')
+    AddInput('task_input', '')
+    AddButton('TAMBAH TUGAS', 'AddTask')
+    
+    -- Muat data lama dari file JSON
+    local savedTasks = LoadConfig('tasks_data')
+    if savedTasks ~= '' and savedTasks ~= nil then
+        AddLabel('--- TUGAS TERSIMPAN ---')
+        AddLabel(savedTasks)
+    end
+end
+
+function AddTask()
+    local task = GetInput('task_input')
+    if task ~= '' and task ~= nil then
+        AddLabel('• ' .. task)
+        
+        -- Simpan data (Append ke data lama atau simpan baru)
+        local current = LoadConfig('tasks_data')
+        local updated = current .. '\n• ' .. task
+        SaveConfig('tasks_data', updated)
+        
+        Notify('Sukses', 'Tugas disimpan ke JSON!')
+    else
+        Notify('Peringatan', 'Isi tugasnya dulu Kak!')
+    end
+end";
+                }
+                else
+                {
+                    luaTemplate = @$"-- ZeroMix Plugin: {pluginName}
 -- Created: {DateTime.Now}
 -- Type: {(isPublic ? "Public" : "Private")}
 
 function OnLoad()
     -- Masukkan logika kustom kamu di sini
-    ZeroMix.Log('Plugin {pluginName} aktif!')
+    Log('Plugin {pluginName} aktif!')
 end
 
 function OnUpdate()
     -- Masukkan logika kustom kamu di sini
 end";
+                }
                 
                 await File.WriteAllTextAsync(Path.Combine(pluginDir, "script.lua"), luaTemplate);
 
@@ -684,6 +754,181 @@ end";
             catch (Exception ex)
             {
                 System.Windows.MessageBox.Show("Gagal membuat plugin: " + ex.Message);
+            }
+        }
+        public void RefreshUserPluginsUI()
+        {
+            if (UserPluginsContainer == null) return;
+
+            UserPluginsContainer.Children.Clear();
+            var engine = _pluginEngine;
+            if (engine == null) return;
+
+            foreach (var plugin in engine.GetPlugins())
+            {
+                // Create a card for each Lua plugin
+                Border card = new Border
+                {
+                    Style = (Style)FindResource("CompactCardBorder")
+                };
+
+                Grid grid = new Grid();
+                grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Auto) });
+                grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+                grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Auto) });
+
+                // Icon (Smaller)
+                Border iconBorder = new Border
+                {
+                    Width = 45,
+                    Height = 45,
+                    CornerRadius = new CornerRadius(8),
+                    Background = new SolidColorBrush(System.Windows.Media.Color.FromRgb(26, 32, 44)),
+                    Margin = new Thickness(0, 0, 15, 0)
+                };
+                iconBorder.Child = new TextBlock
+                {
+                    Text = "🧩",
+                    FontSize = 22,
+                    HorizontalAlignment = System.Windows.HorizontalAlignment.Center,
+                    VerticalAlignment = VerticalAlignment.Center
+                };
+                Grid.SetColumn(iconBorder, 0);
+                grid.Children.Add(iconBorder);
+
+                // Info (Smaller)
+                StackPanel infoStack = new StackPanel { VerticalAlignment = VerticalAlignment.Center };
+                infoStack.Children.Add(new TextBlock
+                {
+                    Text = plugin.Name,
+                    Foreground = System.Windows.Media.Brushes.White,
+                    FontSize = 15,
+                    FontWeight = FontWeights.Bold,
+                    Margin = new Thickness(0, 0, 0, 2)
+                });
+                infoStack.Children.Add(new TextBlock
+                {
+                    Text = "Plugin Lua • " + (plugin.IsEnabled ? "Aktif" : "Nonaktif"),
+                    Foreground = (System.Windows.Media.Brush)FindResource("SubTextBrush"),
+                    FontSize = 11
+                });
+                Grid.SetColumn(infoStack, 1);
+                grid.Children.Add(infoStack);
+
+                // Control Panel (Right Side)
+                StackPanel controlStack = new StackPanel 
+                { 
+                    Orientation = Orientation.Horizontal, 
+                    VerticalAlignment = VerticalAlignment.Center 
+                };
+
+                // Folder Button (Open Directory)
+                Button folderBtn = new Button
+                {
+                    Content = "", // Folder Icon
+                    FontFamily = new FontFamily("Segoe MDL2 Assets"),
+                    Background = Brushes.Transparent,
+                    Foreground = (Brush)FindResource("SubTextBrush"),
+                    BorderThickness = new Thickness(0),
+                    FontSize = 14,
+                    Margin = new Thickness(0, 0, 10, 0),
+                    Cursor = Cursors.Hand,
+                    ToolTip = "Buka Folder Plugin"
+                };
+                folderBtn.Click += (s, e) => {
+                    string? folder = Path.GetDirectoryName(plugin.Path);
+                    if (folder != null) Process.Start("explorer.exe", folder);
+                };
+                controlStack.Children.Add(folderBtn);
+
+                // Shortcut Button
+                Button shortcutBtn = new Button
+                {
+                    Content = "", // Link/Shortcut Icon
+                    FontFamily = new FontFamily("Segoe MDL2 Assets"),
+                    Background = Brushes.Transparent,
+                    Foreground = (Brush)FindResource("SubTextBrush"),
+                    BorderThickness = new Thickness(0),
+                    FontSize = 14,
+                    Margin = new Thickness(0, 0, 10, 0),
+                    Cursor = Cursors.Hand,
+                    ToolTip = "Buat Shortcut di Desktop"
+                };
+                shortcutBtn.Click += (s, e) => {
+                    CreateDesktopShortcut(plugin.Name);
+                    System.Windows.MessageBox.Show($"Shortcut untuk '{plugin.Name}' berhasil dibuat di Desktop!", "Sukses", MessageBoxButton.OK, MessageBoxImage.Information);
+                };
+                controlStack.Children.Add(shortcutBtn);
+
+                // Delete Button
+                Button deleteBtn = new Button
+                {
+                    Content = "", // Trash Icon
+                    FontFamily = new FontFamily("Segoe MDL2 Assets"),
+                    Background = Brushes.Transparent,
+                    Foreground = new SolidColorBrush(System.Windows.Media.Color.FromRgb(255, 107, 107)),
+                    BorderThickness = new Thickness(0),
+                    FontSize = 14,
+                    Margin = new Thickness(0, 0, 10, 0),
+                    Cursor = Cursors.Hand,
+                    ToolTip = "Hapus Permanen"
+                };
+                deleteBtn.Click += (s, e) => {
+                    var result = System.Windows.MessageBox.Show(
+                        $"Kamu yakin ingin menghapus plugin '{plugin.Name}'? Folder akan dihapus selamanya.",
+                        "Hapus Plugin",
+                        MessageBoxButton.YesNo,
+                        MessageBoxImage.Warning);
+                    
+                    if (result == MessageBoxResult.Yes)
+                    {
+                        engine.RemovePlugin(plugin);
+                    }
+                };
+                controlStack.Children.Add(deleteBtn);
+
+                // Control (Toggle)
+                CheckBox toggle = new CheckBox
+                {
+                    IsChecked = plugin.IsEnabled,
+                    VerticalAlignment = VerticalAlignment.Center,
+                    LayoutTransform = new ScaleTransform(1.5, 1.5)
+                };
+                toggle.Click += (s, e) => {
+                    engine.TogglePlugin(plugin);
+                };
+                controlStack.Children.Add(toggle);
+
+                Grid.SetColumn(controlStack, 2);
+                grid.Children.Add(controlStack);
+
+                card.Child = grid;
+                UserPluginsContainer.Children.Add(card);
+            }
+        }
+
+        private void CreateDesktopShortcut(string pluginName)
+        {
+            try
+            {
+                string desktop = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
+                string shortcutPath = Path.Combine(desktop, $"{pluginName}.lnk");
+                string exePath = Process.GetCurrentProcess().MainModule?.FileName ?? "";
+                
+                // PowerShell script to create WScript.Shell shortcut
+                string command = $"$s=(New-Object -COM WScript.Shell).CreateShortcut('{shortcutPath}');$s.TargetPath='{exePath}';$s.Arguments='--plugin \"{pluginName}\"';$s.Save()";
+                
+                Process.Start(new ProcessStartInfo
+                {
+                    FileName = "powershell",
+                    Arguments = $"-NoProfile -Command \"{command.Replace("'", "''")}\"",
+                    CreateNoWindow = true,
+                    WindowStyle = ProcessWindowStyle.Hidden
+                }).WaitForExit();
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine("[ERROR] Shortcut creation failed: " + ex.Message);
             }
         }
     }

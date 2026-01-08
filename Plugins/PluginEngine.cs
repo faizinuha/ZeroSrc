@@ -2,9 +2,20 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Collections.Generic;
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Media;
+using System.Windows.Input;
 using System.Windows.Threading;
 using MoonSharp.Interpreter;
 using System.Diagnostics;
+
+using TextBox = System.Windows.Controls.TextBox;
+using Button = System.Windows.Controls.Button;
+using Control = System.Windows.Controls.Control;
+using Color = System.Windows.Media.Color;
+using Brushes = System.Windows.Media.Brushes;
+using Cursors = System.Windows.Input.Cursors;
 
 namespace ZeroMix.Plugins
 {
@@ -12,8 +23,21 @@ namespace ZeroMix.Plugins
     {
         private readonly MainWindow _main;
         private readonly string _pluginsDir;
-        private readonly List<Script> _activeScripts = new List<Script>();
+        private readonly List<LuaPlugin> _plugins = new List<LuaPlugin>();
+        private readonly DispatcherTimer _updateTimer;
         private readonly FileSystemWatcher _watcher;
+
+        public class LuaPlugin
+        {
+            public string Name { get; set; } = "";
+            public string Path { get; set; } = "";
+            public bool IsEnabled { get; set; } = false;
+            public Script? Script { get; set; }
+            public DynamicPluginWindow? Window { get; set; }
+            public ZeroMixLuaApi? Api { get; set; }
+        }
+
+        public List<LuaPlugin> GetPlugins() => _plugins;
 
         public PluginEngine(MainWindow main)
         {
@@ -72,53 +96,108 @@ namespace ZeroMix.Plugins
             string scriptPath = Path.Combine(dirPath, "script.lua");
             if (File.Exists(scriptPath))
             {
+                if (_plugins.Any(p => p.Path == scriptPath)) return;
                 LoadPlugin(scriptPath);
             }
         }
 
         private void LoadPlugin(string path)
         {
+            if (_plugins.Any(p => p.Path == path)) return;
+
+            // Set context so 'require' can find files in the same folder
+            string? pluginFolder = Path.GetDirectoryName(path);
+            string pluginName = Path.GetFileName(pluginFolder ?? "Unknown");
+            
+            // By default, new plugins are DISABLED so they don't pop up immediately
+            var plugin = new LuaPlugin { 
+                Name = pluginName.Replace("user.pub.", "").Replace("user.priv.", ""), 
+                Path = path,
+                IsEnabled = false 
+            };
+            
             Script script = new Script();
             
-            // Expose API directly to Globals for shorter calls
-            var api = new ZeroMixLuaApi(_main);
+            if (pluginFolder != null) {
+                ((MoonSharp.Interpreter.Loaders.FileSystemScriptLoader)script.Options.ScriptLoader).ModulePaths = 
+                    new string[] { Path.Combine(pluginFolder, "?.lua") };
+            }
+
+            var api = new ZeroMixLuaApi(_main, pluginFolder);
             api.SetActiveScript(script);
-            
-            // Map common functions directly to Global scope
+            plugin.Api = api;
+            plugin.Script = script;
+
             script.Globals["CreateUI"] = (Action<string, int, int>)api.CreateUI;
             script.Globals["AddLabel"] = (Action<string>)api.AddLabel;
             script.Globals["AddInput"] = (Action<string, string>)api.AddInput;
             script.Globals["AddButton"] = (Action<string, string>)api.AddButton;
             script.Globals["GetInput"] = (Func<string, string>)api.GetInput;
             script.Globals["Notify"] = (Action<string, string>)api.Notify;
+            script.Globals["SaveConfig"] = (Action<string, string>)api.SaveConfig;
+            script.Globals["LoadConfig"] = (Func<string, string>)api.LoadConfig;
+            script.Globals["JsonEncode"] = (Func<object, string>)api.JsonEncode;
+            script.Globals["JsonDecode"] = (Func<string, object>)api.JsonDecode;
             script.Globals["Log"] = (Action<string>)api.Log;
-            
-            // Also keep the ZeroMix object for backwards compatibility
             script.Globals["ZeroMix"] = api;
             
+            // We load the script definition, but don't call OnLoad yet
             string content = File.ReadAllText(path);
             script.DoString(content);
 
-            // Call OnLoad if defined
-            var onLoad = script.Globals["OnLoad"];
-            if (onLoad != null)
-            {
-                script.Call(onLoad);
-            }
+            _plugins.Add(plugin);
+            
+            // Notify MainWindow to refresh the UI list
+            _main.Dispatcher.BeginInvoke(new Action(() => _main.RefreshUserPluginsUI()));
+        }
 
-            _activeScripts.Add(script);
+        public void RemovePlugin(LuaPlugin plugin)
+        {
+            try
+            {
+                plugin.Api?.CloseWindow();
+                _plugins.Remove(plugin);
+                
+                string? folder = Path.GetDirectoryName(plugin.Path);
+                if (folder != null && Directory.Exists(folder))
+                {
+                    Directory.Delete(folder, true);
+                }
+                
+                _main.RefreshUserPluginsUI();
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"[ERROR] Failed to delete plugin: {ex.Message}");
+            }
+        }
+
+        public void TogglePlugin(LuaPlugin plugin)
+        {
+            plugin.IsEnabled = !plugin.IsEnabled;
+            if (!plugin.IsEnabled)
+            {
+                plugin.Api?.CloseWindow();
+            }
+            else
+            {
+                // Re-run OnLoad to show UI if it was closed
+                var onLoad = plugin.Script?.Globals["OnLoad"];
+                if (onLoad != null) plugin.Script?.Call(onLoad);
+            }
         }
 
         private void UpdatePlugins()
         {
-            foreach (var script in _activeScripts)
+            foreach (var plugin in _plugins)
             {
+                if (!plugin.IsEnabled || plugin.Script == null) continue;
                 try
                 {
-                    var onUpdate = script.Globals["OnUpdate"];
+                    var onUpdate = plugin.Script.Globals["OnUpdate"];
                     if (onUpdate != null)
                     {
-                        script.Call(onUpdate);
+                        plugin.Script.Call(onUpdate);
                     }
                 }
                 catch (Exception ex)
@@ -134,9 +213,12 @@ namespace ZeroMix.Plugins
     {
         private readonly MainWindow _main;
 
-        public ZeroMixLuaApi(MainWindow main)
+        private readonly string? _pluginDir;
+
+        public ZeroMixLuaApi(MainWindow main, string? pluginDir = null)
         {
             _main = main;
+            _pluginDir = pluginDir;
         }
 
         private DynamicPluginWindow? _currentWin;
@@ -144,6 +226,14 @@ namespace ZeroMix.Plugins
         private Script? _activeScript; // To call callbacks back
 
         public void SetActiveScript(Script script) => _activeScript = script;
+
+        public void CloseWindow()
+        {
+            _main.Dispatcher.Invoke(() =>
+            {
+                _currentWin?.Close();
+            });
+        }
 
         public void CreateUI(string title, int width, int height)
         {
@@ -259,6 +349,41 @@ namespace ZeroMix.Plugins
             _main.Dispatcher.Invoke(() => {
                 _main.StatusLabel.Text = text;
             });
+        }
+
+        public void SaveConfig(string key, string json)
+        {
+            if (_pluginDir == null) return;
+            try
+            {
+                string path = Path.Combine(_pluginDir, $"{key}.json");
+                File.WriteAllText(path, json);
+                Log($"Saved config: {path}");
+            }
+            catch (Exception ex) { Log("Save Error: " + ex.Message); }
+        }
+
+        public string LoadConfig(string key)
+        {
+            if (_pluginDir == null) return "";
+            try
+            {
+                string path = Path.Combine(_pluginDir, $"{key}.json");
+                if (File.Exists(path)) return File.ReadAllText(path);
+            }
+            catch (Exception ex) { Log("Read Error: " + ex.Message); }
+            return "";
+        }
+        public string JsonEncode(object data)
+        {
+            try { return JsonSerializer.Serialize(data); }
+            catch { return ""; }
+        }
+
+        public object? JsonDecode(string json)
+        {
+            try { return JsonSerializer.Deserialize<object>(json); }
+            catch { return null; }
         }
     }
 }

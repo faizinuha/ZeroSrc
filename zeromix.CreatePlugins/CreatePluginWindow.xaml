@@ -29,6 +29,7 @@
                 <StackPanel Orientation="Horizontal">
                     <RadioButton x:Name="PrivateRadio" Content="Private (Lokal)" IsChecked="True" Margin="0,0,20,0" Foreground="#444"/>
                     <RadioButton x:Name="PublicRadio" Content="Public (Bagikan)" Foreground="#444"/>
+                    <RadioButton x:Name="TemplateRadio" Content="Template" Foreground="#444"/>
                 </StackPanel>
             </StackPanel>
 

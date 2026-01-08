@@ -62,12 +62,12 @@ namespace ZeroMix
             if (isFirstRun)
             {
                 var onboarding = new ZeroMix.Onboarding.OnboardingWindow();
-                onboarding.OnOnboardingFinished += StartMainApp;
+                onboarding.OnOnboardingFinished += () => StartMainApp(e.Args);
                 onboarding.Show();
             }
             else
             {
-                StartMainApp();
+                StartMainApp(e.Args);
             }
         }
 
@@ -137,9 +137,9 @@ namespace ZeroMix
             File.WriteAllText("config.json", json);
         }
 
-        private void StartMainApp()
+        private void StartMainApp(string[]? args = null)
         {
-            var mainWindow = new MainWindow();
+            var mainWindow = new MainWindow(args);
             mainWindow.Show();
 
             HotkeyCoreInstance = new HotkeyCore();

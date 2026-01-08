@@ -55,4 +55,15 @@
         <Setter Property="Effect" Value="{StaticResource CardShadow}"/>
     </Style>
 
+    <!-- Compact Card Border Style -->
+    <Style x:Key="CompactCardBorder" TargetType="Border">
+        <Setter Property="Background" Value="#0F131A"/>
+        <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="CornerRadius" Value="12"/>
+        <Setter Property="Padding" Value="12,8,12,8"/>
+        <Setter Property="Margin" Value="0,0,0,8"/>
+        <Setter Property="Effect" Value="{StaticResource CardShadow}"/>
+    </Style>
+
 </ResourceDictionary>

@@ -7,6 +7,7 @@ namespace ZeroMix.zeromix.CreatePlugins
     {
         public string PluginName { get; private set; } = "";
         public bool IsPublic { get; private set; }
+        public bool IsTemplate { get; private set; }
         public bool IsConfirmed { get; private set; }
 
         public CreatePluginWindow()
@@ -25,6 +26,7 @@ namespace ZeroMix.zeromix.CreatePlugins
 
             PluginName = PluginNameInput.Text;
             IsPublic = PublicRadio.IsChecked == true;
+            IsTemplate = TemplateRadio.IsChecked == true;
             IsConfirmed = true;
             this.Close();
         }
