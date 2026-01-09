@@ -15,7 +15,9 @@ using System.Text.Json;
 using System.Threading;
 using System.Windows.Media;
 using System.Windows.Input;
+using ZeroMix.Recorder;
 
+// using COmponene ZeroMixcreatePlugns
 using CheckBox = System.Windows.Controls.CheckBox;
 using Grid = System.Windows.Controls.Grid;
 using GridLength = System.Windows.GridLength;
@@ -84,6 +86,8 @@ namespace ZeroMix
         private ClockWidget? _clockWidget;
         private DispatcherTimer? _taskbarWatcher;
         private Plugins.PluginEngine? _pluginEngine;
+        private RecordingManager? _recordingManager;
+        private bool _isRecordingActive = false;
 
         private string[]? _startupArgs;
 
@@ -96,6 +100,7 @@ namespace ZeroMix
             InitializeComponent();
             InitializeTrayIcon();
             InitializeTaskbarWatcher();
+            InitializeRecorder();
             this.MouseLeftButtonDown += MainWindow_MouseLeftButtonDown;
         }
 
@@ -346,35 +351,32 @@ namespace ZeroMix
             if (AboutContent != null) AboutContent.Visibility = Visibility.Collapsed;
             if (PrivacyContent != null) PrivacyContent.Visibility = Visibility.Collapsed;
             if (WallpapersContent != null) WallpapersContent.Visibility = Visibility.Collapsed;
+            if (PluginsContent != null) PluginsContent.Visibility = Visibility.Collapsed;
+            if (RecorderContent != null) RecorderContent.Visibility = Visibility.Collapsed;
 
-            if (_performanceTimer != null)
-            {
-                _performanceTimer.Stop();
-            }
+            if (_performanceTimer != null) _performanceTimer.Stop();
 
             if (HomeButton != null) HomeButton.Background = System.Windows.Media.Brushes.Transparent;
             if (AboutButton != null) AboutButton.Background = System.Windows.Media.Brushes.Transparent;
             if (PrivacyButton != null) PrivacyButton.Background = System.Windows.Media.Brushes.Transparent;
             if (WallpaperButton != null) WallpaperButton.Background = System.Windows.Media.Brushes.Transparent;
             if (PluginsButton != null) PluginsButton.Background = System.Windows.Media.Brushes.Transparent;
-            if (PluginsContent != null) PluginsContent.Visibility = Visibility.Collapsed;
+            if (RecorderButton != null) RecorderButton.Background = System.Windows.Media.Brushes.Transparent;
         }
 
-        private void PlayTransition(UIElement content)
+        private void RecorderButton_Click(object sender, RoutedEventArgs e)
         {
-            if (content is FrameworkElement fe)
-            {
-                var sb = (System.Windows.Media.Animation.Storyboard)FindResource("FadeIn");
-                sb.Begin(fe);
-            }
+            DeactivateAllTabs();
+            RecorderContent.Visibility = Visibility.Visible;
+            RecorderButton.Background = (System.Windows.Media.SolidColorBrush)FindResource("NavSelectedBrush");
         }
+
 
         private void PluginsButton_Click(object sender, RoutedEventArgs e)
         {
             DeactivateAllTabs();
             PluginsContent.Visibility = Visibility.Visible;
             PluginsButton.Background = (System.Windows.Media.SolidColorBrush)FindResource("NavSelectedBrush");
-            PlayTransition(PluginsContent);
         }
 
         private void HomeButton_Click(object sender, RoutedEventArgs e)
@@ -382,7 +384,6 @@ namespace ZeroMix
             DeactivateAllTabs();
             HomeContent.Visibility = Visibility.Visible;
             HomeButton.Background = (System.Windows.Media.SolidColorBrush)FindResource("NavSelectedBrush");
-            PlayTransition(HomeContent);
         }
 
         private void AboutButton_Click(object sender, RoutedEventArgs e)
@@ -390,7 +391,6 @@ namespace ZeroMix
             DeactivateAllTabs();
             AboutContent.Visibility = Visibility.Visible;
             AboutButton.Background = (System.Windows.Media.SolidColorBrush)FindResource("NavSelectedBrush");
-            PlayTransition(AboutContent);
         }
 
         private void PrivacyButton_Click(object sender, RoutedEventArgs e)
@@ -398,7 +398,6 @@ namespace ZeroMix
             DeactivateAllTabs();
             PrivacyContent.Visibility = Visibility.Visible;
             PrivacyButton.Background = (System.Windows.Media.SolidColorBrush)FindResource("NavSelectedBrush");
-            PlayTransition(PrivacyContent);
         }
 
         private void NavWallpapers_Click(object sender, RoutedEventArgs e)
@@ -406,7 +405,6 @@ namespace ZeroMix
             DeactivateAllTabs();
             WallpapersContent.Visibility = Visibility.Visible;
             WallpaperButton.Background = (System.Windows.Media.SolidColorBrush)FindResource("NavSelectedBrush");
-            PlayTransition(WallpapersContent);
         }
 
         private void WallpaperButton_Click(object sender, RoutedEventArgs e)
@@ -472,9 +470,43 @@ namespace ZeroMix
                     TaskbarToggleBtn.Opacity = 0.7;
                 }
             }
-            catch (Exception ex)
+        }
+
+        private void InitializeRecorder()
+        {
+            string ffmpegPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "FFMPEG", "ffmpeg.exe");
+            _recordingManager = new RecordingManager(ffmpegPath);
+        }
+
+        private void ZeroRecordBtn_Click(object sender, RoutedEventArgs e)
+        {
+            if (_recordingManager == null) return;
+
+            if (!_isRecordingActive)
             {
-                System.Windows.MessageBox.Show($"Error toggling taskbar: {ex.Message}", "Error");
+                string timestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss");
+                
+                // Get FPS from UI
+                int fps = 30;
+                switch (FpsComboBox.SelectedIndex)
+                {
+                    case 1: fps = 45; break;
+                    case 2: fps = 50; break;
+                    case 3: fps = 60; break;
+                }
+
+                _recordingManager.StartRecording($"ZeroRecord_{timestamp}.mp4", fps);
+                _isRecordingActive = true;
+                RecordBtnText.Text = "STOP RECORD";
+                ZeroRecordBtn.Opacity = 1.0;
+            }
+            else
+            {
+                _recordingManager.StopRecording();
+                _isRecordingActive = false;
+                RecordBtnText.Text = "ZeroRecord";
+                ZeroRecordBtn.Opacity = 0.7;
+                System.Windows.MessageBox.Show("Rekaman disimpan di folder Videos!", "ZeroRecord");
             }
         }
 

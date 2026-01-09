@@ -21,8 +21,7 @@
 
 </div>
 
-
-<!-- 
+<!--
 ## 🎥 Video Demo
 
 <div align="center">
@@ -32,7 +31,12 @@
   <p><i>Click above to watch ZeroMix in action on YouTube</i></p>
 </div> -->
 
+## 🌟 What's New (v2.4.0)
 
+- **🎥 ZeroRecord**: Professional screen recording with dynamic **Follow-Mouse Zoom** up to 60 FPS.
+- **⚡ Supercharged UI**: All animations removed for instant, zero-latency dashboard navigation.
+- **📦 Enhanced Lua API**: Built-in JSON encoding/decoding and persistent configuration.
+- **📘 Expanded Wiki**: Complete developer and user guides now available in the [Wiki](https://github.com/faizinuha/ZeroMix/wiki).
 
 ## 🚀 Core Features
 
@@ -40,13 +44,13 @@ ZeroMix is packed with features that keep your system fast and your desktop stun
 
 | Feature                  | Description                                                             |
 | :----------------------- | :---------------------------------------------------------------------- |
-| **🧩 Lua Plugin system** | **(NEW)** Create and share your own plugins using simple Lua scripts!   |
+| **🧩 Lua Plugin system** | Create and share your own plugins using simple Lua scripts!             |
+| **🎥 ZeroRecord**        | **(HOT)** Screen recording with dynamic zoom based on cursor movement.  |
 | **📊 System Monitor**    | Real-time tracking of CPU, RAM, and Disk directly from your dashboard.  |
 | **🎨 Ghost Taskbar**     | Instantly make your taskbar transparent for a clean, professional look. |
 | **🎬 Video Wallpaper**   | Immersive animated wallpapers with high-performance video engine.       |
-| **🔍 Search Overlay**    | High-performance search bar (`Ctrl + Space`) for apps, files, and web.  |
-| **🧹 Memory Optimizer**  | **(NEW)** Smart background GC collection and working set trimming.      |
-| **🔋 Battery Guard**     | Refactored mascot notifications with personalized dialogs.              |
+| **🔍 Search Overlay**    | High-performance search bar (`Alt + Space`) for apps, files, and web.   |
+| **🧹 Memory Optimizer**  | Smart background GC collection and working set trimming.                |
 
 ---
 
