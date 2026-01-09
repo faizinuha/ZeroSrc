@@ -8,11 +8,12 @@ namespace ZeroMix.Recorder
 {
     public class RecordingManager
     {
-        private Process _ffmpegProcess;
-        private Timer _mouseTracker;
+        private Process? _ffmpegProcess;
+        private System.Timers.Timer _mouseTracker;
         private string _ffmpegPath;
-        private string _outputPath;
+        private string? _outputPath;
         private bool _isRecording = false;
+        private GlobalMouseHook _mouseHook;
 
         // Settings for Zoom
         private int _zoomWidth = 1280;
@@ -36,7 +37,7 @@ namespace ZeroMix.Recorder
             _mouseHook.MouseWheelScrolled += (zoomIn) => AdjustZoom(zoomIn);
             
             // Mouse tracker update every 100ms
-            _mouseTracker = new Timer(100);
+            _mouseTracker = new System.Timers.Timer(100);
             _mouseTracker.Elapsed += UpdateMousePosition;
         }
 
@@ -90,7 +91,7 @@ namespace ZeroMix.Recorder
             }
         }
 
-        private void UpdateMousePosition(object sender, ElapsedEventArgs e)
+        private void UpdateMousePosition(object? sender, ElapsedEventArgs e)
         {
             POINT p;
             if (GetCursorPos(out p))

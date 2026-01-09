@@ -470,6 +470,10 @@ namespace ZeroMix
                     TaskbarToggleBtn.Opacity = 0.7;
                 }
             }
+            catch (Exception ex)
+            {
+                System.Windows.MessageBox.Show($"Error: {ex.Message}", "Ghost Taskbar Error");
+            }
         }
 
         private void InitializeRecorder()

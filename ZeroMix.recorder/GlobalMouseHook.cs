@@ -12,7 +12,7 @@ namespace ZeroMix.Recorder
         private LowLevelMouseProc _proc;
         private IntPtr _hookID = IntPtr.Zero;
 
-        public event Action<bool> MouseWheelScrolled;
+        public event Action<bool>? MouseWheelScrolled;
 
         public GlobalMouseHook()
         {
