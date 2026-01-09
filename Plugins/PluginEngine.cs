@@ -9,6 +9,7 @@ using System.Windows.Input;
 using System.Windows.Threading;
 using MoonSharp.Interpreter;
 using System.Diagnostics;
+using System.Text.Json;
 
 using TextBox = System.Windows.Controls.TextBox;
 using Button = System.Windows.Controls.Button;
