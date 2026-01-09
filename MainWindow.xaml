@@ -26,11 +26,6 @@
 
             <SolidColorBrush x:Key="NavSelectedBrush" Color="{StaticResource NeonBlueColor}"/>
 
-            <!-- Animations -->
-            <Storyboard x:Key="FadeIn">
-                <DoubleAnimation Storyboard.TargetProperty="Opacity" From="0" To="1" Duration="0:0:0.6"/>
-                <ThicknessAnimation Storyboard.TargetProperty="Margin" From="0,30,0,0" To="0" Duration="0:0:0.6" DecelerationRatio="0.9"/>
-            </Storyboard>
 
             <!-- Navigation Button Style (Futuristic) -->
             <Style x:Key="NavButtonStyle" TargetType="Button">
@@ -197,6 +192,12 @@
                                     <TextBlock Text="Plugins" VerticalAlignment="Center"/>
                                 </StackPanel>
                             </Button>
+                            <Button x:Name="RecorderButton" Style="{StaticResource NavButtonStyle}" Click="RecorderButton_Click">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="" FontFamily="Segoe MDL2 Assets" FontSize="18" Margin="0,0,15,0" VerticalAlignment="Center"/>
+                                    <TextBlock Text="ZeroRecord" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </Button>
                             <Button x:Name="AboutButton" Style="{StaticResource NavButtonStyle}" Click="AboutButton_Click">
                                 <StackPanel Orientation="Horizontal">
                                     <TextBlock Text="" FontFamily="Segoe MDL2 Assets" FontSize="18" Margin="0,0,15,0" VerticalAlignment="Center"/>
@@ -226,11 +227,6 @@
                     <!-- Home View -->
                     <ScrollViewer x:Name="HomeContent" VerticalScrollBarVisibility="Hidden" BorderThickness="0">
                         <StackPanel>
-                            <StackPanel.Triggers>
-                                <EventTrigger RoutedEvent="Loaded">
-                                    <BeginStoryboard Storyboard="{StaticResource FadeIn}"/>
-                                </EventTrigger>
-                            </StackPanel.Triggers>
 
                             <TextBlock Text="Welcome back" FontSize="36" FontWeight="ExtraBold" Foreground="White" Margin="0,0,0,5"/>
                             <TextBlock Text="Ready to optimize your experience today?" FontSize="16" Foreground="{StaticResource SubTextBrush}" Margin="0,0,0,45"/>
@@ -238,30 +234,43 @@
                             <!-- Quick Actions -->
                             <TextBlock Text="QUICK OPERATIONS" FontSize="12" FontWeight="Black" Foreground="{StaticResource NeonBlueBrush}" Margin="0,0,0,20" />
                             <Grid Margin="0,0,0,40">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="*"/>
                                     <ColumnDefinition Width="*"/>
                                     <ColumnDefinition Width="*"/>
                                 </Grid.ColumnDefinitions>
 
-                                <Button x:Name="EnableMonitoringBtn" Grid.Column="0" Click="EnableMonitoringBtn_Click" Style="{StaticResource QuickActionButton}" Margin="0,0,12,0">
+                                <!-- Row 0 -->
+                                <Button x:Name="EnableMonitoringBtn" Grid.Row="0" Grid.Column="0" Click="EnableMonitoringBtn_Click" Style="{StaticResource QuickActionButton}" Margin="0,0,12,12">
                                     <StackPanel>
                                         <TextBlock Text="" FontFamily="Segoe MDL2 Assets" FontSize="36" Foreground="{StaticResource NeonBlueBrush}" HorizontalAlignment="Center" Margin="0,0,0,12"/>
                                         <TextBlock Text="System Health" FontSize="14" FontWeight="SemiBold" HorizontalAlignment="Center"/>
                                     </StackPanel>
                                 </Button>
 
-                                <Button x:Name="OpenClockBtn" Grid.Column="1" Click="OpenClockBtn_Click" Style="{StaticResource QuickActionButton}" Margin="6,0,6,0">
+                                <Button x:Name="OpenClockBtn" Grid.Row="0" Grid.Column="1" Click="OpenClockBtn_Click" Style="{StaticResource QuickActionButton}" Margin="6,0,6,12">
                                     <StackPanel>
                                         <TextBlock Text="" FontFamily="Segoe MDL2 Assets" FontSize="36" Foreground="{StaticResource NeonBlueBrush}" HorizontalAlignment="Center" Margin="0,0,0,12"/>
                                         <TextBlock Text="Neural Clock" FontSize="14" FontWeight="SemiBold" HorizontalAlignment="Center"/>
                                     </StackPanel>
                                 </Button>
 
-                                <Button x:Name="TaskbarToggleBtn" Grid.Column="2" Click="TaskbarToggleBtn_Click" Style="{StaticResource QuickActionButton}" Margin="12,0,0,0">
+                                <Button x:Name="TaskbarToggleBtn" Grid.Row="0" Grid.Column="2" Click="TaskbarToggleBtn_Click" Style="{StaticResource QuickActionButton}" Margin="12,0,0,12">
                                     <StackPanel>
                                         <TextBlock Text="" FontFamily="Segoe MDL2 Assets" FontSize="36" Foreground="{StaticResource NeonBlueBrush}" HorizontalAlignment="Center" Margin="0,0,0,12"/>
                                         <TextBlock Text="Ghost Taskbar" FontSize="14" FontWeight="SemiBold" HorizontalAlignment="Center"/>
+                                    </StackPanel>
+                                </Button>
+
+                                <!-- Row 1 -->
+                                <Button x:Name="ZeroRecordBtn" Grid.Row="1" Grid.Column="0" Click="ZeroRecordBtn_Click" Style="{StaticResource QuickActionButton}" Margin="0,0,12,0">
+                                    <StackPanel>
+                                        <TextBlock Text="" FontFamily="Segoe MDL2 Assets" FontSize="36" Foreground="#FF4444" HorizontalAlignment="Center" Margin="0,0,0,12"/>
+                                        <TextBlock x:Name="RecordBtnText" Text="ZeroRecord" FontSize="14" FontWeight="SemiBold" HorizontalAlignment="Center"/>
                                     </StackPanel>
                                 </Button>
                             </Grid>
@@ -410,11 +419,6 @@
                     <!-- Plugins View -->
                     <ScrollViewer x:Name="PluginsContent" Visibility="Collapsed" VerticalScrollBarVisibility="Auto" BorderThickness="0">
                         <StackPanel>
-                             <StackPanel.Triggers>
-                                <EventTrigger RoutedEvent="Loaded">
-                                    <BeginStoryboard Storyboard="{StaticResource FadeIn}"/>
-                                </EventTrigger>
-                            </StackPanel.Triggers>
                             
                             <Grid Margin="0,0,0,25">
                                 <StackPanel>
@@ -436,13 +440,38 @@
                              <TextBlock Text="PLUGINS &amp; EXTENSIONS" FontWeight="Black" Foreground="{StaticResource NeonBlueBrush}" FontSize="12" Margin="0,0,0,15" />
                              
                              <!-- Weather Plugin Component -->
-                             <weather:WeatherPluginUI />
-                             
-                             <battery:BatteryPluginUI />
-                             
-                             <StackPanel x:Name="UserPluginsContainer" Margin="0,15,0,0" />
-                             
+                              <StackPanel x:Name="UserPluginsContainer" Margin="0,15,0,0" />
+                              
+                         </StackPanel>
                         </StackPanel>
+                    </ScrollViewer>
+
+                    <!-- Recorder View -->
+                    <ScrollViewer x:Name="RecorderContent" Visibility="Collapsed" VerticalScrollBarVisibility="Auto" BorderThickness="0">
+                        <StackPanel>
+                            <TextBlock Text="ZeroRecord Settings" FontSize="36" FontWeight="ExtraBold" Foreground="White" Margin="0,0,0,5"/>
+                            <TextBlock Text="Configure capture quality and performance" FontSize="16" Foreground="{StaticResource SubTextBrush}" Margin="0,0,0,30"/>
+
+                            <Border Style="{StaticResource CardBorder}" Margin="0,0,0,20">
+                                <StackPanel>
+                                    <TextBlock Text="FRAME RATE (FPS)" FontWeight="Black" Foreground="{StaticResource NeonBlueBrush}" FontSize="12" Margin="0,0,0,15" />
+                                    <ComboBox x:Name="FpsComboBox" SelectedIndex="0" Background="#12161F" Foreground="White" BorderThickness="1" BorderBrush="#1F2937" Padding="10,5">
+                                        <ComboBoxItem Content="30 FPS (Recommended)"/>
+                                        <ComboBoxItem Content="45 FPS"/>
+                                        <ComboBoxItem Content="50 FPS"/>
+                                        <ComboBoxItem Content="60 FPS (Pro)"/>
+                                    </ComboBox>
+                                    <TextBlock Text="* Higher FPS increases CPU usage but makes motion smoother." FontSize="10" Opacity="0.5" Foreground="White" Margin="0,10,0,0"/>
+                                </StackPanel>
+                            </Border>
+
+                            <Border Style="{StaticResource CardBorder}">
+                                <StackPanel>
+                                    <TextBlock Text="CAPTURE RESOLUTION" FontWeight="Black" Foreground="{StaticResource NeonBlueBrush}" FontSize="12" Margin="0,0,0,15" />
+                                    <TextBlock Text="Fixed: 1920x1080 (HD)" Foreground="White" FontSize="14"/>
+                                    <TextBlock Text="Follow Mouse Zoom: Optimized" Foreground="{StaticResource SubTextBrush}" FontSize="12" Margin="0,5,0,0"/>
+                                </StackPanel>
+                            </Border>
                         </StackPanel>
                     </ScrollViewer>
 

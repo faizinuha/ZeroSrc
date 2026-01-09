@@ -1,1 +1,0 @@
-<a href="https://github.com/faizinuha/ZeroMix-Win/releases">Click Here!!</a>
