@@ -16,6 +16,8 @@ using System.Threading;
 using System.Windows.Media;
 using System.Windows.Input;
 using ZeroMix.Recorder;
+using System.Windows.Documents;
+using System.Windows.Navigation;
 
 // using COmponene ZeroMixcreatePlugns
 using CheckBox = System.Windows.Controls.CheckBox;
@@ -88,6 +90,7 @@ namespace ZeroMix
         private Plugins.PluginEngine? _pluginEngine;
         private RecordingManager? _recordingManager;
         private bool _isRecordingActive = false;
+        private DispatcherTimer? _recordDurationTimer;
 
         private string[]? _startupArgs;
 
@@ -444,6 +447,19 @@ namespace ZeroMix
             }
         }
 
+        private void Hyperlink_RequestNavigate(object sender, RequestNavigateEventArgs e)
+        {
+            try
+            {
+                Process.Start(new ProcessStartInfo(e.Uri.AbsoluteUri) { UseShellExecute = true });
+                e.Handled = true;
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Hyperlink error: {ex.Message}");
+            }
+        }
+
         private bool IsWindowOpen<T>(string name = "") where T : Window
         {
             return System.Windows.Application.Current.Windows.OfType<T>().Any(w => string.IsNullOrEmpty(name) || w.Name == name);
@@ -503,14 +519,39 @@ namespace ZeroMix
                 _isRecordingActive = true;
                 RecordBtnText.Text = "STOP RECORD";
                 ZeroRecordBtn.Opacity = 1.0;
+                
+                // Start duration UI timer
+                RecordDurationText.Visibility = Visibility.Visible;
+                if (_recordDurationTimer == null)
+                {
+                    _recordDurationTimer = new DispatcherTimer();
+                    _recordDurationTimer.Interval = TimeSpan.FromSeconds(1);
+                    _recordDurationTimer.Tick += (s, args) => {
+                        string dur = _recordingManager.GetDuration();
+                        RecordDurationText.Text = dur;
+                        _notifyIcon!.Text = $"🔴 RECORDING - {dur}";
+                    };
+                }
+                _recordDurationTimer.Start();
+                _notifyIcon!.BalloonTipTitle = "ZeroRecord Started";
+                _notifyIcon!.BalloonTipText = "Recording your desktop screen...";
+                _notifyIcon!.ShowBalloonTip(2000);
             }
             else
             {
                 _recordingManager.StopRecording();
                 _isRecordingActive = false;
+                _recordDurationTimer?.Stop();
+                
                 RecordBtnText.Text = "ZeroRecord";
                 ZeroRecordBtn.Opacity = 0.7;
-                System.Windows.MessageBox.Show("Rekaman disimpan di folder Videos!", "ZeroRecord");
+                RecordDurationText.Visibility = Visibility.Collapsed;
+                RecordDurationText.Text = "00:00";
+                
+                _notifyIcon!.Text = "ZeroMix Dashboard";
+                _notifyIcon!.BalloonTipTitle = "ZeroRecord Stopped";
+                _notifyIcon!.BalloonTipText = "Video saved to your Videos folder.";
+                _notifyIcon!.ShowBalloonTip(2000);
             }
         }
 
@@ -724,9 +765,9 @@ namespace ZeroMix
 
 function OnLoad()
     CreateUI('{pluginName}', 300, 400)
-    AddLabel('APA RENCANA KAMU HARI INI?')
+    AddLabel('Apakah ada Rencaa?')
     AddInput('task_input', '')
-    AddButton('TAMBAH TUGAS', 'AddTask')
+    AddButton('Tambah Tugas..', 'AddTask')
     
     -- Muat data lama dari file JSON
     local savedTasks = LoadConfig('tasks_data')
@@ -745,10 +786,9 @@ function AddTask()
         local current = LoadConfig('tasks_data')
         local updated = current .. '\n• ' .. task
         SaveConfig('tasks_data', updated)
-        
-        Notify('Sukses', 'Tugas disimpan ke JSON!')
+        Notify('Sukses', 'Tugas disimpan ke JSON!\n' .. updated)
     else
-        Notify('Peringatan', 'Isi tugasnya dulu Kak!')
+        Notify('Peringatan', 'Isi tugasnya dulu...')
     end
 end";
                 }
@@ -954,13 +994,14 @@ end";
                 // PowerShell script to create WScript.Shell shortcut
                 string command = $"$s=(New-Object -COM WScript.Shell).CreateShortcut('{shortcutPath}');$s.TargetPath='{exePath}';$s.Arguments='--plugin \"{pluginName}\"';$s.Save()";
                 
-                Process.Start(new ProcessStartInfo
+                var proc = Process.Start(new ProcessStartInfo
                 {
                     FileName = "powershell",
                     Arguments = $"-NoProfile -Command \"{command.Replace("'", "''")}\"",
                     CreateNoWindow = true,
                     WindowStyle = ProcessWindowStyle.Hidden
-                }).WaitForExit();
+                });
+                proc?.WaitForExit();
             }
             catch (Exception ex)
             {

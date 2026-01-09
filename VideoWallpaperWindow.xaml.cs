@@ -9,16 +9,18 @@ namespace ZeroMix
     public partial class VideoWallpaperWindow : Window
     {
         private string? _videoPath;
+        private double _volume = 0;
         private IntPtr _windowHandle;
         private HwndSource? _hwndSource;
         private const int WM_HOTKEY = 0x0312;
         private const int WM_SYSCOMMAND = 0x0112;
         private const int SC_MINIMIZE = 0xF020;
 
-        public VideoWallpaperWindow(string videoPath)
+        public VideoWallpaperWindow(string videoPath, double volume = 0)
         {
             InitializeComponent();
             _videoPath = videoPath;
+            _volume = volume;
         }
 
         protected override void OnSourceInitialized(EventArgs e)
@@ -91,9 +93,11 @@ namespace ZeroMix
                 // 5. Load dan Play Video
                 if (!string.IsNullOrEmpty(_videoPath) && System.IO.File.Exists(_videoPath))
                 {
-                    VideoPlayer.Source = new Uri(_videoPath);
+                    string fullPath = System.IO.Path.GetFullPath(_videoPath);
+                    VideoPlayer.Source = new Uri(fullPath);
+                    VideoPlayer.Volume = _volume; // Set requested volume
                     VideoPlayer.Play();
-                    System.Diagnostics.Debug.WriteLine($"Video started playing: {_videoPath}");
+                    System.Diagnostics.Debug.WriteLine($"Video started playing: {fullPath} with volume {_volume}");
                 }
                 else
                 {
@@ -138,7 +142,16 @@ namespace ZeroMix
 
         private void VideoPlayer_MediaFailed(object sender, ExceptionRoutedEventArgs e)
         {
-            System.Diagnostics.Debug.WriteLine($"Media failed: {e.ErrorException?.Message}");
+            string error = e.ErrorException?.Message ?? "Unknown Media Error";
+            System.Diagnostics.Debug.WriteLine($"[VIDEO ERROR] Media failed: {error}");
+            
+            // If it fails, maybe the path needs to be converted to absolute Uri or the codec is unsupported
+            this.Dispatcher.Invoke(() => {
+                // Show hint if it's a codec issue
+                if (error.Contains("0xC00D11B1")) {
+                     System.Windows.MessageBox.Show("Codec video tidak didukung oleh Windows Media Player. Pastikan Windows Media Player terinstal dan mendukung MP4.", "Video Error");
+                }
+            });
         }
 
         private void SetWindowStyles()

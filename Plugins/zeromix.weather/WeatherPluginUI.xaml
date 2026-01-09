@@ -65,7 +65,7 @@
                 </Grid>
 
                 <TextBlock Text="Weather Assets (Automated)" Foreground="White" FontSize="12" Margin="0,0,0,8"/>
-                <UniformGrid Columns="3" Margin="0,0,0,10">
+                <UniformGrid Columns="4" Margin="0,0,0,10">
                     <StackPanel Margin="0,0,5,0">
                         <TextBlock Text="☀️ Sunny" Foreground="{StaticResource SubTextBrush}" FontSize="11" Margin="0,0,0,5"/>
                         <Border Background="#1A202C" CornerRadius="8" Height="35">
