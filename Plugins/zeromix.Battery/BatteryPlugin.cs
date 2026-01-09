@@ -19,19 +19,20 @@ namespace ZeroMix.Plugins.Battery
 
         private DispatcherTimer _timer;
         private int _lastThreshold = -1;
-        private int _periodicCounter = 0;
+        private bool _hasGreetedToday = false;
+        private int _lastGreetDay = -1;
 
         public BatteryPlugin()
         {
             _timer = new DispatcherTimer();
             _timer.Interval = TimeSpan.FromMinutes(1);
-            _timer.Tick += Timer_Tick;
+            _timer.Tick += (s, e) => CheckBattery(false);
         }
 
         public void Start()
         {
             _timer.Start();
-            CheckBattery(false);
+            CheckBattery(true); // Is initial check
         }
 
         public void Stop()
@@ -39,50 +40,49 @@ namespace ZeroMix.Plugins.Battery
             _timer.Stop();
         }
 
-        private void Timer_Tick(object? sender, EventArgs e)
-        {
-            _periodicCounter++;
-            bool isPeriodic = false;
-            
-            if (_periodicCounter >= 3)
-            {
-                _periodicCounter = 0;
-                isPeriodic = true;
-            }
-            
-            CheckBattery(isPeriodic);
-        }
-
-        private void CheckBattery(bool isPeriodic)
+        private void CheckBattery(bool isInitial)
         {
             var status = SystemInformation.PowerStatus;
             int percent = (int)(status.BatteryLifePercent * 100);
             bool isCharging = status.PowerLineStatus == PowerLineStatus.Online;
+            
+            DateTime now = DateTime.Now;
+            int hour = now.Hour;
 
-            bool shouldNotify = isPeriodic;
-
-            // Trigger based on specific thresholds if not charging
-            if (!isCharging)
+            // Reset greeting if it's a new day
+            if (now.Day != _lastGreetDay)
             {
-                int currentThreshold = -1;
-                if (percent <= 10) currentThreshold = 10;
-                else if (percent <= 50) currentThreshold = 50;
-                else if (percent <= 70) currentThreshold = 70;
-
-                if (currentThreshold != -1 && currentThreshold != _lastThreshold)
-                {
-                    _lastThreshold = currentThreshold;
-                    shouldNotify = true;
-                }
+                _hasGreetedToday = false;
+                _lastGreetDay = now.Day;
             }
-            else
+
+            bool shouldNotify = false;
+            bool isGreeting = false;
+
+            // 1. Sapaan (Greeting) - Muncul saat aplikasi start atau pertama kali di hari tsb
+            if (isInitial || !_hasGreetedToday)
             {
-                _lastThreshold = -1; // Reset when charging
+                shouldNotify = true;
+                isGreeting = true;
+                _hasGreetedToday = true;
+            }
+
+            // 2. Threshold Alerts (Warn & Critical)
+            // Notifikasi muncul saat turun/naik melewati angka sakral
+            int currentThreshold = -1;
+            if (percent <= 20) currentThreshold = 20;
+            else if (percent <= 50) currentThreshold = 50;
+            else if (percent >= 100 && isCharging) currentThreshold = 100;
+
+            if (currentThreshold != -1 && currentThreshold != _lastThreshold)
+            {
+                _lastThreshold = currentThreshold;
+                shouldNotify = true;
             }
 
             if (shouldNotify)
             {
-                OnBatteryStatusChanged?.Invoke(percent, isCharging, false, isPeriodic);
+                OnBatteryStatusChanged?.Invoke(percent, isCharging, isGreeting, false);
             }
         }
     }

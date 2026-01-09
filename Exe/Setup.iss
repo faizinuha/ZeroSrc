@@ -4,12 +4,12 @@
 
 [Setup]
 ; --- PENTING: AppId Unik (Dibuat Baru) ---
-AppId={{A1B2C3D4-E5F6-7890-ZEROMIX-IDENTIFIER}}
+AppId={{ZeroMix-v2-Frieren-identifier}}
 AppName=ZeroMix
 
 ; Allow overriding AppVersion via command line: /DAppVersion=X.X.X
 #ifndef AppVersion
-  #define AppVersion "2.3.7"
+  #define AppVersion "2.4.0"
 #endif
 
 AppVersion={#AppVersion}
@@ -63,6 +63,7 @@ Source: "..\publish\win-x64\*"; DestDir: "{app}"; Flags: ignoreversion recursesu
 Source: "zeromix.ico"; DestDir: "{app}"; Flags: ignoreversion
 ; Resources
 Source: "..\Resource\*"; DestDir: "{app}\Resource"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "..\Plugins\zeromix.weather\assets\*"; DestDir: "{app}\Plugins\zeromix.weather\assets"; Flags: ignoreversion recursesubdirs createallsubdirs
 ; Docs
 Source: "Privacy.txt"; DestDir: "{app}"; Flags: ignoreversion
 Source: "../LICENSE.txt"; DestDir: "{app}"; Flags: ignoreversion
@@ -80,14 +81,19 @@ Source: "../FFMPEG\ffmpeg.exe"; DestDir: "{app}\FFMPEG"; Flags: ignoreversion
 Name: "{group}\ZeroMix"; Filename: "{app}\ZeroMix.exe"; IconFilename: "{app}\zeromix.ico"; WorkingDir: "{app}"
 Name: "{commondesktop}\ZeroMix"; Filename: "{app}\ZeroMix.exe"; IconFilename: "{app}\zeromix.ico"; WorkingDir: "{app}"; Tasks: desktopicon; Flags: createonlyiffileexists
 Name: "{group}\Uninstall ZeroMix"; Filename: "{uninstallexe}"; Flags: runminimized
+Name: "{userstartup}\ZeroMix"; Filename: "{app}\ZeroMix.exe"; WorkingDir: "{app}"; Tasks: startup
+
+[Registry]
+; Context Menu Klik Kanan di Desktop
+Root: HKCR; Subkey: "Directory\Background\shell\ZeroMix"; ValueType: string; ValueData: "Open ZeroMix Dashboard"; Flags: uninsdeletekey
+Root: HKCR; Subkey: "Directory\Background\shell\ZeroMix"; ValueType: string; ValueName: "Icon"; ValueData: "{app}\ZeroMix.exe"
+Root: HKCR; Subkey: "Directory\Background\shell\ZeroMix\command"; ValueType: string; ValueData: """{app}\ZeroMix.exe"""
 
 [Tasks]
 Name: "desktopicon"; Description: "Buat &desktop shortcut"; GroupDescription: "Shortcut:"; Flags: unchecked
-Name: "startup"; Description: "Jalankan ZeroMix saat Windows &startup"; GroupDescription: "Startup:"; Flags: unchecked
+Name: "startup"; Description: "Jalankan ZeroMix saat Windows &startup (Mungkin bikin booting lama)"; GroupDescription: "Startup:"; Flags: unchecked
 
 [Run]
-; Registry startup (Lebih aman menggunakan Registry flag di [Registry] sebenarnya, tapi [Run] juga oke)
-Filename: "reg.exe"; Parameters: "add ""HKCU\Software\Microsoft\Windows\CurrentVersion\Run"" /V ""ZeroMix"" /t REG_SZ /D ""{app}\ZeroMix.exe"" /F"; Tasks: startup; Flags: runhidden
 ; Add to PATH
 Filename: "cmd.exe"; Parameters: "/c setx PATH ""%PATH%;{app}\bin"""; Flags: runhidden
 ; Npm install
@@ -144,7 +150,7 @@ var
 begin
   // --- DIAGNOSTIC CHECK ---
   // This checks if an old version is already installed.
-  UninstallKey := 'Software\Microsoft\Windows\CurrentVersion\Uninstall\' + '{A1B2C3D4-E5F6-7890-ZEROMIX-IDENTIFIER}_is1';
+  UninstallKey := 'Software\Microsoft\Windows\CurrentVersion\Uninstall\' + '{ZeroMix-v2-Frieren-identifier}_is1';
   if RegKeyExists(HKLM, UninstallKey) or RegKeyExists(HKCU, UninstallKey) then
   begin
     MsgBox('Installer mendeteksi bahwa ZeroMix sudah terinstal. Proses uninstall dari versi lama akan berjalan terlebih dahulu. Ini adalah bagian normal dari proses upgrade. Klik OK untuk melanjutkan.', mbInformation, MB_OK);

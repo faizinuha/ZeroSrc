@@ -123,6 +123,16 @@ ZeroMix is an open-source project, and we love our contributors!
 </a>
 
 ---
+## 🎬 Credits & Acknowledgments
+
+The atmospheric experiences in ZeroMix are powered by beautiful visuals from the creative community:
+
+- **Rainy City at Night** by [Hans](https://pixabay.com/id/users/hans-2/) dari [Pixabay](https://pixabay.com/)
+- **Nature & Garden Ambience** by [Nicky ❤️🌿🐞🌿❤️](https://pixabay.com/id/users/nickype-10327513/) dari [Pixabay](https://pixabay.com/)
+- **Cinematic Scenery 1** by [Andreas](https://pixabay.com/id/users/adege-4994132/?content=257240) dari [Pixabay](https://pixabay.com/)
+- **Cinematic Scenery 2** by [Andreas](https://pixabay.com/id/users/adege-4994132/?content=230317) dari [Pixabay](https://pixabay.com/)
+
+---
 
 ## 💖 Support the Project
 

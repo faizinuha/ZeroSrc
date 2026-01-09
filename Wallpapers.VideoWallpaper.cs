@@ -16,7 +16,7 @@ namespace ZeroMix
         /// <summary>
         /// Launch video wallpaper window dengan video yang sudah di-optimize
         /// </summary>
-        public void LaunchVideoWallpaper(string videoPath)
+        public void LaunchVideoWallpaper(string videoPath, double volume = 0)
         {
             try
             {
@@ -24,7 +24,7 @@ namespace ZeroMix
                 StopVideoWallpaper();
 
                 // Create and show video wallpaper window
-                _videoWallpaperWindow = new VideoWallpaperWindow(videoPath);
+                _videoWallpaperWindow = new VideoWallpaperWindow(videoPath, volume);
                 _videoWallpaperWindow.Show();
 
                 StatusLabel.Text = $"✅ Video wallpaper is now playing: {System.IO.Path.GetFileName(videoPath)}";
@@ -61,10 +61,10 @@ namespace ZeroMix
             }
         }
 
-        public static void LaunchVideoWallpaperStatic(string videoPath)
+        public static void LaunchVideoWallpaperStatic(string videoPath, double volume = 0)
         {
             StopVideoWallpaper();
-            _videoWallpaperWindow = new VideoWallpaperWindow(videoPath);
+            _videoWallpaperWindow = new VideoWallpaperWindow(videoPath, volume);
             _videoWallpaperWindow.Show();
         }
 
