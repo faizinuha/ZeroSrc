@@ -9,7 +9,7 @@ AppName=ZeroMix
 
 ; Allow overriding AppVersion via command line: /DAppVersion=X.X.X
 #ifndef AppVersion
-  #define AppVersion "2.4.0"
+  #define AppVersion "2.7.0"
 #endif
 
 AppVersion={#AppVersion}

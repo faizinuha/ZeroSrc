@@ -38,6 +38,8 @@ namespace ZeroMix
     
     public partial class MainWindow : Window
     {
+        private const string CURRENT_VERSION = "2.7.0";
+        
         // Windows API for Taskbar transparency
         [DllImport("user32.dll", SetLastError = true)]
         private static extern IntPtr FindWindow(string lpClassName, string lpWindowName);
@@ -365,6 +367,22 @@ namespace ZeroMix
             if (WallpaperButton != null) WallpaperButton.Background = System.Windows.Media.Brushes.Transparent;
             if (PluginsButton != null) PluginsButton.Background = System.Windows.Media.Brushes.Transparent;
             if (RecorderButton != null) RecorderButton.Background = System.Windows.Media.Brushes.Transparent;
+        }
+
+
+        private void Window_KeyDown(object sender, System.Windows.Input.KeyEventArgs e)
+        {
+            if (e.Key == Key.F9)
+            {
+                // Only toggle if we are on the recorder page OR allow global?
+                // User said "in ZERO RECORD STATUS page add hotkey", implies context.
+                // But F9 is global usually. Let's start it anyway or check visibility.
+                // If the user wants strictly inside the page:
+                if (RecorderContent.Visibility == Visibility.Visible)
+                {
+                    ZeroRecordBtn_Click(this, new RoutedEventArgs());
+                }
+            }
         }
 
         private void RecorderButton_Click(object sender, RoutedEventArgs e)
@@ -1007,6 +1025,69 @@ end";
             {
                 Debug.WriteLine("[ERROR] Shortcut creation failed: " + ex.Message);
             }
+        }
+
+        private async void CheckUpdateBtn_Click(object sender, RoutedEventArgs e)
+        {
+            CheckUpdateBtn.IsEnabled = false;
+            CheckUpdateBtn.Content = "Checking...";
+            
+            try
+            {
+                using (HttpClient client = new HttpClient())
+                {
+                    // GitHub API requires User-Agent
+                    client.DefaultRequestHeaders.Add("User-Agent", "ZeroMix-Updater");
+                    
+                    // Ganti URL ini dengan URL repo Kakak jika sudah ada
+                    string url = "https://api.github.com/repos/faizinuha/ZeroMix/releases/latest";
+                    var response = await client.GetStringAsync(url);
+                    
+                    using (JsonDocument doc = JsonDocument.Parse(response))
+                    {
+                        string latestVersion = doc.RootElement.GetProperty("tag_name").GetString().Replace("v", "");
+                        string downloadUrl = doc.RootElement.GetProperty("assets")[0].GetProperty("browser_download_url").GetString();
+                        
+                        if (IsNewerVersion(latestVersion, CURRENT_VERSION))
+                        {
+                            UpdateBadge.Visibility = Visibility.Visible;
+                            var result = System.Windows.MessageBox.Show(
+                                $"Versi baru tersedia: v{latestVersion}\n\nApakah Kakak ingin download sekarang?", 
+                                "ZeroMix Update", 
+                                MessageBoxButton.YesNo, 
+                                MessageBoxImage.Information);
+
+                            if (result == MessageBoxResult.Yes)
+                            {
+                                Process.Start(new ProcessStartInfo(downloadUrl) { UseShellExecute = true });
+                            }
+                        }
+                        else
+                        {
+                            System.Windows.MessageBox.Show("ZeroMix sudah versi terbaru! 😎", "No Update", MessageBoxButton.OK, MessageBoxImage.Information);
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Windows.MessageBox.Show("Gagal cek update. Pastikan internet Kakak nyala ya! 🌐", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                Debug.WriteLine("[UPDATE] Error: " + ex.Message);
+            }
+            finally
+            {
+                CheckUpdateBtn.IsEnabled = true;
+                CheckUpdateBtn.Content = "Check for Updates";
+            }
+        }
+
+        private bool IsNewerVersion(string latest, string current)
+        {
+            try {
+                Version vLatest = new Version(latest);
+                Version vCurrent = new Version(current);
+                return vLatest > vCurrent;
+            } catch { return latest != current; }
         }
     }
 }

@@ -16,6 +16,7 @@
         Closing="Window_Closing"
         Background="#080A0F"
         WindowStyle="None"
+        KeyDown="Window_KeyDown"
         AllowsTransparency="True">
 
     <Window.Resources>
@@ -385,6 +386,23 @@
                                     <TextBlock TextWrapping="Wrap" FontSize="14" LineHeight="28" Foreground="{StaticResource SubTextBrush}" Margin="0,15,0,0">
                                         Integrated with real-time biometric-inspired system monitoring, quantum wallpaper management, and ghost-level taskbar transparency.
                                     </TextBlock>
+
+                                    <!-- Version & Update Section -->
+                                    <Border Background="#12161F" CornerRadius="8" Padding="15" Margin="0,25,0,25" BorderBrush="#2D3748" BorderThickness="1">
+                                        <Grid>
+                                            <StackPanel>
+                                                <TextBlock Text="CORE VERSION" FontWeight="Black" Foreground="{StaticResource NeonBlueBrush}" FontSize="12" Margin="0,0,0,5" />
+                                                <StackPanel Orientation="Horizontal">
+                                                    <TextBlock x:Name="VersionText" Text="v2.7.0" FontSize="18" FontWeight="Bold" Foreground="White" VerticalAlignment="Center"/>
+                                                    <Border x:Name="UpdateBadge" Background="#276749" CornerRadius="4" Padding="6,2" Margin="10,0,0,0" Visibility="Collapsed">
+                                                        <TextBlock Text="UPDATE AVAILABLE" FontSize="10" FontWeight="Bold" Foreground="#68D391"/>
+                                                    </Border>
+                                                </StackPanel>
+                                            </StackPanel>
+                                            <Button x:Name="CheckUpdateBtn" Content="Check for Updates" HorizontalAlignment="Right" VerticalAlignment="Center" 
+                                                    Style="{StaticResource ActionButton}" Padding="15,8" Click="CheckUpdateBtn_Click"/>
+                                        </Grid>
+                                    </Border>
                                     <TextBlock Text="External Asset Credits" FontSize="20" FontWeight="Bold" Foreground="White" Margin="0,0,0,10"/>
                                     <TextBlock Text="Special thanks to these amazing creators on Pixabay for the beautiful atmospheric videos:" Foreground="{StaticResource SubTextBrush}" TextWrapping="Wrap" Margin="0,0,0,15"/>
                                     
