@@ -95,10 +95,10 @@ namespace ZeroMix.Recorder
                 // Tapi kursor sebenarnya harus diposisi aslinya di layar
                 _d2dContext.Transform = transform; 
                 
-                var cursorColor = isClick ? Color4.White : new Color4(1, 1, 1, 0.8f);
+                var cursorColor = isClick ? Colors.White : Colors.White;
                 using var cursorBrush = _d2dContext.CreateSolidColorBrush(cursorColor);
                 
-                // Click Ripple Effect
+                // Click Ripple     
                 if (isClick)
                 {
                     using var rippleBrush = _d2dContext.CreateSolidColorBrush(new Color4(1, 1, 1, 0.3f));

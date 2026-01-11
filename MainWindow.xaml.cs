@@ -98,9 +98,50 @@ namespace ZeroMix
 
         private string[]? _startupArgs;
 
+        public void ChangeLanguage(string cultureCode)
+        {
+            var dict = new ResourceDictionary();
+            switch (cultureCode)
+            {
+                case "id-ID":
+                    dict.Source = new Uri("Resources/Locales/id-ID.xaml", UriKind.Relative);
+                    break;
+                case "ja-JP":
+                    dict.Source = new Uri("Resources/Locales/ja-JP.xaml", UriKind.Relative);
+                    break;
+                default:
+                    dict.Source = new Uri("Resources/Locales/en-US.xaml", UriKind.Relative);
+                    break;
+            }
+
+            // Find old dictionary (the one containing 'Wiz_Welcome') and remove it
+            var oldDict = System.Windows.Application.Current.Resources.MergedDictionaries.FirstOrDefault(
+                d => d.Source != null && d.Source.OriginalString.Contains("Resources/Locales/"));
+            
+            if (oldDict != null)
+            {
+                System.Windows.Application.Current.Resources.MergedDictionaries.Remove(oldDict);
+            }
+            
+            System.Windows.Application.Current.Resources.MergedDictionaries.Add(dict);
+        }
+
         public MainWindow(string[]? args = null)
         {
             _startupArgs = args;
+            
+            // Auto-Detect Installer Language Selection
+            try 
+            {
+                string langFile = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "language.ini");
+                if (File.Exists(langFile))
+                {
+                    string code = File.ReadAllText(langFile).Trim();
+                    ChangeLanguage(code);
+                }
+            } 
+            catch { /* Ignore if fails, default to EN */ }
+
             // Register Lua Bridge
             MoonSharp.Interpreter.UserData.RegisterType<Plugins.ZeroMixLuaApi>();
             

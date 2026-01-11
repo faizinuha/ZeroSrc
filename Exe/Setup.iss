@@ -23,6 +23,11 @@ AppPublisher=ZeroMix Team
 AppPublisherURL=https://zeromix.vercel.app
 AppCopyright=Copyright (c) 2025 - All Rights Reserved
 
+[Languages]
+Name: "english"; MessagesFile: "compiler:Default.isl"
+Name: "indonesian"; MessagesFile: "compiler:Languages\Indonesian.isl"
+Name: "japanese"; MessagesFile: "compiler:Languages\Japanese.isl"
+
 ; Installation Configuration
 DefaultDirName={pf}\ZeroMix
 DefaultGroupName=ZeroMix
@@ -193,7 +198,21 @@ end;
 procedure CurStepChanged(CurStep: TSetupStep);
 var
   ErrorCode: Integer;
+  LangCode: String;
+  LangFileName: String;
 begin
+  if CurStep = ssPostInstall then
+  begin
+    // Determine language code based on installer selection
+    if ActiveLanguage = 'indonesian' then LangCode := 'id-ID'
+    else if ActiveLanguage = 'japanese' then LangCode := 'ja-JP'
+    else LangCode := 'en-US';
+
+    // Write to config file
+    LangFileName := ExpandConstant('{app}\language.ini');
+    SaveStringToFile(LangFileName, LangCode, False);
+  end;
+
   if CurStep = ssDone then
   begin
     RegisterCliTools();
