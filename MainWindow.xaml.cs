@@ -93,6 +93,8 @@ namespace ZeroMix
         private RecordingManager? _recordingManager;
         private bool _isRecordingActive = false;
         private DispatcherTimer? _recordDurationTimer;
+        private Key _currentRecordHotkey = Key.F9;
+        private bool _isPickingHotkey = false;
 
         private string[]? _startupArgs;
 
@@ -372,16 +374,65 @@ namespace ZeroMix
 
         private void Window_KeyDown(object sender, System.Windows.Input.KeyEventArgs e)
         {
-            if (e.Key == Key.F9)
+            if (_isPickingHotkey)
             {
-                // Only toggle if we are on the recorder page OR allow global?
-                // User said "in ZERO RECORD STATUS page add hotkey", implies context.
-                // But F9 is global usually. Let's start it anyway or check visibility.
-                // If the user wants strictly inside the page:
+                _currentRecordHotkey = e.Key;
+                HotkeyDisplayText.Text = e.Key.ToString();
+                _isPickingHotkey = false;
+                HotkeyBorder.Background = new SolidColorBrush(System.Windows.Media.Color.FromRgb(22, 27, 38));
+                e.Handled = true;
+                return;
+            }
+
+            if (e.Key == _currentRecordHotkey)
+            {
                 if (RecorderContent.Visibility == Visibility.Visible)
                 {
                     ZeroRecordBtn_Click(this, new RoutedEventArgs());
                 }
+            }
+        }
+
+        private void HotkeyBorder_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            _isPickingHotkey = true;
+            HotkeyDisplayText.Text = "PRESS KEY...";
+            HotkeyBorder.Background = (SolidColorBrush)FindResource("NeonBlueBrush");
+        }
+
+        private void LoadAudioDevices()
+        {
+            try
+            {
+                MicComboBox.Items.Clear();
+                SpeakerComboBox.Items.Clear();
+                
+                MicComboBox.Items.Add(new ComboBoxItem { Content = "Default System Microphone" });
+                MicComboBox.Items.Add(new ComboBoxItem { Content = "No Audio" });
+                
+                SpeakerComboBox.Items.Add(new ComboBoxItem { Content = "Default System Speaker" });
+                SpeakerComboBox.Items.Add(new ComboBoxItem { Content = "No Audio" });
+
+                // Basic enumeration via WMI if available
+                using (var searcher = new ManagementObjectSearcher("SELECT * FROM Win32_SoundDevice"))
+                {
+                    foreach (ManagementObject obj in searcher.Get())
+                    {
+                        var name = obj["Name"]?.ToString();
+                        if (!string.IsNullOrEmpty(name))
+                        {
+                            MicComboBox.Items.Add(new ComboBoxItem { Content = name });
+                            SpeakerComboBox.Items.Add(new ComboBoxItem { Content = name });
+                        }
+                    }
+                }
+
+                MicComboBox.SelectedIndex = 0;
+                SpeakerComboBox.SelectedIndex = 0;
+            }
+            catch (Exception ex)
+            { 
+                Debug.WriteLine($"Failed to load audio devices: {ex.Message}");
             }
         }
 
@@ -390,6 +441,9 @@ namespace ZeroMix
             DeactivateAllTabs();
             RecorderContent.Visibility = Visibility.Visible;
             RecorderButton.Background = (System.Windows.Media.SolidColorBrush)FindResource("NavSelectedBrush");
+            
+            // Load audio devices
+            LoadAudioDevices();
         }
 
 
@@ -535,8 +589,7 @@ namespace ZeroMix
 
                 _recordingManager.StartRecording($"ZeroRecord_{timestamp}.mp4", fps);
                 _isRecordingActive = true;
-                RecordBtnText.Text = "STOP RECORD";
-                ZeroRecordBtn.Opacity = 1.0;
+                UpdateRecordUI(true);
                 
                 // Start duration UI timer
                 RecordDurationText.Visibility = Visibility.Visible;
@@ -561,8 +614,7 @@ namespace ZeroMix
                 _isRecordingActive = false;
                 _recordDurationTimer?.Stop();
                 
-                RecordBtnText.Text = "ZeroRecord";
-                ZeroRecordBtn.Opacity = 0.7;
+                UpdateRecordUI(false);
                 RecordDurationText.Visibility = Visibility.Collapsed;
                 RecordDurationText.Text = "00:00";
                 
@@ -570,6 +622,20 @@ namespace ZeroMix
                 _notifyIcon!.BalloonTipTitle = "ZeroRecord Stopped";
                 _notifyIcon!.BalloonTipText = "Video saved to your Videos folder.";
                 _notifyIcon!.ShowBalloonTip(2000);
+            }
+        }
+
+        private void UpdateRecordUI(bool isActive)
+        {
+            if (isActive)
+            {
+                if (HomeRecordBtnText != null) HomeRecordBtnText.Text = "STOP RECORD";
+                if (HomeRecordBtn != null) HomeRecordBtn.Opacity = 1.0;
+            }
+            else
+            {
+                if (HomeRecordBtnText != null) HomeRecordBtnText.Text = "ZeroRecord";
+                if (HomeRecordBtn != null) HomeRecordBtn.Opacity = 0.7;
             }
         }
 

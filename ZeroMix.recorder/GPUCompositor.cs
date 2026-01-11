@@ -90,6 +90,26 @@ namespace ZeroMix.Recorder
                 _d2dContext.UnitMode = UnitMode.Pixels;
                 _d2dContext.DrawBitmap(inputBitmap, 1.0f, InterpolationMode.Linear);
                 
+                // 3. DRAW CUSTOM CURSOR (Fix: Cursor Hilang)
+                // Reset transform untuk kursor agar dia digambar "Sticky" terhadap layar tapi tetap kena Zoom
+                // Tapi kursor sebenarnya harus diposisi aslinya di layar
+                _d2dContext.Transform = transform; 
+                
+                var cursorColor = isClick ? Color4.White : new Color4(1, 1, 1, 0.8f);
+                using var cursorBrush = _d2dContext.CreateSolidColorBrush(cursorColor);
+                
+                // Click Ripple Effect
+                if (isClick)
+                {
+                    using var rippleBrush = _d2dContext.CreateSolidColorBrush(new Color4(1, 1, 1, 0.3f));
+                    _d2dContext.DrawEllipse(new Ellipse(new Vector2(cursorX, cursorY), 15, 15), rippleBrush, 2.0f);
+                }
+
+                // Main Cursor (Simple Pro Circle ala Screen Studio)
+                _d2dContext.FillEllipse(new Ellipse(new Vector2(cursorX, cursorY), 5, 5), cursorBrush);
+                using var shadowBrush = _d2dContext.CreateSolidColorBrush(new Color4(0, 0, 0, 0.5f));
+                _d2dContext.DrawEllipse(new Ellipse(new Vector2(cursorX, cursorY), 5, 5), shadowBrush, 1.0f);
+
                 _d2dContext.EndDraw();
                 _d2dContext.Flush(out _, out _); 
                 _d2dContext.Target = null;
