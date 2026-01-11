@@ -1,0 +1,16 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:system="clr-namespace:System;assembly=mscorlib">
+    
+    <!-- Wizard / Welcome -->
+    <system:String x:Key="Wiz_Welcome">Welcome to ZeroMix</system:String>
+    <system:String x:Key="Wiz_Subtitle">The Next-Gen Cinematic Screen Studio.</system:String>
+    <system:String x:Key="Wiz_SelectLang">Choose Your Language</system:String>
+    <system:String x:Key="Wiz_Next">Next</system:String>
+    
+    <!-- Dashboard -->
+    <system:String x:Key="Dash_Home">Home</system:String>
+    <system:String x:Key="Dash_Record">ZeroRecord</system:String>
+    <system:String x:Key="Dash_Settings">Settings</system:String>
+    
+</ResourceDictionary>

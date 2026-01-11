@@ -1,0 +1,16 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:system="clr-namespace:System;assembly=mscorlib">
+    
+    <!-- Wizard / Welcome -->
+    <system:String x:Key="Wiz_Welcome">Selamat Datang di ZeroMix</system:String>
+    <system:String x:Key="Wiz_Subtitle">Studio Perekaman Cinematic Generasi Terbaru.</system:String>
+    <system:String x:Key="Wiz_SelectLang">Pilih Bahasa Anda</system:String>
+    <system:String x:Key="Wiz_Next">Lanjut</system:String>
+    
+    <!-- Dashboard -->
+    <system:String x:Key="Dash_Home">Beranda</system:String>
+    <system:String x:Key="Dash_Record">Rekam Layar</system:String>
+    <system:String x:Key="Dash_Settings">Pengaturan</system:String>
+    
+</ResourceDictionary>

@@ -1,0 +1,16 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:system="clr-namespace:System;assembly=mscorlib">
+    
+    <!-- Wizard / Welcome -->
+    <system:String x:Key="Wiz_Welcome">ZeroMixへようこそ</system:String>
+    <system:String x:Key="Wiz_Subtitle">次世代のシネマティックスクリーンスタジオ。</system:String>
+    <system:String x:Key="Wiz_SelectLang">言語を選択してください</system:String>
+    <system:String x:Key="Wiz_Next">次へ</system:String>
+    
+    <!-- Dashboard -->
+    <system:String x:Key="Dash_Home">ホーム</system:String>
+    <system:String x:Key="Dash_Record">画面録画</system:String>
+    <system:String x:Key="Dash_Settings">設定</system:String>
+    
+</ResourceDictionary>
