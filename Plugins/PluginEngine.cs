@@ -138,7 +138,7 @@ namespace ZeroMix.Plugins
             script.Globals["SaveConfig"] = (Action<string, string>)api.SaveConfig;
             script.Globals["LoadConfig"] = (Func<string, string>)api.LoadConfig;
             script.Globals["JsonEncode"] = (Func<object, string>)api.JsonEncode;
-            script.Globals["JsonDecode"] = (Func<string, object>)api.JsonDecode;
+            script.Globals["JsonDecode"] = (Func<string, object?>)api.JsonDecode;
             script.Globals["Log"] = (Action<string>)api.Log;
             script.Globals["ZeroMix"] = api;
             
