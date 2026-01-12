@@ -364,14 +364,7 @@
 
                     <!-- Wallpapers View -->
                     <Grid x:Name="WallpapersContent" Visibility="Collapsed">
-                        <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
-                            <Border Width="100" Height="100" CornerRadius="20" Background="#12161F" BorderThickness="1" BorderBrush="{StaticResource NeonBlueBrush}" Margin="0,0,0,30">
-                                <TextBlock Text="" FontFamily="Segoe MDL2 Assets" FontSize="42" Foreground="{StaticResource NeonBlueBrush}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                            </Border>
-                            <TextBlock Text="Wallpaper Engine" FontSize="32" FontWeight="Black" Foreground="White" HorizontalAlignment="Center" Margin="0,0,0,10"/>
-                            <TextBlock Text="Launch Wallpaper Engine Manager Free wallpaper tools" Foreground="{StaticResource SubTextBrush}" FontSize="15" HorizontalAlignment="Center" Margin="0,0,0,35"/>
-                            <Button x:Name="LaunchWallpaperBtn" Content="Launch Wallpaper Engine" Click="WallpaperButton_Click" Style="{StaticResource PrimaryButtonStyle}" Height="Auto" FontSize="13" FontWeight="Bold" FocusVisualStyle="{x:Null}"/>
-                        </StackPanel>
+                        <local:WallpapersView />
                     </Grid>
 
                     <!-- About View -->

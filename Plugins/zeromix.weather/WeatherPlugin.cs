@@ -103,7 +103,7 @@ namespace ZeroMix.Plugins.Weather
             {
                 Debug.WriteLine($"[Weather] SUCCESS: Found {fileName} at {assetPath}");
                 System.Windows.Application.Current.Dispatcher.Invoke(() => {
-                    Wallpapers.LaunchVideoWallpaperStatic(assetPath, volume);
+                    WallpaperManager.LaunchVideoWallpaper(assetPath, volume);
                 });
             }
             else
@@ -113,7 +113,7 @@ namespace ZeroMix.Plugins.Weather
                 if (File.Exists(fallback))
                 {
                     System.Windows.Application.Current.Dispatcher.Invoke(() => {
-                        Wallpapers.LaunchVideoWallpaperStatic(fallback, 0);
+                        WallpaperManager.LaunchVideoWallpaper(fallback, 0);
                     });
                 }
             }

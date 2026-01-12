@@ -90,16 +90,14 @@ namespace ZeroMix.Plugins.Weather
 
         private void RestoreDefaultWallpaper()
         {
-            Wallpapers.StopVideoWallpaper();
+            if (string.IsNullOrEmpty(_initialWallpaperPath)) return;
             
             // Explicitly set the original wallpaper to ensure clean return
             if (!string.IsNullOrEmpty(_initialWallpaperPath) && File.Exists(_initialWallpaperPath))
             {
-                try { NativeMethods.SetWallpaper(_initialWallpaperPath); } catch { }
+                WallpaperManager.StopVideoWallpaper();
+                try { WallpaperManager.RefreshDesktop(); } catch { }
             }
-            
-            // Refresh desktop one last time
-            Wallpapers.RefreshDesktop();
         }
 
         private void BrowseWeatherVideo_Click(object sender, RoutedEventArgs e)

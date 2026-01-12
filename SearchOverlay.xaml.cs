@@ -37,10 +37,20 @@ namespace ZeroMix
         public SuggestionType Type { get; }
         public string Icon { get; }
         
+        // Lazy loading support
+        private bool _isIconLoaded = false;
         private System.Windows.Media.ImageSource? _iconSource;
-        public System.Windows.Media.ImageSource? IconSource 
-        { 
-            get => _iconSource;
+        public System.Windows.Media.ImageSource? IconSource
+        {
+            get 
+            {
+                if (!_isIconLoaded && _iconSource == null && !string.IsNullOrEmpty(FilePath))
+                {
+                    _isIconLoaded = true; // Prevent multiple triggers
+                    LoadIconAsync();
+                }
+                return _iconSource;
+            }
             set
             {
                 if (_iconSource != value)
@@ -50,7 +60,7 @@ namespace ZeroMix
                 }
             }
         }
-        
+
         public bool IsTerminal => Type == SuggestionType.Terminal;
 
         public event PropertyChangedEventHandler? PropertyChanged;
@@ -65,6 +75,7 @@ namespace ZeroMix
             FilePath = filePath ?? "";
             Type = type;
             _iconSource = iconSource;
+            if (iconSource != null) _isIconLoaded = true; // If pre-loaded, mark as loaded
             Subtitle = subtitle;
 
             Icon = Type switch
@@ -96,34 +107,99 @@ namespace ZeroMix
             }
         }
 
+        private async void LoadIconAsync()
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(FilePath)) return;
+
+                await System.Windows.Application.Current.Dispatcher.InvokeAsync(async () => 
+                {
+                    // Basic caching check (could be enhanced globally)
+                    System.Windows.Media.ImageSource? icon = null;
+                    
+                    await Task.Run(() => 
+                    {
+                        try 
+                        {
+                            // Need to access SearchOverlay's ExtractIconFromFile static method or move it to helper
+                            // For now, we assume we can call a static helper or just extract here if possible, 
+                            // but ExtractIconFromFile is currently private in SearchOverlay.
+                            // To fix this cleanly, we'll use a delegate or event in a real architecture, 
+                            // but here let's assume SearchOverlay exposes a helper or we move logic.
+                            // For this Refactor, I will modify SearchOverlay to expose a public static helper.
+                            
+                            icon = ZeroMix.SearchOverlay.GetIconForFile(FilePath);
+                            icon?.Freeze();
+                        }
+                        catch {}
+                    });
+
+                    if (icon != null)
+                    {
+                        IconSource = icon;
+                    }
+                });
+            }
+            catch {}
+        }
+        
+        private async void LoadIconAsync()
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(FilePath)) return;
+
+                await System.Windows.Application.Current.Dispatcher.InvokeAsync(async () => 
+                {
+                    System.Windows.Media.ImageSource? icon = null;
+                    await Task.Run(() => 
+                    {
+                        try 
+                        {
+                            icon = ZeroMix.SearchOverlay.GetIconForFile(FilePath);
+                            icon?.Freeze();
+                        }
+                        catch {}
+                    });
+
+                    if (icon != null)
+                    {
+                        IconSource = icon;
+                    }
+                });
+            }
+            catch {}
+        }
+
         private static string GetAppCategory(string appName)
         {
             string lower = appName.ToLower();
-            
+
             // Browsers
-            if (lower.Contains("chrome") || lower.Contains("firefox") || lower.Contains("edge") || 
+            if (lower.Contains("chrome") || lower.Contains("firefox") || lower.Contains("edge") ||
                 lower.Contains("brave") || lower.Contains("opera"))
                 return "Browser";
-            
+
             // Media Players
-            if (lower.Contains("youtube") || lower.Contains("spotify") || lower.Contains("vlc") || 
+            if (lower.Contains("youtube") || lower.Contains("spotify") || lower.Contains("vlc") ||
                 lower.Contains("media player"))
                 return "Media Player";
-            
+
             // Terminal/Command Line
-            if (lower.Contains("terminal") || lower.Contains("cmd") || lower.Contains("powershell") || 
+            if (lower.Contains("terminal") || lower.Contains("cmd") || lower.Contains("powershell") ||
                 lower.Contains("command"))
                 return "Terminal";
-            
+
             // Office Apps
-            if (lower.Contains("word") || lower.Contains("excel") || lower.Contains("powerpoint") || 
+            if (lower.Contains("word") || lower.Contains("excel") || lower.Contains("powerpoint") ||
                 lower.Contains("outlook") || lower.Contains("office"))
                 return "Office Application";
-            
+
             // Dev Tools
             if (lower.Contains("code") || lower.Contains("studio") || lower.Contains("git"))
                 return "Development Tool";
-            
+
             return "Application";
         }
     }
@@ -210,7 +286,7 @@ namespace ZeroMix
         private bool _isSelectingSuggestion = false;
         private bool _isLoadingSuggestions = false;
         private CancellationTokenSource? _searchCts;
-        
+
         // Icon Cache for performance
         private static readonly Dictionary<string, System.Windows.Media.ImageSource> _iconCache = new();
 
@@ -274,13 +350,13 @@ namespace ZeroMix
         internal void EnableBlur()
         {
             var windowHelper = new WindowInteropHelper(this);
-            
+
             // ACCENT_ENABLE_ACRYLICBLURBEHIND = 4 (Modern Windows 10/11)
             // ACCENT_ENABLE_BLURBEHIND = 3 (Legacy Windows 10)
-            var accent = new AccentPolicy 
-            { 
-                AccentState = AccentState.ACCENT_ENABLE_ACRYLICBLURBEHIND, 
-                AccentFlags = 2, 
+            var accent = new AccentPolicy
+            {
+                AccentState = AccentState.ACCENT_ENABLE_ACRYLICBLURBEHIND,
+                AccentFlags = 2,
                 GradientColor = 0x01FFFFFF // Very slight tint
             };
 
@@ -288,11 +364,11 @@ namespace ZeroMix
             var accentPtr = Marshal.AllocHGlobal(accentStructSize);
             Marshal.StructureToPtr(accent, accentPtr, false);
 
-            var data = new WindowCompositionAttributeData 
-            { 
-                Attribute = WindowCompositionAttribute.WCA_ACCENT_POLICY, 
-                SizeOfData = accentStructSize, 
-                Data = accentPtr 
+            var data = new WindowCompositionAttributeData
+            {
+                Attribute = WindowCompositionAttribute.WCA_ACCENT_POLICY,
+                SizeOfData = accentStructSize,
+                Data = accentPtr
             };
 
             SetWindowCompositionAttribute(windowHelper.Handle, ref data);
@@ -343,7 +419,7 @@ namespace ZeroMix
                 _ => System.Windows.Media.Brushes.Black
             };
             _notificationText.Visibility = Visibility.Visible;
-            
+
             var timer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(3) };
             timer.Tick += (s, e) => { _notificationText.Visibility = Visibility.Collapsed; timer.Stop(); };
             timer.Start();
@@ -480,28 +556,28 @@ namespace ZeroMix
         private System.Windows.Media.ImageSource? GetTerminalIcon()
         {
             // Try to get Windows Terminal icon
-            string terminalPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), 
+            string terminalPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
                 "Microsoft\\WindowsApps\\wt.exe");
-            
+
             if (File.Exists(terminalPath))
             {
                 return ExtractIconFromFile(terminalPath);
             }
-            
+
             // Fallback to cmd.exe
             string cmdPath = Path.Combine(Environment.SystemDirectory, "cmd.exe");
             if (File.Exists(cmdPath))
             {
                 return ExtractIconFromFile(cmdPath);
             }
-            
+
             return null;
         }
 
         private bool IsFolderPath(string query)
         {
             // Check if query looks like a path
-            if (query.Contains(":\\") || query.Contains(":/") || 
+            if (query.Contains(":\\") || query.Contains(":/") ||
                 query.StartsWith("documents", StringComparison.OrdinalIgnoreCase) ||
                 query.StartsWith("downloads", StringComparison.OrdinalIgnoreCase) ||
                 query.StartsWith("pictures", StringComparison.OrdinalIgnoreCase) ||
@@ -518,11 +594,11 @@ namespace ZeroMix
         private List<SuggestionItem> GetFolderSuggestions(string query)
         {
             var suggestions = new List<SuggestionItem>();
-            
+
             try
             {
                 string folderPath = "";
-                
+
                 // Map common folder names to actual paths
                 string queryLower = query.ToLower().Trim();
                 if (queryLower.StartsWith("documents"))
@@ -546,7 +622,7 @@ namespace ZeroMix
                     folderPath = $"{queryLower[0]}:\\";
                 else if (query.Contains(":\\") || query.Contains(":/"))
                     folderPath = query;
-                
+
                 if (!string.IsNullOrEmpty(folderPath) && Directory.Exists(folderPath))
                 {
                     try
@@ -556,13 +632,13 @@ namespace ZeroMix
                             .OrderByDescending(x => Directory.Exists(x))  // Folders first
                             .Take(50)
                             .ToList();
-                        
+
                         foreach (var item in items)
                         {
                             bool isDirectory = Directory.Exists(item);
                             string name = Path.GetFileName(item);
                             ImageSource? thumbnail = null;
-                            
+
                             // Try to create image thumbnail for image files
                             if (!isDirectory && IsImageFile(Path.GetExtension(item)))
                             {
@@ -580,13 +656,13 @@ namespace ZeroMix
                                 }
                                 catch { }
                             }
-                            
+
                             var icon = thumbnail ?? ExtractIconFromFile(item);
-                            var type = isDirectory ? SuggestionType.System : 
+                            var type = isDirectory ? SuggestionType.System :
                                        IsImageFile(Path.GetExtension(item)) ? SuggestionType.Image :
                                        IsVideoFile(Path.GetExtension(item)) ? SuggestionType.Video :
                                        SuggestionType.File;
-                            
+
                             suggestions.Add(new SuggestionItem(name, item, type, icon, isDirectory ? "📁 Folder" : "File"));
                         }
                     }
@@ -594,7 +670,7 @@ namespace ZeroMix
                 }
             }
             catch { }
-            
+
             return suggestions;
         }
 
@@ -667,7 +743,7 @@ namespace ZeroMix
                     return;
                 }
             }
-            
+
             // Show preview untuk folder
             if ((selectedItem.Type == SuggestionType.System) && !string.IsNullOrEmpty(selectedItem.FilePath) && Directory.Exists(selectedItem.FilePath))
             {
@@ -745,6 +821,36 @@ namespace ZeroMix
         }
 
 
+        // 5. Public Static Helper for Lazy Loading
+        public static System.Windows.Media.ImageSource? GetIconForFile(string path)
+        {
+            if (!File.Exists(path) && !Directory.Exists(path)) return null;
+            
+            // Check cache
+            if (_iconCache.TryGetValue(path, out var cachedIcon)) return cachedIcon;
+
+            try 
+            {
+                var icon = System.Drawing.Icon.ExtractAssociatedIcon(path);
+                if (icon != null)
+                {
+                    var imageSource = Imaging.CreateBitmapSourceFromHIcon(
+                        icon.Handle,
+                        Int32Rect.Empty,
+                        BitmapSizeOptions.FromEmptyOptions());
+                        
+                    imageSource.Freeze(); // Crucial for cross-thread access
+                    
+                    // Simple Cache policy
+                    if (_iconCache.Count < 500) _iconCache[path] = imageSource;
+                    
+                    return imageSource;
+                }
+            }
+            catch {}
+            return null;
+        }
+
         private async Task LoadAllSuggestionsAsync()
         {
             if (_isLoadingSuggestions) return;
@@ -758,31 +864,28 @@ namespace ZeroMix
                 string commonStartMenuPath = Environment.GetFolderPath(Environment.SpecialFolder.CommonStartMenu);
 
                 var paths = new[] { desktopPath, startMenuPath, commonStartMenuPath };
-                
+
                 await Task.Run(() =>
                 {
-                    foreach (var path in paths)
+                    // Use Parallel loop for faster disk scanning
+                    Parallel.ForEach(paths, path => 
                     {
                         if (Directory.Exists(path))
                         {
                             try
                             {
-                                foreach (var file in Directory.GetFiles(path, "*.*", SearchOption.AllDirectories))
+                                var files = Directory.GetFiles(path, "*.*", SearchOption.AllDirectories);
+                                foreach (var file in files)
                                 {
-                                    if (file.EndsWith(".lnk", StringComparison.OrdinalIgnoreCase) || 
+                                    if (file.EndsWith(".lnk", StringComparison.OrdinalIgnoreCase) ||
                                         file.EndsWith(".exe", StringComparison.OrdinalIgnoreCase))
                                     {
                                         string name = Path.GetFileNameWithoutExtension(file);
+
+                                        // OPTIMIZATION: Do NOT load icon here. Pass null.
+                                        // The Item itself will load it when displayed (Lazy).
+                                        var item = new SuggestionItem(name, file, SuggestionType.App, null);
                                         
-                                        // Extract icon synchronously but with proper error handling
-                                        System.Windows.Media.ImageSource? icon = null;
-                                        try
-                                        {
-                                            icon = ExtractIconFromFile(file);
-                                        }
-                                        catch { }
-                                        
-                                        var item = new SuggestionItem(name, file, SuggestionType.App, icon);
                                         lock (suggestions)
                                         {
                                             suggestions.Add(item);
@@ -790,16 +893,38 @@ namespace ZeroMix
                                     }
                                 }
                             }
-                            catch (UnauthorizedAccessException) { }
                             catch (Exception ex)
                             {
                                 System.Diagnostics.Debug.WriteLine($"Error scanning {path}: {ex.Message}");
                             }
                         }
-                    }
+                    });
                 });
-
-                Dispatcher.Invoke(() =>
+                
+                // Add unique items only
+                var uniqueItems = suggestions.GroupBy(x => x.DisplayText).Select(g => g.First()).ToList();
+                
+                System.Windows.Application.Current.Dispatcher.Invoke(() => 
+                {
+                    _allSuggestions.Clear();
+                    _allSuggestions.AddRange(uniqueItems);
+                });
+            }
+            catch(Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine("Load Error: " + ex.Message);
+            }
+            finally
+            {
+                _isLoadingSuggestions = false;
+            }
+        }
+        
+        // Helper wrapper for compatibility
+        private System.Windows.Media.ImageSource? ExtractIconFromFile(string path)
+        {
+           return GetIconForFile(path);
+        }
                 {
                     _allSuggestions.Clear();
                     _allSuggestions.AddRange(suggestions);
@@ -824,7 +949,7 @@ namespace ZeroMix
             try
             {
                 string targetPath = filePath;
-                
+
                 // Handle .lnk shortcut files
                 if (filePath.EndsWith(".lnk", StringComparison.OrdinalIgnoreCase))
                 {
@@ -850,7 +975,7 @@ namespace ZeroMix
             {
                 System.Diagnostics.Debug.WriteLine($"Icon extraction error for {filePath}: {ex.Message}");
             }
-            
+
             return null;
         }
 
@@ -931,14 +1056,14 @@ namespace ZeroMix
             try
             {
                 using var bitmap = icon.ToBitmap();
-                
+
                 // Convert to proper DPI-aware bitmap
                 var hBitmap = bitmap.GetHbitmap();
                 try
                 {
                     var imageSource = Imaging.CreateBitmapSourceFromHBitmap(
                         hBitmap, IntPtr.Zero, Int32Rect.Empty, BitmapSizeOptions.FromEmptyOptions());
-                    
+
                     return imageSource;
                 }
                 finally
@@ -971,11 +1096,11 @@ namespace ZeroMix
                 if (SuggestionList.HasItems) { SuggestionList.SelectedIndex = 0; SuggestionList.Focus(); }
             }
         }
-        
+
         private void Window_MouseLeftButtonDown(object sender, MouseButtonEventArgs e) { if (e.ChangedButton == MouseButton.Left) DragMove(); }
-        
-        private void CustomShortcutButton_Click(object sender, RoutedEventArgs e) 
-        { 
+
+        private void CustomShortcutButton_Click(object sender, RoutedEventArgs e)
+        {
             try
             {
                 var shortcutWindow = new CustomShortcutWindow();
@@ -988,7 +1113,7 @@ namespace ZeroMix
                 System.Diagnostics.Debug.WriteLine($"Error opening shortcut window: {ex.Message}");
             }
         }
-        
+
         // Drag & Drop Event Handlers
         private void SearchBox_Drop(object sender, System.Windows.DragEventArgs e)
         {
@@ -1001,7 +1126,7 @@ namespace ZeroMix
                 }
             }
         }
-        
+
         private void SearchBox_DragEnter(object sender, System.Windows.DragEventArgs e)
         {
             if (e.Data.GetDataPresent(System.Windows.DataFormats.FileDrop))
@@ -1010,12 +1135,12 @@ namespace ZeroMix
                 _dragDropArea.Visibility = Visibility.Visible;
             }
         }
-        
+
         private void SearchBox_DragLeave(object sender, System.Windows.DragEventArgs e)
         {
             _dragDropArea.Visibility = Visibility.Collapsed;
         }
-        
+
         private void DragDropArea_Drop(object sender, System.Windows.DragEventArgs e)
         {
             if (e.Data.GetDataPresent(System.Windows.DataFormats.FileDrop))
@@ -1028,7 +1153,7 @@ namespace ZeroMix
             }
             _dragDropArea.Visibility = Visibility.Collapsed;
         }
-        
+
         private void DragDropArea_DragEnter(object sender, System.Windows.DragEventArgs e)
         {
             if (e.Data.GetDataPresent(System.Windows.DataFormats.FileDrop))
@@ -1036,7 +1161,7 @@ namespace ZeroMix
                 e.Effects = System.Windows.DragDropEffects.Copy;
             }
         }
-        
+
         private void DragDropArea_DragLeave(object sender, System.Windows.DragEventArgs e)
         {
             // Keep visible if still dragging
@@ -1054,7 +1179,7 @@ namespace ZeroMix
                 }
             }
         }
-        
+
         private void PreviewPanel_DragEnter(object sender, System.Windows.DragEventArgs e)
         {
             if (e.Data.GetDataPresent(System.Windows.DataFormats.FileDrop))
@@ -1062,7 +1187,7 @@ namespace ZeroMix
                 e.Effects = System.Windows.DragDropEffects.Copy;
             }
         }
-        
+
         private void PreviewPanel_DragLeave(object sender, System.Windows.DragEventArgs e)
         {
             // Keep preview visible
@@ -1230,7 +1355,7 @@ namespace ZeroMix
                         .OrderByDescending(x => Directory.Exists(x))  // Folders first
                         .Take(50)
                         .ToList();
-                    
+
                     foreach (var item in items)
                     {
                         bool isDirectory = Directory.Exists(item);
@@ -1272,11 +1397,11 @@ namespace ZeroMix
                 catch { }
 
                 folderContentsList!.ItemsSource = folderItems;
-                
+
                 // Add click handler for navigation
                 folderContentsList.MouseDoubleClick -= FolderContentsList_DoubleClick;
                 folderContentsList.MouseDoubleClick += FolderContentsList_DoubleClick;
-                
+
                 folderContentsList.Visibility = Visibility.Visible;
                 previewTitle!.Text = $"📁 {Path.GetFileName(folderPath ?? "Root")}";
 
@@ -1299,7 +1424,7 @@ namespace ZeroMix
         // Drag & Drop support for folder items
         private System.Windows.Point _dragStartPoint;
         private bool _isDragging = false;
-        
+
         private void FolderContentsList_PreviewMouseDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
         {
             _dragStartPoint = e.GetPosition(null);
@@ -1312,7 +1437,7 @@ namespace ZeroMix
             {
                 System.Windows.Point currentPos = e.GetPosition(null);
                 System.Windows.Vector dragVector = _dragStartPoint - currentPos;
-                
+
                 if (dragVector.Length > System.Windows.SystemParameters.MinimumHorizontalDragDistance)
                 {
                     _isDragging = true;
@@ -1360,9 +1485,9 @@ namespace ZeroMix
             e.Handled = true;
         }
 
-    internal void BeginFadeOutAndCloseByMain()
-    {
-      throw new NotImplementedException();
+        internal void BeginFadeOutAndCloseByMain()
+        {
+            throw new NotImplementedException();
+        }
     }
-  }
 }

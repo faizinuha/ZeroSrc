@@ -27,6 +27,9 @@ namespace ZeroMix
         {
             base.OnStartup(e);
             
+            // Load language resource dictionary
+            LoadLanguageResources();
+            
             // Start memory optimization timer (every 1 minute)
             _memoryTimer = new DispatcherTimer();
             _memoryTimer.Interval = TimeSpan.FromMinutes(1);
@@ -68,6 +71,55 @@ namespace ZeroMix
             else
             {
                 StartMainApp(e.Args);
+            }
+        }
+
+        private void LoadLanguageResources()
+        {
+            string languageCode = "en-US"; // Default
+
+            // Baca language.ini jika ada
+            string languageFile = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "language.ini");
+            if (File.Exists(languageFile))
+            {
+                try
+                {
+                    languageCode = File.ReadAllText(languageFile).Trim();
+                    
+                    // Validasi language code
+                    if (!new[] { "en-US", "id-ID", "ja-JP" }.Contains(languageCode))
+                    {
+                        languageCode = "en-US";
+                    }
+                }
+                catch
+                {
+                    languageCode = "en-US";
+                }
+            }
+
+            // Load resource dictionary berdasarkan language code
+            string resourcePath = $"Resources/Locales/{languageCode}.xaml";
+            try
+            {
+                var langDictionary = new ResourceDictionary 
+                { 
+                    Source = new Uri(resourcePath, UriKind.Relative) 
+                };
+                
+                // Ganti resource dictionary
+                this.Resources.MergedDictionaries.Clear();
+                this.Resources.MergedDictionaries.Add(langDictionary);
+            }
+            catch
+            {
+                // Fallback ke en-US jika gagal
+                var defaultDictionary = new ResourceDictionary 
+                { 
+                    Source = new Uri("Resources/Locales/en-US.xaml", UriKind.Relative) 
+                };
+                this.Resources.MergedDictionaries.Clear();
+                this.Resources.MergedDictionaries.Add(defaultDictionary);
             }
         }
 
