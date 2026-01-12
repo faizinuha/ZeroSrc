@@ -8,9 +8,118 @@
     <system:String x:Key="Wiz_SelectLang">Choose Your Language</system:String>
     <system:String x:Key="Wiz_Next">Next</system:String>
     
-    <!-- Dashboard -->
-    <system:String x:Key="Dash_Home">Home</system:String>
-    <system:String x:Key="Dash_Record">ZeroRecord</system:String>
-    <system:String x:Key="Dash_Settings">Settings</system:String>
+    <!-- Dashboard Navigation -->
+    <system:String x:Key="Nav_Home">Home</system:String>
+    <system:String x:Key="Nav_Wallpapers">Wallpapers</system:String>
+    <system:String x:Key="Nav_Plugins">Plugins</system:String>
+    <system:String x:Key="Nav_Record">ZeroRecord</system:String>
+    <system:String x:Key="Nav_About">About</system:String>
+    <system:String x:Key="Nav_Privacy">Privacy</system:String>
+    <system:String x:Key="App_Founder">Zeromix Founder</system:String>
+    <system:String x:Key="Status_SystemsInitialized">Systems Initialized</system:String>
+    
+    <!-- Home View -->
+    <system:String x:Key="Home_WelcomeBack">Welcome back</system:String>
+    <system:String x:Key="Home_SubtitleGreeting">Ready to optimize your experience today?</system:String>
+    <system:String x:Key="Home_QuickOps">QUICK OPERATIONS</system:String>
+    <system:String x:Key="Home_SystemHealth">System Health</system:String>
+    <system:String x:Key="Home_NeuralClock">Neural Clock</system:String>
+    <system:String x:Key="Home_GhostTaskbar">Ghost Taskbar</system:String>
+    <system:String x:Key="Home_ZeroRecord">ZeroRecord</system:String>
+    
+    <!-- Monitoring Panel -->
+    <system:String x:Key="Monitor_CoreStats">Core Statistics</system:String>
+    <system:String x:Key="Monitor_CPUEngine">CPU Engine</system:String>
+    <system:String x:Key="Monitor_MemoryArray">Memory Array</system:String>
+    <system:String x:Key="Monitor_DataStream">Data Stream</system:String>
+    <system:String x:Key="Monitor_SystemRegistry">SYSTEM REGISTRY</system:String>
+    <system:String x:Key="Monitor_OSVersion">OS: Loading...</system:String>
+    <system:String x:Key="Monitor_Processor">CPU: Architecture</system:String>
+    <system:String x:Key="Monitor_TotalRam">RAM: Calculating</system:String>
+    <system:String x:Key="Monitor_Network">Net: Scanning</system:String>
+    <system:String x:Key="Monitor_Maintenance">MAINTENANCE</system:String>
+    <system:String x:Key="Monitor_PurgeCache">Purge Cache</system:String>
+    <system:String x:Key="Monitor_Sync">Sync</system:String>
+    
+    <!-- Wallpapers View -->
+    <system:String x:Key="Wallpaper_Engine">Wallpaper Engine</system:String>
+    <system:String x:Key="Wallpaper_Description">Launch Wallpaper Engine Manager Free wallpaper tools</system:String>
+    <system:String x:Key="Wallpaper_LaunchBtn">Launch Wallpaper Engine</system:String>
+    
+    <!-- About View -->
+    <system:String x:Key="About_Title">Neural Core: ZeroMix</system:String>
+    <system:String x:Key="About_Description">ZeroMix is the ultimate productivity nexus for Windows. Engineered for precision and aesthetic dominance.</system:String>
+    <system:String x:Key="About_Features">Integrated with real-time biometric-inspired system monitoring, quantum wallpaper management, and ghost-level taskbar transparency.</system:String>
+    <system:String x:Key="About_CoreVersion">CORE VERSION</system:String>
+    <system:String x:Key="About_CheckUpdate">Check for Updates</system:String>
+    <system:String x:Key="About_UpdateAvailable">UPDATE AVAILABLE</system:String>
+    <system:String x:Key="About_Credits">External Asset Credits</system:String>
+    <system:String x:Key="About_CreditText">Special thanks to these amazing creators on Pixabay for the beautiful atmospheric videos:</system:String>
+    <system:String x:Key="About_NoteWeather">Note: Weather effects vary dynamically based on current city time and real-world conditions.</system:String>
+    
+    <!-- Privacy View -->
+    <system:String x:Key="Privacy_Title">Security &amp; Encryption</system:String>
+    <system:String x:Key="Privacy_KernelProtocol">KERNEL PROTOCOL</system:String>
+    <system:String x:Key="Privacy_Description">ZeroMix operates entirely on your local machine. No external transmissions. No telemetry. Your data is your own.</system:String>
+    <system:String x:Key="Privacy_CloudSync">Zero External Cloud Sync</system:String>
+    <system:String x:Key="Privacy_LocalAnalysis">Local-Only Metrical Analysis</system:String>
+    <system:String x:Key="Privacy_Encryption">Encrypted Local Configurations</system:String>
+    <system:String x:Key="Privacy_SecureProtocol">PROTOCOL SECURE</system:String>
+    
+    <!-- Plugins View -->
+    <system:String x:Key="Plugins_Title">Extensions</system:String>
+    <system:String x:Key="Plugins_Subtitle">Enhance your experience with custom modules</system:String>
+    <system:String x:Key="Plugins_CreateBtn">Create Plugin</system:String>
+    <system:String x:Key="Plugins_Section">PLUGINS &amp; EXTENSIONS</system:String>
+    
+    <!-- Recorder View -->
+    <system:String x:Key="Recorder_Title">ZERORECORD</system:String>
+    <system:String x:Key="Recorder_Subtitle">GPU-Accelerated Cinematic Screen Studio</system:String>
+    <system:String x:Key="Recorder_VideoEngine">VIDEO ENGINE</system:String>
+    <system:String x:Key="Recorder_Framerate">FRAMERATE (FPS)</system:String>
+    <system:String x:Key="Recorder_30FPS">30 FPS - Standard</system:String>
+    <system:String x:Key="Recorder_45FPS">45 FPS - Smooth</system:String>
+    <system:String x:Key="Recorder_60FPS">60 FPS - Pro Motion</system:String>
+    <system:String x:Key="Recorder_Hotkey">TOGGLE HOTKEY</system:String>
+    <system:String x:Key="Recorder_ChangeShortcut">Click to change shortcut</system:String>
+    <system:String x:Key="Recorder_AudioSource">AUDIO SOURCE</system:String>
+    <system:String x:Key="Recorder_Microphone">MICROPHONE</system:String>
+    <system:String x:Key="Recorder_SystemDefault">System Default</system:String>
+    <system:String x:Key="Recorder_Speakers">SYSTEM SPEAKERS</system:String>
+    <system:String x:Key="Recorder_Footer">DXGI Mirroring Engine • 1080p Cinema</system:String>
+    
+    <!-- SearchOverlay -->
+    <system:String x:Key="Search_DragDropText">Drop image here to search</system:String>
+    <system:String x:Key="Search_Settings">Settings</system:String>
+    <system:String x:Key="Search_Play">▶ Play</system:String>
+    <system:String x:Key="Search_Pause">⏸ Pause</system:String>
+    <system:String x:Key="Search_Close">✕</system:String>
+    
+    <!-- SearchOverlay Suggestion Types -->
+    <system:String x:Key="Suggestion_Desktop">Desktop Application</system:String>
+    <system:String x:Key="Suggestion_Calculator">Calculator</system:String>
+    <system:String x:Key="Suggestion_WebSearch">Web Search</system:String>
+    <system:String x:Key="Suggestion_ImageSearch">Image Search</system:String>
+    <system:String x:Key="Suggestion_System">System</system:String>
+    <system:String x:Key="Suggestion_Terminal">Run command in Terminal</system:String>
+    <system:String x:Key="Suggestion_File">File</system:String>
+    <system:String x:Key="Suggestion_Video">Video</system:String>
+    <system:String x:Key="Suggestion_SearchGoogle">Search on Google</system:String>
+    
+    <!-- SearchOverlay App Categories -->
+    <system:String x:Key="Category_Browser">Browser</system:String>
+    <system:String x:Key="Category_MediaPlayer">Media Player</system:String>
+    <system:String x:Key="Category_Terminal">Terminal</system:String>
+    <system:String x:Key="Category_Office">Office Application</system:String>
+    <system:String x:Key="Category_DevTool">Development Tool</system:String>
+    <system:String x:Key="Category_Application">Application</system:String>
+    
+    <!-- SearchOverlay Messages -->
+    <system:String x:Key="Msg_CalcCopied">✓ Copied: {0}</system:String>
+    <system:String x:Key="Msg_ConfirmSystemAction">Confirm</system:String>
+    <system:String x:Key="Msg_SleepWarning">Your computer will sleep in 10 seconds. Cancel?</system:String>
+    <system:String x:Key="Msg_ShutdownWarning">Your computer will shutdown in 10 seconds. Cancel?</system:String>
+    <system:String x:Key="Msg_RestartWarning">Your computer will restart in 10 seconds. Cancel?</system:String>
+    <system:String x:Key="Msg_CalculatorResult">Calculator Result</system:String>
     
 </ResourceDictionary>

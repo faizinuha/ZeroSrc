@@ -8,9 +8,118 @@
     <system:String x:Key="Wiz_SelectLang">Pilih Bahasa Anda</system:String>
     <system:String x:Key="Wiz_Next">Lanjut</system:String>
     
-    <!-- Dashboard -->
-    <system:String x:Key="Dash_Home">Beranda</system:String>
-    <system:String x:Key="Dash_Record">Rekam Layar</system:String>
-    <system:String x:Key="Dash_Settings">Pengaturan</system:String>
+    <!-- Dashboard Navigation -->
+    <system:String x:Key="Nav_Home">Beranda</system:String>
+    <system:String x:Key="Nav_Wallpapers">Wallpaper</system:String>
+    <system:String x:Key="Nav_Plugins">Plugin</system:String>
+    <system:String x:Key="Nav_Record">Rekam Layar</system:String>
+    <system:String x:Key="Nav_About">Tentang</system:String>
+    <system:String x:Key="Nav_Privacy">Privasi</system:String>
+    <system:String x:Key="App_Founder">Pendiri ZeroMix</system:String>
+    <system:String x:Key="Status_SystemsInitialized">Sistem Diinisialisasi</system:String>
+    
+    <!-- Home View -->
+    <system:String x:Key="Home_WelcomeBack">Selamat kembali</system:String>
+    <system:String x:Key="Home_SubtitleGreeting">Siap mengoptimalkan pengalaman Anda hari ini?</system:String>
+    <system:String x:Key="Home_QuickOps">OPERASI CEPAT</system:String>
+    <system:String x:Key="Home_SystemHealth">Kesehatan Sistem</system:String>
+    <system:String x:Key="Home_NeuralClock">Jam Neural</system:String>
+    <system:String x:Key="Home_GhostTaskbar">Taskbar Hantu</system:String>
+    <system:String x:Key="Home_ZeroRecord">Rekam Layar</system:String>
+    
+    <!-- Monitoring Panel -->
+    <system:String x:Key="Monitor_CoreStats">Statistik Inti</system:String>
+    <system:String x:Key="Monitor_CPUEngine">Mesin CPU</system:String>
+    <system:String x:Key="Monitor_MemoryArray">Larik Memori</system:String>
+    <system:String x:Key="Monitor_DataStream">Aliran Data</system:String>
+    <system:String x:Key="Monitor_SystemRegistry">REGISTRI SISTEM</system:String>
+    <system:String x:Key="Monitor_OSVersion">OS: Memuat...</system:String>
+    <system:String x:Key="Monitor_Processor">CPU: Arsitektur</system:String>
+    <system:String x:Key="Monitor_TotalRam">RAM: Menghitung</system:String>
+    <system:String x:Key="Monitor_Network">Jaringan: Memindai</system:String>
+    <system:String x:Key="Monitor_Maintenance">PEMELIHARAAN</system:String>
+    <system:String x:Key="Monitor_PurgeCache">Bersihkan Cache</system:String>
+    <system:String x:Key="Monitor_Sync">Sinkronisasi</system:String>
+    
+    <!-- Wallpapers View -->
+    <system:String x:Key="Wallpaper_Engine">Mesin Wallpaper</system:String>
+    <system:String x:Key="Wallpaper_Description">Luncurkan Manajer Mesin Wallpaper Alat wallpaper gratis</system:String>
+    <system:String x:Key="Wallpaper_LaunchBtn">Luncurkan Mesin Wallpaper</system:String>
+    
+    <!-- About View -->
+    <system:String x:Key="About_Title">Inti Neural: ZeroMix</system:String>
+    <system:String x:Key="About_Description">ZeroMix adalah pusat produktivitas terbaik untuk Windows. Dirancang untuk presisi dan dominasi estetika.</system:String>
+    <system:String x:Key="About_Features">Terintegrasi dengan pemantauan sistem yang terinspirasi biometrik real-time, manajemen wallpaper kuantum, dan transparansi taskbar tingkat hantu.</system:String>
+    <system:String x:Key="About_CoreVersion">VERSI INTI</system:String>
+    <system:String x:Key="About_CheckUpdate">Periksa Pembaruan</system:String>
+    <system:String x:Key="About_UpdateAvailable">PEMBARUAN TERSEDIA</system:String>
+    <system:String x:Key="About_Credits">Kredit Aset Eksternal</system:String>
+    <system:String x:Key="About_CreditText">Terima kasih khusus kepada para kreator luar biasa ini di Pixabay untuk video atmosferik yang indah:</system:String>
+    <system:String x:Key="About_NoteWeather">Catatan: Efek cuaca bervariasi secara dinamis berdasarkan waktu kota saat ini dan kondisi dunia nyata.</system:String>
+    
+    <!-- Privacy View -->
+    <system:String x:Key="Privacy_Title">Keamanan &amp; Enkripsi</system:String>
+    <system:String x:Key="Privacy_KernelProtocol">PROTOKOL KERNEL</system:String>
+    <system:String x:Key="Privacy_Description">ZeroMix beroperasi sepenuhnya di mesin lokal Anda. Tidak ada transmisi eksternal. Tidak ada telemetri. Data Anda adalah milik Anda.</system:String>
+    <system:String x:Key="Privacy_CloudSync">Nol Sinkronisasi Cloud Eksternal</system:String>
+    <system:String x:Key="Privacy_LocalAnalysis">Analisis Metrik Lokal Saja</system:String>
+    <system:String x:Key="Privacy_Encryption">Konfigurasi Lokal Terenkripsi</system:String>
+    <system:String x:Key="Privacy_SecureProtocol">PROTOKOL AMAN</system:String>
+    
+    <!-- Plugins View -->
+    <system:String x:Key="Plugins_Title">Ekstensi</system:String>
+    <system:String x:Key="Plugins_Subtitle">Tingkatkan pengalaman Anda dengan modul khusus</system:String>
+    <system:String x:Key="Plugins_CreateBtn">Buat Plugin</system:String>
+    <system:String x:Key="Plugins_Section">PLUGIN &amp; EKSTENSI</system:String>
+    
+    <!-- Recorder View -->
+    <system:String x:Key="Recorder_Title">REKAM LAYAR</system:String>
+    <system:String x:Key="Recorder_Subtitle">Studio Perekaman Layar Sinematik Akselerasi GPU</system:String>
+    <system:String x:Key="Recorder_VideoEngine">MESIN VIDEO</system:String>
+    <system:String x:Key="Recorder_Framerate">LAJU FRAME (FPS)</system:String>
+    <system:String x:Key="Recorder_30FPS">30 FPS - Standar</system:String>
+    <system:String x:Key="Recorder_45FPS">45 FPS - Halus</system:String>
+    <system:String x:Key="Recorder_60FPS">60 FPS - Gerak Pro</system:String>
+    <system:String x:Key="Recorder_Hotkey">HOTKEY BERALIH</system:String>
+    <system:String x:Key="Recorder_ChangeShortcut">Klik untuk mengubah pintas</system:String>
+    <system:String x:Key="Recorder_AudioSource">SUMBER AUDIO</system:String>
+    <system:String x:Key="Recorder_Microphone">MIKROFON</system:String>
+    <system:String x:Key="Recorder_SystemDefault">Default Sistem</system:String>
+    <system:String x:Key="Recorder_Speakers">SPEAKER SISTEM</system:String>
+    <system:String x:Key="Recorder_Footer">Mesin Pencerminan DXGI • 1080p Sinematik</system:String>
+    
+    <!-- SearchOverlay -->
+    <system:String x:Key="Search_DragDropText">Jatuhkan gambar di sini untuk mencari</system:String>
+    <system:String x:Key="Search_Settings">Pengaturan</system:String>
+    <system:String x:Key="Search_Play">▶ Putar</system:String>
+    <system:String x:Key="Search_Pause">⏸ Jeda</system:String>
+    <system:String x:Key="Search_Close">✕</system:String>
+    
+    <!-- SearchOverlay Suggestion Types -->
+    <system:String x:Key="Suggestion_Desktop">Aplikasi Desktop</system:String>
+    <system:String x:Key="Suggestion_Calculator">Kalkulator</system:String>
+    <system:String x:Key="Suggestion_WebSearch">Pencarian Web</system:String>
+    <system:String x:Key="Suggestion_ImageSearch">Pencarian Gambar</system:String>
+    <system:String x:Key="Suggestion_System">Sistem</system:String>
+    <system:String x:Key="Suggestion_Terminal">Jalankan perintah di Terminal</system:String>
+    <system:String x:Key="Suggestion_File">Berkas</system:String>
+    <system:String x:Key="Suggestion_Video">Video</system:String>
+    <system:String x:Key="Suggestion_SearchGoogle">Cari di Google</system:String>
+    
+    <!-- SearchOverlay App Categories -->
+    <system:String x:Key="Category_Browser">Peramban</system:String>
+    <system:String x:Key="Category_MediaPlayer">Pemain Media</system:String>
+    <system:String x:Key="Category_Terminal">Terminal</system:String>
+    <system:String x:Key="Category_Office">Aplikasi Perkantoran</system:String>
+    <system:String x:Key="Category_DevTool">Alat Pengembangan</system:String>
+    <system:String x:Key="Category_Application">Aplikasi</system:String>
+    
+    <!-- SearchOverlay Messages -->
+    <system:String x:Key="Msg_CalcCopied">✓ Disalin: {0}</system:String>
+    <system:String x:Key="Msg_ConfirmSystemAction">Konfirmasi</system:String>
+    <system:String x:Key="Msg_SleepWarning">Komputer Anda akan tidur dalam 10 detik. Batalkan?</system:String>
+    <system:String x:Key="Msg_ShutdownWarning">Komputer Anda akan dimatikan dalam 10 detik. Batalkan?</system:String>
+    <system:String x:Key="Msg_RestartWarning">Komputer Anda akan dimulai ulang dalam 10 detik. Batalkan?</system:String>
+    <system:String x:Key="Msg_CalculatorResult">Hasil Kalkulator</system:String>
     
 </ResourceDictionary>

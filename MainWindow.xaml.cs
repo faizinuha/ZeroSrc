@@ -177,6 +177,9 @@ namespace ZeroMix
             HomeButton_Click(this, new RoutedEventArgs());
             _initialWallpaperPath = GetSystemWallpaperPath();
 
+            // Initialize Language Selector
+            InitializeLanguageSelector();
+
             // Initialize Lua Engine
             _pluginEngine = new Plugins.PluginEngine(this);
             _pluginEngine.Start();
@@ -189,6 +192,71 @@ namespace ZeroMix
                 if (plugin != null)
                 {
                     _pluginEngine.TogglePlugin(plugin);
+                }
+            }
+        }
+
+        private void InitializeLanguageSelector()
+        {
+            var comboBox = this.FindName("LanguageComboBox") as System.Windows.Controls.ComboBox;
+            if (comboBox != null)
+            {
+                // Read current language from language.ini
+                string languageFile = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "language.ini");
+                string currentLang = "en-US";
+                
+                if (File.Exists(languageFile))
+                {
+                    try
+                    {
+                        currentLang = File.ReadAllText(languageFile).Trim();
+                    }
+                    catch { }
+                }
+
+                // Set combobox to current language
+                foreach (ComboBoxItem item in comboBox.Items)
+                {
+                    if (item.Tag?.ToString() == currentLang)
+                    {
+                        comboBox.SelectedItem = item;
+                        break;
+                    }
+                }
+            }
+        }
+
+        private void LanguageComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (sender is System.Windows.Controls.ComboBox comboBox && comboBox.SelectedItem is ComboBoxItem selectedItem)
+            {
+                string selectedLanguage = selectedItem.Tag?.ToString() ?? "en-US";
+                
+                // Save to language.ini
+                string languageFile = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "language.ini");
+                try
+                {
+                    File.WriteAllText(languageFile, selectedLanguage);
+                }
+                catch
+                {
+                    System.Windows.MessageBox.Show("Failed to save language preference.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                    return;
+                }
+
+                // Show notification and restart
+                var result = System.Windows.MessageBox.Show(
+                    "Language changed! The application needs to restart to apply changes.\n\nRestart now?",
+                    "Restart Required",
+                    MessageBoxButton.YesNo,
+                    MessageBoxImage.Information);
+
+                if (result == MessageBoxResult.Yes)
+                {
+                    // Restart application
+                    var currentProcess = System.Diagnostics.Process.GetCurrentProcess();
+                    System.Diagnostics.Process.Start(currentProcess.MainModule?.FileName);
+                    System.Windows.Application.Current.Shutdown();
                 }
             }
         }
@@ -523,25 +591,30 @@ namespace ZeroMix
             WallpaperButton.Background = (System.Windows.Media.SolidColorBrush)FindResource("NavSelectedBrush");
         }
 
-        private void WallpaperButton_Click(object sender, RoutedEventArgs e)
-        {
-            var wallpaperWindow = new Wallpapers();
-            wallpaperWindow.ShowDialog();
-        }
+        // WallpaperButton_Click removed as it is no longer used (Wallpapers view is now integrated)
 
         // --- Dashboard Logic --- //
 
-        private void EnableMonitoringBtn_Click(object sender, RoutedEventArgs e)
+        private async void EnableMonitoringBtn_Click(object sender, RoutedEventArgs e)
         {
             MonitoringPanel.Visibility = Visibility.Visible;
+            StatusLabel.Text = "Initializing System Probes...";
 
             if (_performanceTimer == null)
             {
-                InitializePerformanceCounters();
-                UpdateSystemInfo();
-                RefreshProcessList();
+                await Task.Run(() => 
+                {
+                    InitializePerformanceCounters();
+                    Dispatcher.Invoke(() => 
+                    {
+                        UpdateSystemInfo();
+                        RefreshProcessList();
+                    });
+                });
             }
-            _performanceTimer.Start();
+            
+            _performanceTimer?.Start();
+            StatusLabel.Text = "System Monitor Active";
         }
 
         private void OpenClockBtn_Click(object sender, RoutedEventArgs e)
@@ -611,59 +684,109 @@ namespace ZeroMix
             _recordingManager = new RecordingManager(ffmpegPath);
         }
 
-        private void ZeroRecordBtn_Click(object sender, RoutedEventArgs e)
+        private async void ZeroRecordBtn_Click(object sender, RoutedEventArgs e)
         {
             if (_recordingManager == null) return;
 
+            // Prevent spam clicks
+            if (HomeRecordBtn != null) HomeRecordBtn.IsEnabled = false;
+
             if (!_isRecordingActive)
             {
+                StatusLabel.Text = "Booting Recorder Engine...";
+                if (HomeRecordBtnText != null) HomeRecordBtnText.Text = "STARTING...";
+
                 string timestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss");
                 
                 // Get FPS from UI
                 int fps = 30;
-                switch (FpsComboBox.SelectedIndex)
+                if (FpsComboBox != null)
                 {
-                    case 1: fps = 45; break;
-                    case 2: fps = 50; break;
-                    case 3: fps = 60; break;
+                    switch (FpsComboBox.SelectedIndex)
+                    {
+                        case 1: fps = 45; break;
+                        case 2: fps = 50; break;
+                        case 3: fps = 60; break;
+                    }
                 }
 
-                _recordingManager.StartRecording($"ZeroRecord_{timestamp}.mp4", fps);
-                _isRecordingActive = true;
-                UpdateRecordUI(true);
-                
-                // Start duration UI timer
-                RecordDurationText.Visibility = Visibility.Visible;
-                if (_recordDurationTimer == null)
+                bool started = await Task.Run(() => 
                 {
-                    _recordDurationTimer = new DispatcherTimer();
-                    _recordDurationTimer.Interval = TimeSpan.FromSeconds(1);
-                    _recordDurationTimer.Tick += (s, args) => {
-                        string dur = _recordingManager.GetDuration();
-                        RecordDurationText.Text = dur;
-                        _notifyIcon!.Text = $"🔴 RECORDING - {dur}";
-                    };
+                    try 
+                    {
+                        _recordingManager.StartRecording($"ZeroRecord_{timestamp}.mp4", fps);
+                        return true;
+                    }
+                    catch (Exception ex)
+                    {
+                        Dispatcher.Invoke(() => System.Windows.MessageBox.Show("Failed to start recording: " + ex.Message));
+                        return false;
+                    }
+                });
+
+                if (started)
+                {
+                    _isRecordingActive = true;
+                    UpdateRecordUI(true);
+                    
+                    // Start duration UI timer
+                    RecordDurationText.Visibility = Visibility.Visible;
+                    if (_recordDurationTimer == null)
+                    {
+                        _recordDurationTimer = new DispatcherTimer();
+                        _recordDurationTimer.Interval = TimeSpan.FromSeconds(1);
+                        _recordDurationTimer.Tick += (s, args) => {
+                            string dur = _recordingManager.GetDuration();
+                            RecordDurationText.Text = dur;
+                            if (_notifyIcon != null) _notifyIcon.Text = $"🔴 RECORDING - {dur}";
+                        };
+                    }
+                    _recordDurationTimer.Start();
+                    
+                    if (_notifyIcon != null)
+                    {
+                        _notifyIcon.BalloonTipTitle = "ZeroRecord Started";
+                        _notifyIcon.BalloonTipText = "Recording your desktop screen...";
+                        _notifyIcon.ShowBalloonTip(2000);
+                    }
+                    StatusLabel.Text = "Recording Active";
                 }
-                _recordDurationTimer.Start();
-                _notifyIcon!.BalloonTipTitle = "ZeroRecord Started";
-                _notifyIcon!.BalloonTipText = "Recording your desktop screen...";
-                _notifyIcon!.ShowBalloonTip(2000);
+                else
+                {
+                     UpdateRecordUI(false);
+                }
             }
             else
             {
-                _recordingManager.StopRecording();
+                StatusLabel.Text = "Finalizing Video...";
+                if (HomeRecordBtnText != null) HomeRecordBtnText.Text = "SAVING...";
+
+                await Task.Run(() => 
+                {
+                     _recordingManager.StopRecording();
+                });
+
                 _isRecordingActive = false;
                 _recordDurationTimer?.Stop();
                 
                 UpdateRecordUI(false);
-                RecordDurationText.Visibility = Visibility.Collapsed;
-                RecordDurationText.Text = "00:00";
+                if (RecordDurationText != null)
+                {
+                    RecordDurationText.Visibility = Visibility.Collapsed;
+                    RecordDurationText.Text = "00:00";
+                }
                 
-                _notifyIcon!.Text = "ZeroMix Dashboard";
-                _notifyIcon!.BalloonTipTitle = "ZeroRecord Stopped";
-                _notifyIcon!.BalloonTipText = "Video saved to your Videos folder.";
-                _notifyIcon!.ShowBalloonTip(2000);
+                if (_notifyIcon != null)
+                {
+                    _notifyIcon.Text = "ZeroMix Dashboard";
+                    _notifyIcon.BalloonTipTitle = "ZeroRecord Stopped";
+                    _notifyIcon.BalloonTipText = "Video saved to your Videos folder.";
+                    _notifyIcon.ShowBalloonTip(2000);
+                }
+                StatusLabel.Text = "Recording Saved";
             }
+
+            if (HomeRecordBtn != null) HomeRecordBtn.IsEnabled = true;
         }
 
         private void UpdateRecordUI(bool isActive)

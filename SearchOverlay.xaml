@@ -145,7 +145,6 @@
             </Grid>
         </ControlTemplate>
 
-
         <Style x:Key="SuggestionItemStyle"
                TargetType="ListBoxItem">
             <Setter Property="Padding"
@@ -385,7 +384,7 @@
                                    FontSize="28"
                                    Foreground="#007AFF"
                                    HorizontalAlignment="Center"/>
-                        <TextBlock Text="Drop image here to search"
+                        <TextBlock Text="{DynamicResource Search_DragDropText}"
                                    FontSize="13"
                                    Foreground="#8E8E93"
                                    FontFamily="{StaticResource MacFont}"
@@ -441,7 +440,7 @@
                         Foreground="#555"
                         BorderThickness="0"
                         Click="CustomShortcutButton_Click"
-                        ToolTip="Settings"/>
+                        ToolTip="{DynamicResource Search_Settings}"/>
 
                 <!-- PREVIEW PANEL - Modal Overlay -->
                 <Border x:Name="PreviewPanel"
@@ -469,7 +468,7 @@
                                            Foreground="#1A1A1A"
                                            VerticalAlignment="Center"/>
                                 <Button HorizontalAlignment="Right"
-                                        Content="✕"
+                                        Content="{DynamicResource Search_Close}"
                                         FontSize="16"
                                         Padding="8"
                                         Background="Transparent"
@@ -556,7 +555,7 @@
                                     Background="White"
                                     Margin="16">
                             <Button Name="PlayButton"
-                                    Content="▶ Play"
+                                    Content="{DynamicResource Search_Play}"
                                     Padding="12,8"
                                     Margin="0,0,8,0"
                                     Click="PlayButton_Click"
@@ -564,7 +563,7 @@
                                     Foreground="White"
                                     BorderThickness="0"/>
                             <Button Name="PauseButton"
-                                    Content="⏸ Pause"
+                                    Content="{DynamicResource Search_Pause}"
                                     Padding="12,8"
                                     Background="#007AFF"
                                     Foreground="White"

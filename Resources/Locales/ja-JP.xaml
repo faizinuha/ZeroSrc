@@ -8,9 +8,118 @@
     <system:String x:Key="Wiz_SelectLang">言語を選択してください</system:String>
     <system:String x:Key="Wiz_Next">次へ</system:String>
     
-    <!-- Dashboard -->
-    <system:String x:Key="Dash_Home">ホーム</system:String>
-    <system:String x:Key="Dash_Record">画面録画</system:String>
-    <system:String x:Key="Dash_Settings">設定</system:String>
+    <!-- Dashboard Navigation -->
+    <system:String x:Key="Nav_Home">ホーム</system:String>
+    <system:String x:Key="Nav_Wallpapers">壁紙</system:String>
+    <system:String x:Key="Nav_Plugins">プラグイン</system:String>
+    <system:String x:Key="Nav_Record">画面録画</system:String>
+    <system:String x:Key="Nav_About">について</system:String>
+    <system:String x:Key="Nav_Privacy">プライバシー</system:String>
+    <system:String x:Key="App_Founder">ZeroMix創始者</system:String>
+    <system:String x:Key="Status_SystemsInitialized">システムが初期化されました</system:String>
+    
+    <!-- Home View -->
+    <system:String x:Key="Home_WelcomeBack">お帰りなさい</system:String>
+    <system:String x:Key="Home_SubtitleGreeting">今日のあなたの経験を最適化する準備はいいですか？</system:String>
+    <system:String x:Key="Home_QuickOps">クイック操作</system:String>
+    <system:String x:Key="Home_SystemHealth">システムヘルス</system:String>
+    <system:String x:Key="Home_NeuralClock">ニューラルクロック</system:String>
+    <system:String x:Key="Home_GhostTaskbar">ゴーストタスクバー</system:String>
+    <system:String x:Key="Home_ZeroRecord">画面録画</system:String>
+    
+    <!-- Monitoring Panel -->
+    <system:String x:Key="Monitor_CoreStats">コア統計</system:String>
+    <system:String x:Key="Monitor_CPUEngine">CPUエンジン</system:String>
+    <system:String x:Key="Monitor_MemoryArray">メモリアレイ</system:String>
+    <system:String x:Key="Monitor_DataStream">データストリーム</system:String>
+    <system:String x:Key="Monitor_SystemRegistry">システムレジストリ</system:String>
+    <system:String x:Key="Monitor_OSVersion">OS: 読み込み中...</system:String>
+    <system:String x:Key="Monitor_Processor">CPU: アーキテクチャ</system:String>
+    <system:String x:Key="Monitor_TotalRam">RAM: 計算中</system:String>
+    <system:String x:Key="Monitor_Network">ネット: スキャン中</system:String>
+    <system:String x:Key="Monitor_Maintenance">保守</system:String>
+    <system:String x:Key="Monitor_PurgeCache">キャッシュをクリア</system:String>
+    <system:String x:Key="Monitor_Sync">同期</system:String>
+    
+    <!-- Wallpapers View -->
+    <system:String x:Key="Wallpaper_Engine">壁紙エンジン</system:String>
+    <system:String x:Key="Wallpaper_Description">壁紙エンジンマネージャーを起動 無料の壁紙ツール</system:String>
+    <system:String x:Key="Wallpaper_LaunchBtn">壁紙エンジンを起動</system:String>
+    
+    <!-- About View -->
+    <system:String x:Key="About_Title">ニューラルコア: ZeroMix</system:String>
+    <system:String x:Key="About_Description">ZeroMixはWindows用の究極の生産性ハブです。精度と美的支配のために設計されています。</system:String>
+    <system:String x:Key="About_Features">リアルタイムの生物測定にインスパイアされたシステム監視、量子壁紙管理、ゴーストレベルのタスクバー透明性と統合されています。</system:String>
+    <system:String x:Key="About_CoreVersion">コアバージョン</system:String>
+    <system:String x:Key="About_CheckUpdate">更新を確認</system:String>
+    <system:String x:Key="About_UpdateAvailable">更新利用可能</system:String>
+    <system:String x:Key="About_Credits">外部アセットクレジット</system:String>
+    <system:String x:Key="About_CreditText">Pixabayの素晴らしいクリエイターたちに、美しい大気ビデオを提供していただき特に感謝します:</system:String>
+    <system:String x:Key="About_NoteWeather">注意: 天気効果は現在の都市時間と実際の条件に基づいて動的に変化します。</system:String>
+    
+    <!-- Privacy View -->
+    <system:String x:Key="Privacy_Title">セキュリティと暗号化</system:String>
+    <system:String x:Key="Privacy_KernelProtocol">カーネルプロトコル</system:String>
+    <system:String x:Key="Privacy_Description">ZeroMixはローカルマシン上で完全に動作します。外部送信なし。テレメトリなし。あなたのデータはあなたのものです。</system:String>
+    <system:String x:Key="Privacy_CloudSync">ゼロ外部クラウド同期</system:String>
+    <system:String x:Key="Privacy_LocalAnalysis">ローカルのみのメトリック分析</system:String>
+    <system:String x:Key="Privacy_Encryption">暗号化されたローカル構成</system:String>
+    <system:String x:Key="Privacy_SecureProtocol">セキュアプロトコル</system:String>
+    
+    <!-- Plugins View -->
+    <system:String x:Key="Plugins_Title">エクステンション</system:String>
+    <system:String x:Key="Plugins_Subtitle">カスタムモジュールを使用してエクスペリエンスを向上させます</system:String>
+    <system:String x:Key="Plugins_CreateBtn">プラグインを作成</system:String>
+    <system:String x:Key="Plugins_Section">プラグイン &amp; エクステンション</system:String>
+    
+    <!-- Recorder View -->
+    <system:String x:Key="Recorder_Title">画面録画</system:String>
+    <system:String x:Key="Recorder_Subtitle">GPU高速化シネマティックスクリーンスタジオ</system:String>
+    <system:String x:Key="Recorder_VideoEngine">ビデオエンジン</system:String>
+    <system:String x:Key="Recorder_Framerate">フレームレート (FPS)</system:String>
+    <system:String x:Key="Recorder_30FPS">30 FPS - 標準</system:String>
+    <system:String x:Key="Recorder_45FPS">45 FPS - スムーズ</system:String>
+    <system:String x:Key="Recorder_60FPS">60 FPS - プロモーション</system:String>
+    <system:String x:Key="Recorder_Hotkey">ホットキー切り替え</system:String>
+    <system:String x:Key="Recorder_ChangeShortcut">クリックしてショートカットを変更</system:String>
+    <system:String x:Key="Recorder_AudioSource">オーディオソース</system:String>
+    <system:String x:Key="Recorder_Microphone">マイク</system:String>
+    <system:String x:Key="Recorder_SystemDefault">システムデフォルト</system:String>
+    <system:String x:Key="Recorder_Speakers">システムスピーカー</system:String>
+    <system:String x:Key="Recorder_Footer">DXGIミラーリングエンジン • 1080pシネマティック</system:String>
+    
+    <!-- SearchOverlay -->
+    <system:String x:Key="Search_DragDropText">ここに画像をドラッグして検索</system:String>
+    <system:String x:Key="Search_Settings">設定</system:String>
+    <system:String x:Key="Search_Play">▶ 再生</system:String>
+    <system:String x:Key="Search_Pause">⏸ 一時停止</system:String>
+    <system:String x:Key="Search_Close">✕</system:String>
+    
+    <!-- SearchOverlay Suggestion Types -->
+    <system:String x:Key="Suggestion_Desktop">デスクトップアプリケーション</system:String>
+    <system:String x:Key="Suggestion_Calculator">計算機</system:String>
+    <system:String x:Key="Suggestion_WebSearch">Web検索</system:String>
+    <system:String x:Key="Suggestion_ImageSearch">画像検索</system:String>
+    <system:String x:Key="Suggestion_System">システム</system:String>
+    <system:String x:Key="Suggestion_Terminal">ターミナルでコマンドを実行</system:String>
+    <system:String x:Key="Suggestion_File">ファイル</system:String>
+    <system:String x:Key="Suggestion_Video">ビデオ</system:String>
+    <system:String x:Key="Suggestion_SearchGoogle">Googleで検索</system:String>
+    
+    <!-- SearchOverlay App Categories -->
+    <system:String x:Key="Category_Browser">ブラウザ</system:String>
+    <system:String x:Key="Category_MediaPlayer">メディアプレーヤー</system:String>
+    <system:String x:Key="Category_Terminal">ターミナル</system:String>
+    <system:String x:Key="Category_Office">オフィスアプリケーション</system:String>
+    <system:String x:Key="Category_DevTool">開発ツール</system:String>
+    <system:String x:Key="Category_Application">アプリケーション</system:String>
+    
+    <!-- SearchOverlay Messages -->
+    <system:String x:Key="Msg_CalcCopied">✓ コピー済み: {0}</system:String>
+    <system:String x:Key="Msg_ConfirmSystemAction">確認</system:String>
+    <system:String x:Key="Msg_SleepWarning">コンピュータは10秒でスリープします。キャンセルしますか？</system:String>
+    <system:String x:Key="Msg_ShutdownWarning">コンピュータは10秒でシャットダウンします。キャンセルしますか？</system:String>
+    <system:String x:Key="Msg_RestartWarning">コンピュータは10秒で再起動します。キャンセルしますか？</system:String>
+    <system:String x:Key="Msg_CalculatorResult">計算機の結果</system:String>
     
 </ResourceDictionary>
