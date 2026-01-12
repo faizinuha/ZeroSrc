@@ -110,7 +110,21 @@ namespace ZeroMix
                 foreach (var imagePath in diskWallpapers)
                 {
                     var type = DetermineWallpaperType(imagePath);
-                    ImageSource? bitmap = CreateBitmapFromPath(imagePath);
+                    ImageSource? bitmap = null;
+
+                    // Try Shell Thumbnail for videos or even images for better quality/speed
+                    if (type == WallpaperType.Video)
+                    {
+                         System.Windows.Application.Current.Dispatcher.Invoke(() => 
+                         {
+                             bitmap = GetShellThumbnail(imagePath);
+                         });
+                    }
+                    
+                    if (bitmap == null)
+                    {
+                         bitmap = CreateBitmapFromPath(imagePath);
+                    }
                     
                     if (bitmap == null && type != WallpaperType.Image)
                     {
@@ -355,9 +369,47 @@ namespace ZeroMix
             catch { return null; }
         }
 
+        private ImageSource? GetShellThumbnail(string path)
+        {
+            try
+            {
+                // Unmanaged resource usage to get the thumbnail from Windows Shell
+                // IShellItem2 guid
+                Guid shellItem2Guid = new Guid("7e9fb0d3-919f-4307-ab2e-9b1860310c93"); 
+                int ret = NativeMethods.SHCreateItemFromParsingName(path, IntPtr.Zero, shellItem2Guid, out NativeMethods.IShellItem? nativeItem);
+                
+                if (ret == 0 && nativeItem != null)
+                {
+                    var imageFactory = nativeItem as NativeMethods.IShellItemImageFactory;
+                    if (imageFactory != null)
+                    {
+                        var size = new NativeMethods.SIZE { cx = 256, cy = 144 }; // 16:9 thumbnail
+                        imageFactory.GetImage(size, 0, out IntPtr hBitmap);
+                        
+                        if (hBitmap != IntPtr.Zero)
+                        {
+                            var imageSource = System.Windows.Interop.Imaging.CreateBitmapSourceFromHBitmap(
+                                hBitmap,
+                                IntPtr.Zero,
+                                Int32Rect.Empty,
+                                BitmapSizeOptions.FromEmptyOptions());
+                            
+                            NativeMethods.DeleteObject(hBitmap);
+                            imageSource.Freeze();
+                            return imageSource;
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Shell thumbnail error: {ex.Message}");
+            }
+            return null;
+        }
+
         private BitmapImage? CreatePlaceholderBitmap(WallpaperType type)
         {
-            // Create a simple generated bitmap for placeholders (especially videos)
             try 
             {
                 var width = 240;
@@ -370,33 +422,33 @@ namespace ZeroMix
                     // Background
                     context.DrawRectangle(new SolidColorBrush(System.Windows.Media.Color.FromRgb(30, 30, 35)), null, new Rect(0, 0, width, height));
                     
-                    // Label
+                    // Simple styling 
                     var color = type == WallpaperType.Video ? System.Windows.Media.Brushes.Cyan : System.Windows.Media.Brushes.Gray;
-                    var text = type == WallpaperType.Video ? "▶ VIDEO" : "FILE";
                     
-                    var formattedText = new FormattedText(
-                        text,
-                        System.Globalization.CultureInfo.InvariantCulture,
-                        System.Windows.FlowDirection.LeftToRight,
-                        new Typeface("Segoe UI"),
-                        24,
-                        color,
-                        1.25);
-                        
-                    context.DrawText(formattedText, new System.Windows.Point((width - formattedText.Width) / 2, (height - formattedText.Height) / 2));
+                    // Draw a play icon style triangle for video if text fails or to keep it simple
+                    if (type == WallpaperType.Video)
+                    {
+                        var playFigure = new PathGeometry();
+                        playFigure.Figures.Add(new PathFigure(
+                            new System.Windows.Point(width / 2 - 10, height / 2 - 15), 
+                            new[] { 
+                                new LineSegment(new System.Windows.Point(width / 2 - 10, height / 2 + 15), true), 
+                                new LineSegment(new System.Windows.Point(width / 2 + 15, height / 2), true) 
+                            }, 
+                            true));
+                        context.DrawGeometry(color, null, playFigure);
+                    }
+                    else
+                    {
+                        // Draw file icon shape
+                        context.DrawRectangle(null, new System.Windows.Media.Pen(color, 2), new Rect(width/2 - 15, height/2 - 20, 30, 40));
+                    }
                 }
                 
                 bmp.Render(visual);
                 bmp.Freeze();
                 
-                // Convert RenderTargetBitmap to BitmapImage (or just return null and change property type, but let's try to convert/wrap)
-                // Actually, WallpaperItem.Thumbnail is BitmapImage? so we might need to change it to ImageSource to accept RenderTargetBitmap
-                // Let's quickly change WallpaperItem.Thumbnail type to ImageSource in the Helper Class below
-                
-                return null; // Return null here, I will change the WallpaperItem definition to acceptable ImageSource.
-                // Wait, I can't change the return type of this method easily if it's strictly defined above without full rewrite.
-                // Let's output a stream-based bitmap image from the render target.
-                
+                // Convert to BitmapImage
                 var encoder = new PngBitmapEncoder();
                 encoder.Frames.Add(BitmapFrame.Create(bmp));
                 using (var stream = new MemoryStream())
@@ -412,7 +464,11 @@ namespace ZeroMix
                     return result;
                 }
             }
-            catch { return null; }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Placeholder error: {ex.Message}");
+                return null; 
+            }
         }
 
         private IEnumerable<string> EnumerateResourceImagesOnDisk()
@@ -421,14 +477,14 @@ namespace ZeroMix
             
             try
             {
-                var exts = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { ".jpg", ".jpeg", ".png", ".bmp", ".mp4" };
+                var exts = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { ".jpg", ".jpeg", ".png", ".bmp", ".gif", ".mp4", ".wmv", ".mov" };
                 
-                // Scan directories in order of priority (Source first, then Build)
-                // This ensures we get the "source of truth" if possible
+                // Scan directories
                 var sourceDir = @"C:\ZeroMix\ZeroMix\Resource";
+                var videoDir = @"C:\ZeroMix\ZeroMix\Resource\Video"; // Explicitly add Video folder
                 var buildDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Resource");
-
-                var roots = new[] { sourceDir, buildDir };
+                
+                var roots = new[] { videoDir, sourceDir, buildDir }; // Priority to Video folder
 
                 foreach (var root in roots)
                 {
@@ -440,6 +496,7 @@ namespace ZeroMix
                         foreach (var f in files)
                         {
                             var fileName = Path.GetFileName(f);
+                            // Only add if not exists, respecting priority
                             if (!uniqueFiles.ContainsKey(fileName))
                             {
                                 uniqueFiles[fileName] = f;
@@ -526,6 +583,47 @@ namespace ZeroMix
         public static void SetWallpaper(string path)
         {
             SystemParametersInfo(SPI_SETDESKWALLPAPER, 0, path, SPIF_UPDATEINIFILE | SPIF_SENDCHANGE);
+        }
+
+        // SHELL THUMBNAIL SUPPORT
+        [DllImport("shell32.dll", CharSet = CharSet.Unicode, PreserveSig = true)]
+        public static extern int SHCreateItemFromParsingName(
+            [In, MarshalAs(UnmanagedType.LPWStr)] string pszPath,
+            [In] IntPtr pbc,
+            [In, MarshalAs(UnmanagedType.LPStruct)] Guid riid,
+            [Out, MarshalAs(UnmanagedType.Interface, IidParameterIndex = 2)] out IShellItem ppv);
+
+        [DllImport("gdi32.dll")]
+        public static extern bool DeleteObject(IntPtr hObject);
+
+        [ComImport]
+        [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
+        [Guid("43826d1e-e718-42ee-bc55-a1e261c37bfe")]
+        public interface IShellItem
+        {
+            void BindToHandler([In, MarshalAs(UnmanagedType.Interface)] IntPtr pbc, [In] ref Guid bhid, [In] ref Guid riid, out IntPtr ppv);
+            void GetParent([MarshalAs(UnmanagedType.Interface)] out IShellItem ppsi);
+            void GetDisplayName([In] uint sigdnName, out IntPtr ppszName);
+            void GetAttributes([In] uint sfgaoMask, out uint psfgaoAttribs);
+            void Compare([In, MarshalAs(UnmanagedType.Interface)] IShellItem psi, [In] uint hint, out int piOrder);
+        }
+
+        [ComImport]
+        [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
+        [Guid("bcc18b79-ba16-442f-80c4-8a59c30c463b")]
+        public interface IShellItemImageFactory
+        {
+            void GetImage(
+                [In, MarshalAs(UnmanagedType.Struct)] SIZE size,
+                [In] int flags,
+                [Out] out IntPtr phbm);
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        public struct SIZE
+        {
+            public int cx;
+            public int cy;
         }
     }
 }
