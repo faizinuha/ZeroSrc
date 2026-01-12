@@ -144,33 +144,7 @@ namespace ZeroMix
             catch {}
         }
         
-        private async void LoadIconAsync()
-        {
-            try
-            {
-                if (string.IsNullOrEmpty(FilePath)) return;
 
-                await System.Windows.Application.Current.Dispatcher.InvokeAsync(async () => 
-                {
-                    System.Windows.Media.ImageSource? icon = null;
-                    await Task.Run(() => 
-                    {
-                        try 
-                        {
-                            icon = ZeroMix.SearchOverlay.GetIconForFile(FilePath);
-                            icon?.Freeze();
-                        }
-                        catch {}
-                    });
-
-                    if (icon != null)
-                    {
-                        IconSource = icon;
-                    }
-                });
-            }
-            catch {}
-        }
 
         private static string GetAppCategory(string appName)
         {
@@ -925,59 +899,7 @@ namespace ZeroMix
         {
            return GetIconForFile(path);
         }
-                {
-                    _allSuggestions.Clear();
-                    _allSuggestions.AddRange(suggestions);
-                });
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"LoadAllSuggestionsAsync error: {ex.Message}");
-            }
-            finally
-            {
-                _isLoadingSuggestions = false;
-            }
-        }
 
-        private System.Windows.Media.ImageSource? ExtractIconFromFile(string filePath)
-        {
-            // Check cache first
-            if (_iconCache.TryGetValue(filePath, out var cachedIcon))
-                return cachedIcon;
-
-            try
-            {
-                string targetPath = filePath;
-
-                // Handle .lnk shortcut files
-                if (filePath.EndsWith(".lnk", StringComparison.OrdinalIgnoreCase))
-                {
-                    targetPath = ResolveLnkTarget(filePath);
-                    if (string.IsNullOrEmpty(targetPath)) targetPath = filePath;
-                }
-
-                // Try multiple methods to extract icon
-                System.Drawing.Icon? icon = TryExtractIcon(targetPath);
-
-                if (icon != null)
-                {
-                    var imageSource = ConvertIconToImageSource(icon);
-                    if (imageSource != null)
-                    {
-                        imageSource.Freeze();
-                        _iconCache[filePath] = imageSource;
-                        return imageSource;
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"Icon extraction error for {filePath}: {ex.Message}");
-            }
-
-            return null;
-        }
 
         private string ResolveLnkTarget(string lnkPath)
         {
@@ -1487,7 +1409,7 @@ namespace ZeroMix
 
         internal void BeginFadeOutAndCloseByMain()
         {
-            throw new NotImplementedException();
+            BeginFadeOutAndClose();
         }
     }
 }
