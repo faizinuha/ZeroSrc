@@ -258,54 +258,166 @@
       </div>
     </section>
 
-    <!-- Screenshots Section -->
-    <section id="screenshot">
-      <h2 class="reveal" data-translate="🖼️ Tangkapan Layar">
-        🖼️ Tangkapan Layar
+    <!-- Media Showcase Section -->
+    <section id="showcase">
+      <h2 class="reveal" data-translate="🖼️ Galeri & Media">
+        🖼️ Galeri & Media
       </h2>
-      <!-- Screenshot Grid -->
-      <div class="screenshots-grid four-images reveal">
-        <div class="screenshot-item">
-          <img
-            src="assets/1.png"
-            alt="ZeroMix Desktop - Overlay Pencarian"
-            loading="lazy"
-          />
+
+      <div class="gallery-filters reveal">
+        <button class="filter-btn active" data-filter="all">Semua</button>
+        <button class="filter-btn" data-filter="screenshot">
+          Tangkapan Layar
+        </button>
+        <button class="filter-btn" data-filter="weather">
+          Dynamic Weather
+        </button>
+        <button class="filter-btn" data-filter="wallpaper">
+          Wallpaper Premium
+        </button>
+      </div>
+
+      <div class="gallery-grid reveal">
+        <!-- Screenshots -->
+        <div class="gallery-item screenshot">
+          <span class="category-tag">App UI</span>
+          <img src="assets/1.png" alt="ZeroMix UI" loading="lazy" />
+          <div class="item-overlay"><span>Search Overlay</span></div>
         </div>
-        <div class="screenshot-item">
-          <img
-            src="assets/2.png"
-            alt="ZeroMix Desktop - Dashboard"
-            loading="lazy"
-          />
+        <div class="gallery-item screenshot">
+          <span class="category-tag">App UI</span>
+          <img src="assets/2.png" alt="ZeroMix Dashboard" loading="lazy" />
+          <div class="item-overlay"><span>System Dashboard</span></div>
         </div>
-        <div class="screenshot-item">
-          <img
-            src="assets/3.png"
-            alt="ZeroMix Extension - Chrome"
-            loading="lazy"
-          />
+        <div class="gallery-item screenshot">
+          <span class="category-tag">Extension</span>
+          <img src="assets/3.png" alt="ZeroMix Extension" loading="lazy" />
+          <div class="item-overlay"><span>Browser Integration</span></div>
         </div>
-        <div class="screenshot-item">
-          <img
-            src="assets/4.png"
-            alt="ZeroMix Extension - Pencarian"
-            loading="lazy"
-          />
+        <div class="gallery-item screenshot">
+          <span class="category-tag">Extension</span>
+          <img src="assets/4.png" alt="ZeroMix Extension" loading="lazy" />
+          <div class="item-overlay"><span>Quick Search</span></div>
         </div>
-        <div class="screenshot-item">
-          <img
-            src="assets/5.png"
-            alt="ZeroMix Extension - Pencarian"
-            loading="lazy"
-          />
+
+        <!-- Dynamic Weather (Videos) -->
+        <div class="gallery-item weather">
+          <span class="category-tag">Dynamic</span>
+          <video
+            src="../Plugins/zeromix.weather/assets/Sun.mp4"
+            autoplay
+            loop
+            muted
+            playsinline
+          ></video>
+          <div class="item-overlay"><span>Sunny Day Mood</span></div>
         </div>
-        <div class="screenshot-item">
+        <div class="gallery-item weather">
+          <span class="category-tag">Dynamic</span>
+          <video
+            src="../Plugins/zeromix.weather/assets/Rain.mp4"
+            autoplay
+            loop
+            muted
+            playsinline
+          ></video>
+          <div class="item-overlay"><span>Rainy Reflection</span></div>
+        </div>
+        <div class="gallery-item weather">
+          <span class="category-tag">Dynamic</span>
+          <video
+            src="../Plugins/zeromix.weather/assets/Cloud.mp4"
+            autoplay
+            loop
+            muted
+            playsinline
+          ></video>
+          <div class="item-overlay"><span>Overcast Sky</span></div>
+        </div>
+        <div class="gallery-item weather">
+          <span class="category-tag">Dynamic</span>
+          <video
+            src="../Plugins/zeromix.weather/assets/Sunset.mp4"
+            autoplay
+            loop
+            muted
+            playsinline
+          ></video>
+          <div class="item-overlay"><span>Sunset Calm</span></div>
+        </div>
+
+        <!-- Wallpapers -->
+        <div class="gallery-item wallpaper">
+          <span class="category-tag">Wallpaper</span>
           <img
-            src="assets/6.png"
-            alt="ZeroMix Extension - Pencarian"
+            src="../Resource/Images/wallpaperflare.com_wallpaper (5).jpg"
+            alt="Wallpaper Nature"
             loading="lazy"
           />
+          <div class="item-overlay"><span>Mountain Valley</span></div>
+        </div>
+        <div class="gallery-item wallpaper">
+          <span class="category-tag">Wallpaper</span>
+          <img
+            src="../Resource/Images/wallpaperflare.com_wallpaper (1).jpg"
+            alt="Wallpaper Fantasy"
+            loading="lazy"
+          />
+          <div class="item-overlay"><span>Fantasy Dreamscape</span></div>
+        </div>
+        <div class="gallery-item wallpaper">
+          <span class="category-tag">Wallpaper</span>
+          <img
+            src="../Resource/Images/wallpaperflare.com_wallpaper (2).jpg"
+            alt="Wallpaper Neon"
+            loading="lazy"
+          />
+          <div class="item-overlay"><span>Cyberpunk Streets</span></div>
+        </div>
+        <div class="gallery-item wallpaper">
+          <span class="category-tag">Wallpaper</span>
+          <img
+            src="../Resource/Images/wallpaperflare.com_wallpaper (3).jpg"
+            alt="Wallpaper Peak"
+            loading="lazy"
+          />
+          <div class="item-overlay"><span>Minimalist Peak</span></div>
+        </div>
+        <div class="gallery-item wallpaper">
+          <span class="category-tag">Wallpaper</span>
+          <img
+            src="../Resource/Images/wallpaperflare.com_wallpaper (4).jpg"
+            alt="Wallpaper Flow"
+            loading="lazy"
+          />
+          <div class="item-overlay"><span>Fluid Energy</span></div>
+        </div>
+        <div class="gallery-item wallpaper">
+          <span class="category-tag">Wallpaper</span>
+          <img
+            src="../Resource/Images/wallpaperflare.com_wallpaper.jpg"
+            alt="Wallpaper Space"
+            loading="lazy"
+          />
+          <div class="item-overlay"><span>Deep Universe</span></div>
+        </div>
+        <div class="gallery-item wallpaper">
+          <span class="category-tag">Wallpaper</span>
+          <img
+            src="../Resource/Images/ss_44c0d2b0ccc6e527339e695d1ccbcb6d63660c73.1920x1080.jpg"
+            alt="Wallpaper Abstract"
+            loading="lazy"
+          />
+          <div class="item-overlay"><span>Prism Flow</span></div>
+        </div>
+        <div class="gallery-item wallpaper">
+          <span class="category-tag">Wallpaper</span>
+          <img
+            src="../Resource/Images/ss_5bc20508c8a4024b70cebc638a67f1097f219ba9.1920x1080.jpg"
+            alt="Wallpaper Abstract"
+            loading="lazy"
+          />
+          <div class="item-overlay"><span>Abstract Gradient</span></div>
         </div>
       </div>
     </section>
@@ -475,6 +587,37 @@ Jangan lupa untuk memberikan star ⭐ jika Anda menyukai project ini!
       }
     </script>
     <script>
+      // Gallery Filter Logic
+      const filterBtns = document.querySelectorAll(".filter-btn");
+      const galleryItems = document.querySelectorAll(".gallery-item");
+
+      filterBtns.forEach((btn) => {
+        btn.addEventListener("click", () => {
+          // Remove active class from all buttons
+          filterBtns.forEach((b) => b.classList.remove("active"));
+          // Add active class to clicked button
+          btn.classList.add("active");
+
+          const filterValue = btn.getAttribute("data-filter");
+
+          galleryItems.forEach((item) => {
+            if (filterValue === "all" || item.classList.contains(filterValue)) {
+              item.style.display = "block";
+              setTimeout(() => {
+                item.style.opacity = "1";
+                item.style.transform = "scale(1)";
+              }, 10);
+            } else {
+              item.style.opacity = "0";
+              item.style.transform = "scale(0.8)";
+              setTimeout(() => {
+                item.style.display = "none";
+              }, 300);
+            }
+          });
+        });
+      });
+
       // FAQ Accordion
       const faqItems = document.querySelectorAll(".faq-item");
 
