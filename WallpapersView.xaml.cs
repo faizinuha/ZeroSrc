@@ -232,25 +232,22 @@ namespace ZeroMix
                 
                 if (type == WallpaperType.Video)
                 {
-                    StatusLabel.Text = "🎬 Processing video...";
+                    StatusLabel.Text = "🎬 Launching Video Wallpaper...";
                     
-                    string? optimizedPath = await Task.Run(() => 
+                    // Instant launch using original path
+                    LaunchVideoWallpaper(_selectedImagePath);
+                    
+                    // Optimization check in background (non-blocking)
+                    _ = Task.Run(() => 
                     {
                         var ffmpegPath = FindFFmpeg();
-                        if (string.IsNullOrEmpty(ffmpegPath)) return null;
-                        
-                        return OptimizeVideoForWallpaper(_selectedImagePath, ffmpegPath);
+                        if (!string.IsNullOrEmpty(ffmpegPath)) 
+                        {
+                            OptimizeVideoForWallpaper(_selectedImagePath, ffmpegPath);
+                        }
                     });
-                    
-                    if (string.IsNullOrEmpty(optimizedPath))
-                    {
-                        StatusLabel.Text = "❌ Video processing failed";
-                        System.Windows.MessageBox.Show("Failed to process video. Check FFmpeg.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-                        return;
-                    }
-                    
-                    StatusLabel.Text = "✅ Video Ready. Launching...";
-                    LaunchVideoWallpaper(optimizedPath);
+
+                    StatusLabel.Text = "✅ Video Applied!";
                 }
                 else
                 {

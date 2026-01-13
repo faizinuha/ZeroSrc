@@ -4,7 +4,7 @@
 
 [Setup]
 ; --- PENTING: AppId Unik (Dibuat Baru) ---
-AppId={{ZeroMix-v2-Frieren-identifier}}
+AppId={{ZeroMix-v2-ZeroMix-identifier}}
 AppName=ZeroMix
 
 ; Allow overriding AppVersion via command line: /DAppVersion=X.X.X
