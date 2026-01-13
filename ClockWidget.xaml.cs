@@ -19,6 +19,15 @@ namespace ZeroMix
         const uint SWP_NOMOVE = 0x0002;
         const uint SWP_NOACTIVATE = 0x0010;
 
+        const int GWL_EXSTYLE = -20;
+        const int WS_EX_TOOLWINDOW = 0x00000080;
+
+        [DllImport("user32.dll")]
+        static extern int GetWindowLong(IntPtr hWnd, int nIndex);
+
+        [DllImport("user32.dll")]
+        static extern int SetWindowLong(IntPtr hWnd, int nIndex, int dwNewLong);
+
         public ClockWidget()
         {
             InitializeComponent();
@@ -49,8 +58,14 @@ namespace ZeroMix
             // Initial update
             UpdateClockDisplay();
 
-            // Make it stay at the bottom of Z-order (Desktop style)
+            // Hide from Alt+Tab and make it stay at the bottom of Z-order
             var helper = new System.Windows.Interop.WindowInteropHelper(this);
+            
+            // Hide from Alt+Tab (WS_EX_TOOLWINDOW)
+            int exStyle = GetWindowLong(helper.Handle, GWL_EXSTYLE);
+            SetWindowLong(helper.Handle, GWL_EXSTYLE, exStyle | WS_EX_TOOLWINDOW);
+
+            // Desktop style Z-order
             SetWindowPos(helper.Handle, HWND_BOTTOM, 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE | SWP_NOACTIVATE);
         }
 
@@ -86,11 +101,6 @@ namespace ZeroMix
             {
                 Close();
                 return;
-            }
-
-            if (e.LeftButton == MouseButtonState.Pressed)
-            {
-                DragMove();
             }
         }
 

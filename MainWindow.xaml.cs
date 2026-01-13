@@ -109,6 +109,9 @@ namespace ZeroMix
                 case "ja-JP":
                     dict.Source = new Uri("Resources/Locales/ja-JP.xaml", UriKind.Relative);
                     break;
+                case "zh-CN":
+                    dict.Source = new Uri("Resources/Locales/zh-CN.xaml", UriKind.Relative);
+                    break;
                 default:
                     dict.Source = new Uri("Resources/Locales/en-US.xaml", UriKind.Relative);
                     break;
@@ -244,20 +247,11 @@ namespace ZeroMix
                     return;
                 }
 
-                // Show notification and restart
-                var result = System.Windows.MessageBox.Show(
-                    "Language changed! The application needs to restart to apply changes.\n\nRestart now?",
-                    "Restart Required",
-                    MessageBoxButton.YesNo,
-                    MessageBoxImage.Information);
+                // Instantly apply language
+                ChangeLanguage(selectedLanguage);
 
-                if (result == MessageBoxResult.Yes)
-                {
-                    // Restart application
-                    var currentProcess = System.Diagnostics.Process.GetCurrentProcess();
-                    System.Diagnostics.Process.Start(currentProcess.MainModule?.FileName);
-                    System.Windows.Application.Current.Shutdown();
-                }
+                // Update Status or specific UI elements if they don't use DynamicResource
+                StatusLabel.Text = "Language updated to " + (selectedItem.Content?.ToString() ?? "Default");
             }
         }
 
