@@ -9,7 +9,7 @@ AppName=ZeroMix
 
 ; Allow overriding AppVersion via command line: /DAppVersion=X.X.X
 #ifndef AppVersion
-  #define AppVersion "2.7.0"
+  #define AppVersion "2.4.0"
 #endif
 
 AppVersion={#AppVersion}
@@ -22,11 +22,6 @@ AppVerName=ZeroMix v{#AppVersion}
 AppPublisher=ZeroMix Team
 AppPublisherURL=https://zeromix.vercel.app
 AppCopyright=Copyright (c) 2025 - All Rights Reserved
-
-[Languages]
-Name: "english"; MessagesFile: "compiler:Default.isl"
-Name: "indonesian"; MessagesFile: "compiler:Languages\Indonesian.isl"
-Name: "japanese"; MessagesFile: "compiler:Languages\Japanese.isl"
 
 ; Installation Configuration
 DefaultDirName={pf}\ZeroMix
@@ -57,6 +52,11 @@ ArchitecturesInstallIn64BitMode=x64
 ArchitecturesAllowed=x64
 MinVersion=10.0.19041
 
+[Languages]
+Name: "english"; MessagesFile: "compiler:Default.isl"
+Name: "indonesian"; MessagesFile: "Languages\Indonesian.isl"
+Name: "japanese"; MessagesFile: "Languages\Japanese.isl"
+
 [Dirs]
 ; Memberikan akses tulis ke folder aplikasi agar config.json bisa disimpan/diupdate oleh aplikasi (User biasa)
 Name: "{app}"; Permissions: users-modify
@@ -80,7 +80,9 @@ Source: "../ZeroMixUpdateCli/package.json"; DestDir: "{app}\bin"; Flags: ignorev
 Source: "../ZeroMixUpdateCli/zeromix-cli.bat"; DestDir: "{app}\bin"; Flags: ignoreversion
 
 ; FFmpeg Tools
-Source: "../FFMPEG\ffmpeg.exe"; DestDir: "{app}\FFMPEG"; Flags: ignoreversion
+; NOTE: The build fails because ffmpeg.exe is missing from the FFMPEG folder.
+; You can download it and place it there, then uncomment the line below.
+;Source: "../FFMPEG/ffmpeg.exe"; DestDir: "{app}\FFMPEG"; Flags: ignoreversion
 
 [Icons]
 Name: "{group}\ZeroMix"; Filename: "{app}\ZeroMix.exe"; IconFilename: "{app}\zeromix.ico"; WorkingDir: "{app}"
