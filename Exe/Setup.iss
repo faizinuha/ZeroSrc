@@ -56,6 +56,7 @@ MinVersion=10.0.19041
 Name: "english"; MessagesFile: "compiler:Default.isl"
 Name: "indonesian"; MessagesFile: "Languages\Indonesian.isl"
 Name: "japanese"; MessagesFile: "Languages\Japanese.isl"
+Name: "chinese"; MessagesFile: "Languages\Chinese.isl"
 
 [Dirs]
 ; Memberikan akses tulis ke folder aplikasi agar config.json bisa disimpan/diupdate oleh aplikasi (User biasa)
@@ -208,6 +209,7 @@ begin
     // Determine language code based on installer selection
     if ActiveLanguage = 'indonesian' then LangCode := 'id-ID'
     else if ActiveLanguage = 'japanese' then LangCode := 'ja-JP'
+    else if ActiveLanguage = 'chinese' then LangCode := 'zh-CN'
     else LangCode := 'en-US';
 
     // Write to config file
