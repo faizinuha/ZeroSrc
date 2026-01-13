@@ -284,6 +284,8 @@ namespace ZeroMix
 
             var contextMenu = new ContextMenuStrip();
             contextMenu.Items.Add("Show Dashboard", null, (s, args) => ShowWindow());
+            contextMenu.Items.Add("ZeroMix Studio (Editor)", null, (s, args) => OpenVideoEditor());
+            contextMenu.Items.Add(new ToolStripSeparator());
             contextMenu.Items.Add("Exit", null, (s, args) => ExitApplication());
             _notifyIcon.ContextMenuStrip = contextMenu;
         }
@@ -1313,5 +1315,19 @@ end";
                 return vLatest > vCurrent;
             } catch { return latest != current; }
         }
+
+        private void OpenVideoEditor()
+        {
+            try
+            {
+                StudioWindow studio = new StudioWindow();
+                studio.Show();
+            }
+            catch (Exception ex)
+            {
+                System.Windows.MessageBox.Show("Gagal membuka ZeroMix Studio: " + ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
     }
 }
