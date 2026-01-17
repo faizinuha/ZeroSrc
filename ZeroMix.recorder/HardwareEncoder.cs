@@ -98,7 +98,7 @@ namespace ZeroMix.Recorder
             return "libx264";
         }
 
-        public void Start(string outputPath)
+        public void Start(string outputPath, string micDevice = "No Audio", string speakerDevice = "No Audio")
         {
             _outputPath = outputPath;
             
@@ -109,9 +109,39 @@ namespace ZeroMix.Recorder
                 _ => "-c:v libx264 -preset ultrafast -crf 23"
             };
 
+            // Audio Inputs
+            string audioInputs = "";
+            int audioChannelCount = 0;
+            
+            if (micDevice != "No Audio" && micDevice != "Default System Microphone")
+            {
+                audioInputs += $"-f dshow -i audio=\"{micDevice}\" ";
+                audioChannelCount++;
+            }
+            else if (micDevice == "Default System Microphone")
+            {
+                // Fallback to default dshow audio if possible or just skip for stability
+            }
+
+            if (speakerDevice != "No Audio")
+            {
+                // Use wasapi loopback for system audio
+                audioInputs += "-f wasapi -i default "; 
+                audioChannelCount++;
+            }
+
+            // Sync video/audio
+            string mapArgs = "-map 0:v";
+            if (audioChannelCount > 0)
+            {
+                for (int i = 0; i < audioChannelCount; i++)
+                    mapArgs += $" -map {i + 1}:a";
+            }
+
             string args = $"-f rawvideo -pixel_format bgra -video_size {_width}x{_height} " +
                           $"-framerate {_framerate} -i - " +
-                          $"{encoderArgs} -pix_fmt yuv420p -r {_framerate} -y \"{_outputPath}\"";
+                          $"{audioInputs} " +
+                          $"{encoderArgs} -pix_fmt yuv420p -r {_framerate} {mapArgs} -c:a aac -b:a 128k -y \"{_outputPath}\"";
 
             _ffmpegProcess = Process.Start(new ProcessStartInfo
             {

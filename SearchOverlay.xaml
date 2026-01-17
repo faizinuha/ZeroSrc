@@ -3,7 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:local="clr-namespace:ZeroMix"
         Title="ZeroMix"
-        Width="900"
+        Width="600"
         SizeToContent="Height"
         MaxHeight="700"
         Topmost="True"

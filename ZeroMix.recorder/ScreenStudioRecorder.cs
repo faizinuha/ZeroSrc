@@ -43,12 +43,12 @@ namespace ZeroMix.Recorder
             }
         }
 
-        public void StartRecording(string outputPath)
+        public void StartRecording(string outputPath, string micDevice = "No Audio", string speakerDevice = "No Audio")
         {
             if (_isRecording || _capturer == null || !_capturer.IsInitialized) return;
 
             _encoder = new HardwareEncoder(_ffmpegPath, _capturer.Device, _capturer.Context, _capturer.Width, _capturer.Height, _framerate);
-            _encoder.Start(outputPath);
+            _encoder.Start(outputPath, micDevice, speakerDevice);
 
             _isRecording = true;
             _recordingTimer.Restart();

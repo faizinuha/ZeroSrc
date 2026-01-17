@@ -90,25 +90,33 @@ namespace ZeroMix.Recorder
                 _d2dContext.UnitMode = UnitMode.Pixels;
                 _d2dContext.DrawBitmap(inputBitmap, 1.0f, InterpolationMode.Linear);
                 
-                // 3. DRAW CUSTOM CURSOR (Fix: Cursor Hilang)
-                // Reset transform untuk kursor agar dia digambar "Sticky" terhadap layar tapi tetap kena Zoom
-                // Tapi kursor sebenarnya harus diposisi aslinya di layar
+                // DRAW NATIVE-LOOKING CURSOR (Lightweight)
                 _d2dContext.Transform = transform; 
                 
-                var cursorColor = isClick ? Colors.White : Colors.White;
-                using var cursorBrush = _d2dContext.CreateSolidColorBrush(cursorColor);
-                
-                // Click Ripple     
-                if (isClick)
-                {
-                    using var rippleBrush = _d2dContext.CreateSolidColorBrush(new Color4(1, 1, 1, 0.3f));
-                    _d2dContext.DrawEllipse(new Ellipse(new Vector2(cursorX, cursorY), 15, 15), rippleBrush, 2.0f);
-                }
+                using var cursorBrush = _d2dContext.CreateSolidColorBrush(Colors.White);
+                using var outlineBrush = _d2dContext.CreateSolidColorBrush(Colors.Black);
 
-                // Main Cursor (Simple Pro Circle ala Screen Studio)
-                _d2dContext.FillEllipse(new Ellipse(new Vector2(cursorX, cursorY), 5, 5), cursorBrush);
-                using var shadowBrush = _d2dContext.CreateSolidColorBrush(new Color4(0, 0, 0, 0.5f));
-                _d2dContext.DrawEllipse(new Ellipse(new Vector2(cursorX, cursorY), 5, 5), shadowBrush, 1.0f);
+                // Draw a simple standard cursor arrow
+                var cursorPoints = new Vector2[]
+                {
+                    new Vector2(cursorX, cursorY),
+                    new Vector2(cursorX, cursorY + 15),
+                    new Vector2(cursorX + 4, cursorY + 11),
+                    new Vector2(cursorX + 9, cursorY + 16),
+                    new Vector2(cursorX + 11, cursorY + 14),
+                    new Vector2(cursorX + 6, cursorY + 9),
+                    new Vector2(cursorX + 11, cursorY + 9)
+                };
+
+                using var geometry = _d2dFactory.CreatePathGeometry();
+                using var sink = geometry.Open();
+                sink.BeginFigure(cursorPoints[0], FigureBegin.Filled);
+                sink.AddLines(cursorPoints);
+                sink.EndFigure(FigureEnd.Closed);
+                sink.Close();
+
+                _d2dContext.FillGeometry(geometry, cursorBrush);
+                _d2dContext.DrawGeometry(geometry, outlineBrush, 1.0f);
 
                 _d2dContext.EndDraw();
                 _d2dContext.Flush(out _, out _); 

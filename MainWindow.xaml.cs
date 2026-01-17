@@ -91,6 +91,7 @@ namespace ZeroMix
         private DispatcherTimer? _taskbarWatcher;
         private Plugins.PluginEngine? _pluginEngine;
         private RecordingManager? _recordingManager;
+        private GlobalHotkeyManager? _hotkeyManager;
         private bool _isRecordingActive = false;
         private DispatcherTimer? _recordDurationTimer;
         private Key _currentRecordHotkey = Key.F9;
@@ -153,6 +154,25 @@ namespace ZeroMix
             InitializeTaskbarWatcher();
             InitializeRecorder();
             this.MouseLeftButtonDown += MainWindow_MouseLeftButtonDown;
+
+            // Register Global Hotkey (F9) immediately
+            this.Loaded += (s, e) => {
+                try {
+                    _hotkeyManager = new GlobalHotkeyManager();
+                    _hotkeyManager.Register(this);
+                    _hotkeyManager.HotkeyPressed += () => {
+                        Dispatcher.Invoke(() => ZeroRecordBtn_Click(this, new RoutedEventArgs()));
+                    };
+                } catch { }
+            };
+
+            // Pre-load recording engine to prevent lag
+            Task.Run(() => {
+                try {
+                    string ffmpegPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "FFMPEG", "ffmpeg.exe");
+                    _recordingManager = new RecordingManager(ffmpegPath);
+                } catch { }
+            });
         }
 
         private void InitializeTaskbarWatcher()
@@ -192,10 +212,7 @@ namespace ZeroMix
             {
                 string targetPlugin = _startupArgs[1];
                 var plugin = _pluginEngine.GetPlugins().FirstOrDefault(p => p.Name == targetPlugin);
-                if (plugin != null)
-                {
-                    _pluginEngine.TogglePlugin(plugin);
-                }
+                if (plugin != null) _pluginEngine.TogglePlugin(plugin);
             }
         }
 
@@ -505,40 +522,67 @@ namespace ZeroMix
             HotkeyBorder.Background = (SolidColorBrush)FindResource("NeonBlueBrush");
         }
 
-        private void LoadAudioDevices()
+        private async void LoadAudioDevices()
         {
+            if (MicComboBox == null || SpeakerComboBox == null) return;
+
+            MicComboBox.Items.Clear();
+            SpeakerComboBox.Items.Clear();
+            
+            MicComboBox.Items.Add(new ComboBoxItem { Content = "Default System Microphone" });
+            MicComboBox.Items.Add(new ComboBoxItem { Content = "No Audio" });
+            SpeakerComboBox.Items.Add(new ComboBoxItem { Content = "Default System Speaker" });
+            SpeakerComboBox.Items.Add(new ComboBoxItem { Content = "No Audio" });
+            
+            MicComboBox.SelectedIndex = 0;
+            SpeakerComboBox.SelectedIndex = 0;
+
             try
             {
-                MicComboBox.Items.Clear();
-                SpeakerComboBox.Items.Clear();
-                
-                MicComboBox.Items.Add(new ComboBoxItem { Content = "Default System Microphone" });
-                MicComboBox.Items.Add(new ComboBoxItem { Content = "No Audio" });
-                
-                SpeakerComboBox.Items.Add(new ComboBoxItem { Content = "Default System Speaker" });
-                SpeakerComboBox.Items.Add(new ComboBoxItem { Content = "No Audio" });
-
-                // Basic enumeration via WMI if available
-                using (var searcher = new ManagementObjectSearcher("SELECT * FROM Win32_SoundDevice"))
+                string ffmpegPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "FFMPEG", "ffmpeg.exe");
+                var deviceNames = await Task.Run(() =>
                 {
-                    foreach (ManagementObject obj in searcher.Get())
+                    var names = new System.Collections.Generic.List<string>();
+                    var psi = new ProcessStartInfo
                     {
-                        var name = obj["Name"]?.ToString();
-                        if (!string.IsNullOrEmpty(name))
+                        FileName = ffmpegPath,
+                        Arguments = "-list_devices true -f dshow -i dummy",
+                        RedirectStandardError = true,
+                        UseShellExecute = false,
+                        CreateNoWindow = true
+                    };
+
+                    using var p = Process.Start(psi);
+                    if (p == null) return names;
+                    
+                    string output = p.StandardError.ReadToEnd();
+                    bool captureNext = false;
+                    foreach (var line in output.Split('\n'))
+                    {
+                        if (line.Contains("DirectShow audio devices")) captureNext = true;
+                        else if (line.Contains("DirectShow video devices")) captureNext = false;
+                        
+                        if (captureNext && line.Contains("\""))
                         {
-                            MicComboBox.Items.Add(new ComboBoxItem { Content = name });
-                            SpeakerComboBox.Items.Add(new ComboBoxItem { Content = name });
+                            var match = System.Text.RegularExpressions.Regex.Match(line, "\"(.*?)\"");
+                            if (match.Success)
+                            {
+                                string name = match.Groups[1].Value;
+                                if (!names.Contains(name)) names.Add(name);
+                            }
                         }
                     }
-                }
+                    return names;
+                });
 
-                MicComboBox.SelectedIndex = 0;
-                SpeakerComboBox.SelectedIndex = 0;
+                foreach (var name in deviceNames)
+                {
+                    MicComboBox.Items.Add(new ComboBoxItem { Content = name });
+                    // Usually we don't pick speakers from dshow as wasapi loopback is better, 
+                    // but for completeness we can list them or let the user choose.
+                }
             }
-            catch (Exception ex)
-            { 
-                Debug.WriteLine($"Failed to load audio devices: {ex.Message}");
-            }
+            catch { }
         }
 
         private void RecorderButton_Click(object sender, RoutedEventArgs e)
@@ -706,11 +750,15 @@ namespace ZeroMix
                     }
                 }
 
+                // Get Audio Devices
+                string mic = (MicComboBox?.SelectedItem as ComboBoxItem)?.Content?.ToString() ?? "No Audio";
+                string speaker = (SpeakerComboBox?.SelectedItem as ComboBoxItem)?.Content?.ToString() ?? "No Audio";
+
                 bool started = await Task.Run(() => 
                 {
                     try 
                     {
-                        _recordingManager.StartRecording($"ZeroRecord_{timestamp}.mp4", fps);
+                        _recordingManager.StartRecording($"ZeroRecord_{timestamp}.mp4", fps, mic, speaker);
                         return true;
                     }
                     catch (Exception ex)
@@ -1271,8 +1319,8 @@ end";
                     
                     using (JsonDocument doc = JsonDocument.Parse(response))
                     {
-                        string latestVersion = doc.RootElement.GetProperty("tag_name").GetString().Replace("v", "");
-                        string downloadUrl = doc.RootElement.GetProperty("assets")[0].GetProperty("browser_download_url").GetString();
+                        string latestVersion = doc.RootElement.GetProperty("tag_name").GetString()?.Replace("v", "") ?? "0.0.0";
+                        string downloadUrl = doc.RootElement.GetProperty("assets")[0].GetProperty("browser_download_url").GetString() ?? "";
                         
                         if (IsNewerVersion(latestVersion, CURRENT_VERSION))
                         {
