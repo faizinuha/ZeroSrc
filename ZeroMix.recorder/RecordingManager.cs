@@ -25,13 +25,13 @@ namespace ZeroMix.Recorder
 
         public string GetDuration() => _recorder?.Duration ?? "00:00";
 
-        public void StartRecording(string outputFileName, int framerate = 30)
+        public void StartRecording(string outputFileName, int framerate = 30, string micDevice = "No Audio", string speakerDevice = "No Audio")
         {
             if (_recorder == null || _recorder.IsRecording) return;
 
             string outputPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyVideos), outputFileName);
             _mouseHook.Install();
-            _recorder.StartRecording(outputPath);
+            _recorder.StartRecording(outputPath, micDevice, speakerDevice);
         }
 
         public void StopRecording()

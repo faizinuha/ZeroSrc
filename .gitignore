@@ -14,6 +14,6 @@ Exe\libcrypto-3-x64.dll
 Exe\libssl-3-x64.dll
 Exe\libcrypto-3-x86.dll
 
-# File sertifikat (jangan dimasukkan ke repositori publik)
-Exe/ZeroMixCert.pfx
+# API Keys & Secrets
+ApiKeys.cs
 cert_base64.txt
