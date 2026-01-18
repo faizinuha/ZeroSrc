@@ -16,4 +16,4 @@ Exe\libcrypto-3-x86.dll
 
 # API Keys & Secrets
 ApiKeys.cs
-cert_base64.txt
+ZeroMixCert_base64.txt
