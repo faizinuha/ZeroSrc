@@ -50,11 +50,16 @@ namespace ZeroMix
 
         private void Window_StateChanged(object? sender, EventArgs e)
         {
-            // Safety check: jika somehow minimize terjadi, restore
+            // Safety check: jika somehow minimize terjadi (Win+D), restore dan kirim ke background lagi
             if (this.WindowState == WindowState.Minimized)
             {
-                System.Diagnostics.Debug.WriteLine("Window minimized detected, restoring immediately...");
-                this.WindowState = WindowState.Maximized;
+                System.Diagnostics.Debug.WriteLine("Window minimized detected (Win+D?), restoring immediately...");
+                this.WindowState = WindowState.Normal;
+                // Re-send to background setelah restore
+                this.Dispatcher.BeginInvoke(new Action(() => {
+                    SendWindowToBackground();
+                    ForceFullScreen();
+                }), System.Windows.Threading.DispatcherPriority.Background);
             }
         }
 
@@ -136,6 +141,7 @@ namespace ZeroMix
 
         private void VideoPlayer_MediaEnded(object sender, RoutedEventArgs e)
         {
+            // Seamless loop tanpa delay
             VideoPlayer.Position = TimeSpan.Zero;
             VideoPlayer.Play();
         }
@@ -170,8 +176,8 @@ namespace ZeroMix
                 int exStyle = NativeMethods.GetWindowLong(hwnd, NativeMethods.GWL_EXSTYLE);
                 System.Diagnostics.Debug.WriteLine($"Current exStyle: 0x{exStyle:X8}");
                 
-                // Remove transparent flag agar icons & klik kanan bisa tembus
-                exStyle &= ~NativeMethods.WS_EX_TRANSPARENT;
+                // PENTING: Tambah WS_EX_TRANSPARENT agar klik TEMBUS ke icons di atasnya
+                exStyle |= NativeMethods.WS_EX_TRANSPARENT;
                 
                 // Add flags: TOOLWINDOW (hide from alt-tab), NOACTIVATE, LAYERED
                 exStyle |= NativeMethods.WS_EX_TOOLWINDOW | NativeMethods.WS_EX_NOACTIVATE | NativeMethods.WS_EX_LAYERED;
@@ -181,11 +187,11 @@ namespace ZeroMix
                 System.Diagnostics.Debug.WriteLine($"SetWindowLong result: {result}, New exStyle: 0x{exStyle:X8}");
                 
                 // Set window transparency dengan alpha blend
-                // LWA_ALPHA = 0x00000002, alpha value = 200 (out of 255) = ~78% opaque
-                bool alphaResult = NativeMethods.SetLayeredWindowAttributes(hwnd, 0, 200, 0x00000002);
+                // LWA_ALPHA = 0x00000002, alpha value = 255 (full opaque) agar video tidak transparan
+                bool alphaResult = NativeMethods.SetLayeredWindowAttributes(hwnd, 0, 255, 0x00000002);
                 System.Diagnostics.Debug.WriteLine($"SetLayeredWindowAttributes result: {alphaResult}");
                 
-                System.Diagnostics.Debug.WriteLine("✓ Window styles successfully applied: TOOLWINDOW | NOACTIVATE | LAYERED with alpha");
+                System.Diagnostics.Debug.WriteLine("✓ Window styles successfully applied: TOOLWINDOW | NOACTIVATE | LAYERED | TRANSPARENT");
             }
             catch (Exception ex)
             {
@@ -210,47 +216,53 @@ namespace ZeroMix
 
                 IntPtr result = IntPtr.Zero;
 
-                // Kirim pesan ke Progman untuk spawn WorkerW
+                // Kirim pesan ke Progman untuk spawn WorkerW di belakang desktop icons
+                // Ini adalah "magic message" yang membuat Windows membuat WorkerW baru
                 NativeMethods.SendMessageTimeout(progman, 
                     0x052C, 
-                    new IntPtr(0), 
-                    IntPtr.Zero, 
+                    new IntPtr(0x0000000D), 
+                    new IntPtr(0x00000001), 
                     NativeMethods.SendMessageTimeoutFlags.SMTO_NORMAL, 
                     1000, 
                     out result);
                 System.Diagnostics.Debug.WriteLine("Message sent to Progman for WorkerW spawn");
 
+                // Tunggu sebentar agar WorkerW terbentuk
+                System.Threading.Thread.Sleep(100);
+
                 IntPtr workerw = IntPtr.Zero;
 
-                // Cari WorkerW yang benar (yang ada di belakang SHELLDLL_DefView)
+                // Cari WorkerW yang BENAR: yang berada SETELAH window dengan SHELLDLL_DefView
+                // Itu adalah WorkerW yang berada di BELAKANG desktop icons
                 NativeMethods.EnumWindows((tophandle, topparamhandle) =>
                 {
-                    IntPtr p = NativeMethods.FindWindowEx(tophandle, IntPtr.Zero, "SHELLDLL_DefView", IntPtr.Zero);
+                    IntPtr shellView = NativeMethods.FindWindowEx(tophandle, IntPtr.Zero, "SHELLDLL_DefView", IntPtr.Zero);
 
-                    if (p != IntPtr.Zero)
+                    if (shellView != IntPtr.Zero)
                     {
-                        // WorkerW adalah sibling dari SHELLDLL_DefView yang kita cari
+                        // Cari WorkerW yang ada SETELAH window ini (sibling)
+                        // Ini adalah layer yang berada DI BELAKANG desktop icons
                         workerw = NativeMethods.FindWindowEx(IntPtr.Zero, tophandle, "WorkerW", IntPtr.Zero);
-                        System.Diagnostics.Debug.WriteLine($"WorkerW found: {(workerw != IntPtr.Zero ? "YES" : "NO")}");
+                        System.Diagnostics.Debug.WriteLine($"Found SHELLDLL_DefView, WorkerW sibling: {(workerw != IntPtr.Zero ? "YES" : "NO")}");
+                        return false; // Stop enumeration
                     }
-                    return true;
+                    return true; // Continue
                 }, IntPtr.Zero);
 
                 IntPtr windowHandle = new WindowInteropHelper(this).Handle;
 
-                // Jika WorkerW ketemu, tempel ke sana. Jika tidak, tempel ke Progman.
-                IntPtr parent = (workerw != IntPtr.Zero) ? workerw : progman;
-                string parentName = (workerw != IntPtr.Zero) ? "WorkerW" : "Progman";
-                System.Diagnostics.Debug.WriteLine($"Parent window: {parentName}");
-                
-                NativeMethods.SetParent(windowHandle, parent);
-                System.Diagnostics.Debug.WriteLine("Window parented successfully");
-                
-                // PENTING: Paksa window kita ke layer paling bawah agar tidak menutupi icons
-                // HWND_BOTTOM = 1
-                bool posResult = NativeMethods.SetWindowPos(windowHandle, new IntPtr(1), 0, 0, 0, 0, 
-                    NativeMethods.SWP_NOMOVE | NativeMethods.SWP_NOSIZE | NativeMethods.SWP_NOACTIVATE);
-                System.Diagnostics.Debug.WriteLine($"SetWindowPos result: {posResult}");
+                if (workerw != IntPtr.Zero)
+                {
+                    // Parent video window ke WorkerW yang benar (di belakang icons)
+                    NativeMethods.SetParent(windowHandle, workerw);
+                    System.Diagnostics.Debug.WriteLine("Video window parented to WorkerW (behind icons)");
+                }
+                else
+                {
+                    // Fallback: parent ke Progman jika WorkerW tidak ditemukan
+                    NativeMethods.SetParent(windowHandle, progman);
+                    System.Diagnostics.Debug.WriteLine("Fallback: Video window parented to Progman");
+                }
                 
                 System.Diagnostics.Debug.WriteLine("✓ SendWindowToBackground completed successfully");
             }

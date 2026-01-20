@@ -96,6 +96,11 @@ namespace ZeroMix
         private DispatcherTimer? _recordDurationTimer;
         private Key _currentRecordHotkey = Key.F9;
         private bool _isPickingHotkey = false;
+        
+        // Cache untuk System Health agar tidak query WMI setiap tick
+        private long _cachedTotalRAM = 0;
+        private string? _cachedOsVersion;
+        private string? _cachedProcessor;
 
         private string[]? _startupArgs;
 
@@ -152,7 +157,7 @@ namespace ZeroMix
             InitializeComponent();
             InitializeTrayIcon();
             InitializeTaskbarWatcher();
-            InitializeRecorder();
+            // InitializeRecorder(); // Removed to prevent startup crash, handled in background task below
             this.MouseLeftButtonDown += MainWindow_MouseLeftButtonDown;
 
             // Register Global Hotkey (F9) immediately
@@ -166,13 +171,40 @@ namespace ZeroMix
                 } catch { }
             };
 
-            // Pre-load recording engine to prevent lag
+            // Pre-load recording engine to prevent lag with robust FFmpeg path detection
             Task.Run(() => {
                 try {
-                    string ffmpegPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "FFMPEG", "ffmpeg.exe");
+                    string ffmpegPath = ResolveFFmpegPath();
                     _recordingManager = new RecordingManager(ffmpegPath);
                 } catch { }
             });
+        }
+
+        private string ResolveFFmpegPath()
+        {
+            // Try priority locations:
+            var possiblePaths = new[]
+            {
+                Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "FFMPEG", "ffmpeg.exe"),
+                Path.Combine(Directory.GetCurrentDirectory(), "FFMPEG", "ffmpeg.exe"),
+                // If we are in bin/Debug/..., go up 3 levels to find project root
+                Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "..", "..", "..", "FFMPEG", "ffmpeg.exe")
+            };
+
+            foreach (var path in possiblePaths)
+            {
+                if (File.Exists(path))
+                {
+                    Debug.WriteLine($"[ZeroMix] Found FFmpeg at: {path}");
+                    return path;
+                }
+            }
+
+            // Fallback to absolute path user mentioned if all else fails
+            string userPath = @"c:\ZeroMix\ZeroMix\FFMPEG\ffmpeg.exe";
+            if (File.Exists(userPath)) return userPath;
+
+            return "ffmpeg.exe"; // Try system PATH
         }
 
         private void InitializeTaskbarWatcher()
@@ -333,18 +365,27 @@ namespace ZeroMix
                 CpuPercentText.Text = $"{cpuUsage:F1} %";
                 CpuProgressBar.Value = cpuUsage;
 
-                // RAM Usage
+                // RAM Usage - gunakan cached totalRAM, tidak perlu query WMI setiap tick
                 float availableRam = _ramCounter!.NextValue();
-                ManagementClass managementClass = new ManagementClass("Win32_ComputerSystem");
-                ManagementObjectCollection managementObjectCollection = managementClass.GetInstances();
-                long totalRAM = 0;
-                foreach (ManagementObject managementObject in managementObjectCollection)
+                
+                // Cache totalRAM saat pertama kali
+                if (_cachedTotalRAM == 0)
                 {
-                    totalRAM = Convert.ToInt64(managementObject["TotalPhysicalMemory"]) / (1024 * 1024);
+                    Task.Run(() => {
+                        try {
+                            ManagementClass managementClass = new ManagementClass("Win32_ComputerSystem");
+                            foreach (ManagementObject obj in managementClass.GetInstances())
+                            {
+                                _cachedTotalRAM = Convert.ToInt64(obj["TotalPhysicalMemory"]) / (1024 * 1024);
+                                break;
+                            }
+                        } catch { _cachedTotalRAM = 8192; } // Default 8GB jika gagal
+                    });
+                    _cachedTotalRAM = 8192; // Temporary default
                 }
 
-                float usedRam = totalRAM - (int)availableRam;
-                float ramPercent = (usedRam / totalRAM) * 100;
+                float usedRam = _cachedTotalRAM - (int)availableRam;
+                float ramPercent = (usedRam / _cachedTotalRAM) * 100;
 
                 RamPercentText.Text = $"{ramPercent:F1} %";
                 RamProgressBar.Value = ramPercent;
@@ -370,45 +411,66 @@ namespace ZeroMix
             }
         }
 
-        private void UpdateSystemInfo()
+        private async void UpdateSystemInfo()
         {
             try
             {
-                // OS Version
-                ManagementClass osClass = new ManagementClass("Win32_OperatingSystem");
-                ManagementObjectCollection osCollection = osClass.GetInstances();
-                foreach (ManagementObject os in osCollection)
+                // Jalankan semua WMI queries di background thread untuk menghindari blocking UI
+                await Task.Run(() => 
                 {
-                    string? osVersion = os["Caption"]?.ToString();
-                    OsVersionText.Text = osVersion ?? "Unknown OS";
-                }
+                    try {
+                        // OS Version (cache)
+                        if (string.IsNullOrEmpty(_cachedOsVersion))
+                        {
+                            ManagementClass osClass = new ManagementClass("Win32_OperatingSystem");
+                            foreach (ManagementObject os in osClass.GetInstances())
+                            {
+                                _cachedOsVersion = os["Caption"]?.ToString() ?? "Unknown OS";
+                                break;
+                            }
+                        }
 
-                // Processor
-                ManagementClass procClass = new ManagementClass("Win32_Processor");
-                ManagementObjectCollection procCollection = procClass.GetInstances();
-                foreach (ManagementObject proc in procCollection)
-                {
-                    ProcessorText.Text = proc["Name"]?.ToString() ?? "Unknown Processor";
-                }
+                        // Processor (cache)
+                        if (string.IsNullOrEmpty(_cachedProcessor))
+                        {
+                            ManagementClass procClass = new ManagementClass("Win32_Processor");
+                            foreach (ManagementObject proc in procClass.GetInstances())
+                            {
+                                _cachedProcessor = proc["Name"]?.ToString() ?? "Unknown Processor";
+                                break;
+                            }
+                        }
 
-                // RAM
-                ManagementClass ramClass = new ManagementClass("Win32_ComputerSystem");
-                ManagementObjectCollection ramCollection = ramClass.GetInstances();
-                foreach (ManagementObject ram in ramCollection)
-                {
-                    long totalRam = Convert.ToInt64(ram["TotalPhysicalMemory"]) / (1024 * 1024 * 1024);
-                    TotalRamText.Text = $"RAM: {totalRam} GB";
-                }
+                        // RAM (cache)
+                        if (_cachedTotalRAM == 0)
+                        {
+                            ManagementClass ramClass = new ManagementClass("Win32_ComputerSystem");
+                            foreach (ManagementObject ram in ramClass.GetInstances())
+                            {
+                                _cachedTotalRAM = Convert.ToInt64(ram["TotalPhysicalMemory"]) / (1024 * 1024);
+                                break;
+                            }
+                        }
+                    } catch { }
+                });
 
-                // Network
-                ManagementClass netClass = new ManagementClass("Win32_NetworkAdapterConfiguration");
-                ManagementObjectCollection netCollection = netClass.GetInstances();
+                // Update UI di main thread
+                OsVersionText.Text = _cachedOsVersion ?? "Unknown OS";
+                ProcessorText.Text = _cachedProcessor ?? "Unknown Processor";
+                TotalRamText.Text = $"RAM: {_cachedTotalRAM / 1024} GB";
+
+                // Network - ini lebih cepat, bisa langsung di UI thread
                 int activeNetworks = 0;
-                foreach (ManagementObject net in netCollection)
-                {
-                    if ((bool?)net["IPEnabled"] == true)
-                        activeNetworks++;
-                }
+                try {
+                    await Task.Run(() => {
+                        ManagementClass netClass = new ManagementClass("Win32_NetworkAdapterConfiguration");
+                        foreach (ManagementObject net in netClass.GetInstances())
+                        {
+                            if ((bool?)net["IPEnabled"] == true)
+                                activeNetworks++;
+                        }
+                    });
+                } catch { }
                 NetworkText.Text = $"Network: {activeNetworks} Active";
             }
             catch (Exception ex)
@@ -720,7 +782,7 @@ namespace ZeroMix
 
         private void InitializeRecorder()
         {
-            string ffmpegPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "FFMPEG", "ffmpeg.exe");
+            string ffmpegPath = ResolveFFmpegPath();
             _recordingManager = new RecordingManager(ffmpegPath);
         }
 
@@ -753,6 +815,18 @@ namespace ZeroMix
                 // Get Audio Devices
                 string mic = (MicComboBox?.SelectedItem as ComboBoxItem)?.Content?.ToString() ?? "No Audio";
                 string speaker = (SpeakerComboBox?.SelectedItem as ComboBoxItem)?.Content?.ToString() ?? "No Audio";
+
+                // Check if FFmpeg exists
+                if (!File.Exists(_recordingManager.FFmpegPath))
+                {
+                    System.Windows.MessageBox.Show($"FFmpeg not found at:\n{_recordingManager.FFmpegPath}\n\nPlease check the FFMPEG folder.", "ZeroRecord Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                    if (HomeRecordBtn != null) HomeRecordBtn.IsEnabled = true;
+                    if (HomeRecordBtnText != null) HomeRecordBtnText.Text = "START RECORD";
+                    return;
+                }
+
+                // We no longer block on _recordingManager.IsInitialized because it has a GDI fallback now.
+                // Just start the recording.
 
                 bool started = await Task.Run(() => 
                 {
@@ -824,13 +898,27 @@ namespace ZeroMix
                 {
                     _notifyIcon.Text = "ZeroMix Dashboard";
                     _notifyIcon.BalloonTipTitle = "ZeroRecord Stopped";
-                    _notifyIcon.BalloonTipText = "Video saved to your Videos folder.";
+                    _notifyIcon.BalloonTipText = "Video saved to Videos\\ZeroRecord folder.";
                     _notifyIcon.ShowBalloonTip(2000);
                 }
-                StatusLabel.Text = "Recording Saved";
+                StatusLabel.Text = "Recording Saved to Videos\\ZeroRecord";
             }
 
             if (HomeRecordBtn != null) HomeRecordBtn.IsEnabled = true;
+        }
+
+        private void OpenRecordingsBtn_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                string path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyVideos), "ZeroRecord");
+                if (!Directory.Exists(path)) Directory.CreateDirectory(path);
+                Process.Start("explorer.exe", path);
+            }
+            catch (Exception ex)
+            {
+                System.Windows.MessageBox.Show("Could not open recordings folder: " + ex.Message);
+            }
         }
 
         private void UpdateRecordUI(bool isActive)

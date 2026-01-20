@@ -26,7 +26,8 @@ namespace ZeroMix
         System,
         Terminal,
         File,
-        Video
+        Video,
+        Music
     }
 
     public class SuggestionItem : INotifyPropertyChanged
@@ -88,6 +89,7 @@ namespace ZeroMix
                 SuggestionType.WebSearch => "\uE774",
                 SuggestionType.File => "\uE8A5",
                 SuggestionType.Video => "\uE714",
+                SuggestionType.Music => "\uE93C",
                 _ => "\uE773"
             };
 
@@ -102,6 +104,7 @@ namespace ZeroMix
                     SuggestionType.Terminal => "Run command in Terminal",
                     SuggestionType.File => "File",
                     SuggestionType.Video => "Video",
+                    SuggestionType.Music => "Music",
                     _ => ""
                 };
             }
@@ -460,11 +463,13 @@ namespace ZeroMix
                     if (queryLower.Contains("restart")) results.Add(new SuggestionItem("Restart PC", "restart", SuggestionType.System));
                     if (queryLower.Contains("sleep")) results.Add(new SuggestionItem("Sleep PC", "sleep", SuggestionType.System));
 
-                    // 5. Fuzzy Matching Apps
+                    // 5. Fuzzy Matching Apps & Indexed suggestions
                     var appMatches = _allSuggestions
-                        .Where(s => CalculateMatchScore(s.DisplayText, query) > 0)
-                        .OrderByDescending(s => CalculateMatchScore(s.DisplayText, query))
-                        .Take(6)
+                        .Select(s => new { Item = s, Score = CalculateMatchScore(s.DisplayText, queryLower) })
+                        .Where(x => x.Score > 0)
+                        .OrderByDescending(x => x.Score)
+                        .Take(8)
+                        .Select(x => x.Item)
                         .ToList();
                     results.AddRange(appMatches);
 
@@ -510,8 +515,10 @@ namespace ZeroMix
                 SuggestionType.System => 3,
                 SuggestionType.App => 4,
                 SuggestionType.File => 5,
-                SuggestionType.WebSearch => 6,
-                _ => 7
+                SuggestionType.Video => 6,
+                SuggestionType.Music => 7,
+                SuggestionType.WebSearch => 8,
+                _ => 9
             };
         }
 
@@ -632,10 +639,11 @@ namespace ZeroMix
                             }
 
                             var icon = thumbnail ?? ExtractIconFromFile(item);
-                            var type = isDirectory ? SuggestionType.System :
-                                       IsImageFile(Path.GetExtension(item)) ? SuggestionType.Image :
-                                       IsVideoFile(Path.GetExtension(item)) ? SuggestionType.Video :
-                                       SuggestionType.File;
+                             var type = isDirectory ? SuggestionType.System :
+                                        IsImageFile(Path.GetExtension(item)) ? SuggestionType.Image :
+                                        IsVideoFile(Path.GetExtension(item)) ? SuggestionType.Video :
+                                        IsMusicFile(Path.GetExtension(item)) ? SuggestionType.Music :
+                                        SuggestionType.File;
 
                             suggestions.Add(new SuggestionItem(name, item, type, icon, isDirectory ? "📁 Folder" : "File"));
                         }
@@ -651,11 +659,34 @@ namespace ZeroMix
         private int CalculateMatchScore(string text, string query)
         {
             if (string.IsNullOrWhiteSpace(text) || string.IsNullOrWhiteSpace(query)) return 0;
-            text = text.ToLower(); query = query.ToLower();
+            text = text.ToLower();
+            query = query.ToLower();
+
             if (text == query) return 100;
             if (text.StartsWith(query)) return 90;
-            if (text.Contains(" " + query)) return 70;
+            
+            // Fuzzy: check if all characters of query exist in text in order
+            int lastIndex = -1;
+            bool allFound = true;
+            foreach (char c in query)
+            {
+                int nextIndex = text.IndexOf(c, lastIndex + 1);
+                if (nextIndex == -1)
+                {
+                    allFound = false;
+                    break;
+                }
+                lastIndex = nextIndex;
+            }
+
+            if (allFound)
+            {
+                // Score based on how compact the match is
+                return Math.Max(10, 80 - (text.Length - query.Length));
+            }
+
             if (text.Contains(query)) return 50;
+            
             return 0;
         }
 
@@ -679,7 +710,20 @@ namespace ZeroMix
             return suggestions;
         }
 
-        private void SuggestionList_SelectionChanged(object sender, SelectionChangedEventArgs e) { }
+        private void SuggestionList_SelectionChanged(object sender, SelectionChangedEventArgs e) 
+        {
+            if (SuggestionList.SelectedItem is SuggestionItem item)
+            {
+                // Auto-preview on selection (keyboard navigation or single click)
+                if (!string.IsNullOrEmpty(item.FilePath) && (File.Exists(item.FilePath) || Directory.Exists(item.FilePath)))
+                {
+                    if (Directory.Exists(item.FilePath))
+                        ShowFolderPreview(item.FilePath, false); // Don't hide suggestion list yet
+                    else
+                        ShowFilePreview(item.FilePath, false);
+                }
+            }
+        }
         private void SuggestionList_MouseDoubleClick(object sender, MouseButtonEventArgs e) => HandleSuggestionSelection((sender as System.Windows.Controls.ListBox)?.SelectedItem as SuggestionItem);
 
         private void SuggestionList_KeyDown(object sender, System.Windows.Input.KeyEventArgs e)
@@ -707,13 +751,19 @@ namespace ZeroMix
                 // Handle Video files
                 else if (selectedItem.Type == SuggestionType.Video || IsVideoFile(Path.GetExtension(selectedItem.FilePath)))
                 {
-                    ShowFilePreview(selectedItem.FilePath);
+                    ShowFilePreview(selectedItem.FilePath, true);
+                    return;
+                }
+                // Handle Music files
+                else if (selectedItem.Type == SuggestionType.Music || IsMusicFile(Path.GetExtension(selectedItem.FilePath)))
+                {
+                    ShowFilePreview(selectedItem.FilePath, true);
                     return;
                 }
                 // Handle other files
                 else if (selectedItem.Type == SuggestionType.File)
                 {
-                    ShowFilePreview(selectedItem.FilePath);
+                    ShowFilePreview(selectedItem.FilePath, true);
                     return;
                 }
             }
@@ -1128,7 +1178,7 @@ namespace ZeroMix
             videoPreview?.Pause();
         }
 
-        private void ShowFilePreview(string filePath)
+        private void ShowFilePreview(string filePath, bool hideSuggestions = true)
         {
             try
             {
@@ -1174,9 +1224,31 @@ namespace ZeroMix
                 {
                     try
                     {
-                        if (videoPreview != null) videoPreview.Source = new Uri(filePath);
+                        if (videoPreview != null) 
+                        {
+                            videoPreview.Source = new Uri(filePath);
+                            videoPreview.Position = TimeSpan.Zero;
+                            videoPreview.Play();
+                        }
                         if (videoPreviewContainer != null) videoPreviewContainer.Visibility = Visibility.Visible;
                         if (previewTitle != null) previewTitle.Text = $"Video Preview - {Path.GetFileName(filePath)}";
+                    }
+                    catch { }
+                }
+                // Music Preview
+                else if (IsMusicFile(extension))
+                {
+                    try
+                    {
+                        if (videoPreview != null) 
+                        {
+                            videoPreview.Source = new Uri(filePath);
+                            videoPreview.Position = TimeSpan.Zero;
+                            videoPreview.Play();
+                        }
+                        // Reuse video container for audio (will just show controls/waveform if any, but mostly just play)
+                        if (videoPreviewContainer != null) videoPreviewContainer.Visibility = Visibility.Visible;
+                        if (previewTitle != null) previewTitle.Text = $"Music Playing - {Path.GetFileName(filePath)}";
                     }
                     catch { }
                 }
@@ -1200,11 +1272,11 @@ namespace ZeroMix
 
                 // Show preview panel
                 if (previewPanel != null) previewPanel.Visibility = Visibility.Visible;
-                SuggestionList.Visibility = Visibility.Collapsed;
+                if (hideSuggestions) SuggestionList.Visibility = Visibility.Collapsed;
 
                 // Show video controls if video
                 var videoControlsPanel = this.FindName("VideoControlsPanel") as StackPanel;
-                if (IsVideoFile(extension))
+                if (IsVideoFile(extension) || IsMusicFile(extension))
                 {
                     if (videoControlsPanel != null) videoControlsPanel.Visibility = Visibility.Visible;
                 }
@@ -1235,6 +1307,12 @@ namespace ZeroMix
             return videoExtensions.Contains(extension);
         }
 
+        private bool IsMusicFile(string extension)
+        {
+            string[] musicExtensions = { ".mp3", ".wav", ".wma", ".m4a", ".flac", ".ogg", ".aac" };
+            return musicExtensions.Contains(extension);
+        }
+
         private string FormatFileSize(long bytes)
         {
             string[] sizes = { "B", "KB", "MB", "GB", "TB" };
@@ -1248,7 +1326,7 @@ namespace ZeroMix
             return $"{len:0.##} {sizes[order]}";
         }
 
-        private void ShowFolderPreview(string folderPath)
+        private void ShowFolderPreview(string folderPath, bool hideSuggestions = true)
         {
             if (!Directory.Exists(folderPath)) return;
 
@@ -1310,6 +1388,7 @@ namespace ZeroMix
                         var type = isDirectory ? SuggestionType.System :
                                    IsImageFile(Path.GetExtension(item)) ? SuggestionType.Image :
                                    IsVideoFile(Path.GetExtension(item)) ? SuggestionType.Video :
+                                   IsMusicFile(Path.GetExtension(item)) ? SuggestionType.Music :
                                    SuggestionType.File;
 
                         var suggestion = new SuggestionItem(name, item, type, icon, isDirectory ? "📁 Folder" : "File");
@@ -1328,7 +1407,7 @@ namespace ZeroMix
                 previewTitle!.Text = $"📁 {Path.GetFileName(folderPath ?? "Root")}";
 
                 previewPanel!.Visibility = Visibility.Visible;
-                SuggestionList.Visibility = Visibility.Collapsed;
+                if (hideSuggestions) SuggestionList.Visibility = Visibility.Collapsed;
             }
             catch (Exception ex)
             {
