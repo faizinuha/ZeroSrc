@@ -14,6 +14,9 @@ namespace ZeroMix.Recorder
         private string _ffmpegPath;
         private GlobalMouseHook _mouseHook;
 
+        public bool IsInitialized => _recorder?.IsInitialized ?? false;
+        public string FFmpegPath => _ffmpegPath;
+
         public RecordingManager(string ffmpegPath)
         {
             _ffmpegPath = ffmpegPath;
@@ -29,7 +32,17 @@ namespace ZeroMix.Recorder
         {
             if (_recorder == null || _recorder.IsRecording) return;
 
-            string outputPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyVideos), outputFileName);
+            string myVideos = Environment.GetFolderPath(Environment.SpecialFolder.MyVideos);
+            string zeroRecordDir = Path.Combine(myVideos, "ZeroRecord");
+            
+            if (!Directory.Exists(zeroRecordDir))
+            {
+                Directory.CreateDirectory(zeroRecordDir);
+            }
+
+            string outputPath = Path.Combine(zeroRecordDir, outputFileName);
+            Console.WriteLine($"[RecordingManager] Starting recording to: {outputPath}");
+
             _mouseHook.Install();
             _recorder.StartRecording(outputPath, micDevice, speakerDevice);
         }

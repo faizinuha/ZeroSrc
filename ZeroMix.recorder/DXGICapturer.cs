@@ -4,6 +4,7 @@ using Vortice.Direct3D;
 using Vortice.Direct3D11;
 using Vortice.DXGI;
 using System.Windows;
+using System.Runtime.InteropServices;
 
 namespace ZeroMix.Recorder
 {
@@ -27,53 +28,128 @@ namespace ZeroMix.Recorder
 
         public DXGICapturer()
         {
-            D3D11.D3D11CreateDevice(
-                null, 
-                DriverType.Hardware, 
-                DeviceCreationFlags.BgraSupport | DeviceCreationFlags.VideoSupport, 
-                null, 
-                out _device!, 
-                out _context!
-            ).CheckError();
+            if (!TryCreateDevice(DriverType.Hardware))
+            {
+                Console.WriteLine("[DXGICapturer] Hardware device creation failed, falling back to WARP...");
+                if (!TryCreateDevice(DriverType.Warp))
+                {
+                    Console.WriteLine("[DXGICapturer] FATAL: WARP device creation also failed.");
+                    IsInitialized = false;
+                    return;
+                }
+            }
 
             Initialize();
+        }
+
+        private bool TryCreateDevice(DriverType driverType)
+        {
+            try
+            {
+                D3D11.D3D11CreateDevice(
+                    null,
+                    driverType,
+                    DeviceCreationFlags.BgraSupport | DeviceCreationFlags.VideoSupport,
+                    null,
+                    out _device!,
+                    out _context!
+                ).CheckError();
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[DXGICapturer] Failed to create {driverType} device: {ex.Message}");
+                return false;
+            }
         }
 
         private void Initialize()
         {
             try
             {
-                using var dxgiDevice = _device.QueryInterface<IDXGIDevice>();
-                using var adapter = dxgiDevice.GetParent<IDXGIAdapter>();
+                Console.WriteLine("[DXGICapturer] Initializing DXGI Output Duplication...");
                 
-                adapter.EnumOutputs(0, out var output).CheckError();
-                using var output1 = output.QueryInterface<IDXGIOutput1>();
-                
-                var desc = output.Description;
-                Width = desc.DesktopCoordinates.Right - desc.DesktopCoordinates.Left;
-                Height = desc.DesktopCoordinates.Bottom - desc.DesktopCoordinates.Top;
-                
-                _deskDupl = output1.DuplicateOutput(_device);
-                output.Dispose();
+                // Use static factory creation instead of device parent
+                using var dxgiFactory = DXGI.CreateDXGIFactory1<IDXGIFactory1>();
 
-                var texDesc = new Texture2DDescription
+                if (dxgiFactory == null)
                 {
-                    Width = (uint)Width,
-                    Height = (uint)Height,
-                    MipLevels = 1,
-                    ArraySize = 1,
-                    Format = Format.B8G8R8A8_UNorm,
-                    SampleDescription = new SampleDescription(1, 0),
-                    Usage = ResourceUsage.Default,
-                    BindFlags = BindFlags.ShaderResource | BindFlags.RenderTarget,
-                    CPUAccessFlags = CpuAccessFlags.None,
-                    MiscFlags = ResourceOptionFlags.None
-                };
-                _lastFrame = _device.CreateTexture2D(texDesc);
+                    Console.WriteLine("[DXGICapturer] ERROR: Failed to create DXGI factory.");
+                    IsInitialized = false;
+                    return;
+                }
 
-                IsInitialized = true;
+                // Iterasi semua adapter (GPU)
+                for (uint adapterIndex = 0; dxgiFactory.EnumAdapters(adapterIndex, out var adapter).Success; adapterIndex++)
+                {
+                    try
+                    {
+                        var adapterDesc = adapter.Description;
+                        Console.WriteLine($"[DXGICapturer] Checking Adapter {adapterIndex}: {adapterDesc.Description}");
+
+                        // Iterasi semua output (Monitor) pada adapter ini
+                        for (uint outputIndex = 0; adapter.EnumOutputs(outputIndex, out var output).Success; outputIndex++)
+                        {
+                            try
+                            {
+                                using var output1 = output.QueryInterface<IDXGIOutput1>();
+                                var desc = output.Description;
+                                Width = desc.DesktopCoordinates.Right - desc.DesktopCoordinates.Left;
+                                Height = desc.DesktopCoordinates.Bottom - desc.DesktopCoordinates.Top;
+
+                                Console.WriteLine($"[DXGICapturer] Trying Output {outputIndex}: {Width}x{Height}");
+
+                                // Coba duplikasi - titik krusial kegagalan biasanya di sini
+                                try
+                                {
+                                    _deskDupl = output1.DuplicateOutput(_device);
+                                    Console.WriteLine($"[DXGICapturer] Success on Adapter {adapterIndex}, Output {outputIndex}!");
+                                    
+                                    SetupStagingTexture();
+                                    IsInitialized = true;
+                                    output.Dispose();
+                                    adapter.Dispose();
+                                    return; // Berhasil!
+                                }
+                                catch (Exception ex)
+                                {
+                                    Console.WriteLine($"[DXGICapturer] DuplicateOutput failed on this output: {ex.Message}");
+                                }
+                            }
+                            catch { }
+                            finally { output.Dispose(); }
+                        }
+                    }
+                    catch { }
+                    finally { adapter.Dispose(); }
+                }
+
+                Console.WriteLine("[DXGICapturer] ERROR: No duplicatable output found on any adapter.");
+                IsInitialized = false;
             }
-            catch { IsInitialized = false; }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[DXGICapturer] FATAL ERROR during initialization: {ex.Message}");
+                IsInitialized = false;
+            }
+        }
+
+        private void SetupStagingTexture()
+        {
+            var texDesc = new Texture2DDescription
+            {
+                Width = (uint)Width,
+                Height = (uint)Height,
+                MipLevels = 1,
+                ArraySize = 1,
+                Format = Format.B8G8R8A8_UNorm,
+                SampleDescription = new SampleDescription(1, 0),
+                Usage = ResourceUsage.Default,
+                BindFlags = BindFlags.ShaderResource | BindFlags.RenderTarget,
+                CPUAccessFlags = CpuAccessFlags.None,
+                MiscFlags = ResourceOptionFlags.None
+            };
+            _lastFrame = _device.CreateTexture2D(texDesc);
         }
 
         public ID3D11Texture2D? CaptureFrame()

@@ -3,9 +3,9 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:local="clr-namespace:ZeroMix"
         Title="ZeroMix"
-        Width="600"
+        Width="520"
         SizeToContent="Height"
-        MaxHeight="700"
+        MaxHeight="550"
         Topmost="True"
         WindowStyle="None"
         ResizeMode="NoResize"
@@ -65,10 +65,10 @@
         <local:SuggestionTypeToStringConverter x:Key="SuggestionTypeConverter"/>
 
         <DropShadowEffect x:Key="MacShadow"
-                          BlurRadius="25"
+                          BlurRadius="20"
                           ShadowDepth="0"
                           Color="#000000"
-                          Opacity="0.25"
+                          Opacity="0.18"
                           RenderingBias="Performance"/>
 
         <LinearGradientBrush x:Key="ZGradient"
@@ -124,7 +124,7 @@
                            Margin="{TemplateBinding Padding}"
                            Foreground="#8E8E93"
                            FontStyle="Normal"
-                           FontSize="20"
+                           FontSize="16"
                            FontFamily="{StaticResource MacFont}"
                            VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
                            IsHitTestVisible="False">
@@ -165,9 +165,9 @@
                         <Border x:Name="Border"
                                 Background="{TemplateBinding Background}"
                                 CornerRadius="0"
-                                Padding="8,10,8,10"
-                                BorderThickness="0,1,0,0"
-                                BorderBrush="#F0F0F0">
+                                Padding="6,8,6,8"
+                                BorderThickness="0,0.5,0,0"
+                                BorderBrush="#E8EAED">
                             <ContentPresenter/>
                         </Border>
                         <ControlTemplate.Triggers>
@@ -301,40 +301,40 @@
                 </Grid.RowDefinitions>
 
                 <!-- Search Bar Header -->
-                <Grid Grid.Row="0"
+                <Grid x:Name="SearchBoxGrid"
+                      Grid.Row="0"
                       Grid.Column="0"
                       Grid.ColumnSpan="3"
-                      Background="Transparent">
+                      Background="Transparent"
+                      Height="52"
+                      Margin="0">
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="60"/>
+                        <ColumnDefinition Width="52"/>
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="40"/>
                     </Grid.ColumnDefinitions>
 
                     <Viewbox Grid.Column="0"
-                             Margin="12,0,0,0"
+                             Margin="0"
                              VerticalAlignment="Center"
-                             Height="40"
-                             Width="40">
-                        <Canvas Width="32"
-                                Height="32">
-                            <Path x:Name="ZLogoPath"
-                                  Data="M 4,6 L 28,6 L 4,26 L 28,26"
-                                  StrokeThickness="5"
-                                  Stroke="{StaticResource ZGradient}"
-                                  StrokeLineJoin="Round"
-                                  StrokeStartLineCap="Round"
-                                  StrokeEndLineCap="Round"
-                                  StrokeDashArray="80"
-                                  StrokeDashOffset="80"
-                                  />
-                        </Canvas>
+                             Height="32">
+                        <Path x:Name="ZLogoPath"
+                              Data="M 4,6 L 28,6 L 4,26 L 28,26"
+                              StrokeThickness="5"
+                              Stroke="{StaticResource ZGradient}"
+                              StrokeLineJoin="Round"
+                              StrokeStartLineCap="Round"
+                              StrokeEndLineCap="Round"
+                              StrokeDashArray="80"
+                              StrokeDashOffset="80"
+                              />
                     </Viewbox>
 
                     <TextBox Name="SearchBox"
                              Grid.Column="1"
-                             Padding="8,0,16,0"
-                             Margin="0,12,16,12"
+                             Padding="4,0,12,0"
+                             Margin="0,8,8,8"
                              KeyDown="SearchBox_KeyDown"
                              TextChanged="SearchBox_TextChanged"
                              Style="{StaticResource SearchBoxStyle}"
@@ -347,19 +347,19 @@
                     <!-- Clock Display -->
                     <StackPanel Grid.Column="2"
                                 VerticalAlignment="Center"
-                                Margin="0,0,50,0">
+                                Margin="0,0,40,0">
                         <TextBlock Name="ClockText"
-                                   FontSize="16"
+                                   FontSize="14"
                                    FontWeight="SemiBold"
                                    Foreground="#1A1A1A"
                                    FontFamily="{StaticResource MacFont}"
                                    HorizontalAlignment="Right"/>
                         <TextBlock Name="DateText"
-                                   FontSize="11"
+                                   FontSize="10"
                                    Foreground="#8E8E93"
                                    FontFamily="{StaticResource MacFont}"
                                    HorizontalAlignment="Right"
-                                   Margin="0,2,0,0"/>
+                                   Margin="0,1,0,0"/>
                     </StackPanel>
                 </Grid>
 
@@ -397,9 +397,9 @@
                 <Border Grid.Row="1"
                         Margin="16,0,16,16"
                         CornerRadius="12"
-                        Background="White"
+                        Background="#F8F9FA"
                         BorderThickness="1"
-                        BorderBrush="#E8E8E8">
+                        BorderBrush="#E0E4E8">
                     <ListBox Name="SuggestionList"
                              Background="Transparent"
                              BorderThickness="0"
@@ -446,8 +446,8 @@
                 <Border x:Name="PreviewPanel"
                         Grid.Row="0"
                         Grid.RowSpan="3"
-                        Background="#E6E6E6"
-                        Opacity="0.95"
+                        Background="#F5F6F8"
+                        Opacity="0.98"
                         Visibility="Collapsed"
                         MouseLeftButtonDown="PreviewPanel_MouseDown">
                     <Grid>
@@ -485,26 +485,27 @@
                             <StackPanel Margin="16">
                                 <!-- Image Preview -->
                                 <Border x:Name="ImagePreviewContainer"
-                                        CornerRadius="8"
-                                        Background="#F5F5F5"
+                                        CornerRadius="10"
+                                        Background="#F0F0F0"
                                         Visibility="Collapsed"
-                                        Margin="0,0,0,16">
+                                        HorizontalAlignment="Center"
+                                        Margin="0,0,0,12">
                                     <Image x:Name="ImagePreview"
-                                           Stretch="UniformToFill"
-                                           MaxHeight="400"
-                                           MaxWidth="300"/>
+                                           Stretch="Uniform"
+                                           MaxHeight="350"
+                                           RenderOptions.BitmapScalingMode="HighQuality"/>
                                 </Border>
 
                                 <!-- Video Preview -->
                                 <Border x:Name="VideoPreviewContainer"
-                                        CornerRadius="8"
-                                        Background="#000000"
+                                        CornerRadius="10"
+                                        Background="#1A1A1A"
                                         Visibility="Collapsed"
-                                        Margin="0,0,0,16">
+                                        HorizontalAlignment="Center"
+                                        Margin="0,0,0,12">
                                     <MediaElement x:Name="VideoPreview"
                                                   LoadedBehavior="Manual"
-                                                  MaxHeight="400"
-                                                  MaxWidth="300"/>
+                                                  MaxHeight="350"/>
                                 </Border>
 
                                 <!-- File Preview -->

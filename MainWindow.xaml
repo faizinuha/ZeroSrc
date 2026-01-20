@@ -449,6 +449,9 @@
                                         <TextBlock Margin="0,0,0,5">
                                             <Run Text="• " Foreground="{StaticResource NeonBlueBrush}"/><Hyperlink RequestNavigate="Hyperlink_RequestNavigate" NavigateUri="https://pixabay.com/id/users/adege-4994132/?content=230317">Andreas - 2 (Pixabay)</Hyperlink>
                                         </TextBlock>
+                                        <TextBlock Margin="0,0,0,5">
+                                            <Run Text="• " Foreground="{StaticResource NeonBlueBrush}"/><Hyperlink RequestNavigate="Hyperlink_RequestNavigate" NavigateUri="https://pixabay.com/id/users/_pabliyo-15486147/">Pablo (Pixabay)</Hyperlink>
+                                        </TextBlock>    
                                     </StackPanel>
 
                                     <Border Background="#1A202C" CornerRadius="10" Padding="15" Margin="0,10,0,0">
@@ -530,10 +533,10 @@
                                 <TextBlock x:Name="RecordDurationText" Text="00:00" Foreground="{StaticResource NeonBlueBrush}" FontSize="28" FontWeight="Black" HorizontalAlignment="Right" VerticalAlignment="Center" Visibility="Collapsed"/>
                             </Grid>
 
-                            <!-- Settings Hub -->
-                            <UniformGrid Columns="2">
+                            <!-- Settings Hub - Vertikal Layout -->
+                            <StackPanel>
                                 <!-- Group 1: Capture Settings -->
-                                <Border Style="{StaticResource CompactCardBorder}" Background="#11151C" Margin="0,0,8,15">
+                                <Border Style="{StaticResource CompactCardBorder}" Background="#11151C" Margin="0,0,0,15">
                                     <StackPanel>
                                         <TextBlock Text="VIDEO ENGINE" FontWeight="Black" Foreground="White" FontSize="10" Margin="0,0,0,12" Opacity="0.6"/>
                                         
@@ -557,7 +560,7 @@
                                 </Border>
 
                                 <!-- Group 2: Audio Source -->
-                                <Border Style="{StaticResource CompactCardBorder}" Background="#11151C" Margin="8,0,0,15">
+                                <Border Style="{StaticResource CompactCardBorder}" Background="#11151C" Margin="0,0,0,15">
                                     <StackPanel>
                                         <TextBlock Text="AUDIO SOURCE" FontWeight="Black" Foreground="White" FontSize="10" Margin="0,0,0,12" Opacity="0.6"/>
                                         
@@ -580,12 +583,16 @@
                                         </ComboBox>
                                     </StackPanel>
                                 </Border>
-                            </UniformGrid>
+                            </StackPanel>
 
-                            <!-- Mini Footer Info -->
-                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,10,0,0">
-                                <Ellipse Width="8" Height="8" Fill="#00FF88" Margin="0,0,8,0"/>
-                                <TextBlock Text="Hardware Accelerated" Foreground="#555555" FontSize="9" FontWeight="Bold"/>
+                             <!-- Mini Footer Info -->
+                            <StackPanel HorizontalAlignment="Center" Margin="0,15,0,0">
+                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,0,0,10">
+                                    <Ellipse Width="8" Height="8" Fill="#00FF88" Margin="0,0,8,0"/>
+                                    <TextBlock Text="Hardware Accelerated" Foreground="#555555" FontSize="9" FontWeight="Bold"/>
+                                </StackPanel>
+                                <Button x:Name="OpenRecordingsBtn" Content="OPEN RECORDINGS FOLDER" Click="OpenRecordingsBtn_Click" 
+                                        Style="{StaticResource ActionButton}" Padding="20,0" FontSize="15" FontWeight="Bold"/>
                             </StackPanel>
 
                         </StackPanel>

@@ -90,8 +90,10 @@ namespace ZeroMix.Recorder
                 using var p = Process.Start(psi);
                 string output = p?.StandardOutput.ReadToEnd() ?? "";
                 
-                if (output.Contains("h264_qsv")) return "h264_qsv";
+                // Priority: NVIDIA -> Intel -> AMD -> CPU
                 if (output.Contains("h264_nvenc")) return "h264_nvenc";
+                if (output.Contains("h264_qsv")) return "h264_qsv";
+                if (output.Contains("h264_amf")) return "h264_amf";
             }
             catch { }
             
@@ -104,23 +106,20 @@ namespace ZeroMix.Recorder
             
             string encoderArgs = _encoder switch
             {
-                "h264_qsv" => "-c:v h264_qsv -global_quality 23 -preset fast",
                 "h264_nvenc" => "-c:v h264_nvenc -preset p4 -tune hq -rc vbr -cq 23",
-                _ => "-c:v libx264 -preset ultrafast -crf 23"
+                "h264_qsv" => "-c:v h264_qsv -global_quality 23 -preset fast",
+                "h264_amf" => "-c:v h264_amf -quality speed -rc cqp -qp_i 23 -qp_p 23",
+                _ => "-c:v libx264 -preset ultrafast -crf 23 -threads 0"
             };
 
             // Audio Inputs
             string audioInputs = "";
             int audioChannelCount = 0;
             
-            if (micDevice != "No Audio" && micDevice != "Default System Microphone")
+            if (micDevice != "No Audio" && !micDevice.Contains("System") && !micDevice.Contains("Default"))
             {
                 audioInputs += $"-f dshow -i audio=\"{micDevice}\" ";
                 audioChannelCount++;
-            }
-            else if (micDevice == "Default System Microphone")
-            {
-                // Fallback to default dshow audio if possible or just skip for stability
             }
 
             if (speakerDevice != "No Audio")
@@ -132,25 +131,55 @@ namespace ZeroMix.Recorder
 
             // Sync video/audio
             string mapArgs = "-map 0:v";
+            string audioCodecArgs = "";
             if (audioChannelCount > 0)
             {
                 for (int i = 0; i < audioChannelCount; i++)
                     mapArgs += $" -map {i + 1}:a";
+                
+                audioCodecArgs = "-c:a aac -b:a 128k";
             }
 
             string args = $"-f rawvideo -pixel_format bgra -video_size {_width}x{_height} " +
                           $"-framerate {_framerate} -i - " +
                           $"{audioInputs} " +
-                          $"{encoderArgs} -pix_fmt yuv420p -r {_framerate} {mapArgs} -c:a aac -b:a 128k -y \"{_outputPath}\"";
+                          $"{encoderArgs} -pix_fmt yuv420p -r {_framerate} {mapArgs} {audioCodecArgs} -y \"{_outputPath}\"";
 
-            _ffmpegProcess = Process.Start(new ProcessStartInfo
+            Console.WriteLine($"[HardwareEncoder] Starting FFmpeg with args: {args}");
+
+            var psi = new ProcessStartInfo
             {
                 FileName = _ffmpegPath,
                 Arguments = args,
                 UseShellExecute = false,
                 CreateNoWindow = true,
-                RedirectStandardInput = true
-            });
+                RedirectStandardInput = true,
+                RedirectStandardError = true // Capture errors
+            };
+
+            try
+            {
+                _ffmpegProcess = Process.Start(psi);
+                
+                if (_ffmpegProcess != null)
+                {
+                    // Log FFmpeg errors to Console for terminal debugging
+                    _ffmpegProcess.ErrorDataReceived += (s, e) => {
+                        if (!string.IsNullOrEmpty(e.Data))
+                            Console.WriteLine($"[FFMPEG-LOG] {e.Data}");
+                    };
+                    _ffmpegProcess.BeginErrorReadLine();
+                    Console.WriteLine("[HardwareEncoder] FFmpeg process started successfully.");
+                }
+                else
+                {
+                    Console.WriteLine("[HardwareEncoder] ERROR: Failed to start FFmpeg process.");
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[HardwareEncoder] FATAL ERROR starting FFmpeg: {ex.Message}");
+            }
 
             _isRunning = true;
             _encoderThread = new Thread(EncoderLoop) { IsBackground = true, Priority = ThreadPriority.AboveNormal };
@@ -184,6 +213,12 @@ namespace ZeroMix.Recorder
                         }
 
                         _frameQueue.Enqueue(buffer);
+                        
+                        // Health check log every 100 frames
+                        if (Interlocked.Read(ref _framesWritten) % 100 == 0 && Interlocked.Read(ref _framesWritten) > 0)
+                        {
+                            Console.WriteLine($"[HardwareEncoder] Info: Written {Interlocked.Read(ref _framesWritten)} frames so far...");
+                        }
                     }
                     finally
                     {

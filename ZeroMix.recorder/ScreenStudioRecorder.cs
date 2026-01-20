@@ -12,7 +12,8 @@ namespace ZeroMix.Recorder
     public class ScreenStudioRecorder : IDisposable
     {
         // Core components
-        private DXGICapturer? _capturer;
+        private DXGICapturer? _dxgiCapturer;
+        private GDICapturer? _gdiCapturer;
         private GPUCompositor? _compositor;
         private VirtualCamera? _camera;
         private CursorTracker? _cursorTracker;
@@ -25,6 +26,9 @@ namespace ZeroMix.Recorder
         private Stopwatch _recordingTimer = new();
 
         public bool IsRecording => _isRecording;
+        public bool IsInitialized => (_dxgiCapturer?.IsInitialized ?? false) || (_gdiCapturer?.IsInitialized ?? false);
+        
+        public bool IsUsingGDI => _gdiCapturer != null && _gdiCapturer.IsInitialized;
         public string Duration => _isRecording ? _recordingTimer.Elapsed.ToString(@"mm\:ss") : "00:00";
 
         public ScreenStudioRecorder(string ffmpegPath, int framerate = 30)
@@ -32,22 +36,64 @@ namespace ZeroMix.Recorder
             _ffmpegPath = ffmpegPath;
             _framerate = framerate;
 
-            // Initialize capture system
-            _capturer = new DXGICapturer();
+            Console.WriteLine($"[ScreenStudioRecorder] Initializing with FFmpeg: {ffmpegPath}");
             
-            if (_capturer.IsInitialized)
+            // 1. Try DXGI (GPU-based) first
+            _dxgiCapturer = new DXGICapturer();
+            
+            if (_dxgiCapturer.IsInitialized)
             {
-                _compositor = new GPUCompositor(_capturer.Device, _capturer.Width, _capturer.Height);
-                _camera = new VirtualCamera(_capturer.Width, _capturer.Height);
+                Console.WriteLine("[ScreenStudioRecorder] DXGICapturer initialized successfully.");
+                _compositor = new GPUCompositor(_dxgiCapturer.Device, _dxgiCapturer.Width, _dxgiCapturer.Height);
+                _camera = new VirtualCamera(_dxgiCapturer.Width, _dxgiCapturer.Height);
                 _cursorTracker = new CursorTracker();
             }
+            else
+            {
+                Console.WriteLine("[ScreenStudioRecorder] DXGICapturer failed. Falling back to GDI...");
+                
+                // 2. Try GDI (CPU-based) if DXGI fails
+                // We still need a D3D11 device for the compositor/encoder pipeline
+                if (_dxgiCapturer.Device != null)
+                {
+                    _gdiCapturer = new GDICapturer(_dxgiCapturer.Device, _dxgiCapturer.Context);
+                    if (_gdiCapturer.IsInitialized)
+                    {
+                        Console.WriteLine("[ScreenStudioRecorder] ✓ GDICapturer initialized successfully!");
+                        _compositor = new GPUCompositor(_dxgiCapturer.Device, _gdiCapturer.Width, _gdiCapturer.Height);
+                        _camera = new VirtualCamera(_gdiCapturer.Width, _gdiCapturer.Height);
+                        _cursorTracker = new CursorTracker();
+                    }
+                    else
+                    {
+                        Console.WriteLine("[ScreenStudioRecorder] ERROR: GDICapturer failed also.");
+                    }
+                }
+                else
+                {
+                    Console.WriteLine("[ScreenStudioRecorder] ERROR: No D3D11 Device available for GDI fallback.");
+                }
+            }
+            
+            if (IsInitialized)
+                Console.WriteLine("[ScreenStudioRecorder] ✓ All systems GO!");
+            else
+                Console.WriteLine("[ScreenStudioRecorder] CRITICAL: No capture system initialized!");
         }
 
         public void StartRecording(string outputPath, string micDevice = "No Audio", string speakerDevice = "No Audio")
         {
-            if (_isRecording || _capturer == null || !_capturer.IsInitialized) return;
+            if (_isRecording || !IsInitialized)
+            {
+                Console.WriteLine($"[ScreenStudioRecorder] Start blocked: IsRec={_isRecording}, Init={IsInitialized}");
+                return;
+            }
 
-            _encoder = new HardwareEncoder(_ffmpegPath, _capturer.Device, _capturer.Context, _capturer.Width, _capturer.Height, _framerate);
+            int width = _dxgiCapturer?.Width ?? _gdiCapturer?.Width ?? 1920;
+            int height = _dxgiCapturer?.Height ?? _gdiCapturer?.Height ?? 1080;
+
+            Console.WriteLine($"[ScreenStudioRecorder] Launching Encoder: {width}x{height} -> {outputPath}");
+            _encoder = new HardwareEncoder(_ffmpegPath, _dxgiCapturer!.Device, _dxgiCapturer.Context, width, height, _framerate);
             _encoder.Start(outputPath, micDevice, speakerDevice);
 
             _isRecording = true;
@@ -56,6 +102,7 @@ namespace ZeroMix.Recorder
 
             _recordingThread = new Thread(RecordingLoop) { IsBackground = true, Priority = ThreadPriority.Highest };
             _recordingThread.Start();
+            Debug.WriteLine("[ScreenStudioRecorder] ✓ Recording started!");
         }
 
         private void RecordingLoop()
@@ -67,14 +114,17 @@ namespace ZeroMix.Recorder
             while (_isRecording)
             {
                 long currentTicks = masterClock.ElapsedTicks;
-                long expectedFrames = (long)(currentTicks / ticksPerFrame);
+                long expectedFrame = (long)(currentTicks / ticksPerFrame);
 
-                if (frameIndex > expectedFrames)
+                // Tunggu sampai waktu frame berikutnya
+                while (frameIndex > expectedFrame && _isRecording)
                 {
-                    double waitMs = (ticksPerFrame * frameIndex - currentTicks) * 1000.0 / Stopwatch.Frequency;
-                    if (waitMs > 1) Thread.Sleep((int)waitMs);
-                    continue;
+                    Thread.Sleep(1);
+                    currentTicks = masterClock.ElapsedTicks;
+                    expectedFrame = (long)(currentTicks / ticksPerFrame);
                 }
+
+                if (!_isRecording) break;
 
                 _cursorTracker?.Update();
                 if (_camera != null && _cursorTracker != null)
@@ -82,7 +132,12 @@ namespace ZeroMix.Recorder
                     _camera.Update(_cursorTracker);
                 }
 
-                var rawFrame = _capturer?.CaptureFrame();
+                Vortice.Direct3D11.ID3D11Texture2D? rawFrame = null;
+                if (_dxgiCapturer != null && _dxgiCapturer.IsInitialized)
+                    rawFrame = _dxgiCapturer.CaptureFrame();
+                else if (_gdiCapturer != null && _gdiCapturer.IsInitialized)
+                    rawFrame = _gdiCapturer.CaptureFrame();
+
                 if (rawFrame == null)
                 {
                     frameIndex++;
@@ -96,12 +151,6 @@ namespace ZeroMix.Recorder
                 }
 
                 frameIndex++;
-
-                if (expectedFrames - frameIndex > _framerate * 2)
-                {
-                    masterClock.Restart();
-                    frameIndex = 0;
-                }
             }
         }
 
@@ -110,7 +159,11 @@ namespace ZeroMix.Recorder
             if (!_isRecording) return;
             _isRecording = false;
             _recordingTimer.Stop();
-            _recordingThread?.Join(TimeSpan.FromSeconds(2));
+            
+            // Tunggu thread recording selesai
+            _recordingThread?.Join(TimeSpan.FromSeconds(3));
+            
+            // Flush encoder - pastikan semua frame di queue terproses
             _encoder?.Stop();
             _encoder?.Dispose();
             _encoder = null;
@@ -120,7 +173,8 @@ namespace ZeroMix.Recorder
         {
             StopRecording();
             _compositor?.Dispose();
-            _capturer?.Dispose();
+            _dxgiCapturer?.Dispose();
+            _gdiCapturer?.Dispose();
         }
     }
 }
