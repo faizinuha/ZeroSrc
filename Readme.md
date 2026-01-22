@@ -31,12 +31,6 @@
   <p><i>Click above to watch ZeroMix in action on YouTube</i></p>
 </div> -->
 
-## 🌟 What's New (v2.4.0)
-
-- **🎥 ZeroRecord**: Professional screen recording with dynamic **Follow-Mouse Zoom** up to 60 FPS.
-- **⚡ Supercharged UI**: All animations removed for instant, zero-latency dashboard navigation.
-- **📦 Enhanced Lua API**: Built-in JSON encoding/decoding and persistent configuration.
-- **📘 Expanded Wiki**: Complete developer and user guides now available in the [Wiki](https://github.com/faizinuha/ZeroMix/wiki).
 
 ## 🚀 Core Features
 
@@ -53,6 +47,11 @@ ZeroMix is packed with features that keep your system fast and your desktop stun
 | **🧹 Memory Optimizer**  | Smart background GC collection and working set trimming.                |
 
 ---
+## 🎥 Zerorecord & Preview
+<div style="left: 0; margin-bottom: 20px; text-align: center">
+      <video src="https://github.com/user-attachments/assets/0a5c1928-32b8-4b32-a391-aefdb5b3d2f5" width="1000"  autoplay muted loop></video>
+    </div>
+
 
 ## 🧩 Lua Plugin System
 
