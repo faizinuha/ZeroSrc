@@ -32,8 +32,12 @@ namespace ZeroMix.Recorder
         private IntPtr SetHook(LowLevelMouseProc proc)
         {
             using (Process curProcess = Process.GetCurrentProcess())
-            using (ProcessModule curModule = curProcess.MainModule)
             {
+                var curModule = curProcess.MainModule;
+                if (curModule == null)
+                {
+                    throw new InvalidOperationException("Could not get current process module.");
+                }
                 return SetWindowsHookEx(WH_MOUSE_LL, proc, GetModuleHandle(curModule.ModuleName), 0);
             }
         }
