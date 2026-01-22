@@ -107,28 +107,37 @@ namespace ZeroMix.Recorder
             
             string encoderArgs = _encoder switch
             {
-                "h264_nvenc" => "-c:v h264_nvenc -preset p4 -tune hq -rc vbr -cq 23",
-                "h264_qsv" => "-c:v h264_qsv -q 23 -preset fast -look_ahead 0",
+                "h264_nvenc" => "-c:v h264_nvenc -preset fast -tune hq -rc vbr -cq 23",
+                "h264_qsv" => "-c:v h264_qsv -q 23 -preset faster -look_ahead 0",
                 "h264_amf" => "-c:v h264_amf -quality speed -rc cqp -qp_i 23 -qp_p 23",
                 "h264_mf" => "-c:v h264_mf -rate_control vbr -quality 23",
-                _ => "-c:v libx264 -preset ultrafast -crf 23 -threads 0"
+                _ => "-c:v libx264 -preset ultrafast -crf 23 -threads 4"
             };
 
-            // Audio Inputs
+            // Audio Input Strategy (Backward Compatible)
             string audioInputs = "";
             int audioChannelCount = 0;
             
+            // Try Microphone via dshow (Windows Universal)
             if (micDevice != "No Audio" && !micDevice.Contains("System") && !micDevice.Contains("Default"))
             {
-                audioInputs += $"-f dshow -i audio=\"{micDevice}\" ";
-                audioChannelCount++;
+                try
+                {
+                    audioInputs += $"-f dshow -i audio=\"{micDevice}\" ";
+                    audioChannelCount++;
+                    Console.WriteLine($"[HardwareEncoder] Using microphone via dshow: {micDevice}");
+                }
+                catch
+                {
+                    Console.WriteLine("[HardwareEncoder] WARNING: Microphone dshow input failed, skipping audio.");
+                }
             }
 
+            // System Audio: Skip WASAPI completely - too unreliable on old hardware
+            // If user needs system audio, they should use other methods
             if (speakerDevice != "No Audio")
             {
-                // Use wasapi loopback for system audio
-                audioInputs += "-f wasapi -i default "; 
-                audioChannelCount++;
+                Console.WriteLine("[HardwareEncoder] WARNING: System audio not supported on this version (use external audio mixer).");
             }
 
             // Sync video/audio
@@ -156,7 +165,8 @@ namespace ZeroMix.Recorder
                 UseShellExecute = false,
                 CreateNoWindow = true,
                 RedirectStandardInput = true,
-                RedirectStandardError = true // Capture errors
+                RedirectStandardError = true,
+                RedirectStandardOutput = true
             };
 
             try
@@ -170,7 +180,12 @@ namespace ZeroMix.Recorder
                         if (!string.IsNullOrEmpty(e.Data))
                             Console.WriteLine($"[FFMPEG-LOG] {e.Data}");
                     };
+                    _ffmpegProcess.OutputDataReceived += (s, e) => {
+                        if (!string.IsNullOrEmpty(e.Data) && e.Data.Contains("frame="))
+                            Console.WriteLine($"[FFMPEG-LOG] {e.Data}");
+                    };
                     _ffmpegProcess.BeginErrorReadLine();
+                    _ffmpegProcess.BeginOutputReadLine();
                     Console.WriteLine("[HardwareEncoder] FFmpeg process started successfully.");
                 }
                 else
