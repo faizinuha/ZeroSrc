@@ -15,6 +15,8 @@ namespace ZeroMix.Recorder
         
         private ID3D11Texture2D _outputTexture;
         private ID2D1Bitmap1 _outputBitmap;
+        private ID2D1Bitmap1? _inputBitmapCached;
+        private ID3D11Texture2D? _lastInputTexture;
         
         private int _width;
         private int _height;
@@ -70,66 +72,85 @@ namespace ZeroMix.Recorder
 
             try
             {
-                using var dxgiSurfaceIn = inputTexture.QueryInterface<IDXGISurface>();
-                using var inputBitmap = _d2dContext.CreateBitmapFromDxgiSurface(dxgiSurfaceIn);
+                // Optimization: Reuse input bitmap if it's the same texture
+                if (_inputBitmapCached == null || _lastInputTexture != inputTexture)
+                {
+                    _inputBitmapCached?.Dispose();
+                    using var dxgiSurfaceIn = inputTexture.QueryInterface<IDXGISurface>();
+                    _inputBitmapCached = _d2dContext.CreateBitmapFromDxgiSurface(dxgiSurfaceIn);
+                    _lastInputTexture = inputTexture;
+                }
 
                 _d2dContext.Target = _outputBitmap;
-                _d2dContext.BeginDraw();
-                _d2dContext.Clear(new Color4(0, 0, 0, 1.0f));
-
-                // Transform: Zoom & Pan
-                var center = new Vector2(camX, camY);
-                var screenCenter = new Vector2(_width / 2f, _height / 2f);
-                var transform = Matrix3x2.CreateTranslation(-center.X, -center.Y) *
-                               Matrix3x2.CreateScale(zoom, zoom) *
-                               Matrix3x2.CreateTranslation(screenCenter.X, screenCenter.Y);
-
-                _d2dContext.Transform = transform;
                 
-                // Gunakan UnitMode.Pixels biar mapping 1:1
-                _d2dContext.UnitMode = UnitMode.Pixels;
-                _d2dContext.DrawBitmap(inputBitmap, 1.0f, InterpolationMode.Linear);
-                
-                // DRAW NATIVE-LOOKING CURSOR (Lightweight)
-                _d2dContext.Transform = transform; 
-                
-                using var cursorBrush = _d2dContext.CreateSolidColorBrush(Colors.White);
-                using var outlineBrush = _d2dContext.CreateSolidColorBrush(Colors.Black);
-
-                // Draw a simple standard cursor arrow
-                var cursorPoints = new Vector2[]
+                bool drawingStarted = false;
+                try
                 {
-                    new Vector2(cursorX, cursorY),
-                    new Vector2(cursorX, cursorY + 15),
-                    new Vector2(cursorX + 4, cursorY + 11),
-                    new Vector2(cursorX + 9, cursorY + 16),
-                    new Vector2(cursorX + 11, cursorY + 14),
-                    new Vector2(cursorX + 6, cursorY + 9),
-                    new Vector2(cursorX + 11, cursorY + 9)
-                };
+                    _d2dContext.BeginDraw();
+                    drawingStarted = true;
 
-                using var geometry = _d2dFactory.CreatePathGeometry();
-                using var sink = geometry.Open();
-                sink.BeginFigure(cursorPoints[0], FigureBegin.Filled);
-                sink.AddLines(cursorPoints);
-                sink.EndFigure(FigureEnd.Closed);
-                sink.Close();
+                    _d2dContext.Clear(new Color4(0, 0, 0, 1.0f));
 
-                _d2dContext.FillGeometry(geometry, cursorBrush);
-                _d2dContext.DrawGeometry(geometry, outlineBrush, 1.0f);
+                    // Transform: Zoom & Pan
+                    var center = new Vector2(camX, camY);
+                    var screenCenter = new Vector2(_width / 2f, _height / 2f);
+                    var transform = Matrix3x2.CreateTranslation(-center.X, -center.Y) *
+                                   Matrix3x2.CreateScale(zoom, zoom) *
+                                   Matrix3x2.CreateTranslation(screenCenter.X, screenCenter.Y);
 
-                _d2dContext.EndDraw();
+                    _d2dContext.Transform = transform;
+                    
+                    // Gunakan UnitMode.Pixels biar mapping 1:1
+                    _d2dContext.UnitMode = UnitMode.Pixels;
+                    _d2dContext.DrawBitmap(_inputBitmapCached, 1.0f, InterpolationMode.Linear);
+                    
+                    // DRAW NATIVE-LOOKING CURSOR
+                    _d2dContext.Transform = transform; 
+                    
+                    using var cursorBrush = _d2dContext.CreateSolidColorBrush(Colors.White);
+                    using var outlineBrush = _d2dContext.CreateSolidColorBrush(Colors.Black);
+
+                    var cursorPoints = new Vector2[]
+                    {
+                        new Vector2(cursorX, cursorY),
+                        new Vector2(cursorX, cursorY + 15),
+                        new Vector2(cursorX + 4, cursorY + 11),
+                        new Vector2(cursorX + 9, cursorY + 16),
+                        new Vector2(cursorX + 11, cursorY + 14),
+                        new Vector2(cursorX + 6, cursorY + 9),
+                        new Vector2(cursorX + 11, cursorY + 9)
+                    };
+
+                    using var geometry = _d2dFactory.CreatePathGeometry();
+                    using var sink = geometry.Open();
+                    sink.BeginFigure(cursorPoints[0], FigureBegin.Filled);
+                    sink.AddLines(cursorPoints);
+                    sink.EndFigure(FigureEnd.Closed);
+                    sink.Close();
+
+                    _d2dContext.FillGeometry(geometry, cursorBrush);
+                    _d2dContext.DrawGeometry(geometry, outlineBrush, 1.0f);
+                }
+                finally
+                {
+                    if (drawingStarted)
+                        _d2dContext.EndDraw(out _, out _);
+                }
+
                 _d2dContext.Flush(out _, out _); 
                 _d2dContext.Target = null;
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"Compose Error: {ex.Message}");
+                Console.WriteLine($"[GPUCompositor] ERROR during compose: {ex.Message}");
+                // Force reset target in case of error
+                try { _d2dContext.Target = null; } catch { }
             }
         }
 
         public void Dispose()
         {
+            _inputBitmapCached?.Dispose();
             _outputBitmap?.Dispose();
             _outputTexture?.Dispose();
             _d2dContext?.Dispose();
