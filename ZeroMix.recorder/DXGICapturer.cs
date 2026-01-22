@@ -14,16 +14,16 @@ namespace ZeroMix.Recorder
     /// </summary>
     public class DXGICapturer : IDisposable
     {
-        private ID3D11Device _device;
-        private ID3D11DeviceContext _context;
+        private ID3D11Device? _device;
+        private ID3D11DeviceContext? _context;
         private IDXGIOutputDuplication? _deskDupl;
         
         private ID3D11Texture2D? _lastFrame;
         
         public int Width { get; private set; }
         public int Height { get; private set; }
-        public ID3D11Device Device => _device;
-        public ID3D11DeviceContext Context => _context;
+        public ID3D11Device? Device => _device;
+        public ID3D11DeviceContext? Context => _context;
         public bool IsInitialized { get; private set; }
 
         public DXGICapturer()
@@ -51,8 +51,8 @@ namespace ZeroMix.Recorder
                     driverType,
                     DeviceCreationFlags.BgraSupport | DeviceCreationFlags.VideoSupport,
                     null,
-                    out _device!,
-                    out _context!
+                    out _device,
+                    out _context
                 ).CheckError();
                 return true;
             }

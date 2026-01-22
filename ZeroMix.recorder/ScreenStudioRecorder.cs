@@ -83,18 +83,44 @@ namespace ZeroMix.Recorder
 
         public void StartRecording(string outputPath, string micDevice = "No Audio", string speakerDevice = "No Audio")
         {
-            if (_isRecording || !IsInitialized)
+            if (_isRecording)
             {
-                Console.WriteLine($"[ScreenStudioRecorder] Start blocked: IsRec={_isRecording}, Init={IsInitialized}");
+                Console.WriteLine($"[ScreenStudioRecorder] Start blocked: Already recording");
                 return;
             }
 
-            int width = _dxgiCapturer?.Width ?? _gdiCapturer?.Width ?? 1920;
-            int height = _dxgiCapturer?.Height ?? _gdiCapturer?.Height ?? 1080;
+            if (!IsInitialized)
+            {
+                Console.WriteLine($"[ScreenStudioRecorder] ERROR: Not initialized! No capture system available.");
+                throw new InvalidOperationException("Screen capture system not initialized. This might be due to GPU driver issues.");
+            }
 
-            Console.WriteLine($"[ScreenStudioRecorder] Launching Encoder: {width}x{height} -> {outputPath}");
-            _encoder = new HardwareEncoder(_ffmpegPath, _dxgiCapturer!.Device, _dxgiCapturer.Context, width, height, _framerate);
-            _encoder.Start(outputPath, micDevice, speakerDevice);
+            try
+            {
+                int width = _dxgiCapturer?.Width ?? _gdiCapturer?.Width ?? 1920;
+                int height = _dxgiCapturer?.Height ?? _gdiCapturer?.Height ?? 1080;
+                
+                // Verify we have valid device for encoder
+                var device = _dxgiCapturer?.Device;
+                var context = _dxgiCapturer?.Context;
+                
+                if (device == null || context == null)
+                {
+                    Console.WriteLine($"[ScreenStudioRecorder] ERROR: No D3D11 device available for encoding!");
+                    throw new InvalidOperationException("Failed to get D3D11 device context for encoding.");
+                }
+
+                Console.WriteLine($"[ScreenStudioRecorder] Launching Encoder: {width}x{height} -> {outputPath}");
+                Console.WriteLine($"[ScreenStudioRecorder] Using {(IsUsingGDI ? "GDI" : "DXGI")} capture mode");
+                
+                _encoder = new HardwareEncoder(_ffmpegPath, device, context, width, height, _framerate);
+                _encoder.Start(outputPath, micDevice, speakerDevice);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[ScreenStudioRecorder] CRITICAL ERROR in StartRecording: {ex.Message}");
+                throw;
+            }
 
             _isRecording = true;
             _recordingTimer.Restart();
@@ -162,16 +188,35 @@ namespace ZeroMix.Recorder
         public void StopRecording()
         {
             if (!_isRecording) return;
-            _isRecording = false;
-            _recordingTimer.Stop();
             
-            // Tunggu thread recording selesai
-            _recordingThread?.Join(TimeSpan.FromSeconds(3));
-            
-            // Flush encoder - pastikan semua frame di queue terproses
-            _encoder?.Stop();
-            _encoder?.Dispose();
-            _encoder = null;
+            try
+            {
+                _isRecording = false;
+                _recordingTimer.Stop();
+                
+                Console.WriteLine($"[ScreenStudioRecorder] Stopping recording...");
+                
+                // Give recording thread time to process remaining frames
+                if (!_recordingThread?.Join(TimeSpan.FromSeconds(5)) ?? false)
+                {
+                    Console.WriteLine("[ScreenStudioRecorder] WARNING: Recording thread didn't exit in time.");
+                }
+                
+                // Flush encoder - ensure all frames are finalized
+                if (_encoder != null)
+                {
+                    _encoder.Stop();
+                    _encoder.Dispose();
+                    Console.WriteLine($"[ScreenStudioRecorder] Encoder stopped. Frames written: {_encoder.FramesWritten}");
+                }
+                
+                _encoder = null;
+                Console.WriteLine("[ScreenStudioRecorder] Recording fully stopped.");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[ScreenStudioRecorder] ERROR during StopRecording: {ex.Message}");
+            }
         }
 
         public void Dispose()

@@ -9,12 +9,12 @@ namespace ZeroMix.Recorder
 {
     public class GPUCompositor : IDisposable
     {
-        private ID2D1Factory1 _d2dFactory;
-        private ID2D1Device _d2dDevice;
-        private ID2D1DeviceContext _d2dContext;
+        private ID2D1Factory1? _d2dFactory;
+        private ID2D1Device? _d2dDevice;
+        private ID2D1DeviceContext? _d2dContext;
         
-        private ID3D11Texture2D _outputTexture;
-        private ID2D1Bitmap1 _outputBitmap;
+        private ID3D11Texture2D? _outputTexture;
+        private ID2D1Bitmap1? _outputBitmap;
         private ID2D1Bitmap1? _inputBitmapCached;
         private ID3D11Texture2D? _lastInputTexture;
         
@@ -24,7 +24,7 @@ namespace ZeroMix.Recorder
         // Thread synchronization untuk Direct2D (yang not thread-safe)
         private readonly object _compositorLock = new object();
 
-        public ID3D11Texture2D OutputTexture => _outputTexture;
+        public ID3D11Texture2D? OutputTexture => _outputTexture;
         public bool IsInitialized { get; private set; }
 
         public GPUCompositor(ID3D11Device device, int width, int height)
