@@ -195,7 +195,7 @@ namespace ZeroMix
             {
                 if (File.Exists(path))
                 {
-                    Debug.WriteLine($"[ZeroMix] Found FFmpeg at: {path}");
+                    Console.WriteLine($"[ZeroMix] Found FFmpeg at: {path}");
                     return path;
                 }
             }
@@ -744,7 +744,7 @@ namespace ZeroMix
             }
             catch (Exception ex)
             {
-                Debug.WriteLine($"Hyperlink error: {ex.Message}");
+                Console.WriteLine($"[GPUCompositor] FATAL: Compose failed: {ex.Message}");
             }
         }
 

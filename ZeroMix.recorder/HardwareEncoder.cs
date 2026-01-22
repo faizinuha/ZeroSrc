@@ -90,10 +90,11 @@ namespace ZeroMix.Recorder
                 using var p = Process.Start(psi);
                 string output = p?.StandardOutput.ReadToEnd() ?? "";
                 
-                // Priority: NVIDIA -> Intel -> AMD -> CPU
+                // Priority: NVIDIA -> Intel -> AMD -> MediaFoundation -> CPU
                 if (output.Contains("h264_nvenc")) return "h264_nvenc";
                 if (output.Contains("h264_qsv")) return "h264_qsv";
                 if (output.Contains("h264_amf")) return "h264_amf";
+                if (output.Contains("h264_mf")) return "h264_mf";
             }
             catch { }
             
@@ -107,8 +108,9 @@ namespace ZeroMix.Recorder
             string encoderArgs = _encoder switch
             {
                 "h264_nvenc" => "-c:v h264_nvenc -preset p4 -tune hq -rc vbr -cq 23",
-                "h264_qsv" => "-c:v h264_qsv -global_quality 23 -preset fast",
+                "h264_qsv" => "-c:v h264_qsv -q 23 -preset fast -look_ahead 0",
                 "h264_amf" => "-c:v h264_amf -quality speed -rc cqp -qp_i 23 -qp_p 23",
+                "h264_mf" => "-c:v h264_mf -rate_control vbr -quality 23",
                 _ => "-c:v libx264 -preset ultrafast -crf 23 -threads 0"
             };
 
@@ -142,10 +144,10 @@ namespace ZeroMix.Recorder
 
             string args = $"-f rawvideo -pixel_format bgra -video_size {_width}x{_height} " +
                           $"-framerate {_framerate} -i - " +
-                          $"{audioInputs} " +
-                          $"{encoderArgs} -pix_fmt yuv420p -r {_framerate} {mapArgs} {audioCodecArgs} -y \"{_outputPath}\"";
+                          $"{audioInputs.Trim()} " +
+                          $"{encoderArgs} -pix_fmt yuv420p -r {_framerate} {mapArgs} {audioCodecArgs.Trim()} -y \"{_outputPath}\"";
 
-            Console.WriteLine($"[HardwareEncoder] Starting FFmpeg with args: {args}");
+            Console.WriteLine($"[HardwareEncoder] FINAL COMMAND: {_ffmpegPath} {args}");
 
             var psi = new ProcessStartInfo
             {

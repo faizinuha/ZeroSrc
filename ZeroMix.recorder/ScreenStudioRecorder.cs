@@ -150,6 +150,11 @@ namespace ZeroMix.Recorder
                     _encoder?.QueueFrame(_compositor.OutputTexture);
                 }
 
+                if (frameIndex % 100 == 0 && frameIndex > 0)
+                {
+                    Console.WriteLine($"[ScreenStudioRecorder] Loop: Processed {frameIndex} frames...");
+                }
+
                 frameIndex++;
             }
         }
