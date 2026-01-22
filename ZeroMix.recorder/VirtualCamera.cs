@@ -19,11 +19,13 @@ namespace ZeroMix.Recorder
         // Tuning untuk FEELS PREMIUM (Target: Ease In-Out ala Screen Studio)
         private const float SMOOTH_TIME_ACTIVE = 0.15f; // Detik untuk sampe ke target kursor
         private const float SMOOTH_TIME_IDLE = 0.30f;   // Lebih lambat pas balik ke center (Cinematic)
+        private const float SMOOTH_TIME_TYPE = 0.10f;   // Lebih cepat untuk typing (responsive)
         private const float ZOOM_SMOOTH_TIME = 0.12f;   // Kecepatan transisi zoom
         
         private const float ZOOM_IDLE = 1.0f;
-        private const float ZOOM_CLICK = 1.70f;          // Angka sakti Kakak
-        private const float ZOOM_DRAG = 2.00f;           // Angka sakti Kakak
+        private const float ZOOM_TYPE = 1.35f;          // Typing zoom (mirip Screen Studio)
+        private const float ZOOM_CLICK = 1.70f;         // Click zoom
+        private const float ZOOM_DRAG = 2.00f;          // Drag zoom
 
         private int _screenWidth;
         private int _screenHeight;
@@ -40,7 +42,7 @@ namespace ZeroMix.Recorder
         {
             float deltaTime = 1f / 60f; // Asumsi loop 60fps
 
-            // 1. Zoom Logic dengan STICKY SUSTAIN 
+            // 1. Zoom Logic dengan PRIORITY: DRAG > CLICK > TYPE > IDLE
             if (cursor.IsDragging) 
             {
                 // Drag Zoom (2.0) selalu prioritas
@@ -49,17 +51,22 @@ namespace ZeroMix.Recorder
             }
             else if (cursor.IsLeftClick) 
             {
-                // Mencegah dhut-dhut: Jangan turunkan target kalau sudah di level DRAG
+                // Click Zoom (1.7)
                 if (_targetZoom < ZOOM_DRAG)
                 {
                     _targetZoom = ZOOM_CLICK;
                 }
                 
-                // Mencegah dhut-dhut pas double click: Jangan reset timer kalau tick-nya masih tinggi
                 if (_zoomSustainTicks < 40)
                 {
                     _zoomSustainTicks = 50; 
                 }
+            }
+            else if (cursor.IsTyping)
+            {
+                // Type Zoom (1.35) - mirip Screen Studio
+                _targetZoom = ZOOM_TYPE;
+                _zoomSustainTicks = 15;  // Quick reset pas stop typing
             }
             else 
             {
@@ -77,21 +84,40 @@ namespace ZeroMix.Recorder
             // Zoom dengan Ease In-Out
             Zoom = SmoothDamp(Zoom, _targetZoom, ref _velZoom, ZOOM_SMOOTH_TIME, deltaTime);
 
-            // 2. Camera Move dengan MIXING (Mencegah SNAP / "Dhut-Dhut")
-            // Responsiveness FIX: Gunakan weighting yang lebih agresif saat baru mulai klik
-            // Jika targetZoom > 1.0 (artinya user sedang interaksi), langsung beri weight minimal 
-            float interactionWeight = (_targetZoom > 1.01f) ? 1.0f : 0.0f;
+            // 2. Camera Move dengan SMART BEHAVIOR
+            // Priority: DRAG > CLICK > TYPE, each dengan different responsiveness
+            float interactionWeight = 0f;
+            float currentSmoothTime = SMOOTH_TIME_IDLE;
             
-            // Kita campur antara current zoom weighting (untuk smoothing) dan interaction trigger (untuk ke-snappy-an)
-            float cinematicWeight = Math.Clamp((Zoom - 1.0f) / 0.15f, 0f, 1f);
-            if (interactionWeight > 0) cinematicWeight = Math.Max(cinematicWeight, 0.4f); // Langsung kejar 40% pas awal klik
+            if (cursor.IsDragging)
+            {
+                // Drag: follow cursor aggressively
+                interactionWeight = 1.0f;
+                currentSmoothTime = SMOOTH_TIME_ACTIVE;
+            }
+            else if (cursor.IsLeftClick)
+            {
+                // Click: medium follow
+                interactionWeight = 0.7f;
+                currentSmoothTime = SMOOTH_TIME_ACTIVE;
+            }
+            else if (cursor.IsTyping)
+            {
+                // Typing: quick responsive follow (mirip Screen Studio)
+                interactionWeight = 0.5f;
+                currentSmoothTime = SMOOTH_TIME_TYPE;
+            }
+            else
+            {
+                // Idle: cinematic slow pan back to center
+                float cinematicWeight = Math.Clamp((Zoom - 1.0f) / 0.35f, 0f, 1f);
+                interactionWeight = cinematicWeight;
+                currentSmoothTime = SMOOTH_TIME_IDLE;
+            }
             
-            float targetX = (cursor.X * cinematicWeight) + ((_screenWidth / 2f) * (1f - cinematicWeight));
-            float targetY = (cursor.Y * cinematicWeight) + ((_screenHeight / 2f) * (1f - cinematicWeight));
+            float targetX = (cursor.X * interactionWeight) + ((_screenWidth / 2f) * (1f - interactionWeight));
+            float targetY = (cursor.Y * interactionWeight) + ((_screenHeight / 2f) * (1f - interactionWeight));
 
-            // Smooth Time transisi (lebih lambat pas balik ke center)
-            float currentSmoothTime = (cinematicWeight > 0.1f) ? SMOOTH_TIME_ACTIVE : SMOOTH_TIME_IDLE;
-            
             X = SmoothDamp(X, targetX, ref _velX, currentSmoothTime, deltaTime);
             Y = SmoothDamp(Y, targetY, ref _velY, currentSmoothTime, deltaTime);
 
@@ -107,7 +133,7 @@ namespace ZeroMix.Recorder
             Y = Math.Clamp(Y, minY, maxY);
 
             // 4. Force Reset on Normal
-            if (cinematicWeight < 0.01f && Math.Abs(Zoom - 1.0f) < 0.001f)
+            if (interactionWeight < 0.01f && Math.Abs(Zoom - 1.0f) < 0.001f)
             {
                 X = _screenWidth / 2f;
                 Y = _screenHeight / 2f;

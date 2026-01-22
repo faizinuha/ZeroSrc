@@ -195,7 +195,7 @@ namespace ZeroMix
             {
                 if (File.Exists(path))
                 {
-                    Debug.WriteLine($"[ZeroMix] Found FFmpeg at: {path}");
+                    Console.WriteLine($"[ZeroMix] Found FFmpeg at: {path}");
                     return path;
                 }
             }
@@ -521,7 +521,10 @@ namespace ZeroMix
 
         private void ExitApplication()
         {
-            _notifyIcon.Dispose();
+            if (_notifyIcon != null)
+            {
+                _notifyIcon.Dispose();
+            }
             System.Windows.Application.Current.Shutdown();
         }
 
@@ -744,7 +747,7 @@ namespace ZeroMix
             }
             catch (Exception ex)
             {
-                Debug.WriteLine($"Hyperlink error: {ex.Message}");
+                Console.WriteLine($"[GPUCompositor] FATAL: Compose failed: {ex.Message}");
             }
         }
 
@@ -832,12 +835,29 @@ namespace ZeroMix
                 {
                     try 
                     {
+                        Console.WriteLine("[ZeroRecord] Attempting to start recording...");
                         _recordingManager.StartRecording($"ZeroRecord_{timestamp}.mp4", fps, mic, speaker);
+                        Console.WriteLine("[ZeroRecord] Recording started successfully!");
                         return true;
+                    }
+                    catch (InvalidOperationException iex)
+                    {
+                        Console.WriteLine($"[ZeroRecord] Initialization Error: {iex.Message}");
+                        Dispatcher.Invoke(() => System.Windows.MessageBox.Show(
+                            $"Cannot start recording:\n\n{iex.Message}\n\nTroubleshooting:\n" +
+                            "1. Update GPU drivers (NVIDIA/Intel/AMD)\n" +
+                            "2. Check that Direct3D 11 is working\n" +
+                            "3. Try disabling hardware acceleration in graphics settings\n" +
+                            "4. Ensure FFmpeg is properly installed",
+                            "ZeroRecord - Hardware Error", MessageBoxButton.OK, MessageBoxImage.Error));
+                        return false;
                     }
                     catch (Exception ex)
                     {
-                        Dispatcher.Invoke(() => System.Windows.MessageBox.Show("Failed to start recording: " + ex.Message));
+                        Console.WriteLine($"[ZeroRecord] FATAL ERROR: {ex.GetType().Name}: {ex.Message}");
+                        Dispatcher.Invoke(() => System.Windows.MessageBox.Show(
+                            $"Recording Error:\n{ex.Message}\n\nCheck console output for details.",
+                            "ZeroRecord Error", MessageBoxButton.OK, MessageBoxImage.Error));
                         return false;
                     }
                 });
@@ -871,7 +891,8 @@ namespace ZeroMix
                 }
                 else
                 {
-                     UpdateRecordUI(false);
+                    Console.WriteLine("[ZeroRecord] Failed to start recording.");
+                    UpdateRecordUI(false);
                 }
             }
             else
@@ -881,7 +902,19 @@ namespace ZeroMix
 
                 await Task.Run(() => 
                 {
-                     _recordingManager.StopRecording();
+                    try
+                    {
+                        Console.WriteLine("[ZeroRecord] Stopping recording and finalizing video...");
+                        _recordingManager.StopRecording();
+                        Console.WriteLine("[ZeroRecord] Recording successfully saved!");
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"[ZeroRecord] Error during Stop: {ex.Message}");
+                        Dispatcher.Invoke(() => System.Windows.MessageBox.Show(
+                            $"Error saving video:\n{ex.Message}",
+                            "ZeroRecord - Save Error", MessageBoxButton.OK, MessageBoxImage.Warning));
+                    }
                 });
 
                 _isRecordingActive = false;
