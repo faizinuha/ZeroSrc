@@ -21,7 +21,7 @@ namespace ZeroMix
         private const uint VK_F9 = 0x78;
 
         private IntPtr _windowHandle;
-        private HwndSource _source;
+        private HwndSource? _source;
         public event Action? HotkeyPressed;
 
         public void Register(Window window)
@@ -29,7 +29,7 @@ namespace ZeroMix
             var helper = new WindowInteropHelper(window);
             _windowHandle = helper.Handle;
             _source = HwndSource.FromHwnd(_windowHandle);
-            _source.AddHook(HwndHook);
+            _source?.AddHook(HwndHook);
 
             if (!RegisterHotKey(_windowHandle, HOTKEY_ID, MOD_NONE, VK_F9))
             {

@@ -4,6 +4,7 @@ using System.IO;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Collections.Concurrent;
+using System.Linq;
 using Vortice.Direct3D11;
 using Vortice.DXGI;
 
@@ -18,11 +19,11 @@ namespace ZeroMix.Recorder
     {
         private Process? _ffmpegProcess;
         private string _ffmpegPath;
-        private string _outputPath;
+        private string _outputPath = "";
         private int _width;
         private int _height;
         private int _framerate;
-        private string _encoder;
+        private string _encoder = "";
 
         private ID3D11Texture2D? _stagingTexture;
         private ID3D11DeviceContext _context;
@@ -84,20 +85,96 @@ namespace ZeroMix.Recorder
                     FileName = _ffmpegPath,
                     Arguments = "-encoders",
                     RedirectStandardOutput = true,
+                    RedirectStandardError = true,
                     UseShellExecute = false,
                     CreateNoWindow = true
                 };
                 using var p = Process.Start(psi);
                 string output = p?.StandardOutput.ReadToEnd() ?? "";
                 
-                // Priority: NVIDIA -> Intel -> AMD -> CPU
-                if (output.Contains("h264_nvenc")) return "h264_nvenc";
-                if (output.Contains("h264_qsv")) return "h264_qsv";
-                if (output.Contains("h264_amf")) return "h264_amf";
+                // List of encoders to try, in priority order
+                string[] encodersToTry = { "h264_nvenc", "h264_qsv", "h264_amf", "h264_mf" };
+                
+                // First filter: Check if encoder is in list
+                foreach (var encoder in encodersToTry)
+                {
+                    if (output.Contains(encoder))
+                    {
+                        // Second filter: Actually test if encoder works
+                        if (TestEncoder(encoder))
+                        {
+                            Console.WriteLine($"[HardwareEncoder] Selected encoder: {encoder}");
+                            return encoder;
+                        }
+                        else
+                        {
+                            Console.WriteLine($"[HardwareEncoder] Encoder {encoder} listed but not working, trying next...");
+                        }
+                    }
+                }
+                
+                Console.WriteLine("[HardwareEncoder] No hardware encoders available, using libx264 (CPU)");
             }
-            catch { }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[HardwareEncoder] Error detecting encoders: {ex.Message}");
+            }
             
             return "libx264";
+        }
+
+        private bool TestEncoder(string encoderName)
+        {
+            try
+            {
+                // Test if encoder can be initialized with a dummy encode command
+                var psi = new ProcessStartInfo
+                {
+                    FileName = _ffmpegPath,
+                    // Test with minimal parameters - just check if encoder loads
+                    Arguments = $"-f lavfi -i color=c=black:s=320x240:d=0.1 -c:v {encoderName} -f null -",
+                    RedirectStandardOutput = true,
+                    RedirectStandardError = true,
+                    UseShellExecute = false,
+                    CreateNoWindow = true
+                };
+                
+                using var p = Process.Start(psi);
+                if (p == null) return false;
+                
+                // Wait for process to complete with timeout
+                bool completed = p.WaitForExit(3000);
+                
+                if (!completed)
+                {
+                    p.Kill();
+                    return false;
+                }
+                
+                // Exit code 0 means success
+                bool success = p.ExitCode == 0;
+                
+                if (success)
+                {
+                    Console.WriteLine($"[HardwareEncoder] ✓ Encoder {encoderName} test passed");
+                }
+                else
+                {
+                    Console.WriteLine($"[HardwareEncoder] ✗ Encoder {encoderName} test failed (exit code: {p.ExitCode})");
+                    string errorOutput = p.StandardError.ReadToEnd();
+                    if (!string.IsNullOrEmpty(errorOutput))
+                    {
+                        Console.WriteLine($"[HardwareEncoder]   Error: {errorOutput.Split('\n').FirstOrDefault()}");
+                    }
+                }
+                
+                return success;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[HardwareEncoder] Error testing encoder {encoderName}: {ex.Message}");
+                return false;
+            }
         }
 
         public void Start(string outputPath, string micDevice = "No Audio", string speakerDevice = "No Audio")
@@ -106,27 +183,37 @@ namespace ZeroMix.Recorder
             
             string encoderArgs = _encoder switch
             {
-                "h264_nvenc" => "-c:v h264_nvenc -preset p4 -tune hq -rc vbr -cq 23",
-                "h264_qsv" => "-c:v h264_qsv -global_quality 23 -preset fast",
+                "h264_nvenc" => "-c:v h264_nvenc -preset fast -tune hq -rc vbr -cq 23",
+                "h264_qsv" => "-c:v h264_qsv -q 23 -preset faster -look_ahead 0",
                 "h264_amf" => "-c:v h264_amf -quality speed -rc cqp -qp_i 23 -qp_p 23",
-                _ => "-c:v libx264 -preset ultrafast -crf 23 -threads 0"
+                "h264_mf" => "-c:v h264_mf -rate_control vbr -quality 23",
+                _ => "-c:v libx264 -preset ultrafast -crf 23 -threads 4"
             };
 
-            // Audio Inputs
+            // Audio Input Strategy (Backward Compatible)
             string audioInputs = "";
             int audioChannelCount = 0;
             
+            // Try Microphone via dshow (Windows Universal)
             if (micDevice != "No Audio" && !micDevice.Contains("System") && !micDevice.Contains("Default"))
             {
-                audioInputs += $"-f dshow -i audio=\"{micDevice}\" ";
-                audioChannelCount++;
+                try
+                {
+                    audioInputs += $"-f dshow -i audio=\"{micDevice}\" ";
+                    audioChannelCount++;
+                    Console.WriteLine($"[HardwareEncoder] Using microphone via dshow: {micDevice}");
+                }
+                catch
+                {
+                    Console.WriteLine("[HardwareEncoder] WARNING: Microphone dshow input failed, skipping audio.");
+                }
             }
 
+            // System Audio: Skip WASAPI completely - too unreliable on old hardware
+            // If user needs system audio, they should use other methods
             if (speakerDevice != "No Audio")
             {
-                // Use wasapi loopback for system audio
-                audioInputs += "-f wasapi -i default "; 
-                audioChannelCount++;
+                Console.WriteLine("[HardwareEncoder] WARNING: System audio not supported on this version (use external audio mixer).");
             }
 
             // Sync video/audio
@@ -142,10 +229,10 @@ namespace ZeroMix.Recorder
 
             string args = $"-f rawvideo -pixel_format bgra -video_size {_width}x{_height} " +
                           $"-framerate {_framerate} -i - " +
-                          $"{audioInputs} " +
-                          $"{encoderArgs} -pix_fmt yuv420p -r {_framerate} {mapArgs} {audioCodecArgs} -y \"{_outputPath}\"";
+                          $"{audioInputs.Trim()} " +
+                          $"{encoderArgs} -pix_fmt yuv420p -r {_framerate} {mapArgs} {audioCodecArgs.Trim()} -y \"{_outputPath}\"";
 
-            Console.WriteLine($"[HardwareEncoder] Starting FFmpeg with args: {args}");
+            Console.WriteLine($"[HardwareEncoder] FINAL COMMAND: {_ffmpegPath} {args}");
 
             var psi = new ProcessStartInfo
             {
@@ -154,7 +241,8 @@ namespace ZeroMix.Recorder
                 UseShellExecute = false,
                 CreateNoWindow = true,
                 RedirectStandardInput = true,
-                RedirectStandardError = true // Capture errors
+                RedirectStandardError = true,
+                RedirectStandardOutput = true
             };
 
             try
@@ -163,13 +251,67 @@ namespace ZeroMix.Recorder
                 
                 if (_ffmpegProcess != null)
                 {
+                    bool encoderInitialized = false;
+                    string encoderErrorMsg = "";
+                    
                     // Log FFmpeg errors to Console for terminal debugging
                     _ffmpegProcess.ErrorDataReceived += (s, e) => {
                         if (!string.IsNullOrEmpty(e.Data))
+                        {
                             Console.WriteLine($"[FFMPEG-LOG] {e.Data}");
+                            
+                            // Detect encoder initialization errors
+                            if (e.Data.Contains("Error while opening encoder") || 
+                                e.Data.Contains("Cannot load") ||
+                                e.Data.Contains("Unknown encoder"))
+                            {
+                                encoderErrorMsg = e.Data;
+                            }
+                        }
+                    };
+                    _ffmpegProcess.OutputDataReceived += (s, e) => {
+                        if (!string.IsNullOrEmpty(e.Data))
+                        {
+                            Console.WriteLine($"[FFMPEG-LOG] {e.Data}");
+                            
+                            // Encoder successfully initialized when we see Stream mapping
+                            if (e.Data.Contains("Stream mapping"))
+                            {
+                                encoderInitialized = true;
+                                Console.WriteLine($"[HardwareEncoder] ✓ Encoder {_encoder} initialized successfully!");
+                            }
+                        }
                     };
                     _ffmpegProcess.BeginErrorReadLine();
-                    Console.WriteLine("[HardwareEncoder] FFmpeg process started successfully.");
+                    _ffmpegProcess.BeginOutputReadLine();
+                    
+                    // Give FFmpeg a moment to initialize and check for errors
+                    Thread.Sleep(500);
+                    
+                    if (_ffmpegProcess.HasExited)
+                    {
+                        Console.WriteLine($"[HardwareEncoder] ✗ FFmpeg exited immediately (exit code: {_ffmpegProcess.ExitCode})");
+                        
+                        // If selected encoder failed, fallback to libx264
+                        if (!encoderInitialized && _encoder != "libx264")
+                        {
+                            Console.WriteLine($"[HardwareEncoder] WARNING: Encoder {_encoder} failed!");
+                            if (!string.IsNullOrEmpty(encoderErrorMsg))
+                            {
+                                Console.WriteLine($"[HardwareEncoder] Error: {encoderErrorMsg}");
+                            }
+                            Console.WriteLine("[HardwareEncoder] Falling back to libx264 (CPU encoding)...");
+                            
+                            // Retry with libx264
+                            _encoder = "libx264";
+                            Start(outputPath, micDevice, speakerDevice);
+                            return;
+                        }
+                    }
+                    else
+                    {
+                        Console.WriteLine("[HardwareEncoder] FFmpeg process started successfully.");
+                    }
                 }
                 else
                 {
@@ -237,12 +379,30 @@ namespace ZeroMix.Recorder
                 {
                     try
                     {
-                        _ffmpegProcess?.StandardInput.BaseStream.Write(frame, 0, frame.Length);
-                        _ffmpegProcess?.StandardInput.BaseStream.Flush();
+                        // Validate FFmpeg process is still alive
+                        if (_ffmpegProcess == null || _ffmpegProcess.HasExited)
+                        {
+                            Console.WriteLine($"[HardwareEncoder] ERROR: FFmpeg process died! Exit code: {_ffmpegProcess?.ExitCode}");
+                            break;
+                        }
+
+                        var inputStream = _ffmpegProcess.StandardInput.BaseStream;
+                        if (!inputStream.CanWrite)
+                        {
+                            Console.WriteLine("[HardwareEncoder] ERROR: Cannot write to FFmpeg stdin!");
+                            break;
+                        }
+
+                        inputStream.Write(frame, 0, frame.Length);
+                        inputStream.Flush();
                         Interlocked.Increment(ref _framesWritten);
                         _bufferPool.Add(frame);
                     }
-                    catch { break; }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"[HardwareEncoder] EncoderLoop FATAL ERROR: {ex.Message}");
+                        break;
+                    }
                 }
                 else
                 {
@@ -255,12 +415,39 @@ namespace ZeroMix.Recorder
         {
             _isRunning = false;
             _encoderThread?.Join(TimeSpan.FromSeconds(5));
+            
             try
             {
-                _ffmpegProcess?.StandardInput.Close();
-                _ffmpegProcess?.WaitForExit(3000);
+                if (_ffmpegProcess != null && !_ffmpegProcess.HasExited)
+                {
+                    try
+                    {
+                        _ffmpegProcess.StandardInput.BaseStream.Flush();
+                        _ffmpegProcess.StandardInput.Close();
+                        Console.WriteLine("[HardwareEncoder] Sent EOF to FFmpeg stdin.");
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"[HardwareEncoder] Error closing stdin: {ex.Message}");
+                    }
+
+                    // Wait for FFmpeg to finalize video
+                    if (!_ffmpegProcess.WaitForExit(5000))
+                    {
+                        Console.WriteLine("[HardwareEncoder] WARNING: FFmpeg didn't exit in time, killing process.");
+                        _ffmpegProcess.Kill();
+                        _ffmpegProcess.WaitForExit(2000);
+                    }
+                    else
+                    {
+                        Console.WriteLine($"[HardwareEncoder] FFmpeg exited with code: {_ffmpegProcess.ExitCode}");
+                    }
+                }
             }
-            catch { }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[HardwareEncoder] Error during Stop: {ex.Message}");
+            }
         }
 
         public void Dispose()

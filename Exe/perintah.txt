@@ -1,6 +1,0 @@
-#Via Terminal pws
-& "C:\Program Files (x86)\Inno Setup 6\iscc.exe" "c:\ZeroMix\ZeroMix\Exe\Setup.iss"
-& "C:\ZeroMix\ZeroMix\Exe\bin\osslsigncode.exe" sign -pkcs12 "C:\ZeroMix\ZeroMix\Exe\ZeroMixCert.pfx" -pass "ZeroMixPass" -n "ZeroMix" -i "https://zeromix.pages.dev" -in "C:\ZeroMix\ZeroMix\Exe\ZeroMix-Setup.exe" -out "C:\ZeroMix\ZeroMix\Exe\ZeroMix-Setup-signed.exe" -t http://timestamp.digicert.com
-
-Remove-Item "C:\ZeroMix\ZeroMix\Exe\ZeroMix-Setup.exe"
-Rename-Item "C:\ZeroMix\ZeroMix\Exe\ZeroMix-Setup-signed.exe" -NewName "ZeroMix-Setup.exe"
