@@ -103,7 +103,7 @@ namespace ZeroMix.Recorder
                                 try
                                 {
                                     _deskDupl = output1.DuplicateOutput(_device);
-                                    Console.WriteLine($"[DXGICapturer] Success on Adapter {adapterIndex}, Output {outputIndex}!");
+                                    Console.WriteLine($"[DXGICapturer] ✓ Success on Adapter {adapterIndex}, Output {outputIndex}!");
                                     
                                     SetupStagingTexture();
                                     IsInitialized = true;
@@ -113,18 +113,32 @@ namespace ZeroMix.Recorder
                                 }
                                 catch (Exception ex)
                                 {
-                                    Console.WriteLine($"[DXGICapturer] DuplicateOutput failed on this output: {ex.Message}");
+                                    Console.WriteLine($"[DXGICapturer] DuplicateOutput failed: {ex.Message}");
+                                    // Try next output
                                 }
                             }
-                            catch { }
-                            finally { output.Dispose(); }
+                            catch (Exception ex)
+                            {
+                                Console.WriteLine($"[DXGICapturer] Output enumeration error: {ex.Message}");
+                            }
+                            finally 
+                            { 
+                                try { output.Dispose(); } catch { }
+                            }
                         }
                     }
-                    catch { }
-                    finally { adapter.Dispose(); }
+                    catch (Exception ex) 
+                    { 
+                        Console.WriteLine($"[DXGICapturer] Adapter enumeration error: {ex.Message}");
+                    }
+                    finally 
+                    { 
+                        try { adapter.Dispose(); } catch { }
+                    }
                 }
 
                 Console.WriteLine("[DXGICapturer] ERROR: No duplicatable output found on any adapter.");
+                Console.WriteLine("[DXGICapturer] This might be an old GPU or driver issue - GDI fallback will be used.");
                 IsInitialized = false;
             }
             catch (Exception ex)
