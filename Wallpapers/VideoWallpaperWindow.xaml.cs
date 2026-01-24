@@ -4,7 +4,7 @@ using System.Windows;
 using System.Windows.Interop;
 using System.Collections.Generic;
 
-namespace ZeroMix
+namespace ZeroMix.Wallpapers
 {
     public partial class VideoWallpaperWindow : Window
     {

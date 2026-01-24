@@ -5,6 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d"
         xmlns:local="clr-namespace:ZeroMix"
+        xmlns:wallpapers="clr-namespace:ZeroMix.Wallpapers"
         xmlns:battery="clr-namespace:ZeroMix.Plugins.Battery"
         xmlns:weather="clr-namespace:ZeroMix.Plugins.Weather"
         Title="ZeroMix"
@@ -25,8 +26,7 @@
                 <ResourceDictionary Source="Plugins/Styles.xaml"/>
             </ResourceDictionary.MergedDictionaries>
 
-            <SolidColorBrush x:Key="NavSelectedBrush" Color="{StaticResource NeonBlueColor}"/>
-
+            <!-- NavSelectedBrush is now in Styles.xaml -->
 
             <!-- Global ComboBox Styling for Darkness -->
             <Style TargetType="ComboBox">
@@ -399,9 +399,8 @@
                         </StackPanel>
                     </ScrollViewer>
 
-                    <!-- Wallpapers View -->
                     <Grid x:Name="WallpapersContent" Visibility="Collapsed">
-                        <local:WallpapersView />
+                        <wallpapers:WallpapersView />
                     </Grid>
 
                     <!-- About View -->

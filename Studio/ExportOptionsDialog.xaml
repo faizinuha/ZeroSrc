@@ -1,0 +1,78 @@
+<Window x:Class="ZeroMix.Studio.ExportOptionsDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Export Options"
+        Height="220"
+        Width="340"
+        WindowStartupLocation="CenterOwner"
+        ResizeMode="NoResize">
+    <Window.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="/Plugins/Styles.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+            
+            <!-- Map local names to global styles from Styles.xaml -->
+            <SolidColorBrush x:Key="BgBrush" Color="{StaticResource DeepNavyColor}"/>
+            <SolidColorBrush x:Key="AccentBrush" Color="{StaticResource NeonBlueColor}"/>
+            
+            <Style TargetType="TextBlock">
+                <Setter Property="Foreground" Value="White"/>
+                <Setter Property="FontSize" Value="12"/>
+            </Style>
+        </ResourceDictionary>
+    </Window.Resources>
+
+    <Border Background="{StaticResource BgBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1">
+        <Grid Margin="20">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <StackPanel Orientation="Horizontal" Margin="0,0,0,20">
+                <Ellipse Width="8" Height="8" Fill="{StaticResource AccentBrush}" Margin="0,0,10,0"/>
+                <TextBlock Text="EXPORT CONFIGURATION" FontWeight="Black" FontSize="10" Foreground="{StaticResource AccentBrush}" Opacity="0.8" VerticalAlignment="Center"/>
+            </StackPanel>
+
+            <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,0,0,12">
+                <TextBlock Text="Resolution:" VerticalAlignment="Center" Width="90" Opacity="0.7"/>
+                <ComboBox x:Name="ResolutionCombo" Width="180" SelectedIndex="0">
+                    <ComboBoxItem Content="1920x1080 (Full HD)" Tag="1920,1080"/>
+                    <ComboBoxItem Content="1280x720 (HD)" Tag="1280,720"/>
+                    <ComboBoxItem Content="854x480 (SD)" Tag="854,480"/>
+                </ComboBox>
+            </StackPanel>
+
+            <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="0,0,0,12">
+                <TextBlock Text="Frame Rate:" VerticalAlignment="Center" Width="90" Opacity="0.7"/>
+                <ComboBox x:Name="FPSCombo" Width="180" SelectedIndex="1">
+                    <ComboBoxItem Content="60 fps" Tag="60"/>
+                    <ComboBoxItem Content="30 fps" Tag="30"/>
+                    <ComboBoxItem Content="24 fps" Tag="24"/>
+                </ComboBox>
+            </StackPanel>
+
+
+
+            <Grid Grid.Row="3" Margin="0,0,0,12">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="90"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <TextBlock Text="Save To:" VerticalAlignment="Center" Opacity="0.7"/>
+                <TextBox x:Name="OutputPathBox" Grid.Column="1" Height="28" Padding="5,0" VerticalContentAlignment="Center" IsReadOnly="True" Background="#12161F" Foreground="White" BorderBrush="{StaticResource BorderBrush}"/>
+                <Button Content="" Grid.Column="2" FontFamily="Segoe MDL2 Assets" Width="30" Height="28" Margin="5,0,0,0" Style="{StaticResource ActionButton}" Padding="0" Click="Browse_Click"/>
+            </Grid>
+
+            <StackPanel Grid.Row="4" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,15,0,0">
+                <Button Content="CANCEL" Width="80" Height="30" Margin="0,0,10,0" Style="{StaticResource CasualBtn}" Click="Cancel_Click"/>
+                <Button Content="START EXPORT" Width="120" Height="30" Style="{StaticResource PrimaryBtn}" Click="Export_Click"/>
+            </StackPanel>
+        </Grid>
+    </Border>
+</Window>

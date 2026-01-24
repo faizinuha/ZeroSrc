@@ -16,6 +16,7 @@ using System.Threading;
 using System.Windows.Media;
 using System.Windows.Input;
 using ZeroMix.Recorder;
+using ZeroMix.Widgets;
 using System.Windows.Documents;
 using System.Windows.Navigation;
 
@@ -1489,7 +1490,7 @@ end";
         {
             try
             {
-                StudioWindow studio = new StudioWindow();
+                Studio.StudioWindow studio = new Studio.StudioWindow();
                 studio.Show();
             }
             catch (Exception ex)

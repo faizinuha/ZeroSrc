@@ -1,4 +1,4 @@
-<Window x:Class="ZeroMix.VideoWallpaperWindow"
+<Window x:Class="ZeroMix.Wallpapers.VideoWallpaperWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="Video Wallpaper"
