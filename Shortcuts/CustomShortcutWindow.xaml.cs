@@ -11,7 +11,7 @@ using System.Windows.Input;
 
 using System.Runtime.InteropServices;
 
-namespace ZeroMix
+namespace ZeroMix.Shortcuts
 {
     public partial class CustomShortcutWindow : Window
     {

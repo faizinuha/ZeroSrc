@@ -15,7 +15,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Media.Animation;
 using System.Windows.Navigation;
 
-namespace ZeroMix
+namespace ZeroMix.Wallpapers
 {
     public partial class WallpapersView : System.Windows.Controls.UserControl
     {

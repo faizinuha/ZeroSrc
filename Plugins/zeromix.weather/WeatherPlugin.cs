@@ -4,6 +4,7 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using System.Windows.Threading;
 using System.Diagnostics;
+using ZeroMix.Wallpapers;
 
 namespace ZeroMix.Plugins.Weather
 {

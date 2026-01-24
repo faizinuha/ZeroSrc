@@ -6,7 +6,7 @@ using System.Runtime.InteropServices;
 using System.Windows;
 using ZeroMix;
 
-namespace ZeroMix
+namespace ZeroMix.Wallpapers
 {
     /// <summary>
     /// Global manager for Video Wallpapers and Desktop refresh.

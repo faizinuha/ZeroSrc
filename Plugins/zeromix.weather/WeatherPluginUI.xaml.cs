@@ -3,6 +3,7 @@ using System.IO;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using ZeroMix.Wallpapers;
 
 namespace ZeroMix.Plugins.Weather
 {

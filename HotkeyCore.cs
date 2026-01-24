@@ -6,6 +6,7 @@ using System.Windows;
 using System.Windows.Input;
 using System.Windows.Interop;
 using Newtonsoft.Json;
+using ZeroMix.Shortcuts;
 
 namespace ZeroMix
 {

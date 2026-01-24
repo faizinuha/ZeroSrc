@@ -5,7 +5,7 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Threading;
 
-namespace ZeroMix
+namespace ZeroMix.Widgets
 {
     public partial class ClockWidget : Window
     {

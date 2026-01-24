@@ -11,6 +11,7 @@
     <SolidColorBrush x:Key="DeepNavyBrush" Color="{StaticResource DeepNavyColor}"/>
     <SolidColorBrush x:Key="GlassBrush" Color="{StaticResource GlassColor}" Opacity="0.8"/>
     <SolidColorBrush x:Key="BorderBrush" Color="{StaticResource BorderColor}"/>
+    <SolidColorBrush x:Key="NavSelectedBrush" Color="{StaticResource NeonBlueColor}"/>
     <SolidColorBrush x:Key="TextBrush" Color="#E1E1E1"/>
     <SolidColorBrush x:Key="SubTextBrush" Color="#8A8D91"/>
 
@@ -64,6 +65,66 @@
         <Setter Property="Padding" Value="12,8,12,8"/>
         <Setter Property="Margin" Value="0,0,0,8"/>
         <Setter Property="Effect" Value="{StaticResource CardShadow}"/>
+    </Style>
+
+    <!-- Studio Casual Button -->
+    <Style x:Key="CasualBtn" TargetType="Button">
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="Foreground" Value="White"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}"/>
+        <Setter Property="Padding" Value="8,4"/>
+        <Setter Property="FontSize" Value="11"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="3"
+                            Padding="{TemplateBinding Padding}">
+                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Border>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+        <Style.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+                <Setter Property="Background" Value="#1A2B3F"/>
+                <Setter Property="BorderBrush" Value="{StaticResource NeonBlueBrush}"/>
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+
+    <!-- Studio Primary Button -->
+    <Style x:Key="PrimaryBtn" BasedOn="{StaticResource CasualBtn}" TargetType="Button">
+        <Setter Property="Background" Value="{StaticResource NeonBlueBrush}"/>
+        <Setter Property="Foreground" Value="#0B0E14"/>
+        <Setter Property="FontWeight" Value="Bold"/>
+        <Setter Property="BorderThickness" Value="0"/>
+    </Style>
+
+    <!-- Title Bar Button -->
+    <Style x:Key="TitleBtn" TargetType="Button">
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="Foreground" Value="White"/>
+        <Setter Property="Width" Value="40"/>
+        <Setter Property="Height" Value="40"/>
+        <Setter Property="BorderThickness" Value="0"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border Background="{TemplateBinding Background}">
+                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Border>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+        <Style.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+                <Setter Property="Background" Value="#22FFFFFF"/>
+            </Trigger>
+        </Style.Triggers>
     </Style>
 
 </ResourceDictionary>
