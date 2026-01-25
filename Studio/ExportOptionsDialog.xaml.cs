@@ -42,7 +42,7 @@ namespace ZeroMix.Studio
             int.TryParse(fpsTag, out int fps);
             SelectedFPS = fps > 0 ? fps : 30;
             
-            SelectedFade = (FadeCombo.SelectedItem as System.Windows.Controls.ComboBoxItem)?.Tag?.ToString() ?? "none";
+            SelectedFade = "none";
             
             OutputPath = OutputPathBox.Text;
             DialogResult = true;
