@@ -127,4 +127,35 @@
         </Style.Triggers>
     </Style>
 
+    <!-- Modern CheckBox Style -->
+    <Style x:Key="ModernCheckBox" TargetType="CheckBox">
+        <Setter Property="Foreground" Value="White"/>
+        <Setter Property="FontSize" Value="11"/>
+        <Setter Property="Cursor" Value="Hand"/>
+        <Setter Property="Margin" Value="0,0,0,10"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="CheckBox">
+                    <StackPanel Orientation="Horizontal">
+                        <Grid Width="16" Height="16">
+                            <Border x:Name="Box" Background="#0F172A" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1.5" CornerRadius="4"/>
+                            <Path x:Name="CheckMark" Data="M 3,8 L 6,11 L 12,5" Stroke="{StaticResource NeonBlueBrush}" StrokeThickness="2" Visibility="Collapsed"/>
+                        </Grid>
+                        <ContentPresenter Margin="10,0,0,1"/>
+                    </StackPanel>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsChecked" Value="True">
+                            <Setter TargetName="CheckMark" Property="Visibility" Value="Visible"/>
+                            <Setter TargetName="Box" Property="BorderBrush" Value="{StaticResource NeonBlueBrush}"/>
+                        </Trigger>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="Box" Property="Background" Value="#1E293B"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+
 </ResourceDictionary>
