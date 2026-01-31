@@ -1,0 +1,56 @@
+<UserControl x:Class="ZeroMix.Plugins.Spotify.SpotifyPluginUI"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             mc:Ignorable="d" 
+             d:DesignHeight="100" d:DesignWidth="800">
+    <UserControl.Resources>
+        <!-- Reusing parent styles if possible, else define basic ones -->
+        <SolidColorBrush x:Key="NeonBlueBrush" Color="#00F2FF"/>
+        <SolidColorBrush x:Key="SubTextBrush" Color="#8A94A6"/>
+        <Style x:Key="CompactCardBorder" TargetType="Border">
+            <Setter Property="Background" Value="#161B26"/>
+            <Setter Property="CornerRadius" Value="12"/>
+            <Setter Property="Padding" Value="15,12"/>
+            <Setter Property="Margin" Value="0,0,0,10"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="BorderBrush" Value="#2D3748"/>
+        </Style>
+    </UserControl.Resources>
+    
+    <StackPanel>
+        <Border x:Name="SpotifyCard" Style="{StaticResource CompactCardBorder}" MouseDown="SpotifyCard_MouseDown">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <Border Grid.Column="0" Width="45" Height="45" CornerRadius="8" Background="#1A202C" Margin="0,0,15,0">
+                    <Image Source="Logo/Spotify_Primary_Logo_RGB_Pink-300x300.png" Width="30" Height="30" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </Border>
+
+                <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                    <TextBlock Text="Spotify Pink Sidebar" Foreground="White" FontSize="15" FontWeight="Bold" Margin="0,0,0,2"/>
+                    <TextBlock Text="Premium pink-themed Spotify controller and sidebar." Foreground="{StaticResource SubTextBrush}" FontSize="11"/>
+
+                    <!-- Download/Uninstall Progress -->
+                    <StackPanel x:Name="PluginProgressPanel" Visibility="Collapsed" Margin="0,10,0,0">
+                        <TextBlock x:Name="PluginStatusText" Text="Processing Plugin... 0%" Foreground="#FF69B4" FontSize="12" Margin="0,0,0,5"/>
+                        <ProgressBar x:Name="PluginProgressBar" Height="4" Maximum="100" Foreground="#FF69B4" Background="#1A202C" BorderThickness="0"/>
+                    </StackPanel>
+                </StackPanel>
+
+                <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                    <CheckBox x:Name="SpotifyPluginToggle" VerticalAlignment="Center" Click="SpotifyPluginToggle_Click">
+                        <CheckBox.LayoutTransform>
+                            <ScaleTransform ScaleX="1.5" ScaleY="1.5"/>
+                        </CheckBox.LayoutTransform>
+                    </CheckBox>
+                </StackPanel>
+            </Grid>
+        </Border>
+    </StackPanel>
+</UserControl>

@@ -70,6 +70,8 @@ Source: "zeromix.ico"; DestDir: "{app}"; Flags: ignoreversion
 ; Resources
 Source: "..\Resource\*"; DestDir: "{app}\Resource"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "..\Plugins\zeromix.weather\assets\*"; DestDir: "{app}\Plugins\zeromix.weather\assets"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "..\Plugins\zeromix.spotify\*"; DestDir: "{app}\Plugins\zeromix.spotify"; Flags: ignoreversion recursesubdirs createallsubdirs
+
 ; Docs
 Source: "Privacy.txt"; DestDir: "{app}"; Flags: ignoreversion
 Source: "../LICENSE.txt"; DestDir: "{app}"; Flags: ignoreversion

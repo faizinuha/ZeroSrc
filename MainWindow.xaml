@@ -8,6 +8,7 @@
         xmlns:wallpapers="clr-namespace:ZeroMix.Wallpapers"
         xmlns:battery="clr-namespace:ZeroMix.Plugins.Battery"
         xmlns:weather="clr-namespace:ZeroMix.Plugins.Weather"
+        xmlns:spotify="clr-namespace:ZeroMix.Plugins.Spotify"
         Title="ZeroMix"
         Icon="zeromix.ico"
         Height="650"
@@ -165,7 +166,7 @@
             <!-- Main Layout -->
             <Grid>
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="260"/>
+                    <ColumnDefinition Width="210"/>
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
 
@@ -179,14 +180,14 @@
                         </Grid.RowDefinitions>
 
                         <!-- App Header -->
-                        <StackPanel Grid.Row="0" Margin="30,45,30,50">
+                        <StackPanel Grid.Row="0" Margin="25,45,20,50">
                             <Grid>
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="Auto"/>
                                     <ColumnDefinition Width="*"/>
                                 </Grid.ColumnDefinitions>
-                                <Border Grid.Column="0" Width="42" Height="42" CornerRadius="10" Background="{StaticResource NeonBlueBrush}" Margin="0,0,12,0" Effect="{StaticResource NeonGlow}">
-                                    <TextBlock Text="Z" Foreground="White" FontSize="22" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                <Border Grid.Column="0" Width="36" Height="36" CornerRadius="8" Background="{StaticResource NeonBlueBrush}" Margin="0,0,10,0" Effect="{StaticResource NeonGlow}">
+                                    <TextBlock Text="Z" Foreground="White" FontSize="18" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                 </Border>
                                 <StackPanel Grid.Column="1" VerticalAlignment="Center">
                                     <TextBlock Text="ZeroMix" FontSize="18" FontWeight="ExtraBold" Foreground="White" />
@@ -513,6 +514,7 @@
                               <!-- Built-in Plugins -->
                               <weather:WeatherPluginUI />
                               <battery:BatteryPluginUI />
+                              <spotify:SpotifyPluginUI />
                               
                               <StackPanel x:Name="UserPluginsContainer" Margin="0,15,0,0" />
                               
@@ -520,186 +522,106 @@
                         </StackPanel>
                     </ScrollViewer>
 
-                    <!-- Recorder View -->
+                    <!-- ZeroRecord View (Simpler & Elegant) -->
                     <ScrollViewer x:Name="RecorderContent" Visibility="Collapsed" VerticalScrollBarVisibility="Auto" BorderThickness="0">
-                        <StackPanel Margin="0,0,0,40">
-                            <!-- Hero Header -->
-                            <Border Background="#12161F" CornerRadius="16" Margin="0,0,0,40" Padding="40" BorderThickness="1" BorderBrush="#2D3748">
-                                <Grid>
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="Auto"/>
-                                    </Grid.ColumnDefinitions>
-                                    
-                                    <StackPanel Grid.Column="0" VerticalAlignment="Center">
-                                        <TextBlock Text="ZERORECORD" FontSize="28" FontWeight="ExtraBold" Foreground="White" Margin="0,0,0,8"/>
-                                        <TextBlock Text="GPU-Accelerated Cinematic Screen Capture" FontSize="14" Foreground="{StaticResource NeonBlueBrush}" Margin="0,0,0,12"/>
-                                        <TextBlock Text="Professional-grade screen recording with intelligent camera tracking" FontSize="12" Foreground="{StaticResource SubTextBrush}" TextWrapping="Wrap"/>
-                                    </StackPanel>
-                                    
-                                    <StackPanel Grid.Column="1" VerticalAlignment="Center" HorizontalAlignment="Right">
-                                        <Ellipse Width="80" Height="80" Fill="{StaticResource NeonBlueBrush}" Opacity="0.1"/>
-                                        <TextBlock x:Name="RecordDurationText" Text="00:00" Foreground="{StaticResource NeonBlueBrush}" FontSize="36" FontWeight="ExtraBold" 
-                                                   HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,-70,0,0" Visibility="Collapsed"/>
-                                    </StackPanel>
-                                </Grid>
-                            </Border>
-
-                            <!-- Recording Control Card -->
-                            <Border Background="#12161F" CornerRadius="16" Margin="0,0,0,30" Padding="30" BorderThickness="1" BorderBrush="#2D3748">
+                        <StackPanel Margin="25,20,25,40">
+                            <!-- Header Area -->
+                            <Grid Margin="0,0,0,30">
                                 <StackPanel>
-                                    <TextBlock Text="RECORDING CONTROL" FontSize="11" FontWeight="Black" Foreground="{StaticResource NeonBlueBrush}" Margin="0,0,0,20"/>
-                                    
-                                    <!-- Main Record Button -->
-                                    <Button x:Name="RecorderPageRecordBtn" Height="100" Click="ZeroRecordBtn_Click" Margin="0,0,0,20">
-                                        <Button.Style>
-                                            <Style TargetType="Button">
-                                                <Setter Property="Background" Value="#1A1F2B"/>
-                                                <Setter Property="Foreground" Value="White"/>
-                                                <Setter Property="BorderThickness" Value="2"/>
-                                                <Setter Property="BorderBrush" Value="#FF4444"/>
-                                                <Setter Property="Cursor" Value="Hand"/>
-                                                <Setter Property="Template">
-                                                    <Setter.Value>
-                                                        <ControlTemplate TargetType="Button">
-                                                            <Border x:Name="border" 
-                                                                    Background="{TemplateBinding Background}" 
-                                                                    BorderBrush="{TemplateBinding BorderBrush}" 
-                                                                    BorderThickness="{TemplateBinding BorderThickness}" 
-                                                                    CornerRadius="12"
-                                                                    Padding="20">
-                                                                <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
-                                                                    <TextBlock x:Name="ZeroRecordBtnText" Text="START RECORDING" FontSize="16" FontWeight="ExtraBold" HorizontalAlignment="Center" Margin="0,0,0,8"/>
-                                                                    <TextBlock Text="Press to begin capture" FontSize="11" Foreground="#888" HorizontalAlignment="Center"/>
-                                                                </StackPanel>
-                                                            </Border>
-                                                            <ControlTemplate.Triggers>
-                                                                <Trigger Property="IsMouseOver" Value="True">
-                                                                    <Setter TargetName="border" Property="Background" Value="#1F2937"/>
-                                                                    <Setter TargetName="border" Property="Effect">
-                                                                        <Setter.Value>
-                                                                            <DropShadowEffect ShadowDepth="0" BlurRadius="20" Color="#FF4444" Opacity="0.5"/>
-                                                                        </Setter.Value>
-                                                                    </Setter>
-                                                                </Trigger>
-                                                                <Trigger Property="IsPressed" Value="True">
-                                                                    <Setter TargetName="border" Property="Background" Value="#0D1117"/>
-                                                                </Trigger>
-                                                            </ControlTemplate.Triggers>
-                                                        </ControlTemplate>
-                                                    </Setter.Value>
-                                                </Setter>
-                                            </Style>
-                                        </Button.Style>
-                                    </Button>
-
-                                    <!-- Info Row -->
-                                    <Grid Margin="0,0,0,0">
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="*"/>
-                                            <ColumnDefinition Width="*"/>
-                                            <ColumnDefinition Width="*"/>
-                                        </Grid.ColumnDefinitions>
-
-                                        <StackPanel Grid.Column="0">
-                                            <TextBlock Text="Duration" FontSize="10" Foreground="{StaticResource NeonBlueBrush}" FontWeight="Bold" Margin="0,0,0,4"/>
-                                            <TextBlock x:Name="RecordDurationDisplay" Text="00:00" FontSize="18" FontWeight="ExtraBold" Foreground="White"/>
-                                        </StackPanel>
-
-                                        <StackPanel Grid.Column="1">
-                                            <TextBlock Text="FPS" FontSize="10" Foreground="{StaticResource NeonBlueBrush}" FontWeight="Bold" Margin="0,0,0,4"/>
-                                            <ComboBox x:Name="FpsComboBox" Background="#0D1117" Foreground="White" BorderThickness="1" BorderBrush="#2D3748" Padding="8,6" FontSize="12">
-                                                <ComboBoxItem Content="30 FPS" IsSelected="True"/>
-                                                <ComboBoxItem Content="45 FPS"/>
-                                                <ComboBoxItem Content="50 FPS"/>
-                                                <ComboBoxItem Content="60 FPS"/>
-                                            </ComboBox>
-                                        </StackPanel>
-
-                                        <StackPanel Grid.Column="2">
-                                            <TextBlock Text="Codec" FontSize="10" Foreground="{StaticResource NeonBlueBrush}" FontWeight="Bold" Margin="0,0,0,4"/>
-                                            <TextBlock Text="Hardware Accelerated" FontSize="12" Foreground="#00FF88" FontWeight="Bold"/>
-                                        </StackPanel>
-                                    </Grid>
+                                    <TextBlock Text="ZERORECORD" FontSize="20" FontWeight="Black" Foreground="White" Opacity="0.9"/>
+                                    <TextBlock Text="Simpler, Faster, GPU Capture." FontSize="11" Foreground="{StaticResource SubTextBrush}"/>
                                 </StackPanel>
-                            </Border>
-
-                            <!-- Audio Settings Card -->
-                            <Border Background="#12161F" CornerRadius="16" Margin="0,0,0,30" Padding="30" BorderThickness="1" BorderBrush="#2D3748">
-                                <StackPanel>
-                                    <TextBlock Text="AUDIO SOURCES" FontSize="11" FontWeight="Black" Foreground="{StaticResource NeonBlueBrush}" Margin="0,0,0,20"/>
-                                    
-                                    <Grid Margin="0,0,0,15">
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="*"/>
-                                            <ColumnDefinition Width="*"/>
-                                        </Grid.ColumnDefinitions>
-
-                                        <!-- Microphone -->
-                                        <StackPanel Grid.Column="0" Margin="0,0,10,0">
-                                            <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
-                                                <TextBlock Text="" FontFamily="Segoe MDL2 Assets" FontSize="14" Foreground="{StaticResource NeonBlueBrush}" Margin="0,0,8,0"/>
-                                                <TextBlock Text="Microphone" FontSize="12" FontWeight="SemiBold" Foreground="White"/>
-                                            </StackPanel>
-                                            <ComboBox x:Name="MicComboBox" Background="#0D1117" Foreground="White" BorderThickness="1" BorderBrush="#2D3748" Padding="10,8" FontSize="11"/>
-                                        </StackPanel>
-
-                                        <!-- Speaker -->
-                                        <StackPanel Grid.Column="1" Margin="10,0,0,0">
-                                            <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
-                                                <TextBlock Text="" FontFamily="Segoe MDL2 Assets" FontSize="14" Foreground="{StaticResource NeonBlueBrush}" Margin="0,0,8,0"/>
-                                                <TextBlock Text="Speaker" FontSize="12" FontWeight="SemiBold" Foreground="White"/>
-                                            </StackPanel>
-                                            <ComboBox x:Name="SpeakerComboBox" Background="#0D1117" Foreground="White" BorderThickness="1" BorderBrush="#2D3748" Padding="10,8" FontSize="11"/>
-                                        </StackPanel>
-                                    </Grid>
-
-                                    <!-- Audio Notice -->
-                                    <Border Background="#1A1F2B" CornerRadius="8" Padding="12" BorderThickness="1" BorderBrush="#2D3748">
-                                        <StackPanel Orientation="Horizontal">
-                                            <TextBlock Text="!" FontFamily="Segoe MDL2 Assets" FontSize="12" Foreground="#FFB84D" Margin="0,0,10,0" VerticalAlignment="Top"/>
-                                            <TextBlock Text="For best audio quality, ensure devices are connected and working properly" FontSize="10" Foreground="#888" TextWrapping="Wrap"/>
-                                        </StackPanel>
+                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                                    <TextBlock x:Name="RecordDurationText" Text="00:00" Foreground="#FF69B4" FontSize="16" FontWeight="Bold" Margin="0,0,15,0" Visibility="Collapsed"/>
+                                    <Border Background="#FF4444" Width="10" Height="10" CornerRadius="5">
+                                        <Border.Style>
+                                            <Style TargetType="Border">
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding ElementName=RecordDurationText, Path=Visibility}" Value="Visible">
+                                                        <DataTrigger.EnterActions>
+                                                            <BeginStoryboard>
+                                                                <Storyboard RepeatBehavior="Forever">
+                                                                    <DoubleAnimation Storyboard.TargetProperty="Opacity" From="1" To="0" Duration="0:0:0.7" AutoReverse="True"/>
+                                                                </Storyboard>
+                                                            </BeginStoryboard>
+                                                        </DataTrigger.EnterActions>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Border.Style>
                                     </Border>
                                 </StackPanel>
-                            </Border>
+                            </Grid>
 
-                            <!-- Camera Settings Card -->
-                            <Border Background="#12161F" CornerRadius="16" Margin="0,0,0,30" Padding="30" BorderThickness="1" BorderBrush="#2D3748">
+                            <!-- Primary Control Dashboard -->
+                            <Border Background="#12161F" CornerRadius="20" Padding="30" BorderThickness="1" BorderBrush="#2D3748">
                                 <StackPanel>
-                                    <TextBlock Text="CAMERA BEHAVIOR" FontSize="11" FontWeight="Black" Foreground="{StaticResource NeonBlueBrush}" Margin="0,0,0,20"/>
-                                    
-                                    <StackPanel Margin="0,0,0,15">
-                                        <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
-                                            <TextBlock Text="" FontFamily="Segoe MDL2 Assets" FontSize="14" Foreground="{StaticResource NeonBlueBrush}" Margin="0,0,10,0"/>
-                                            <TextBlock Text="Smart Focus Hotkey" FontSize="12" FontWeight="SemiBold" Foreground="White"/>
-                                        </StackPanel>
-                                        <Border x:Name="HotkeyBorder" Background="#0D1117" CornerRadius="8" Padding="15,12" BorderThickness="2" BorderBrush="#2D3748" Cursor="Hand" MouseLeftButtonDown="HotkeyBorder_MouseLeftButtonDown">
-                                            <TextBlock x:Name="HotkeyDisplayText" Text="F9" FontSize="13" FontWeight="Bold" Foreground="{StaticResource NeonBlueBrush}" HorizontalAlignment="Center"/>
-                                        </Border>
-                                        <TextBlock Text="Click to change keyboard shortcut for camera focus" FontSize="9" Foreground="#555" Margin="0,8,0,0"/>
-                                    </StackPanel>
+                                    <Grid Margin="0,0,0,25">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        
+                                        <StackPanel Grid.Column="0">
+                                            <TextBlock Text="CAPTURE SETTINGS" FontSize="10" FontWeight="Bold" Foreground="{StaticResource NeonBlueBrush}" Margin="0,0,0,15"/>
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="*"/>
+                                                </Grid.ColumnDefinitions>
+                                                <StackPanel Grid.Column="0" Margin="0,0,10,0">
+                                                    <TextBlock Text="FPS" FontSize="9" Foreground="{StaticResource SubTextBrush}" Margin="0,0,0,5"/>
+                                                    <ComboBox x:Name="FpsComboBox" Background="#1A1F2B" Foreground="White" BorderThickness="0,0,0,1" BorderBrush="#333">
+                                                        <ComboBoxItem Content="30 FPS" IsSelected="True"/>
+                                                        <ComboBoxItem Content="45 FPS"/>
+                                                        <ComboBoxItem Content="50 FPS"/>
+                                                        <ComboBoxItem Content="60 FPS"/>
+                                                    </ComboBox>
+                                                </StackPanel>
+                                                <StackPanel Grid.Column="1" Margin="0,0,10,0">
+                                                    <TextBlock Text="MIC" FontSize="9" Foreground="{StaticResource SubTextBrush}" Margin="0,0,0,5"/>
+                                                    <ComboBox x:Name="MicComboBox" Background="#1A1F2B" Foreground="White" BorderThickness="0,0,0,1" BorderBrush="#333" FontSize="10"/>
+                                                </StackPanel>
+                                                <StackPanel Grid.Column="2">
+                                                    <TextBlock Text="SPEAKER" FontSize="9" Foreground="{StaticResource SubTextBrush}" Margin="0,0,0,5"/>
+                                                    <ComboBox x:Name="SpeakerComboBox" Background="#1A1F2B" Foreground="White" BorderThickness="0,0,0,1" BorderBrush="#333" FontSize="10"/>
+                                                </StackPanel>
+                                            </Grid>
 
-                                    <!-- Camera Feature Info -->
-                                    <Border Background="#1A1F2B" CornerRadius="8" Padding="15" BorderThickness="1" BorderBrush="#2D3748">
-                                        <StackPanel>
-                                            <TextBlock Text="Active Features" FontSize="11" FontWeight="Bold" Foreground="{StaticResource NeonBlueBrush}" Margin="0,0,0,12"/>
-                                            <StackPanel Margin="0,0,0,8">
-                                                <StackPanel Orientation="Horizontal">
-                                                    <Ellipse Width="6" Height="6" Fill="#00FF88" Margin="0,0,8,0" VerticalAlignment="Center"/>
-                                                    <TextBlock Text="Intelligent cursor tracking with smooth damping" FontSize="10" Foreground="White"/>
-                                                </StackPanel>
+                                            <!-- Hotkey Section (Compact) -->
+                                            <StackPanel Margin="0,15,0,0" Orientation="Horizontal">
+                                                <TextBlock Text="CAMERA HOTKEY:" FontSize="9" FontWeight="Bold" Foreground="{StaticResource SubTextBrush}" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                                                <Border x:Name="HotkeyBorder" Background="#1A1F2B" CornerRadius="6" Padding="12,5" BorderThickness="1" BorderBrush="#333" Cursor="Hand" MouseLeftButtonDown="HotkeyBorder_MouseLeftButtonDown">
+                                                    <TextBlock x:Name="HotkeyDisplayText" Text="F9" FontSize="11" FontWeight="Bold" Foreground="{StaticResource NeonBlueBrush}"/>
+                                                </Border>
                                             </StackPanel>
-                                            <StackPanel Margin="0,0,0,8">
-                                                <StackPanel Orientation="Horizontal">
-                                                    <Ellipse Width="6" Height="6" Fill="#00FF88" Margin="0,0,8,0" VerticalAlignment="Center"/>
-                                                    <TextBlock Text="Typing detection with automatic zoom (1.35x)" FontSize="10" Foreground="White"/>
-                                                </StackPanel>
-                                            </StackPanel>
-                                            <StackPanel Orientation="Horizontal">
+                                        </StackPanel>
+
+                                        <Button Grid.Column="1" x:Name="RecorderPageRecordBtn" Width="70" Height="70" Click="ZeroRecordBtn_Click" Margin="20,0,0,0">
+                                            <Button.Template>
+                                                <ControlTemplate TargetType="Button">
+                                                    <Grid>
+                                                        <Ellipse x:Name="bg" Fill="#FF4444" Opacity="0.1"/>
+                                                        <Ellipse x:Name="ring" Stroke="#FF4444" StrokeThickness="2" Margin="-5"/>
+                                                        <Ellipse x:Name="dot" Fill="#FF4444" Width="30" Height="30"/>
+                                                    </Grid>
+                                                    <ControlTemplate.Triggers>
+                                                        <Trigger Property="IsMouseOver" Value="True">
+                                                            <Setter TargetName="bg" Property="Opacity" Value="0.2"/>
+                                                            <Setter TargetName="dot" Property="Width" Value="35"/>
+                                                            <Setter TargetName="dot" Property="Height" Value="35"/>
+                                                        </Trigger>
+                                                    </ControlTemplate.Triggers>
+                                                </ControlTemplate>
+                                            </Button.Template>
+                                        </Button>
+                                    </Grid>
+
+                                    <Border  Background="#161B26" CornerRadius="12" Padding="15">
+                                        <StackPanel Orientation="Horizontal">
                                                 <Ellipse Width="6" Height="6" Fill="#00FF88" Margin="0,0,8,0" VerticalAlignment="Center"/>
                                                 <TextBlock Text="Cinematic pan-to-center transition" FontSize="10" Foreground="White"/>
-                                            </StackPanel>
                                         </StackPanel>
                                     </Border>
                                 </StackPanel>

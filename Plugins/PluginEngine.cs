@@ -25,6 +25,7 @@ namespace ZeroMix.Plugins
         private readonly MainWindow _main;
         private readonly string _pluginsDir;
         private readonly List<LuaPlugin> _plugins = new List<LuaPlugin>();
+        private readonly Spotify.SpotifyPlugin _spotifyPlugin;
         private readonly DispatcherTimer _updateTimer;
         private readonly FileSystemWatcher _watcher;
 
@@ -45,6 +46,9 @@ namespace ZeroMix.Plugins
             _main = main;
             _pluginsDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Plugins");
             
+            // Register Built-in Spotify Plugin
+            _spotifyPlugin = new Spotify.SpotifyPlugin();
+
             _updateTimer = new DispatcherTimer();
             _updateTimer.Interval = TimeSpan.FromSeconds(1);
             _updateTimer.Tick += (s, e) => UpdatePlugins();
