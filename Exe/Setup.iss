@@ -36,6 +36,7 @@ UninstallDisplayIcon={app}\zeromix.ico
 
 ; UI Configuration
 WizardStyle=modern
+UninstallStyle=modern
 ; Pastikan file .ico dan .bmp ada di folder yang sama dengan script .iss
 SetupIconFile=zeromix.ico
 ; WizardImageFile=zeromix.bmp 
@@ -70,17 +71,16 @@ Source: "zeromix.ico"; DestDir: "{app}"; Flags: ignoreversion
 ; Resources
 Source: "..\Resource\*"; DestDir: "{app}\Resource"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "..\Plugins\zeromix.weather\assets\*"; DestDir: "{app}\Plugins\zeromix.weather\assets"; Flags: ignoreversion recursesubdirs createallsubdirs
-Source: "..\Plugins\zeromix.spotify\*"; DestDir: "{app}\Plugins\zeromix.spotify"; Flags: ignoreversion recursesubdirs createallsubdirs
 
 ; Docs
 Source: "Privacy.txt"; DestDir: "{app}"; Flags: ignoreversion
 Source: "../LICENSE.txt"; DestDir: "{app}"; Flags: ignoreversion
 Source: "../Readme.md"; DestDir: "{app}"; Flags: ignoreversion
 
-; CLI Tools
-Source: "../ZeroMixUpdateCli/index.js"; DestDir: "{app}\bin"; Flags: ignoreversion
-Source: "../ZeroMixUpdateCli/package.json"; DestDir: "{app}\bin"; Flags: ignoreversion
-Source: "../ZeroMixUpdateCli/zeromix-cli.bat"; DestDir: "{app}\bin"; Flags: ignoreversion
+; CLI Tools (commented out - folder not found)
+;Source: "../ZeroMixUpdateCli/index.js"; DestDir: "{app}\bin"; Flags: ignoreversion
+;Source: "../ZeroMixUpdateCli/package.json"; DestDir: "{app}\bin"; Flags: ignoreversion
+;Source: "../ZeroMixUpdateCli/zeromix-cli.bat"; DestDir: "{app}\bin"; Flags: ignoreversion
 
 ; FFmpeg Tools
 ; NOTE: The build fails because ffmpeg.exe is missing from the FFMPEG folder.
@@ -232,19 +232,50 @@ end;
 procedure CurUninstallStepChanged(CurStep: TUninstallStep);
 var
   ErrorCode: Integer;
+  AppDataPath: String;
 begin
   if CurStep = usUninstall then
   begin
+    // Step 1: Konfirmasi awal
+    MsgBox('Terima kasih telah menggunakan ZeroMix!' + #13#13 + 
+           'Proses uninstall akan segera dimulai. Klik "OK" untuk melanjutkan.', 
+           mbInformation, MB_OK);
+    
+    // Step 2: Close aplikasi jika masih berjalan
+    MsgBox('Menutup aplikasi ZeroMix jika sedang berjalan...', mbInformation, MB_OK);
+    Exec('taskkill.exe', '/IM ZeroMix.exe /F', '', SW_HIDE, ewWaitUntilTerminated, ErrorCode);
+    
+    // Step 3: Unregister CLI Tools
     UnregisterCliTools();
-    if MsgBox('Hapus juga data konfigurasi (AppData)?', mbConfirmation, MB_YESNO) = IDYES then
+    
+    // Step 4: Tanya hapus AppData
+    if MsgBox('Apakah Anda ingin menghapus juga data konfigurasi dan pengaturan?' + #13 + 
+              '(Folder: AppData\Roaming\ZeroMix)' + #13#13 +
+              'Klik "Ya" untuk hapus, atau "Tidak" untuk tetap simpan.', 
+              mbConfirmation, MB_YESNO) = IDYES then
     begin
-      DelTree(ExpandConstant('{userappdata}\ZeroMix'), True, True, True);
+      AppDataPath := ExpandConstant('{userappdata}\ZeroMix');
+      if DirExists(AppDataPath) then
+      begin
+        DelTree(AppDataPath, True, True, True);
+        MsgBox('Data konfigurasi berhasil dihapus.', mbInformation, MB_OK);
+      end;
+    end
+    else
+    begin
+      MsgBox('Data konfigurasi tetap disimpan. Anda bisa menggunakannya lagi jika install ulang.', mbInformation, MB_OK);
     end;
   end;
 
   if CurStep = usPostUninstall then
   begin
-    // Feedback
+    // Step 5: Terimakasih & Feedback
+    MsgBox('ZeroMix telah berhasil dihapus dari komputer Anda.' + #13#13 +
+           'Kami sangat menghargai feedback Anda!' + #13 +
+           'Halaman feedback akan terbuka sekarang.', 
+           mbInformation, MB_OK);
+    
+    // Buka halaman feedback
     ShellExec('open', 'https://zeromix.vercel.app/Feedback.html', '', '', SW_SHOWNORMAL, ewNoWait, ErrorCode);
   end;
 end;
