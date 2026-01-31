@@ -55,4 +55,19 @@
     </Content>
   </ItemGroup>
 
+  <!-- Exclude specific plugin folder from output/publish to keep it out of distributed exe -->
+  <ItemGroup>
+    <!-- Remove any default includes for this plugin folder -->
+    <Content Remove="Plugins\zeromix.spotify\**" />
+    <None Remove="Plugins\zeromix.spotify\**" />
+    <Resource Remove="Plugins\zeromix.spotify\**" />
+  </ItemGroup>
+
+  <!-- If you still want other plugin PNGs copied, ensure we exclude this plugin explicitly -->
+  <ItemGroup>
+    <Content Include="Plugins\**\*.png" Exclude="Plugins\zeromix.spotify\**">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
 </Project>
