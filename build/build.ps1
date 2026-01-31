@@ -30,7 +30,7 @@ param (
     [string]$Target = "All",
 
     [Parameter(Position=1)]
-    [string]$Version = "2.4.0"
+    [string]$Version = "2.5.0"
 )
 
 $ErrorActionPreference = "Stop"
