@@ -700,27 +700,34 @@ namespace ZeroMix
 
         private void OpenFrieren_Click(object sender, RoutedEventArgs e)
         {
-            if (_assistantWindow == null)
+            if (_assistantWindow == null || !IsWindowOpen<Virtual_Assisten.VirtualAssistantWindow>())
             {
                 _assistantWindow = new Virtual_Assisten.VirtualAssistantWindow();
             }
 
-            if (_assistantWindow.IsVisible)
-            {
-                _assistantWindow.Hide();
-                StatusLabel.Text = "Frieren Hidden";
-            }
-            else
+            if (!_assistantWindow.IsVisible)
             {
                 _assistantWindow.Show();
                 StatusLabel.Text = "Frieren is here to help!";
             }
+            
+            _assistantWindow.SetCharacter("Frieren");
         }
 
         private void OpenFern_Click(object sender, RoutedEventArgs e)
         {
-            // For now Fern uses the same window, in future we can pass the model path
-            System.Windows.MessageBox.Show("Model Fern sedang dalam persiapan optimasi!", "Coming Soon", MessageBoxButton.OK, MessageBoxImage.Information);
+            if (_assistantWindow == null || !IsWindowOpen<Virtual_Assisten.VirtualAssistantWindow>())
+            {
+                _assistantWindow = new Virtual_Assisten.VirtualAssistantWindow();
+            }
+
+            if (!_assistantWindow.IsVisible)
+            {
+                _assistantWindow.Show();
+                StatusLabel.Text = "Fern is here to help!";
+            }
+            
+            _assistantWindow.SetCharacter("Fern");
         }
 
         private void DonationLink_Click(object sender, RoutedEventArgs e)

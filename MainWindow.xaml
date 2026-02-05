@@ -142,8 +142,14 @@
                                             CornerRadius="16"
                                             BorderThickness="1"
                                             BorderBrush="{StaticResource NeonBlueBrush}"
-                                            Opacity="0"
-                                            Effect="{StaticResource NeonGlow}"/>
+                                            Opacity="0">
+                                        <Border.Effect>
+                                            <DropShadowEffect BlurRadius="8"
+                                                            ShadowDepth="0"
+                                                            Color="{StaticResource NeonBlueColor}"
+                                                            Opacity="0.5"/>
+                                        </Border.Effect>
+                                    </Border>
                                 </Grid>
                             </Border>
                             <ControlTemplate.Triggers>
@@ -432,15 +438,18 @@
                             BorderThickness="0">
                         <StackPanel>
 
-                            <TextBlock Text="Welcome back"
-                                    FontSize="36"
-                                    FontWeight="ExtraBold"
-                                    Foreground="White"
-                                    Margin="0,0,0,5"/>
-                            <TextBlock Text="Ready to optimize your experience today?"
-                                    FontSize="16"
-                                    Foreground="{StaticResource SubTextBrush}"
-                                    Margin="0,0,0,45"/>
+                            <Border BorderBrush="#1A202C" BorderThickness="0,0,0,1" Margin="0,0,0,25" Padding="0,0,0,15">
+                                <StackPanel>
+                                    <TextBlock Text="Welcome back"
+                                            FontSize="32"
+                                            FontWeight="ExtraBold"
+                                            Foreground="White"
+                                            Margin="0,0,0,5"/>
+                                    <TextBlock Text="Ready to optimize your experience today?"
+                                            FontSize="16"
+                                            Foreground="{StaticResource SubTextBrush}"/>
+                                </StackPanel>
+                            </Border>
 
                             <!-- Quick Actions -->
                             <TextBlock Text="QUICK OPERATIONS"
@@ -465,7 +474,7 @@
                                         Grid.Column="0"
                                         Click="EnableMonitoringBtn_Click"
                                         Style="{StaticResource QuickActionButton}"
-                                        Margin="0,0,12,12">
+                                        Margin="0,0,8,12">
                                     <StackPanel>
                                         <TextBlock Text=""
                                                 FontFamily="Segoe MDL2 Assets"
@@ -485,7 +494,7 @@
                                         Grid.Column="1"
                                         Click="OpenClockBtn_Click"
                                         Style="{StaticResource QuickActionButton}"
-                                        Margin="6,0,6,12">
+                                        Margin="8,0,8,12">
                                     <StackPanel>
                                         <TextBlock Text=""
                                                 FontFamily="Segoe MDL2 Assets"
@@ -505,7 +514,7 @@
                                         Grid.Column="2"
                                         Click="TaskbarToggleBtn_Click"
                                         Style="{StaticResource QuickActionButton}"
-                                        Margin="12,0,0,12">
+                                        Margin="8,0,0,12">
                                     <StackPanel>
                                         <TextBlock Text=""
                                                 FontFamily="Segoe MDL2 Assets"
@@ -536,26 +545,6 @@
                                                 Margin="0,0,0,12"/>
                                         <TextBlock x:Name="HomeRecordBtnText"
                                                 Text="ZeroRecord"
-                                                FontSize="14"
-                                                FontWeight="SemiBold"
-                                                HorizontalAlignment="Center"/>
-                                    </StackPanel>
-                                </Button>
-
-                                <Button x:Name="HomeAssistantBtn"
-                                        Grid.Row="1"
-                                        Grid.Column="1"
-                                        Click="AssistantButton_Click"
-                                        Style="{StaticResource QuickActionButton}"
-                                        Margin="6,0,6,0">
-                                    <StackPanel>
-                                        <TextBlock Text=""
-                                                FontFamily="Segoe MDL2 Assets"
-                                                FontSize="36"
-                                                Foreground="#FF69B4"
-                                                HorizontalAlignment="Center"
-                                                Margin="0,0,0,12"/>
-                                        <TextBlock Text="Virtual Assisten"
                                                 FontSize="14"
                                                 FontWeight="SemiBold"
                                                 HorizontalAlignment="Center"/>
@@ -776,36 +765,34 @@
                                      Foreground="{StaticResource SubTextBrush}"
                                      Margin="0,0,0,35"/>
 
-                            <UniformGrid Columns="2">
+                            <UniformGrid Columns="2" Margin="0,0,10,0">
                                 <!-- Frieren Card -->
                                 <Button Style="{StaticResource QuickActionButton}" 
                                         Click="OpenFrieren_Click"
-                                        Margin="0,0,15,0"
-                                        Height="Auto"
-                                        Padding="10">
+                                        Margin="0,0,12,12"
+                                        Height="280">
                                     <StackPanel>
-                                        <Border Width="180" Height="220" CornerRadius="12" Margin="0,0,0,15" Background="#1A202C">
-                                            <Image Source="https://static.wikia.nocookie.net/frieren/images/7/7f/Frieren_Portrait.png" 
-                                                   Stretch="UniformToFill" Opacity="0.8"/>
+                                        <Border Width="150" Height="180" CornerRadius="12" Margin="0,0,0,10" Background="#1A202C">
+                                            <Image Source="/Virtual_Assisten/Sou Sou No Frieren/Frieren/Frieren.8192/Frieren.png" 
+                                                   Stretch="UniformToFill" Opacity="1"/>
                                         </Border>
-                                        <TextBlock Text="Frieren" FontSize="20" FontWeight="Bold" HorizontalAlignment="Center"/>
-                                        <TextBlock Text="Sou Sou No Frieren" FontSize="12" Foreground="{StaticResource NeonBlueBrush}" HorizontalAlignment="Center" Margin="0,5,0,10"/>
+                                        <TextBlock Text="Frieren" FontSize="18" FontWeight="Bold" HorizontalAlignment="Center"/>
+                                        <TextBlock Text="Sou Sou No Frieren" FontSize="11" Foreground="{StaticResource NeonBlueBrush}" HorizontalAlignment="Center" Margin="0,3,0,5"/>
                                     </StackPanel>
                                 </Button>
 
                                 <!-- Fern Card -->
                                 <Button Style="{StaticResource QuickActionButton}" 
                                         Click="OpenFern_Click"
-                                        Margin="15,0,0,0"
-                                        Height="Auto"
-                                        Padding="10">
+                                        Margin="12,0,0,12"
+                                        Height="280">
                                     <StackPanel>
-                                        <Border Width="180" Height="220" CornerRadius="12" Margin="0,0,0,15" Background="#1A202C">
-                                            <Image Source="https://static.wikia.nocookie.net/frieren/images/d/df/Fern_Portrait.png" 
-                                                   Stretch="UniformToFill" Opacity="0.8"/>
+                                        <Border Width="150" Height="180" CornerRadius="12" Margin="0,0,0,10" Background="#1A202C">
+                                            <Image Source="/Virtual_Assisten/Sou Sou No Frieren/fern/fern.4096/Fern.png" 
+                                                   Stretch="UniformToFill" Opacity="1"/>
                                         </Border>
-                                        <TextBlock Text="Fern" FontSize="20" FontWeight="Bold" HorizontalAlignment="Center"/>
-                                        <TextBlock Text="Sou Sou No Frieren" FontSize="12" Foreground="{StaticResource NeonBlueBrush}" HorizontalAlignment="Center" Margin="0,5,0,10"/>
+                                        <TextBlock Text="Fern" FontSize="18" FontWeight="Bold" HorizontalAlignment="Center"/>
+                                        <TextBlock Text="Sou Sou No Frieren" FontSize="11" Foreground="{StaticResource NeonBlueBrush}" HorizontalAlignment="Center" Margin="0,3,0,5"/>
                                     </StackPanel>
                                 </Button>
                             </UniformGrid>
