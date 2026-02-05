@@ -348,6 +348,19 @@
                                             VerticalAlignment="Center"/>
                                 </StackPanel>
                             </Button>
+                            <Button x:Name="AssistantButton"
+                                    Style="{StaticResource NavButtonStyle}"
+                                    Click="AssistantButton_Click">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text=""
+                                            FontFamily="Segoe MDL2 Assets"
+                                            FontSize="18"
+                                            Margin="0,0,15,0"
+                                            VerticalAlignment="Center"/>
+                                    <TextBlock Text="Assistant"
+                                            VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </Button>
                             <Button x:Name="AboutButton"
                                     Style="{StaticResource NavButtonStyle}"
                                     Click="AboutButton_Click">
@@ -358,19 +371,6 @@
                                             Margin="0,0,15,0"
                                             VerticalAlignment="Center"/>
                                     <TextBlock Text="About"
-                                            VerticalAlignment="Center"/>
-                                </StackPanel>
-                            </Button>
-                            <Button x:Name="PrivacyButton"
-                                    Style="{StaticResource NavButtonStyle}"
-                                    Click="PrivacyButton_Click">
-                                <StackPanel Orientation="Horizontal">
-                                    <TextBlock Text=""
-                                            FontFamily="Segoe MDL2 Assets"
-                                            FontSize="18"
-                                            Margin="0,0,15,0"
-                                            VerticalAlignment="Center"/>
-                                    <TextBlock Text="Privacy"
                                             VerticalAlignment="Center"/>
                                 </StackPanel>
                             </Button>
@@ -536,6 +536,26 @@
                                                 Margin="0,0,0,12"/>
                                         <TextBlock x:Name="HomeRecordBtnText"
                                                 Text="ZeroRecord"
+                                                FontSize="14"
+                                                FontWeight="SemiBold"
+                                                HorizontalAlignment="Center"/>
+                                    </StackPanel>
+                                </Button>
+
+                                <Button x:Name="HomeAssistantBtn"
+                                        Grid.Row="1"
+                                        Grid.Column="1"
+                                        Click="AssistantButton_Click"
+                                        Style="{StaticResource QuickActionButton}"
+                                        Margin="6,0,6,0">
+                                    <StackPanel>
+                                        <TextBlock Text=""
+                                                FontFamily="Segoe MDL2 Assets"
+                                                FontSize="36"
+                                                Foreground="#FF69B4"
+                                                HorizontalAlignment="Center"
+                                                Margin="0,0,0,12"/>
+                                        <TextBlock Text="Virtual Assisten"
                                                 FontSize="14"
                                                 FontWeight="SemiBold"
                                                 HorizontalAlignment="Center"/>
@@ -734,10 +754,72 @@
                         </StackPanel>
                     </ScrollViewer>
 
+
                     <Grid x:Name="WallpapersContent"
                             Visibility="Collapsed">
                         <wallpapers:WallpapersView/>
                     </Grid>
+
+                    <!-- Assistant Management View -->
+                    <ScrollViewer x:Name="AssistantContent"
+                            Visibility="Collapsed"
+                            VerticalScrollBarVisibility="Hidden"
+                            BorderThickness="0">
+                        <StackPanel>
+                             <TextBlock Text="Virtual Assistant"
+                                     FontSize="36"
+                                     FontWeight="ExtraBold"
+                                     Foreground="White"
+                                     Margin="0,0,0,5"/>
+                            <TextBlock Text="Pilih teman virtual untuk menemanimu"
+                                     FontSize="16"
+                                     Foreground="{StaticResource SubTextBrush}"
+                                     Margin="0,0,0,35"/>
+
+                            <UniformGrid Columns="2">
+                                <!-- Frieren Card -->
+                                <Button Style="{StaticResource QuickActionButton}" 
+                                        Click="OpenFrieren_Click"
+                                        Margin="0,0,15,0"
+                                        Height="Auto"
+                                        Padding="10">
+                                    <StackPanel>
+                                        <Border Width="180" Height="220" CornerRadius="12" Margin="0,0,0,15" Background="#1A202C">
+                                            <Image Source="https://static.wikia.nocookie.net/frieren/images/7/7f/Frieren_Portrait.png" 
+                                                   Stretch="UniformToFill" Opacity="0.8"/>
+                                        </Border>
+                                        <TextBlock Text="Frieren" FontSize="20" FontWeight="Bold" HorizontalAlignment="Center"/>
+                                        <TextBlock Text="Sou Sou No Frieren" FontSize="12" Foreground="{StaticResource NeonBlueBrush}" HorizontalAlignment="Center" Margin="0,5,0,10"/>
+                                    </StackPanel>
+                                </Button>
+
+                                <!-- Fern Card -->
+                                <Button Style="{StaticResource QuickActionButton}" 
+                                        Click="OpenFern_Click"
+                                        Margin="15,0,0,0"
+                                        Height="Auto"
+                                        Padding="10">
+                                    <StackPanel>
+                                        <Border Width="180" Height="220" CornerRadius="12" Margin="0,0,0,15" Background="#1A202C">
+                                            <Image Source="https://static.wikia.nocookie.net/frieren/images/d/df/Fern_Portrait.png" 
+                                                   Stretch="UniformToFill" Opacity="0.8"/>
+                                        </Border>
+                                        <TextBlock Text="Fern" FontSize="20" FontWeight="Bold" HorizontalAlignment="Center"/>
+                                        <TextBlock Text="Sou Sou No Frieren" FontSize="12" Foreground="{StaticResource NeonBlueBrush}" HorizontalAlignment="Center" Margin="0,5,0,10"/>
+                                    </StackPanel>
+                                </Button>
+                            </UniformGrid>
+                            
+                            <Border Style="{StaticResource CardBorder}" Margin="0,30,0,0">
+                                <StackPanel>
+                                    <TextBlock Text="Tips Assistant" FontWeight="Bold" FontSize="18" Margin="0,0,0,10"/>
+                                    <TextBlock Text="• Klik pada karkater untuk mengobrol." Foreground="{StaticResource SubTextBrush}" Margin="0,0,0,5"/>
+                                    <TextBlock Text="• Tahan klik dan tarik untuk memindahkan posisi." Foreground="{StaticResource SubTextBrush}" Margin="0,0,0,5"/>
+                                    <TextBlock Text="• Matanya akan selalu mengikutimu~" Foreground="{StaticResource SubTextBrush}"/>
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+                    </ScrollViewer>
 
                     <!-- About View -->
                     <ScrollViewer x:Name="AboutContent"
@@ -811,11 +893,45 @@
                                                     Click="CheckUpdateBtn_Click"/>
                                         </Grid>
                                     </Border>
+                                    <TextBlock Text="Support &amp; Credits"
+                                            FontSize="20"
+                                            FontWeight="Bold"
+                                            Foreground="White"
+                                            Margin="0,0,0,15"/>
+                                    
+                                    <!-- Donation Link -->
+                                    <Border Background="#2D1B2D" CornerRadius="12" Padding="20" Margin="0,0,0,25" BorderBrush="#5B2C5B" BorderThickness="1">
+                                        <StackPanel>
+                                            <TextBlock Text="Dukung ZeroMix ☕" FontWeight="Bold" FontSize="18" Foreground="#FF69B4" Margin="0,0,0,10"/>
+                                            <TextBlock Text="ZeroMix akan selalu gratis. Dukungan Kakak sangat berarti bagi pengembangan aplikasi ini." 
+                                                       TextWrapping="Wrap" Foreground="White" Margin="0,0,0,15"/>
+                                            <Button Content="Support via Trakteer" Style="{StaticResource ActionButton}" 
+                                                    Background="#FF69B4" Click="DonationLink_Click" HorizontalAlignment="Left"/>
+                                        </StackPanel>
+                                    </Border>
+
+                                    <!-- Model Credits -->
+                                    <TextBlock Text="Live2D Model Credits" FontWeight="Bold" Foreground="White" Margin="0,0,0,10"/>
+                                    <StackPanel Margin="10,0,0,25">
+                                        <TextBlock Margin="0,0,0,5" Foreground="{StaticResource SubTextBrush}">
+                                            Model Frieren &amp; Fern oleh <Hyperlink RequestNavigate="Hyperlink_RequestNavigate" NavigateUri="https://kyoki.booth.pm/">Kyoki (Booth.pm)</Hyperlink>
+                                        </TextBlock>
+                                    </StackPanel>
+
+                                    <TextBlock Text="Privacy &amp; Security"
+                                            FontSize="20"
+                                            FontWeight="Bold"
+                                            Foreground="White"
+                                            Margin="0,20,0,10"/>
+                                    <TextBlock TextWrapping="Wrap" Foreground="{StaticResource SubTextBrush}" LineHeight="24" Margin="0,0,0,20">
+                                        ZeroMix bekerja 100% secara lokal. Tidak ada data yang dikirim ke cloud. Privasi Kakak adalah prioritas utama kami.
+                                    </TextBlock>
+
                                     <TextBlock Text="External Asset Credits"
                                             FontSize="20"
                                             FontWeight="Bold"
                                             Foreground="White"
-                                            Margin="0,0,0,10"/>
+                                            Margin="0,20,0,10"/>
                                     <TextBlock Text="Special thanks to these amazing creators on Pixabay for the beautiful atmospheric videos:"
                                             Foreground="{StaticResource SubTextBrush}"
                                             TextWrapping="Wrap"
@@ -832,21 +948,6 @@
                                                     Foreground="{StaticResource NeonBlueBrush}"/><Hyperlink RequestNavigate="Hyperlink_RequestNavigate"
                                                     NavigateUri="https://pixabay.com/id/users/nickype-10327513/">Nicky ❤️🌿🐞🌿❤️ (Pixabay)</Hyperlink>
                                         </TextBlock>
-                                        <TextBlock Margin="0,0,0,5">
-                                            <Run Text="• "
-                                                    Foreground="{StaticResource NeonBlueBrush}"/><Hyperlink RequestNavigate="Hyperlink_RequestNavigate"
-                                                    NavigateUri="https://pixabay.com/id/users/adege-4994132/?content=257240">Andreas - 1 (Pixabay)</Hyperlink>
-                                        </TextBlock>
-                                        <TextBlock Margin="0,0,0,5">
-                                            <Run Text="• "
-                                                    Foreground="{StaticResource NeonBlueBrush}"/><Hyperlink RequestNavigate="Hyperlink_RequestNavigate"
-                                                    NavigateUri="https://pixabay.com/id/users/adege-4994132/?content=230317">Andreas - 2 (Pixabay)</Hyperlink>
-                                        </TextBlock>
-                                        <TextBlock Margin="0,0,0,5">
-                                            <Run Text="• "
-                                                    Foreground="{StaticResource NeonBlueBrush}"/><Hyperlink RequestNavigate="Hyperlink_RequestNavigate"
-                                                    NavigateUri="https://pixabay.com/id/users/_pabliyo-15486147/">Pablo (Pixabay)</Hyperlink>
-                                        </TextBlock>
                                     </StackPanel>
 
                                     <Border Background="#1A202C"
@@ -859,63 +960,6 @@
                                                 FontStyle="Italic"
                                                 HorizontalAlignment="Center"/>
                                     </Border>
-                                </StackPanel>
-                            </Border>
-                        </StackPanel>
-                    </ScrollViewer>
-
-                    <!-- Privacy View -->
-                    <ScrollViewer x:Name="PrivacyContent"
-                            Visibility="Collapsed"
-                            VerticalScrollBarVisibility="Hidden"
-                            BorderThickness="0">
-                        <StackPanel MaxWidth="700"
-                                HorizontalAlignment="Left">
-                            <Border Style="{StaticResource CardBorder}">
-                                <StackPanel>
-                                    <TextBlock Text="Security &amp; Encryption"
-                                            FontSize="24"
-                                            FontWeight="Bold"
-                                            Foreground="White"
-                                            Margin="0,0,0,25"/>
-
-                                    <TextBlock Text="KERNEL PROTOCOL"
-                                            FontWeight="Black"
-                                            Foreground="{StaticResource NeonBlueBrush}"
-                                            FontSize="12"
-                                            Margin="0,0,0,15"/>
-                                    <TextBlock TextWrapping="Wrap"
-                                            Foreground="{StaticResource SubTextBrush}"
-                                            FontSize="14"
-                                            LineHeight="26"
-                                            Margin="0,0,0,30">
-                                        ZeroMix operates entirely on your local machine. No external transmissions. No telemetry. Your data is your own.
-                                    </TextBlock>
-
-                                    <Border Background="#12161F"
-                                            Margin="0,0,0,20"
-                                            Padding="20">
-                                        <StackPanel>
-                                            <TextBlock Text="• Zero External Cloud Sync"
-                                                    Foreground="White"
-                                                    FontSize="13"
-                                                    Margin="0,5"/>
-                                            <TextBlock Text="• Local-Only Metrical Analysis"
-                                                    Foreground="White"
-                                                    FontSize="13"
-                                                    Margin="0,5"/>
-                                            <TextBlock Text="• Encrypted Local Configurations"
-                                                    Foreground="White"
-                                                    FontSize="13"
-                                                    Margin="0,5"/>
-                                        </StackPanel>
-                                    </Border>
-
-                                    <TextBlock Text="PROTOCOL SECURE"
-                                            FontStyle="Italic"
-                                            Foreground="{StaticResource NeonBlueBrush}"
-                                            FontSize="14"
-                                            FontWeight="Bold"/>
                                 </StackPanel>
                             </Border>
                         </StackPanel>

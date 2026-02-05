@@ -21,17 +21,6 @@
 
 </div>
 
-<!--
-## 🎥 Video Demo
-
-<div align="center">
-  <a href="https://www.youtube.com/watch?v=y9yz7ZPh_Bo">
-    <img src="https://img.youtube.com/vi/y9yz7ZPh_Bo/maxresdefault.jpg" alt="ZeroMix Demo Video" width="85%">
-  </a>
-  <p><i>Click above to watch ZeroMix in action on YouTube</i></p>
-</div> -->
-
-
 ## 🚀 Core Features
 
 ZeroMix is packed with features that keep your system fast and your desktop stunning.
@@ -47,11 +36,12 @@ ZeroMix is packed with features that keep your system fast and your desktop stun
 | **🧹 Memory Optimizer**  | Smart background GC collection and working set trimming.                |
 
 ---
+
 ## 🎥 Zerorecord & Preview
+
 <div style="left: 0; margin-bottom: 20px; text-align: center">
       <video src="https://github.com/user-attachments/assets/0a5c1928-32b8-4b32-a391-aefdb5b3d2f5" width="1000"  autoplay muted loop></video>
     </div>
-
 
 ## 🧩 Lua Plugin System
 
@@ -122,6 +112,7 @@ ZeroMix is an open-source project, and we love our contributors!
 </a>
 
 ---
+
 ## 🎬 Credits & Acknowledgments
 
 The atmospheric experiences in ZeroMix are powered by beautiful visuals from the creative community:
@@ -130,6 +121,15 @@ The atmospheric experiences in ZeroMix are powered by beautiful visuals from the
 - **Nature & Garden Ambience** by [Nicky ❤️🌿🐞🌿❤️](https://pixabay.com/id/users/nickype-10327513/) dari [Pixabay](https://pixabay.com/)
 - **Cinematic Scenery 1** by [Andreas](https://pixabay.com/id/users/adege-4994132/?content=257240) dari [Pixabay](https://pixabay.com/)
 - **Cinematic Scenery 2** by [Andreas](https://pixabay.com/id/users/adege-4994132/?content=230317) dari [Pixabay](https://pixabay.com/)
+
+### 🎭 Live2D Models
+
+- **Frieren & Fern Model** by [kyokiStudio](https://kyoki.booth.pm/) on Booth.pm
+
+> [!IMPORTANT]
+ Jika ingin mendownload model, harap gunakan **situs resmi yang telah kami sediakan**. Mohon hargai kerja keras pembuat model. Jangan menggunakan model ini untuk **komersial atau dijual tanpa izin**. Terima kasih atas pengertiannya! 🥰  
+
+> **Peringatan:** Jika Anda tetap menggunakan model ini dengan cara yang melanggar ketentuan, kami tidak bertanggung jawab atas segala konsekuensi yang mungkin terjadi.
 
 ---
 

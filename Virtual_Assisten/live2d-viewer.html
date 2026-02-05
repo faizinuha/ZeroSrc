@@ -1,0 +1,209 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Live2D Viewer</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        background: transparent;
+      }
+      #canvas {
+        width: 100%;
+        height: 100%;
+        cursor: pointer;
+      }
+      #loading {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        text-align: center;
+        color: #ff69b4;
+        font-family: "Segoe UI", sans-serif;
+      }
+      #loading .emoji {
+        font-size: 48px;
+        margin-bottom: 10px;
+      }
+      #loading .text {
+        font-size: 14px;
+        opacity: 0.8;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="loading">
+      <div class="emoji">🎭</div>
+      <div class="text">Loading Live2D...</div>
+    </div>
+    <canvas id="canvas"></canvas>
+
+    <!-- PIXI.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pixi.js/7.3.2/pixi.min.js"></script>
+    <!-- Live2D Cubism Core -->
+    <script src="https://cubism.live2d.com/sdk-web/cubismcore/live2dcubismcore.min.js"></script>
+    <!-- pixi-live2d-display -->
+    <script src="https://cdn.jsdelivr.net/npm/pixi-live2d-display@0.4.0/dist/cubism4.min.js"></script>
+
+    <script>
+      // Configuration
+      const MODEL_PATH = "Sou Sou No Frieren/Frieren/Frieren.model3.json";
+
+      // Global state
+      let app = null;
+      let model = null;
+      let targetEyeX = 0,
+        targetEyeY = 0;
+      let currentEyeX = 0,
+        currentEyeY = 0;
+      let isModelLoaded = false;
+
+      // Initialize
+      async function init() {
+        const canvas = document.getElementById("canvas");
+        const loading = document.getElementById("loading");
+
+        try {
+          // Create PIXI Application
+          app = new PIXI.Application({
+            view: canvas,
+            backgroundAlpha: 0,
+            resizeTo: window,
+            antialias: true,
+          });
+
+          // Load Live2D model
+          loading.querySelector(".text").textContent = "Loading model...";
+
+          model = await PIXI.live2d.Live2DModel.from(MODEL_PATH, {
+            autoInteract: false,
+            autoUpdate: true,
+          });
+
+          // Position and scale
+          model.anchor.set(0.5, 0.5);
+          model.scale.set(0.15);
+          model.x = app.screen.width / 2;
+          model.y = app.screen.height / 2 + 80;
+
+          // Add to stage
+          app.stage.addChild(model);
+
+          // Hide loading
+          loading.style.display = "none";
+          isModelLoaded = true;
+
+          // Click event
+          model.on("pointerdown", onModelClick);
+          model.interactive = true;
+          model.cursor = "pointer";
+
+          // Also handle canvas click as fallback
+          canvas.addEventListener("click", onModelClick);
+
+          // Start update loop
+          app.ticker.add(updateLoop);
+
+          console.log("[Live2D] Model loaded successfully!");
+        } catch (error) {
+          console.error("[Live2D] Error loading model:", error);
+          loading.querySelector(".emoji").textContent = "😢";
+          loading.querySelector(".text").textContent = "Model tidak ditemukan";
+
+          // Still allow clicking
+          canvas.addEventListener("click", onModelClick);
+        }
+      }
+
+      function onModelClick() {
+        // Send message to WPF
+        if (window.chrome && window.chrome.webview) {
+          window.chrome.webview.postMessage("character_clicked");
+        }
+
+        // Play random expression if available
+        if (model && model.internalModel) {
+          const expressions = ["ku", "yy", "anya", "d"];
+          const randomExp =
+            expressions[Math.floor(Math.random() * expressions.length)];
+          try {
+            model.expression(randomExp);
+          } catch (e) {}
+
+          // Also play idle motion
+          try {
+            model.motion("");
+          } catch (e) {}
+        }
+      }
+
+      // Eye tracking function called from C#
+      function updateEyeTracking(x, y) {
+        targetEyeX = x;
+        targetEyeY = y;
+      }
+
+      function updateLoop() {
+        if (!isModelLoaded || !model || !model.internalModel) return;
+
+        // Smooth interpolation
+        currentEyeX += (targetEyeX - currentEyeX) * 0.08;
+        currentEyeY += (targetEyeY - currentEyeY) * 0.08;
+
+        const coreModel = model.internalModel.coreModel;
+        if (!coreModel) return;
+
+        try {
+          // Eye ball position
+          const eyeBallXIndex = coreModel.getParameterIndex("ParamEyeBallX");
+          const eyeBallYIndex = coreModel.getParameterIndex("ParamEyeBallY");
+
+          if (eyeBallXIndex >= 0)
+            coreModel.setParameterValueByIndex(
+              eyeBallXIndex,
+              currentEyeX * 0.8,
+            );
+          if (eyeBallYIndex >= 0)
+            coreModel.setParameterValueByIndex(
+              eyeBallYIndex,
+              -currentEyeY * 0.8,
+            );
+
+          // Head angle for more natural look
+          const angleXIndex = coreModel.getParameterIndex("ParamAngleX");
+          const angleYIndex = coreModel.getParameterIndex("ParamAngleY");
+          const bodyXIndex = coreModel.getParameterIndex("ParamBodyAngleX");
+
+          if (angleXIndex >= 0)
+            coreModel.setParameterValueByIndex(angleXIndex, currentEyeX * 12);
+          if (angleYIndex >= 0)
+            coreModel.setParameterValueByIndex(angleYIndex, currentEyeY * 8);
+          if (bodyXIndex >= 0)
+            coreModel.setParameterValueByIndex(bodyXIndex, currentEyeX * 4);
+        } catch (e) {
+          // Parameter might not exist in this model
+        }
+      }
+
+      // Handle resize
+      window.addEventListener("resize", () => {
+        if (model) {
+          model.x = app.screen.width / 2;
+          model.y = app.screen.height / 2 + 80;
+        }
+      });
+
+      // Start
+      document.addEventListener("DOMContentLoaded", init);
+    </script>
+  </body>
+</html>
