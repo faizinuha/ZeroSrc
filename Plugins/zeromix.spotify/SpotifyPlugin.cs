@@ -7,7 +7,7 @@ namespace ZeroMix.Plugins.Spotify
 {
     public class SpotifyPlugin
     {
-        private SpotifySidebar? _sidebar;
+        private GoogleAccountWindow? _window;
         private readonly string _pluginDir;
 
         public SpotifyPlugin()
@@ -23,28 +23,45 @@ namespace ZeroMix.Plugins.Spotify
 
             if (dispatcher.CheckAccess())
             {
-                InitializeSidebar();
+                InitializeWindow();
             }
             else
             {
-                dispatcher.Invoke(InitializeSidebar);
+                dispatcher.Invoke(InitializeWindow);
             }
         }
 
-        private void InitializeSidebar()
+        private void InitializeWindow()
         {
-            _sidebar = new SpotifySidebar();
-            // Don't set owner to MainWindow to allow it to stay alive independently
-            _sidebar.Show();
-            Debug.WriteLine("[SpotifyPink] Plugin Started as Standalone Window");
+            _window = GoogleAccountWindow.Instance;
+            _window.ShowWindow();
+            Debug.WriteLine("[GoogleAccount] Plugin Started as Lightweight Window");
         }
 
         public void Stop()
         {
-            System.Windows.Application.Current.Dispatcher.Invoke(() =>
+            System.Windows.Application.Current?.Dispatcher?.Invoke(() =>
             {
-                _sidebar?.Close();
+                _window?.Close();
             });
+        }
+
+        /// <summary>
+        /// Menampilkan window Google Account (bisa dipanggil dari luar)
+        /// </summary>
+        public void ShowWindow()
+        {
+            var dispatcher = System.Windows.Application.Current?.Dispatcher;
+            if (dispatcher == null) return;
+
+            if (dispatcher.CheckAccess())
+            {
+                _window?.ShowWindow();
+            }
+            else
+            {
+                dispatcher.Invoke(() => _window?.ShowWindow());
+            }
         }
     }
 }

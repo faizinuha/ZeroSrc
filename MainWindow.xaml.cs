@@ -104,6 +104,7 @@ namespace ZeroMix
         private string? _cachedProcessor;
 
         private string[]? _startupArgs;
+        private Virtual_Assisten.VirtualAssistantWindow? _assistantWindow;
 
         public void ChangeLanguage(string cultureCode)
         {
@@ -544,7 +545,7 @@ namespace ZeroMix
         {
             if (HomeContent != null) HomeContent.Visibility = Visibility.Collapsed;
             if (AboutContent != null) AboutContent.Visibility = Visibility.Collapsed;
-            if (PrivacyContent != null) PrivacyContent.Visibility = Visibility.Collapsed;
+            if (AssistantContent != null) AssistantContent.Visibility = Visibility.Collapsed;
             if (WallpapersContent != null) WallpapersContent.Visibility = Visibility.Collapsed;
             if (PluginsContent != null) PluginsContent.Visibility = Visibility.Collapsed;
             if (RecorderContent != null) RecorderContent.Visibility = Visibility.Collapsed;
@@ -553,7 +554,7 @@ namespace ZeroMix
 
             if (HomeButton != null) HomeButton.Background = System.Windows.Media.Brushes.Transparent;
             if (AboutButton != null) AboutButton.Background = System.Windows.Media.Brushes.Transparent;
-            if (PrivacyButton != null) PrivacyButton.Background = System.Windows.Media.Brushes.Transparent;
+            if (AssistantButton != null) AssistantButton.Background = System.Windows.Media.Brushes.Transparent;
             if (WallpaperButton != null) WallpaperButton.Background = System.Windows.Media.Brushes.Transparent;
             if (PluginsButton != null) PluginsButton.Background = System.Windows.Media.Brushes.Transparent;
             if (RecorderButton != null) RecorderButton.Background = System.Windows.Media.Brushes.Transparent;
@@ -683,18 +684,55 @@ namespace ZeroMix
             AboutButton.Background = (System.Windows.Media.SolidColorBrush)FindResource("NavSelectedBrush");
         }
 
-        private void PrivacyButton_Click(object sender, RoutedEventArgs e)
-        {
-            DeactivateAllTabs();
-            PrivacyContent.Visibility = Visibility.Visible;
-            PrivacyButton.Background = (System.Windows.Media.SolidColorBrush)FindResource("NavSelectedBrush");
-        }
-
         private void NavWallpapers_Click(object sender, RoutedEventArgs e)
         {
             DeactivateAllTabs();
             WallpapersContent.Visibility = Visibility.Visible;
             WallpaperButton.Background = (System.Windows.Media.SolidColorBrush)FindResource("NavSelectedBrush");
+        }
+
+        private void AssistantButton_Click(object sender, RoutedEventArgs e)
+        {
+            DeactivateAllTabs();
+            AssistantContent.Visibility = Visibility.Visible;
+            AssistantButton.Background = (System.Windows.Media.SolidColorBrush)FindResource("NavSelectedBrush");
+        }
+
+        private void OpenFrieren_Click(object sender, RoutedEventArgs e)
+        {
+            if (_assistantWindow == null)
+            {
+                _assistantWindow = new Virtual_Assisten.VirtualAssistantWindow();
+            }
+
+            if (_assistantWindow.IsVisible)
+            {
+                _assistantWindow.Hide();
+                StatusLabel.Text = "Frieren Hidden";
+            }
+            else
+            {
+                _assistantWindow.Show();
+                StatusLabel.Text = "Frieren is here to help!";
+            }
+        }
+
+        private void OpenFern_Click(object sender, RoutedEventArgs e)
+        {
+            // For now Fern uses the same window, in future we can pass the model path
+            System.Windows.MessageBox.Show("Model Fern sedang dalam persiapan optimasi!", "Coming Soon", MessageBoxButton.OK, MessageBoxImage.Information);
+        }
+
+        private void DonationLink_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                Process.Start(new ProcessStartInfo("https://trakteer.id/MyCici") { UseShellExecute = true });
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Error opening donation link: {ex.Message}");
+            }
         }
 
         // WallpaperButton_Click removed as it is no longer used (Wallpapers view is now integrated)
