@@ -132,7 +132,17 @@ The atmospheric experiences in ZeroMix are powered by beautiful visuals from the
 > [!NOTE]
 > Jika ingin mendownload model, harap gunakan **situs resmi yang telah kami sediakan**. Mohon hargai kerja keras pembuat model. Jangan menggunakan model ini untuk **komersial atau dijual tanpa izin**. Terima kasih atas pengertiannya! 🥰
 
-> **Peringatan:** Jika Anda tetap menggunakan model ini dengan cara yang melanggar ketentuan, kami tidak bertanggung jawab atas segala konsekuensi yang mungkin terjadi.
+> [!NOTE]
+> Penggunaan model ini sepenuhnya menjadi tanggung jawab pengguna.
+> Pengembang aplikasi tidak menyediakan izin komersial apa pun atas model ini dan hanya meneruskan ketentuan dari pembuat asli.
+
+> [!WARNING]
+> Pengembang aplikasi tidak bertindak sebagai pemberi lisensi model.
+> Penggunaan yang melanggar ketentuan pembuat asli merupakan tanggung jawab pengguna.
+
+---
+
+
 
 ---
 
