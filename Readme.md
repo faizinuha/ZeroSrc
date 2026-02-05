@@ -127,7 +127,10 @@ The atmospheric experiences in ZeroMix are powered by beautiful visuals from the
 - **Frieren & Fern Model** by [kyokiStudio](https://kyoki.booth.pm/) on Booth.pm
 
 > [!IMPORTANT]
- Jika ingin mendownload model, harap gunakan **situs resmi yang telah kami sediakan**. Mohon hargai kerja keras pembuat model. Jangan menggunakan model ini untuk **komersial atau dijual tanpa izin**. Terima kasih atas pengertiannya! 🥰  
+> **Kebijakan Penghapusan (Removal Policy):** Jika Model ini tidak diperbolehkan untuk digunakan dalam aplikasi, mohon segera hubungi kami melalui Email: **Rozakadm@gmail.com**. Kami akan segera menghapus model tersebut untuk menghormati hak pemilik dan memastikan kenyamanan bagi semua pihak. Terima kasih.
+
+> [!NOTE]
+> Jika ingin mendownload model, harap gunakan **situs resmi yang telah kami sediakan**. Mohon hargai kerja keras pembuat model. Jangan menggunakan model ini untuk **komersial atau dijual tanpa izin**. Terima kasih atas pengertiannya! 🥰
 
 > **Peringatan:** Jika Anda tetap menggunakan model ini dengan cara yang melanggar ketentuan, kami tidak bertanggung jawab atas segala konsekuensi yang mungkin terjadi.
 
