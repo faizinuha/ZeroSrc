@@ -228,54 +228,33 @@ begin
   end;
 end;
 
-// --- STEP CHANGE UNINSTALLER ---
+// --- STEP CHANGE UNINSTALLER (SMOOTH FLOW) ---
 procedure CurUninstallStepChanged(CurStep: TUninstallStep);
 var
   ErrorCode: Integer;
   AppDataPath: String;
 begin
-  if CurStep = usUninstall then
-  begin
-    // Step 1: Konfirmasi awal
-    MsgBox('Terima kasih telah menggunakan ZeroMix!' + #13#13 + 
-           'Proses uninstall akan segera dimulai. Klik "OK" untuk melanjutkan.', 
-           mbInformation, MB_OK);
-    
-    // Step 2: Close aplikasi jika masih berjalan
-    MsgBox('Menutup aplikasi ZeroMix jika sedang berjalan...', mbInformation, MB_OK);
-    Exec('taskkill.exe', '/IM ZeroMix.exe /F', '', SW_HIDE, ewWaitUntilTerminated, ErrorCode);
-    
-    // Step 3: Unregister CLI Tools
-    UnregisterCliTools();
-    
-    // Step 4: Tanya hapus AppData
-    if MsgBox('Apakah Anda ingin menghapus juga data konfigurasi dan pengaturan?' + #13 + 
-              '(Folder: AppData\Roaming\ZeroMix)' + #13#13 +
-              'Klik "Ya" untuk hapus, atau "Tidak" untuk tetap simpan.', 
-              mbConfirmation, MB_YESNO) = IDYES then
-    begin
-      AppDataPath := ExpandConstant('{userappdata}\ZeroMix');
-      if DirExists(AppDataPath) then
+  case CurStep of
+    usUninstall:
       begin
-        DelTree(AppDataPath, True, True, True);
-        MsgBox('Data konfigurasi berhasil dihapus.', mbInformation, MB_OK);
+        // Sembunyi: Unregister CLI di background
+        UnregisterCliTools();
       end;
-    end
-    else
-    begin
-      MsgBox('Data konfigurasi tetap disimpan. Anda bisa menggunakannya lagi jika install ulang.', mbInformation, MB_OK);
-    end;
-  end;
+      
+    usPostUninstall:
+      begin
+        // Step Terakhir: Tanya Data & Kasih Feedback link
+        if MsgBox('Uninstall Selesai!' + #13#13 +
+                  'Apakah Kakak ingin menghapus semua data pengaturan/config juga?' + #13 + 
+                  '(Pilih "Tidak" jika Kakak berencana install ulang nanti)', 
+                  mbConfirmation, MB_YESNO) = IDYES then
+        begin
+          AppDataPath := ExpandConstant('{userappdata}\ZeroMix');
+          if DirExists(AppDataPath) then DelTree(AppDataPath, True, True, True);
+        end;
 
-  if CurStep = usPostUninstall then
-  begin
-    // Step 5: Terimakasih & Feedback
-    MsgBox('ZeroMix telah berhasil dihapus dari komputer Anda.' + #13#13 +
-           'Kami sangat menghargai feedback Anda!' + #13 +
-           'Halaman feedback akan terbuka sekarang.', 
-           mbInformation, MB_OK);
-    
-    // Buka halaman feedback
-    ShellExec('open', 'https://zeromix.vercel.app/Feedback.html', '', '', SW_SHOWNORMAL, ewNoWait, ErrorCode);
+        // Buka Feedback secara otomatis (Opsional tapi bagus untuk data)
+        ShellExec('open', 'https://zeromix.vercel.app/Feedback.html', '', '', SW_SHOWNORMAL, ewNoWait, ErrorCode);
+      end;
   end;
 end;
