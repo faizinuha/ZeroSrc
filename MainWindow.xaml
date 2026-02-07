@@ -773,7 +773,7 @@
                                         Height="280">
                                     <StackPanel>
                                         <Border Width="150" Height="180" CornerRadius="12" Margin="0,0,0,10" Background="#1A202C">
-                                            <Image Source="Virtual_Assisten/Sou Sou No Frieren/Frieren/Frieren.8192/Frieren.png" 
+                                            <Image Source="Virtual_Assisten/Sou_Sou_No_Frieren/Frieren.png" 
                                                    Stretch="Uniform" VerticalAlignment="Bottom" Opacity="1"/>
                                         </Border>
                                         <TextBlock Text="Frieren" FontSize="18" FontWeight="Bold" HorizontalAlignment="Center"/>
@@ -788,7 +788,7 @@
                                         Height="280">
                                     <StackPanel>
                                         <Border Width="150" Height="180" CornerRadius="12" Margin="0,0,0,10" Background="#1A202C">
-                                            <Image Source="Virtual_Assisten/Sou Sou No Frieren/fern/fern.jpg" 
+                                            <Image Source="Virtual_Assisten/Sou_Sou_No_Frieren/fern.jpg" 
                                                    Stretch="Uniform" VerticalAlignment="Bottom" Opacity="1"/>
                                         </Border>
                                         <TextBlock Text="Fern" FontSize="18" FontWeight="Bold" HorizontalAlignment="Center"/>
