@@ -730,6 +730,22 @@ namespace ZeroMix
             _assistantWindow.SetCharacter("Fern");
         }
 
+        private void OpenHuohuo_Click(object sender, RoutedEventArgs e)
+        {
+            if (_assistantWindow == null || !IsWindowOpen<Virtual_Assisten.VirtualAssistantWindow>())
+            {
+                _assistantWindow = new Virtual_Assisten.VirtualAssistantWindow();
+            }
+
+            if (!_assistantWindow.IsVisible)
+            {
+                _assistantWindow.Show();
+                StatusLabel.Text = "Huohuo is here to help!";
+            }
+            
+            _assistantWindow.SetCharacter("Huohuo");
+        }
+
         private void DonationLink_Click(object sender, RoutedEventArgs e)
         {
             try

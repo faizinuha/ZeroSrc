@@ -33,10 +33,6 @@
 				"File": "lks.exp3.json"
 			},
 			{
-				"Name": "bl",
-				"File": "bl.exp3.json"
-			},
-			{
 				"Name": "wh",
 				"File": "wh.exp3.json"
 			},
@@ -53,15 +49,11 @@
 				"File": "anya2.exp3.json"
 			},
 			{
-				"Name": "anyazZZ",
-				"File": "anyazZZ.exp3.json"
-			},
-			{
 				"Name": "W",
 				"File": "W.exp3.json"
 			},
 			{
-				"Name": "erd ",
+				"Name": "erd",
 				"File": "erd.exp3.json"
 			}
 		],
