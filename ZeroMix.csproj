@@ -63,21 +63,9 @@
     </Content>
   </ItemGroup>
 
-  <!-- Virtual Assistant Live2D Assets -->
+  <!-- Virtual Assistant Live2D Assets (Embedded for Security) -->
   <ItemGroup>
-    <Content Include="Virtual_Assisten\**\*.html">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Virtual_Assisten\**\*.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Virtual_Assisten\**\*.moc3">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <EmbeddedResource Include="Virtual_Assisten\**\*.png">
-    </EmbeddedResource>
-    <EmbeddedResource Include="Virtual_Assisten\**\*.jpg">
-    </EmbeddedResource>
+    <EmbeddedResource Include="Virtual_Assisten\**\*" />
   </ItemGroup>
 
 </Project>
