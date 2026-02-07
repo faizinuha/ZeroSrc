@@ -765,7 +765,7 @@
                                      Foreground="{StaticResource SubTextBrush}"
                                      Margin="0,0,0,35"/>
 
-                            <UniformGrid Columns="2" Margin="0,0,10,0">
+                            <UniformGrid Columns="3" Margin="0,0,10,0">
                                 <!-- Frieren Card -->
                                 <Button Style="{StaticResource QuickActionButton}" 
                                         Click="OpenFrieren_Click"
@@ -773,8 +773,8 @@
                                         Height="280">
                                     <StackPanel>
                                         <Border Width="150" Height="180" CornerRadius="12" Margin="0,0,0,10" Background="#1A202C">
-                                            <Image Source="Virtual_Assisten\Sou Sou No Frieren\Frieren\Frieren.8192\Frieren.png" 
-                                                   Stretch="UniformToFill" Opacity="1"/>
+                                            <Image Source="Virtual_Assisten/Sou Sou No Frieren/Frieren/Frieren.8192/Frieren.png" 
+                                                   Stretch="Uniform" VerticalAlignment="Bottom" Opacity="1"/>
                                         </Border>
                                         <TextBlock Text="Frieren" FontSize="18" FontWeight="Bold" HorizontalAlignment="Center"/>
                                         <TextBlock Text="Sou Sou No Frieren" FontSize="11" Foreground="{StaticResource NeonBlueBrush}" HorizontalAlignment="Center" Margin="0,3,0,5"/>
@@ -784,15 +784,30 @@
                                 <!-- Fern Card -->
                                 <Button Style="{StaticResource QuickActionButton}" 
                                         Click="OpenFern_Click"
+                                        Margin="6,0,6,12"
+                                        Height="280">
+                                    <StackPanel>
+                                        <Border Width="150" Height="180" CornerRadius="12" Margin="0,0,0,10" Background="#1A202C">
+                                            <Image Source="Virtual_Assisten/Sou Sou No Frieren/fern/fern.jpg" 
+                                                   Stretch="Uniform" VerticalAlignment="Bottom" Opacity="1"/>
+                                        </Border>
+                                        <TextBlock Text="Fern" FontSize="18" FontWeight="Bold" HorizontalAlignment="Center"/>
+                                        <TextBlock Text="Sou Sou No Frieren" FontSize="11" Foreground="{StaticResource NeonBlueBrush}" HorizontalAlignment="Center" Margin="0,3,0,5"/>
+                                    </StackPanel>
+                                </Button>
+
+                                <!-- Huohuo Card -->
+                                <Button Style="{StaticResource QuickActionButton}" 
+                                        Click="OpenHuohuo_Click"
                                         Margin="12,0,0,12"
                                         Height="280">
                                     <StackPanel>
                                         <Border Width="150" Height="180" CornerRadius="12" Margin="0,0,0,10" Background="#1A202C">
-                                            <Image Source="Virtual_Assisten\Sou Sou No Frieren\fern\fern.jpg" 
-                                                   Stretch="UniformToFill" Opacity="1"/>
+                                            <Image Source="Virtual_Assisten/Mihoyo/Honkai_Star_Rail/huohuo2/huohuo/huohuo.8192/houhou.jpg" 
+                                                   Stretch="Uniform" VerticalAlignment="Bottom" Opacity="1"/>
                                         </Border>
-                                        <TextBlock Text="Fern" FontSize="18" FontWeight="Bold" HorizontalAlignment="Center"/>
-                                        <TextBlock Text="Sou Sou No Frieren" FontSize="11" Foreground="{StaticResource NeonBlueBrush}" HorizontalAlignment="Center" Margin="0,3,0,5"/>
+                                        <TextBlock Text="Huohuo" FontSize="18" FontWeight="Bold" HorizontalAlignment="Center"/>
+                                        <TextBlock Text="Honkai: Star Rail" FontSize="11" Foreground="{StaticResource NeonBlueBrush}" HorizontalAlignment="Center" Margin="0,3,0,5"/>
                                     </StackPanel>
                                 </Button>
                             </UniformGrid>
@@ -899,9 +914,13 @@
 
                                     <!-- Model Credits -->
                                     <TextBlock Text="Live2D Model Credits" FontWeight="Bold" Foreground="White" Margin="0,0,0,10"/>
+
                                     <StackPanel Margin="10,0,0,25">
                                         <TextBlock Margin="0,0,0,5" Foreground="{StaticResource SubTextBrush}">
                                             Model Frieren &amp; Fern oleh <Hyperlink RequestNavigate="Hyperlink_RequestNavigate" NavigateUri="https://kyoki.booth.pm/">Kyoki (Booth.pm)</Hyperlink>
+                                        </TextBlock>
+                                        <TextBlock Margin="0,0,0,5" Foreground="{StaticResource SubTextBrush}">
+                                            Model HouHou oleh <Hyperlink RequestNavigate="Hyperlink_RequestNavigate" NavigateUri="https://bailyovo.booth.pm/">Bailyovo (Booth.pm)</Hyperlink>
                                         </TextBlock>
                                     </StackPanel>
 

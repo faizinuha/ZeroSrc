@@ -32,20 +32,34 @@ namespace ZeroMix.Virtual_Assisten
                 "Semangat! 💪",
                 "Kamu hebat!",
                 "Aku akan menemanimu~",
-                "Mau dengar cerita?"
+                "Mau dengar cerita?",
+                "Stark sedang apa ya sekarang?"
             },
             ["Fern"] = new List<string>
             {
-                "Halo, namaku Fern.",
-                "Ada yang bisa saya bantu?",
-                "Frieren-sama bilang saya harus rajin belajar.",
-                "Kecil... (chiisai)",
-                "Jangan malas-malasan, tuan.",
-                "Apa Kakak butuh bantuan sihir?",
-                "Saya akan tetap di sini.",
-                "Terima kasih sudah memanggilku.",
+                "Halo, Tuan Frieren.",
+                "Jangan malas-malasan ya.",
+                "Apa ada yang bisa dibantu?",
+                "Jangan lupa makan...",
+                "Apa sih...",
+                "E-ecchi...",
+                "Aku akan menemani Tuan.",
+                "Tolong lebih serius sedikit.",
                 "Zoltraak!",
-                "Stark sedang apa ya sekarang?"
+                "Stark bodoh..."
+            },
+            ["Huohuo"] = new List<string>
+            {
+                "Aaaah! Ada hantu?! 👻",
+                "Maaf... aku Huohuo, dari Ten-Lords Commission.",
+                "Tuan ekor... tolong jangan galak-galak.",
+                "Aku sebenarnya penakut, tapi aku akan berusaha!",
+                "Jangan tinggalkan aku sendirian ya...",
+                "Bolehkah aku bersembunyi di belakangmu?",
+                "Siapa itu?! Oh, ternyata cuma Kakak.",
+                "Semangat kerjanya! Jangan sampai stres~",
+                "Huohuo siap membantu (dengan gemetar)...",
+                "Kenapa Kakak melihatku seperti itu? 🥺"
             }
         };
         private int _messageIndex = 0;
@@ -307,19 +321,19 @@ namespace ZeroMix.Virtual_Assisten
 
         public async void SetCharacter(string characterName)
         {
-            _isModelLoaded = false; // Reset while loading
+            _isModelLoaded = false;
             _currentCharacter = characterName;
             
             if (Live2DView.CoreWebView2 == null) return;
             
-            string modelSubPath = characterName == "Fern" 
-                ? "Sou Sou No Frieren/fern/fern.model3.json"
-                : "Sou Sou No Frieren/Frieren/Frieren.model3.json";
+            string modelSubPath = characterName switch
+            {
+                "Fern" => "Sou Sou No Frieren/fern/fern.model3.json",
+                "Huohuo" => "Mihoyo/Honkai_Star_Rail/huohuo2/huohuo/huohuo.model3.json",
+                _ => "Sou Sou No Frieren/Frieren/Frieren.model3.json"
+            };
                 
-            // The path in JS will be relative to the virtual host root
             await Live2DView.CoreWebView2.ExecuteScriptAsync($"changeModel('{modelSubPath}')");
-            
-            // Show welcome message
             ShowNextChatMessage();
         }
 

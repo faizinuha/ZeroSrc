@@ -126,6 +126,11 @@ The atmospheric experiences in ZeroMix are powered by beautiful visuals from the
 
 - **Frieren & Fern Model** by [kyokiStudio](https://kyoki.booth.pm/) on Booth.pm
 
+- **Huohuo Model** by [bailyovo](https://bailyovo.booth.pm/) on Booth.pm
+  - _Precautions_: The copyright belongs to miHoYo. This model is for Honkai: Star Rail fan creation only. Not for political use or profit-oriented live streaming. Secondary distribution is prohibited. Creators are not responsible for violations.
+
+---
+
 > [!IMPORTANT]
 > **Kebijakan Penghapusan (Removal Policy):** Jika Model ini tidak diperbolehkan untuk digunakan dalam aplikasi, mohon segera hubungi kami melalui Email: **Rozakadm@gmail.com**. Kami akan segera menghapus model tersebut untuk menghormati hak pemilik dan memastikan kenyamanan bagi semua pihak. Terima kasih.
 
@@ -141,8 +146,6 @@ The atmospheric experiences in ZeroMix are powered by beautiful visuals from the
 > Penggunaan yang melanggar ketentuan pembuat asli merupakan tanggung jawab pengguna.
 
 ---
-
-
 
 ---
 

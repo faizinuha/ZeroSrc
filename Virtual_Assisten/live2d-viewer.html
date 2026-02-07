@@ -86,7 +86,7 @@
           });
 
           // Performance Optimization: Limit FPS
-          app.ticker.maxFPS = 30;
+          app.ticker.maxFPS = 60;
 
           await loadModel(MODEL_PATH);
 
@@ -116,10 +116,16 @@
             autoUpdate: true,
           });
 
-          model.anchor.set(0.5, 1); // Bottom anchor
-          model.scale.set(0.055); // MUCH smaller scale so full body fits in 500px window
+          model.anchor.set(0.5, 1);
+
+          // AUTO SCALE: Calculate scale to fit window height (with 20px padding)
+          const targetHeight = app.screen.height - 40;
+          const currentHeight = model.height;
+          const autoScale = (targetHeight / currentHeight) * model.scale.x;
+          model.scale.set(autoScale);
+
           model.x = app.screen.width / 2;
-          model.y = app.screen.height; // Align to bottom
+          model.y = app.screen.height;
 
           app.stage.addChild(model);
           loading.style.display = "none";
@@ -145,6 +151,13 @@
           model.on("pointerdown", onModelClick);
           model.interactive = true;
           model.cursor = "pointer";
+
+          // Re-adjust on next frame to be sure
+          setTimeout(() => {
+            const finalRatio = (app.screen.height - 40) / model.height;
+            model.scale.set(model.scale.x * finalRatio);
+            model.y = app.screen.height;
+          }, 100);
         } catch (e) {
           console.error("[Live2D] Load error:", e);
           showError();
@@ -207,17 +220,52 @@
         if (!model || !model.internalModel) return;
 
         try {
-          // Play special motion if exists
-          // For Frieren: "daiji" is usually the precious/love motion
-          model.motion("daiji");
-          model.motion("zs1");
+          let expressions = [];
 
-          // Random cute expression
-          const expressions = ["anya", "anya2", "yy", "ku", "han"];
-          const randomExp =
-            expressions[Math.floor(Math.random() * expressions.length)];
-          model.expression(randomExp);
-        } catch (e) {}
+          if (MODEL_PATH.toLowerCase().includes("frieren")) {
+            // Frieren specific
+            expressions = [
+              "anya",
+              "anya2",
+              "yy",
+              "ku",
+              "han",
+              "mmy",
+              "d",
+              "lks",
+              "wh",
+              "zx",
+              "W",
+              "erd",
+            ];
+            model.motion(""); // Play random motion from default group
+          } else if (MODEL_PATH.toLowerCase().includes("fern")) {
+            // Fern specific
+            expressions = ["lh", "sq", "sy"];
+            model.motion("");
+          } else if (MODEL_PATH.toLowerCase().includes("huohuo")) {
+            // Huohuo specific
+            expressions = [
+              "angry",
+              "baozhen",
+              "cry",
+              "qizi1",
+              "qizi2",
+              "white eyes",
+            ];
+            // Huohuo motions are also under default group "" in our JSON
+            model.motion("");
+          }
+
+          if (expressions.length > 0) {
+            const randomExp =
+              expressions[Math.floor(Math.random() * expressions.length)];
+            model.expression(randomExp);
+            console.log("[Live2D] Playing expression:", randomExp);
+          }
+        } catch (e) {
+          console.error("[Live2D] Error playing motion:", e);
+        }
       }
 
       function updateEyeTracking(x, y) {
