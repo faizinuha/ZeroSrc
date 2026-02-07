@@ -120,11 +120,11 @@ namespace ZeroMix.Virtual_Assisten
                 var env = await CoreWebView2Environment.CreateAsync();
                 await Live2DView.EnsureCoreWebView2Async(env);
                 
-                // Set host mapping to allow local file loading correctly
-                string assistantFolder = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Virtual_Assisten");
-                Live2DView.CoreWebView2.SetVirtualHostNameToFolderMapping(
-                    "live2d.local", assistantFolder, CoreWebView2HostResourceAccessKind.Allow);
-
+                // SECURE: Use WebResourceRequested instead of mapping to physical folder
+                // This prevents users from stealing your model files from the app folder
+                Live2DView.CoreWebView2.AddWebResourceRequestedFilter("https://live2d.local/*", CoreWebView2WebResourceRequestedFilterStage.All);
+                Live2DView.CoreWebView2.WebResourceRequested += OnWebResourceRequested;
+                
                 // Settings for transparency and performance
                 Live2DView.CoreWebView2.Settings.IsStatusBarEnabled = false;
                 Live2DView.CoreWebView2.Settings.AreDefaultContextMenusEnabled = false;
@@ -133,16 +133,71 @@ namespace ZeroMix.Virtual_Assisten
                 // Handle messages from JavaScript
                 Live2DView.CoreWebView2.WebMessageReceived += OnWebMessageReceived;
                 
-                // Load Live2D viewer HTML via virtual host
+                // Load Live2D viewer HTML via virtual host URL
                 Live2DView.CoreWebView2.Navigate("https://live2d.local/live2d-viewer.html");
-                _isModelLoaded = true; // Temporary set to true for init
+                _isModelLoaded = true;
                 
-                Debug.WriteLine("[VirtualAssistant] WebView2 initialized with Virtual Host Mapping");
+                Debug.WriteLine("[VirtualAssistant] Secure Resource Server initialized (Embedded Mode)");
             }
             catch (Exception ex)
             {
                 Debug.WriteLine($"[VirtualAssistant] Error: {ex.Message}");
             }
+        }
+
+        private void OnWebResourceRequested(object? sender, CoreWebView2WebResourceRequestedEventArgs e)
+        {
+            try
+            {
+                string uri = e.Request.Uri;
+                if (!uri.StartsWith("https://live2d.local/")) return;
+
+                // Map URL path to Embedded Resource name
+                // Format: ZeroMix.Virtual_Assisten.Path.To.File
+                string relativePath = uri.Replace("https://live2d.local/", "").Replace("/", ".");
+                
+                // Fix for spaces or special characters in folder names
+                relativePath = relativePath.Replace(" ", "_");
+                
+                string resourceName = $"ZeroMix.Virtual_Assisten.{relativePath}";
+                var assembly = System.Reflection.Assembly.GetExecutingAssembly();
+                var resourceStream = assembly.GetManifestResourceStream(resourceName);
+
+                if (resourceStream != null)
+                {
+                    string contentType = GetMimeType(uri);
+                    e.Response = Live2DView.CoreWebView2.Environment.CreateWebResourceResponse(
+                        resourceStream, 200, "OK", $"Content-Type: {contentType}");
+                }
+                else
+                {
+                    Debug.WriteLine($"[VirtualAssistant] Resource not found: {resourceName}");
+                    e.Response = Live2DView.CoreWebView2.Environment.CreateWebResourceResponse(
+                        null, 404, "Not Found", "");
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"[VirtualAssistant] Serving error: {ex.Message}");
+            }
+        }
+
+        private string GetMimeType(string uri)
+        {
+            string ext = Path.GetExtension(uri).ToLower();
+            return ext switch
+            {
+                ".html" => "text/html",
+                ".js" => "application/javascript",
+                ".css" => "text/css",
+                ".json" => "application/json",
+                ".png" => "image/png",
+                ".jpg" => "image/jpeg",
+                ".jpeg" => "image/jpeg",
+                ".moc3" => "application/octet-stream",
+                ".model3" => "application/json",
+                _ => "application/octet-stream"
+            };
         }
 
         private void OnWebMessageReceived(object? sender, CoreWebView2WebMessageReceivedEventArgs e)
@@ -279,7 +334,7 @@ namespace ZeroMix.Virtual_Assisten
                 double centerY = this.Top + (this.Height / 2) + 100; // Offset for head position
 
                 double eyeX = (mousePos.X - centerX) / 500.0;
-                double eyeY = (mousePos.Y - centerY) / 500.0;
+                double eyeY = (centerY - mousePos.Y) / 500.0; // Dibalik: Mouse di atas (Y kecil) jadi nilai positif (Atas)
 
                 // Clamp
                 eyeX = Math.Max(-1.0, Math.Min(1.0, eyeX));

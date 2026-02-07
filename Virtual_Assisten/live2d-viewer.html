@@ -20,6 +20,8 @@
         width: 100%;
         height: 100%;
         cursor: pointer;
+        opacity: 0;
+        transition: opacity 0.4s ease;
       }
       #loading {
         position: absolute;
@@ -56,7 +58,7 @@
 
     <script>
       // Configuration
-      let MODEL_PATH = "Sou Sou No Frieren/Frieren/Frieren.model3.json";
+      let MODEL_PATH = "";
 
       // Global state
       let app = null;
@@ -66,6 +68,7 @@
       let currentEyeX = 0,
         currentEyeY = 0;
       let isModelLoaded = false;
+      let autoMotionTimer = null;
 
       // Initialize
       async function init() {
@@ -86,12 +89,19 @@
           });
 
           // Performance Optimization: Limit FPS
-          app.ticker.maxFPS = 60;
+          app.ticker.maxFPS = 50;
 
           await loadModel(MODEL_PATH);
 
           // Start update loop
           app.ticker.add(updateLoop);
+
+          // Auto-Motion every 5 seconds
+          if (autoMotionTimer) clearInterval(autoMotionTimer);
+          autoMotionTimer = setInterval(() => {
+            if (isModelLoaded) playSpecialMotion();
+          }, 5000);
+
           console.log("[Live2D] Initialized");
         } catch (error) {
           console.error("[Live2D] Init error:", error);
@@ -100,6 +110,11 @@
       }
 
       async function loadModel(path) {
+        if (!path) {
+          isModelLoaded = false;
+          return;
+        }
+        const canvas = document.getElementById("canvas");
         const loading = document.getElementById("loading");
         loading.style.display = "block";
         loading.querySelector(".text").textContent = "Loading model...";
@@ -129,6 +144,7 @@
 
           app.stage.addChild(model);
           loading.style.display = "none";
+          canvas.style.opacity = "1";
           isModelLoaded = true;
 
           // Try to hide watermark parts if found
@@ -286,14 +302,14 @@
           // Support multiple parameter naming conventions
           const paramMap = {
             ParamEyeBallX: currentEyeX,
-            ParamEyeBallY: -currentEyeY,
+            ParamEyeBallY: currentEyeY, // Di-balik agar ke atas ya ke atas
             ParamAngleX: currentEyeX * 15,
             ParamAngleY: currentEyeY * 10,
             ParamBodyAngleX: currentEyeX * 5,
             ParamEyeBallX01: currentEyeX,
-            ParamEyeBallY01: -currentEyeY,
+            ParamEyeBallY01: currentEyeY,
             ParamEyeX: currentEyeX,
-            ParamEyeY: -currentEyeY,
+            ParamEyeY: currentEyeY,
           };
 
           for (const [key, val] of Object.entries(paramMap)) {
