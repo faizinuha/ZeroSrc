@@ -751,66 +751,75 @@
 
                     <!-- Assistant Management View -->
                     <ScrollViewer x:Name="AssistantContent"
-                            Visibility="Collapsed"
-                            VerticalScrollBarVisibility="Hidden"
-                            BorderThickness="0">
-                        <StackPanel>
-                             <TextBlock Text="Virtual Assistant"
-                                     FontSize="36"
-                                     FontWeight="ExtraBold"
-                                     Foreground="White"
-                                     Margin="0,0,0,5"/>
-                            <TextBlock Text="Pilih teman virtual untuk menemanimu"
-                                     FontSize="16"
-                                     Foreground="{StaticResource SubTextBrush}"
-                                     Margin="0,0,0,35"/>
+                <ScrollViewer x:Name="AssistantContent"
+                        Visibility="Collapsed"
+                        VerticalScrollBarVisibility="Auto">
+                    <StackPanel Margin="25,20,25,40">
+                        <!-- Header with Master Toggle -->
+                        <Grid Margin="0,0,0,30">
+                            <StackPanel>
+                                <TextBlock Text="VIRTUAL ASSISTANT"
+                                        FontSize="20"
+                                        FontWeight="Black"
+                                        Foreground="White"
+                                        Opacity="0.9"/>
+                                <TextBlock Text="Manage your desktop companions."
+                                        FontSize="11"
+                                        Foreground="{StaticResource SubTextBrush}"/>
+                            </StackPanel>
+                            
+                            <!-- Master Switch -->
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                                <TextBlock x:Name="AssistantStatusText" Text="OFFLINE" Foreground="#718096" FontSize="11" FontWeight="Bold" Margin="0,0,10,0" VerticalAlignment="Center"/>
+                                <CheckBox x:Name="AssistantMasterToggle" Style="{StaticResource ModernCheckBox}" Checked="AssistantMasterToggle_Checked" Unchecked="AssistantMasterToggle_Unchecked"/>
+                            </StackPanel>
+                        </Grid>
 
-                            <UniformGrid Columns="3" Margin="0,0,10,0">
-                                <!-- Frieren Card -->
-                                <Button Style="{StaticResource QuickActionButton}" 
-                                        Click="OpenFrieren_Click"
-                                        Margin="0,0,12,12"
-                                        Height="280">
-                                    <StackPanel>
-                                        <Border Width="150" Height="180" CornerRadius="12" Margin="0,0,0,10" Background="#1A202C">
-                                            <Image Source="Virtual_Assisten/Sou_Sou_No_Frieren/Frieren.png" 
-                                                   Stretch="Uniform" VerticalAlignment="Bottom" Opacity="1"/>
-                                        </Border>
-                                        <TextBlock Text="Frieren" FontSize="18" FontWeight="Bold" HorizontalAlignment="Center"/>
-                                        <TextBlock Text="Sou Sou No Frieren" FontSize="11" Foreground="{StaticResource NeonBlueBrush}" HorizontalAlignment="Center" Margin="0,3,0,5"/>
+                        <WrapPanel Orientation="Horizontal" HorizontalAlignment="Left">
+                            <!-- Frieren Card (Compact) -->
+                            <Border Width="160" Background="#12161F" CornerRadius="16" BorderThickness="1" BorderBrush="#2D3748" Margin="0,0,15,15" Padding="0">
+                                <StackPanel>
+                                    <Border Height="140" CornerRadius="16,16,0,0" Background="#1A202C" ClipToBounds="True">
+                                        <Image Source="Virtual_Assisten/VA_Thumbnails/Frieren.png" Stretch="UniformToFill" VerticalAlignment="Top"/>
+                                    </Border>
+                                    <StackPanel Padding="12">
+                                        <TextBlock Text="Frieren" FontSize="14" FontWeight="Bold" Foreground="White"/>
+                                        <TextBlock Text="Mage / Elf" FontSize="10" Foreground="{StaticResource SubTextBrush}" Margin="0,2,0,10"/>
+                                        <Button Content="ACTIVATE" Click="OpenFrieren_Click" Style="{StaticResource ActionButton}" FontSize="10" Height="28"/>
                                     </StackPanel>
-                                </Button>
+                                </StackPanel>
+                            </Border>
 
-                                <!-- Fern Card -->
-                                <Button Style="{StaticResource QuickActionButton}" 
-                                        Click="OpenFern_Click"
-                                        Margin="6,0,6,12"
-                                        Height="280">
-                                    <StackPanel>
-                                        <Border Width="150" Height="180" CornerRadius="12" Margin="0,0,0,10" Background="#1A202C">
-                                            <Image Source="Virtual_Assisten/Sou_Sou_No_Frieren/fern.jpg" 
-                                                   Stretch="Uniform" VerticalAlignment="Bottom" Opacity="1"/>
-                                        </Border>
-                                        <TextBlock Text="Fern" FontSize="18" FontWeight="Bold" HorizontalAlignment="Center"/>
-                                        <TextBlock Text="Sou Sou No Frieren" FontSize="11" Foreground="{StaticResource NeonBlueBrush}" HorizontalAlignment="Center" Margin="0,3,0,5"/>
+                            <!-- Fern Card (Compact) -->
+                            <Border Width="160" Background="#12161F" CornerRadius="16" BorderThickness="1" BorderBrush="#2D3748" Margin="0,0,15,15" Padding="0">
+                                <StackPanel>
+                                    <Border Height="140" CornerRadius="16,16,0,0" Background="#1A202C" ClipToBounds="True">
+                                        <Image Source="Virtual_Assisten/VA_Thumbnails/fern.jpg" Stretch="UniformToFill" VerticalAlignment="Top"/>
+                                    </Border>
+                                    <StackPanel Padding="12">
+                                        <TextBlock Text="Fern" FontSize="14" FontWeight="Bold" Foreground="White"/>
+                                        <TextBlock Text="Mage / Human" FontSize="10" Foreground="{StaticResource SubTextBrush}" Margin="0,2,0,10"/>
+                                        <Button Content="ACTIVATE" Click="OpenFern_Click" Style="{StaticResource ActionButton}" FontSize="10" Height="28"/>
                                     </StackPanel>
-                                </Button>
+                                </StackPanel>
+                            </Border>
 
-                                <!-- Huohuo Card -->
-                                <Button Style="{StaticResource QuickActionButton}" 
-                                        Click="OpenHuohuo_Click"
-                                        Margin="12,0,0,12"
-                                        Height="280">
-                                    <StackPanel>
-                                        <Border Width="150" Height="180" CornerRadius="12" Margin="0,0,0,10" Background="#1A202C">
-                                            <Image Source="Virtual_Assisten/Mihoyo/Honkai_Star_Rail/huohuo2/huohuo/huohuo.8192/houhou.jpg" 
-                                                   Stretch="Uniform" VerticalAlignment="Bottom" Opacity="1"/>
-                                        </Border>
-                                        <TextBlock Text="Huohuo" FontSize="18" FontWeight="Bold" HorizontalAlignment="Center"/>
-                                        <TextBlock Text="Honkai: Star Rail" FontSize="11" Foreground="{StaticResource NeonBlueBrush}" HorizontalAlignment="Center" Margin="0,3,0,5"/>
+                            <!-- Huohuo Card (Compact) -->
+                            <Border Width="160" Background="#12161F" CornerRadius="16" BorderThickness="1" BorderBrush="#2D3748" Margin="0,0,15,15" Padding="0">
+                                <StackPanel>
+                                    <Border Height="140" CornerRadius="16,16,0,0" Background="#1A202C">
+                                        <TextBlock Text="狐" FontSize="40" Foreground="#4A5568" HorizontalAlignment="Center" VerticalAlignment="Center" FontFamily="Segoe UI Symbol"/>
+                                    </Border>
+                                    <StackPanel Padding="12">
+                                        <TextBlock Text="Huohuo" FontSize="14" FontWeight="Bold" Foreground="White"/>
+                                        <TextBlock Text="Judicator / Fox" FontSize="10" Foreground="{StaticResource SubTextBrush}" Margin="0,2,0,10"/>
+                                        <Button Content="ACTIVATE" Click="OpenHuohuo_Click" Style="{StaticResource ActionButton}" FontSize="10" Height="28"/>
                                     </StackPanel>
-                                </Button>
-                            </UniformGrid>
+                                </StackPanel>
+                            </Border>
+                        </WrapPanel>
+                    </StackPanel>
+                </ScrollViewer>
                             
                             <Border Style="{StaticResource CardBorder}" Margin="0,30,0,0">
                                 <StackPanel>
