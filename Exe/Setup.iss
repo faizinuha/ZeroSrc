@@ -7,18 +7,17 @@
 AppId={{ZeroMix-v2-ZeroMix-identifier}}
 AppName=ZeroMix
 
-; Allow overriding AppVersion via command line: /DAppVersion=X.X.X
-#ifndef AppVersion
-  #define AppVersion "2.7.0-beta"
-#endif
+; Set AppVersion for display, and MetadataVersion for file properties (must be numeric)
+#define AppVersionStr AppVersion
+#define AppVersionNumeric "2.7.0.0"
 
-AppVersion={#AppVersion}
-VersionInfoVersion={#AppVersion}.0
+AppVersion={#AppVersionStr}
+VersionInfoVersion={#AppVersionNumeric}
 VersionInfoCompany=Frieren
 VersionInfoDescription=ZeroMix - Smart Desktop Launcher & System Utilities
-VersionInfoTextVersion={#AppVersion}.0
-VersionInfoProductVersion={#AppVersion}.0
-AppVerName=ZeroMix v{#AppVersion}
+VersionInfoTextVersion={#AppVersionStr}
+VersionInfoProductVersion={#AppVersionNumeric}
+AppVerName=ZeroMix v{#AppVersionStr}
 AppPublisher=ZeroMix Team
 AppPublisherURL=https://zeromix.vercel.app
 AppCopyright=Copyright (c) 2025 - All Rights Reserved
