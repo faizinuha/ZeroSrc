@@ -151,29 +151,41 @@ namespace ZeroMix.Virtual_Assisten
                 string uri = e.Request.Uri;
                 if (!uri.StartsWith("https://live2d.local/")) return;
 
-                // Map URL path to Embedded Resource name
-                // Format: ZeroMix.Virtual_Assisten.Path.To.File
-                string relativePath = uri.Replace("https://live2d.local/", "").Replace("/", ".");
-                
-                // Fix for spaces or special characters in folder names
-                relativePath = relativePath.Replace(" ", "_");
-                
-                string resourceName = $"ZeroMix.Virtual_Assisten.{relativePath}";
-                var assembly = System.Reflection.Assembly.GetExecutingAssembly();
-                var resourceStream = assembly.GetManifestResourceStream(resourceName);
+                // 1. Clean up path
+                string decodedPath = Uri.UnescapeDataString(uri.Replace("https://live2d.local/", ""));
+                if (string.IsNullOrEmpty(decodedPath)) return;
 
-                if (resourceStream != null)
+                var assembly = System.Reflection.Assembly.GetExecutingAssembly();
+                string[] allResourceNames = assembly.GetManifestResourceNames();
+
+                // 2. Try multiple naming conventions (thanks to .NET resource sanitizer)
+                // Pattern A: dots (Standard)
+                string patternA = $"ZeroMix.Virtual_Assisten.{decodedPath.Replace("/", ".")}";
+                
+                // Pattern B: underscores (Sometimes happens with spaces)
+                string patternB = $"ZeroMix.Virtual_Assisten.{decodedPath.Replace("/", ".").Replace(" ", "_")}";
+                
+                // Pattern C: dashes
+                string patternC = patternB.Replace("-", "_");
+
+                string? finalName = allResourceNames.FirstOrDefault(n => 
+                    n.Equals(patternA, StringComparison.OrdinalIgnoreCase) || 
+                    n.Equals(patternB, StringComparison.OrdinalIgnoreCase) ||
+                    n.Equals(patternC, StringComparison.OrdinalIgnoreCase));
+
+                if (finalName != null)
                 {
-                    string contentType = GetMimeType(uri);
-                    e.Response = Live2DView.CoreWebView2.Environment.CreateWebResourceResponse(
-                        resourceStream, 200, "OK", $"Content-Type: {contentType}");
+                    var stream = assembly.GetManifestResourceStream(finalName);
+                    if (stream != null)
+                    {
+                        string contentType = GetMimeType(uri);
+                        e.Response = Live2DView.CoreWebView2.Environment.CreateWebResourceResponse(
+                            stream, 200, "OK", $"Content-Type: {contentType}");
+                        return;
+                    }
                 }
-                else
-                {
-                    Debug.WriteLine($"[VirtualAssistant] Resource not found: {resourceName}");
-                    e.Response = Live2DView.CoreWebView2.Environment.CreateWebResourceResponse(
-                        null, 404, "Not Found", "");
-                }
+
+                Debug.WriteLine($"[VirtualAssistant] Resource Not Found: {decodedPath}");
             }
             catch (Exception ex)
             {

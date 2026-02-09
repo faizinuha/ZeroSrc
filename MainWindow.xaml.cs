@@ -1547,18 +1547,57 @@ end";
             } catch { return latest != current; }
         }
 
-        private void OpenVideoEditor()
+        private string _lastCharacter = "Frieren";
+
+        private void AssistantMasterToggle_Checked(object sender, RoutedEventArgs e)
         {
-            try
+            if (_assistantWindow == null || !IsWindowOpen<Virtual_Assisten.VirtualAssistantWindow>())
             {
-                Studio.StudioWindow studio = new Studio.StudioWindow();
-                studio.Show();
+                _assistantWindow = new Virtual_Assisten.VirtualAssistantWindow();
             }
-            catch (Exception ex)
+
+            if (!_assistantWindow.IsVisible)
             {
-                System.Windows.MessageBox.Show("Gagal membuka ZeroMix Studio: " + ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                _assistantWindow.Show();
+                AssistantStatusText.Text = "ONLINE";
+                AssistantStatusText.Foreground = new SolidColorBrush(System.Windows.Media.Color.FromRgb(0, 255, 136));
+                StatusLabel.Text = $"{_lastCharacter} is here to help!";
+            }
+
+            _assistantWindow.SetCharacter(_lastCharacter);
+        }
+
+        private void AssistantMasterToggle_Unchecked(object sender, RoutedEventArgs e)
+        {
+            if (_assistantWindow != null)
+            {
+                _assistantWindow.Close();
+                _assistantWindow = null;
+                AssistantStatusText.Text = "OFFLINE";
+                AssistantStatusText.Foreground = new SolidColorBrush(System.Windows.Media.Color.FromRgb(113, 128, 150));
+                StatusLabel.Text = "Assistant is resting...";
             }
         }
 
+        private void OpenFrieren_Click(object sender, RoutedEventArgs e)
+        {
+            _lastCharacter = "Frieren";
+            AssistantMasterToggle.IsChecked = true;
+            AssistantMasterToggle_Checked(this, new RoutedEventArgs());
+        }
+
+        private void OpenFern_Click(object sender, RoutedEventArgs e)
+        {
+            _lastCharacter = "Fern";
+            AssistantMasterToggle.IsChecked = true;
+            AssistantMasterToggle_Checked(this, new RoutedEventArgs());
+        }
+
+        private void OpenHuohuo_Click(object sender, RoutedEventArgs e)
+        {
+            _lastCharacter = "Huohuo";
+            AssistantMasterToggle.IsChecked = true;
+            AssistantMasterToggle_Checked(this, new RoutedEventArgs());
+        }
     }
 }
