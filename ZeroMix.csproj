@@ -9,14 +9,13 @@
     <UseWindowsForms>true</UseWindowsForms>
     <ApplicationIcon>zeromix.ico</ApplicationIcon>
     <EnableWindowsTargeting>true</EnableWindowsTargeting>
-    <Version>2.5.0</Version>
+    <Version>2.7.0-beta</Version>
     
-    <!-- Optimasi Ukuran & Portabilitas (Self-Contained tapi Ramping) -->
+    <!-- Optimasi Ukuran & Portabilitas (Self-Contained & Kompresi) -->
     <PublishSingleFile>true</PublishSingleFile>
     <SelfContained>true</SelfContained>
     <RuntimeIdentifier>win-x64</RuntimeIdentifier>
-    <PublishTrimmed>true</PublishTrimmed>
-    <TrimMode>partial</TrimMode>
+    <PublishTrimmed>false</PublishTrimmed>
     <PublishReadyToRun>true</PublishReadyToRun>
     <EnableCompressionInSingleFile>true</EnableCompressionInSingleFile>
     

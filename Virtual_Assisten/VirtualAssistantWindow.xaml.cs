@@ -121,8 +121,7 @@ namespace ZeroMix.Virtual_Assisten
                 await Live2DView.EnsureCoreWebView2Async(env);
                 
                 // SECURE: Use WebResourceRequested instead of mapping to physical folder
-                // This prevents users from stealing your model files from the app folder
-                Live2DView.CoreWebView2.AddWebResourceRequestedFilter("https://live2d.local/*", CoreWebView2WebResourceRequestedFilterStage.All);
+                Live2DView.CoreWebView2.AddWebResourceRequestedFilter("https://live2d.local/*", CoreWebView2WebResourceContext.All);
                 Live2DView.CoreWebView2.WebResourceRequested += OnWebResourceRequested;
                 
                 // Settings for transparency and performance
