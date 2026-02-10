@@ -41,9 +41,11 @@
                        TextAlignment="Center"/>
         </Border>
         
-        <!-- Live2D WebView Container -->
-        <wv2:WebView2 x:Name="Live2DView"
-                      Margin="0,60,0,0"
-                      DefaultBackgroundColor="Transparent"/>
+        <!-- Native DirectX Image Surface -->
+        <Image x:Name="NativeScene"
+               Margin="0,60,0,0"
+               IsHitTestVisible="True"
+               Stretch="Uniform"
+               Cursor="Hand"/>
     </Grid>
 </Window>
