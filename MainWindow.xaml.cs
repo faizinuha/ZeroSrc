@@ -698,54 +698,6 @@ namespace ZeroMix
             AssistantButton.Background = (System.Windows.Media.SolidColorBrush)FindResource("NavSelectedBrush");
         }
 
-        private void OpenFrieren_Click(object sender, RoutedEventArgs e)
-        {
-            if (_assistantWindow == null || !IsWindowOpen<Virtual_Assisten.VirtualAssistantWindow>())
-            {
-                _assistantWindow = new Virtual_Assisten.VirtualAssistantWindow();
-            }
-
-            if (!_assistantWindow.IsVisible)
-            {
-                _assistantWindow.Show();
-                StatusLabel.Text = "Frieren is here to help!";
-            }
-            
-            _assistantWindow.SetCharacter("Frieren");
-        }
-
-        private void OpenFern_Click(object sender, RoutedEventArgs e)
-        {
-            if (_assistantWindow == null || !IsWindowOpen<Virtual_Assisten.VirtualAssistantWindow>())
-            {
-                _assistantWindow = new Virtual_Assisten.VirtualAssistantWindow();
-            }
-
-            if (!_assistantWindow.IsVisible)
-            {
-                _assistantWindow.Show();
-                StatusLabel.Text = "Fern is here to help!";
-            }
-            
-            _assistantWindow.SetCharacter("Fern");
-        }
-
-        private void OpenHuohuo_Click(object sender, RoutedEventArgs e)
-        {
-            if (_assistantWindow == null || !IsWindowOpen<Virtual_Assisten.VirtualAssistantWindow>())
-            {
-                _assistantWindow = new Virtual_Assisten.VirtualAssistantWindow();
-            }
-
-            if (!_assistantWindow.IsVisible)
-            {
-                _assistantWindow.Show();
-                StatusLabel.Text = "Huohuo is here to help!";
-            }
-            
-            _assistantWindow.SetCharacter("Huohuo");
-        }
-
         private void DonationLink_Click(object sender, RoutedEventArgs e)
         {
             try
@@ -757,8 +709,6 @@ namespace ZeroMix
                 Debug.WriteLine($"Error opening donation link: {ex.Message}");
             }
         }
-
-        // WallpaperButton_Click removed as it is no longer used (Wallpapers view is now integrated)
 
         // --- Dashboard Logic --- //
 
@@ -1598,6 +1548,19 @@ end";
             _lastCharacter = "Huohuo";
             AssistantMasterToggle.IsChecked = true;
             AssistantMasterToggle_Checked(this, new RoutedEventArgs());
+        }
+
+        private void OpenVideoEditor()
+        {
+            try
+            {
+                Studio.StudioWindow studio = new Studio.StudioWindow();
+                studio.Show();
+            }
+            catch (Exception ex)
+            {
+                System.Windows.MessageBox.Show("Gagal membuka ZeroMix Studio: " + ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
         }
     }
 }

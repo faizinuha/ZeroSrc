@@ -31,7 +31,9 @@
     <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
     <PackageReference Include="System.Drawing.Common" Version="9.0.0" />
     <PackageReference Include="System.Management" Version="9.0.0" />
+    <PackageReference Include="Vortice.D3DCompiler" Version="3.8.2" />
     <PackageReference Include="Vortice.Direct2D1" Version="3.8.2" />
+    <PackageReference Include="Vortice.Direct3D9" Version="3.8.2" />
     <PackageReference Include="Vortice.Direct3D11" Version="3.8.2" />
     <PackageReference Include="Vortice.DXGI" Version="3.8.2" />
     <PackageReference Include="Vortice.Mathematics" Version="2.1.0" /> 
@@ -67,9 +69,10 @@
     </Content>
   </ItemGroup>
 
-  <!-- Virtual Assistant Live2D Assets (Embedded for Security) -->
+  <!-- Virtual Assistant Assets (Protected inside EXE) -->
   <ItemGroup>
-    <EmbeddedResource Include="Virtual_Assisten\**\*" />
+    <Resource Include="Virtual_Assisten\VA_Thumbnails\**\*" />
+    <EmbeddedResource Include="Virtual_Assisten\**\*" Exclude="Virtual_Assisten\VA_Thumbnails\**\*" />
   </ItemGroup>
 
 </Project>
