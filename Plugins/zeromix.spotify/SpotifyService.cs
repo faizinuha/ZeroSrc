@@ -25,9 +25,6 @@ namespace ZeroMix.Plugins.Spotify
         
         public bool IsConnected => !string.IsNullOrEmpty(_accessToken);
 
-        public event Action<string, string, string>? OnTrackChanged; // Title, Artist, CoverUrl
-        public event Action<string, string>? OnUserProfileUpdated; // UserName, ProfileImageUrl
-
         public SpotifyService()
         {
             _http = new HttpClient();

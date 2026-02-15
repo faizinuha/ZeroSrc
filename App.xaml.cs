@@ -101,18 +101,32 @@ namespace ZeroMix
                     Source = new Uri(resourcePath, UriKind.Relative) 
                 };
                 
-                // Ganti resource dictionary
-                this.Resources.MergedDictionaries.Clear();
-                this.Resources.MergedDictionaries.Add(langDictionary);
+                // PENTING: Jangan gunakan Clear() karena akan menghapus Styles.xaml
+                // Cari dictionary lama yang merupakan locale (biasanya di index 0 atau check source)
+                bool replaced = false;
+                for (int i = 0; i < this.Resources.MergedDictionaries.Count; i++)
+                {
+                    if (this.Resources.MergedDictionaries[i].Source.OriginalString.Contains("Locales/"))
+                    {
+                        this.Resources.MergedDictionaries[i] = langDictionary;
+                        replaced = true;
+                        break;
+                    }
+                }
+
+                if (!replaced)
+                {
+                    this.Resources.MergedDictionaries.Add(langDictionary);
+                }
             }
-            catch
+            catch (Exception ex)
             {
+                Debug.WriteLine($"Failed to load language {languageCode}: {ex.Message}");
                 // Fallback ke en-US jika gagal
                 var defaultDictionary = new ResourceDictionary 
                 { 
                     Source = new Uri("Resources/Locales/en-US.xaml", UriKind.Relative) 
                 };
-                this.Resources.MergedDictionaries.Clear();
                 this.Resources.MergedDictionaries.Add(defaultDictionary);
             }
         }

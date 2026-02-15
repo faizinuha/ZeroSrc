@@ -11,15 +11,19 @@
         xmlns:spotify="clr-namespace:ZeroMix.Plugins.Spotify"
         Title="ZeroMix"
         Icon="zeromix.ico"
-        Height="650"
-        Width="1000"
+        Height="750"
+        Width="1150"
+        MinHeight="600"
+        MinWidth="900"
         WindowStartupLocation="CenterScreen"
         Loaded="Window_Loaded"
         Closing="Window_Closing"
-        Background="#080A0F"
+        Background="Transparent"
         WindowStyle="None"
         KeyDown="Window_KeyDown"
-        AllowsTransparency="True">
+        AllowsTransparency="True"
+        ResizeMode="CanResizeWithGrip"
+        StateChanged="Window_StateChanged">
 
     <Window.Resources>
         <ResourceDictionary>
@@ -27,78 +31,72 @@
                 <ResourceDictionary Source="Plugins/Styles.xaml"/>
             </ResourceDictionary.MergedDictionaries>
 
-            <!-- NavSelectedBrush is now in Styles.xaml -->
-
-            <!-- Global ComboBox Styling for Darkness -->
+            <!-- Global ComboBox -->
             <Style TargetType="ComboBox">
-                <Setter Property="Background"
-                        Value="#1A1F2B"/>
-                <Setter Property="Foreground"
-                        Value="White"/>
-                <Setter Property="BorderBrush"
-                        Value="#2D3748"/>
-                <Setter Property="BorderThickness"
-                        Value="1"/>
-                <Setter Property="Padding"
-                        Value="8,4"/>
-                <Setter Property="FontSize"
-                        Value="12"/>
+                <Setter Property="Background" Value="#141922"/>
+                <Setter Property="Foreground" Value="{StaticResource TextBrush}"/>
+                <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}"/>
+                <Setter Property="BorderThickness" Value="1"/>
+                <Setter Property="Padding" Value="10,6"/>
+                <Setter Property="FontSize" Value="12"/>
+                <Style.Resources>
+                    <SolidColorBrush x:Key="{x:Static SystemColors.WindowBrushKey}" Color="#141922"/>
+                    <SolidColorBrush x:Key="{x:Static SystemColors.WindowTextBrushKey}" Color="#F0F2F5"/>
+                    <SolidColorBrush x:Key="{x:Static SystemColors.HighlightBrushKey}" Color="{StaticResource NeonBlueColor}"/>
+                    <SolidColorBrush x:Key="{x:Static SystemColors.HighlightTextBrushKey}" Color="Black"/>
+                </Style.Resources>
             </Style>
 
             <Style TargetType="ComboBoxItem">
-                <Setter Property="Background"
-                        Value="#1A1F2B"/>
-                <Setter Property="Foreground"
-                        Value="White"/>
-                <Setter Property="Padding"
-                        Value="8,4"/>
+                <Setter Property="Background" Value="#141922"/>
+                <Setter Property="Foreground" Value="{StaticResource TextBrush}"/>
+                <Setter Property="Padding" Value="10,6"/>
+                <Setter Property="BorderThickness" Value="0"/>
                 <Style.Triggers>
-                    <Trigger Property="IsMouseOver"
-                            Value="True">
-                        <Setter Property="Background"
-                                Value="#00FFA3"/>
-                        <Setter Property="Foreground"
-                                Value="#0F172A"/>
+                    <Trigger Property="IsMouseOver" Value="True">
+                        <Setter Property="Background" Value="{StaticResource NeonBlueBrush}"/>
+                        <Setter Property="Foreground" Value="Black"/>
+                    </Trigger>
+                    <Trigger Property="IsSelected" Value="True">
+                        <Setter Property="Background" Value="{StaticResource NeonBlueBrush}"/>
+                        <Setter Property="Foreground" Value="Black"/>
                     </Trigger>
                 </Style.Triggers>
             </Style>
 
-            <!-- Navigation Button Style (Futuristic) -->
-            <Style x:Key="NavButtonStyle"
-                    TargetType="Button">
-                <Setter Property="Background"
-                        Value="Transparent"/>
-                <Setter Property="Foreground"
-                        Value="{StaticResource SubTextBrush}"/>
-                <Setter Property="FontSize"
-                        Value="14"/>
-                <Setter Property="Padding"
-                        Value="25,12"/>
-                <Setter Property="Cursor"
-                        Value="Hand"/>
-                <Setter Property="BorderThickness"
-                        Value="0"/>
-                <Setter Property="HorizontalContentAlignment"
-                        Value="Left"/>
+            <!-- Navigation Button Style -->
+            <Style x:Key="NavButtonStyle" TargetType="Button">
+                <Setter Property="Background" Value="Transparent"/>
+                <Setter Property="Foreground" Value="{StaticResource SubTextBrush}"/>
+                <Setter Property="FontSize" Value="13"/>
+                <Setter Property="Padding" Value="20,11"/>
+                <Setter Property="Cursor" Value="Hand"/>
+                <Setter Property="BorderThickness" Value="0"/>
+                <Setter Property="HorizontalContentAlignment" Value="Left"/>
                 <Setter Property="Template">
                     <Setter.Value>
                         <ControlTemplate TargetType="Button">
-                            <Border x:Name="border"
-                                    Background="{TemplateBinding Background}"
-                                    Padding="{TemplateBinding Padding}"
-                                    CornerRadius="12"
-                                    Margin="15,4">
-                                <ContentPresenter VerticalAlignment="Center"
-                                        HorizontalAlignment="Left"/>
-                            </Border>
+                            <Grid>
+                                <!-- Left accent bar (active indicator) -->
+                                <Border x:Name="accent"
+                                        Width="3"
+                                        HorizontalAlignment="Left"
+                                        CornerRadius="0,2,2,0"
+                                        Background="{StaticResource NeonBlueBrush}"
+                                        Opacity="0"/>
+                                <Border x:Name="border"
+                                        Background="{TemplateBinding Background}"
+                                        Padding="{TemplateBinding Padding}"
+                                        CornerRadius="10"
+                                        Margin="8,2,12,2">
+                                    <ContentPresenter VerticalAlignment="Center"
+                                                      HorizontalAlignment="Left"/>
+                                </Border>
+                            </Grid>
                             <ControlTemplate.Triggers>
-                                <Trigger Property="IsMouseOver"
-                                        Value="True">
-                                    <Setter TargetName="border"
-                                            Property="Background"
-                                            Value="#1A202C"/>
-                                    <Setter Property="Foreground"
-                                            Value="White"/>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter TargetName="border" Property="Background" Value="#141922"/>
+                                    <Setter Property="Foreground" Value="#E0E4EA"/>
                                 </Trigger>
                             </ControlTemplate.Triggers>
                         </ControlTemplate>
@@ -107,22 +105,14 @@
             </Style>
 
             <!-- Quick Action Card Style -->
-            <Style x:Key="QuickActionButton"
-                    TargetType="Button">
-                <Setter Property="Background"
-                        Value="#12161F"/>
-                <Setter Property="Foreground"
-                        Value="{StaticResource TextBrush}"/>
-                <Setter Property="BorderBrush"
-                        Value="{StaticResource BorderBrush}"/>
-                <Setter Property="BorderThickness"
-                        Value="1"/>
-                <Setter Property="Padding"
-                        Value="20"/>
-                <Setter Property="Cursor"
-                        Value="Hand"/>
-                <Setter Property="Height"
-                        Value="140"/>
+            <Style x:Key="QuickActionButton" TargetType="Button">
+                <Setter Property="Background" Value="#111620"/>
+                <Setter Property="Foreground" Value="{StaticResource TextBrush}"/>
+                <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}"/>
+                <Setter Property="BorderThickness" Value="1"/>
+                <Setter Property="Padding" Value="16"/>
+                <Setter Property="Cursor" Value="Hand"/>
+                <Setter Property="Height" Value="120"/>
                 <Setter Property="Template">
                     <Setter.Value>
                         <ControlTemplate TargetType="Button">
@@ -130,46 +120,18 @@
                                     Background="{TemplateBinding Background}"
                                     BorderBrush="{TemplateBinding BorderBrush}"
                                     BorderThickness="{TemplateBinding BorderThickness}"
-                                    CornerRadius="16"
+                                    CornerRadius="14"
                                     Padding="{TemplateBinding Padding}">
-                                <Grid>
-                                    <StackPanel VerticalAlignment="Center"
-                                            HorizontalAlignment="Center">
-                                        <ContentPresenter HorizontalAlignment="Center"
-                                                VerticalAlignment="Center"/>
-                                    </StackPanel>
-                                    <Border x:Name="glow"
-                                            CornerRadius="16"
-                                            BorderThickness="1"
-                                            BorderBrush="{StaticResource NeonBlueBrush}"
-                                            Opacity="0">
-                                        <Border.Effect>
-                                            <DropShadowEffect BlurRadius="8"
-                                                            ShadowDepth="0"
-                                                            Color="{StaticResource NeonBlueColor}"
-                                                            Opacity="0.5"/>
-                                        </Border.Effect>
-                                    </Border>
-                                </Grid>
+                                <ContentPresenter HorizontalAlignment="Center"
+                                                  VerticalAlignment="Center"/>
                             </Border>
                             <ControlTemplate.Triggers>
-                                <Trigger Property="IsMouseOver"
-                                        Value="True">
-                                    <Setter TargetName="border"
-                                            Property="Background"
-                                            Value="#161B26"/>
-                                    <Setter TargetName="border"
-                                            Property="BorderBrush"
-                                            Value="{StaticResource NeonBlueBrush}"/>
-                                    <Setter TargetName="glow"
-                                            Property="Opacity"
-                                            Value="0.3"/>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter TargetName="border" Property="Background" Value="#161C28"/>
+                                    <Setter TargetName="border" Property="BorderBrush" Value="{StaticResource NeonBlueBrush}"/>
                                 </Trigger>
-                                <Trigger Property="IsPressed"
-                                        Value="True">
-                                    <Setter TargetName="border"
-                                            Property="Background"
-                                            Value="#0D1117"/>
+                                <Trigger Property="IsPressed" Value="True">
+                                    <Setter TargetName="border" Property="Background" Value="#0D1117"/>
                                 </Trigger>
                             </ControlTemplate.Triggers>
                         </ControlTemplate>
@@ -177,42 +139,26 @@
                 </Setter>
             </Style>
 
-            <!-- Property Primary -->
-            <Style x:Key="PrimaryButtonStyle"
-                    TargetType="Button">
-                <Setter Property="Background"
-                        Value="{StaticResource NeonBlueBrush}"/>
-                <Setter Property="Foreground"
-                        Value="#0F131A"/>
-                <Setter Property="FontWeight"
-                        Value="Bold"/>
-                <Setter Property="Padding"
-                        Value="32,14"/>
+            <!-- Primary Button -->
+            <Style x:Key="PrimaryButtonStyle" TargetType="Button">
+                <Setter Property="Background" Value="{StaticResource NeonBlueBrush}"/>
+                <Setter Property="Foreground" Value="#0A0D13"/>
+                <Setter Property="FontWeight" Value="Bold"/>
+                <Setter Property="Padding" Value="28,12"/>
+                <Setter Property="Cursor" Value="Hand"/>
                 <Setter Property="Template">
                     <Setter.Value>
                         <ControlTemplate TargetType="Button">
                             <Border x:Name="border"
                                     Background="{TemplateBinding Background}"
-                                    CornerRadius="12"
+                                    CornerRadius="10"
                                     Padding="{TemplateBinding Padding}">
                                 <ContentPresenter HorizontalAlignment="Center"
-                                        VerticalAlignment="Center"/>
+                                                  VerticalAlignment="Center"/>
                             </Border>
                             <ControlTemplate.Triggers>
-                                <Trigger Property="IsMouseOver"
-                                        Value="true">
-                                    <Setter TargetName="border"
-                                            Property="Effect">
-                                        <Setter.Value>
-                                            <DropShadowEffect BlurRadius="10"
-                                                    ShadowDepth="0"
-                                                    Color="{StaticResource NeonBlueColor}"
-                                                    Opacity="0.1"/>
-                                        </Setter.Value>
-                                    </Setter>
-                                    <Setter TargetName="border"
-                                            Property="Opacity"
-                                            Value="0.9"/>
+                                <Trigger Property="IsMouseOver" Value="true">
+                                    <Setter TargetName="border" Property="Opacity" Value="0.85"/>
                                 </Trigger>
                             </ControlTemplate.Triggers>
                         </ControlTemplate>
@@ -223,1089 +169,1040 @@
         </ResourceDictionary>
     </Window.Resources>
 
-    <Border CornerRadius="20"
+    <!-- Main Container with rounded corners -->
+    <Border CornerRadius="16"
             Background="{StaticResource DeepNavyBrush}"
             BorderThickness="1"
-            BorderBrush="#1F2937"
+            BorderBrush="#1A2030"
             ClipToBounds="True">
-        <Grid>
-            <!-- Background Image Layer -->
-            <Image Source="assets/waifu.png"
-                   Stretch="UniformToFill"
-                   HorizontalAlignment="Right"
-                   Opacity="0.18"
-                   Margin="100,0,-200,0">
-                <Image.Effect>
-                    <BlurEffect Radius="40"/>
-                </Image.Effect>
-                <Image.CacheMode>
-                    <BitmapCache/>
-                </Image.CacheMode>
-            </Image>
-
+        <Grid x:Name="MainLayoutGrid" Background="#01000000"> <!-- Nearly transparent to trap mouse events -->
             <!-- Main Layout -->
             <Grid>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="210"/>
-                    <ColumnDefinition Width="*"/>
-                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <!-- Title Bar -->
+                    <RowDefinition Height="44"/>
+                    <!-- Content -->
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
 
-                <!-- Sidebar -->
-                <Border Grid.Column="0"
-                        Background="#0D1117"
-                        Opacity="0.95"
-                        BorderThickness="0,0,1,0"
-                        BorderBrush="#1A202C">
-                    <Grid>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="*"/>
-                            <RowDefinition Height="Auto"/>
-                        </Grid.RowDefinitions>
-
-                        <!-- App Header -->
-                        <StackPanel Grid.Row="0"
-                                Margin="25,45,20,50">
-                            <Grid>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="Auto"/>
-                                    <ColumnDefinition Width="*"/>
-                                </Grid.ColumnDefinitions>
-                                <Border Grid.Column="0"
-                                        Width="36"
-                                        Height="36"
-                                        CornerRadius="8"
-                                        Background="{StaticResource NeonBlueBrush}"
-                                        Margin="0,0,10,0"
-                                        Effect="{StaticResource NeonGlow}">
-                                    <TextBlock Text="Z"
-                                            Foreground="White"
-                                            FontSize="18"
-                                            FontWeight="Bold"
-                                            HorizontalAlignment="Center"
-                                            VerticalAlignment="Center"/>
-                                </Border>
-                                <StackPanel Grid.Column="1"
-                                        VerticalAlignment="Center">
-                                    <TextBlock Text="ZeroMix"
-                                            FontSize="18"
-                                            FontWeight="ExtraBold"
-                                            Foreground="White"/>
-                                    <TextBlock Text="Zeromix Founder"
-                                            FontSize="9"
-                                            Foreground="{StaticResource NeonBlueBrush}"
-                                            FontWeight="Bold"
-                                            Opacity="0.8"/>
-                                </StackPanel>
-                            </Grid>
+                <!-- ═══════════════════════════════════ -->
+                <!-- TITLE BAR                           -->
+                <!-- ═══════════════════════════════════ -->
+                <Grid Grid.Row="0" Background="#0D1118">
+                    <!-- Invisible Drag Handle (Prevents interference with buttons) -->
+                    <Border x:Name="TitleDragArea" Background="Transparent" MouseLeftButtonDown="MainWindow_MouseLeftButtonDown"/>
+                    
+                    <Grid x:Name="TitleBarContentGrid">
+                        <!-- Brand (Not hit-testable so drag works through it) -->
+                        <StackPanel Orientation="Horizontal"
+                                    VerticalAlignment="Center"
+                                    Margin="20,0,0,0"
+                                    IsHitTestVisible="False">
+                            <Border Width="22" Height="22"
+                                    CornerRadius="5"
+                                    Background="{StaticResource NeonBlueBrush}"
+                                    Margin="0,0,10,0">
+                                <TextBlock Text="Z"
+                                           Foreground="Black"
+                                           FontSize="12"
+                                           FontWeight="ExtraBold"
+                                           HorizontalAlignment="Center"
+                                           VerticalAlignment="Center"/>
+                            </Border>
+                            <TextBlock Text="ZeroMix"
+                                       FontSize="13"
+                                       FontWeight="Bold"
+                                       Foreground="#C0C8D8"
+                                       VerticalAlignment="Center"/>
                         </StackPanel>
 
-                        <!-- Navigation -->
-                        <StackPanel Grid.Row="1">
-                            <Button x:Name="HomeButton"
-                                    Style="{StaticResource NavButtonStyle}"
-                                    Click="HomeButton_Click">
-                                <StackPanel Orientation="Horizontal">
-                                    <TextBlock Text=""
-                                            FontFamily="Segoe MDL2 Assets"
-                                            FontSize="18"
-                                            Margin="0,0,15,0"
-                                            VerticalAlignment="Center"/>
-                                    <TextBlock Text="Home"
-                                            VerticalAlignment="Center"/>
-                                </StackPanel>
-                            </Button>
-                            <Button x:Name="WallpaperButton"
-                                    Style="{StaticResource NavButtonStyle}"
-                                    Click="NavWallpapers_Click">
-                                <StackPanel Orientation="Horizontal">
-                                    <TextBlock Text=""
-                                            FontFamily="Segoe MDL2 Assets"
-                                            FontSize="18"
-                                            Margin="0,0,15,0"
-                                            VerticalAlignment="Center"/>
-                                    <TextBlock Text="Wallpapers"
-                                            VerticalAlignment="Center"/>
-                                </StackPanel>
-                            </Button>
-                            <Button x:Name="PluginsButton"
-                                    Style="{StaticResource NavButtonStyle}"
-                                    Click="PluginsButton_Click">
-                                <StackPanel Orientation="Horizontal">
-                                    <TextBlock Text=""
-                                            FontFamily="Segoe MDL2 Assets"
-                                            FontSize="18"
-                                            Margin="0,0,15,0"
-                                            VerticalAlignment="Center"/>
-                                    <TextBlock Text="Plugins"
-                                            VerticalAlignment="Center"/>
-                                </StackPanel>
-                            </Button>
-                            <Button x:Name="RecorderButton"
-                                    Style="{StaticResource NavButtonStyle}"
-                                    Click="RecorderButton_Click">
-                                <StackPanel Orientation="Horizontal">
-                                    <TextBlock Text=""
-                                            FontFamily="Segoe MDL2 Assets"
-                                            FontSize="18"
-                                            Margin="0,0,15,0"
-                                            VerticalAlignment="Center"/>
-                                    <TextBlock Text="ZeroRecord"
-                                            VerticalAlignment="Center"/>
-                                </StackPanel>
-                            </Button>
-                            <Button x:Name="AssistantButton"
-                                    Style="{StaticResource NavButtonStyle}"
-                                    Click="AssistantButton_Click">
-                                <StackPanel Orientation="Horizontal">
-                                    <TextBlock Text=""
-                                            FontFamily="Segoe MDL2 Assets"
-                                            FontSize="18"
-                                            Margin="0,0,15,0"
-                                            VerticalAlignment="Center"/>
-                                    <TextBlock Text="Assistant"
-                                            VerticalAlignment="Center"/>
-                                </StackPanel>
-                            </Button>
-                            <Button x:Name="AboutButton"
-                                    Style="{StaticResource NavButtonStyle}"
-                                    Click="AboutButton_Click">
-                                <StackPanel Orientation="Horizontal">
-                                    <TextBlock Text=""
-                                            FontFamily="Segoe MDL2 Assets"
-                                            FontSize="18"
-                                            Margin="0,0,15,0"
-                                            VerticalAlignment="Center"/>
-                                    <TextBlock Text="About"
-                                            VerticalAlignment="Center"/>
-                                </StackPanel>
-                            </Button>
-                        </StackPanel>
-
-                        <!-- Footer -->
-                        <StackPanel Grid.Row="2"
-                                Margin="30,0,30,30">
-                            <TextBlock x:Name="StatusLabel"
-                                    Text="Systems Initialized"
+                        <!-- Window Controls -->
+                        <StackPanel Orientation="Horizontal"
+                                    HorizontalAlignment="Right"
+                                    VerticalAlignment="Center"
+                                    Margin="0,0,8,0">
+                            <Button Content="&#xE921;"
+                                    FontFamily="Segoe MDL2 Assets"
                                     FontSize="10"
-                                    Foreground="{StaticResource NeonBlueBrush}"
-                                    Opacity="0.5"
-                                    Margin="0,0,0,10"
-                                    TextWrapping="Wrap"/>
+                                    Style="{StaticResource TitleBtn}"
+                                    Click="Minimize_Click"/>
+                            <Button x:Name="MaximizeButton"
+                                    Content="&#xE922;"
+                                    FontFamily="Segoe MDL2 Assets"
+                                    FontSize="10"
+                                    Style="{StaticResource TitleBtn}"
+                                    Click="MaximizeRestore_Click"
+                                    Margin="2,0,0,0"/>
+                            <Button Content="&#xE8BB;"
+                                    FontFamily="Segoe MDL2 Assets"
+                                    FontSize="10"
+                                    Style="{StaticResource TitleBtn}"
+                                    Click="Close_Click"
+                                    Margin="2,0,0,0"/>
+                        </StackPanel>
+                    </Grid>
+                </Grid>
 
-                            <!-- Language Switcher -->
-                            <StackPanel Margin="0,0,0,15">
+                <!-- ═══════════════════════════════════ -->
+                <!-- BODY (Sidebar + Content)            -->
+                <!-- ═══════════════════════════════════ -->
+                <Grid Grid.Row="1">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="220"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <!-- ──────────────── SIDEBAR ──────────────── -->
+                    <Border Grid.Column="0"
+                            Background="#0C1017"
+                            BorderThickness="0,0,1,0"
+                            BorderBrush="#161C28">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="*"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+
+                            <!-- App Logo -->
+                            <StackPanel Grid.Row="0" Margin="24,28,20,32">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Border Grid.Column="0"
+                                            Width="38" Height="38"
+                                            CornerRadius="10"
+                                            Background="{StaticResource NeonBlueBrush}"
+                                            Margin="0,0,12,0">
+                                        <TextBlock Text="Z"
+                                                   Foreground="Black"
+                                                   FontSize="18"
+                                                   FontWeight="ExtraBold"
+                                                   HorizontalAlignment="Center"
+                                                   VerticalAlignment="Center"/>
+                                    </Border>
+                                    <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                        <TextBlock Text="ZeroMix"
+                                                   FontSize="18"
+                                                   FontWeight="ExtraBold"
+                                                   Foreground="{StaticResource TextBrush}"/>
+                                        <TextBlock Text="v2.7.0 Beta"
+                                                   FontSize="10"
+                                                   Foreground="{StaticResource SubTextBrush}"
+                                                   Opacity="0.7"/>
+                                    </StackPanel>
+                                </Grid>
+                            </StackPanel>
+
+                            <!-- Navigation Items -->
+                            <StackPanel Grid.Row="1" Margin="0,0,0,0">
+                                <!-- Section Label -->
+                                <TextBlock Text="MENU"
+                                           FontSize="10"
+                                           FontWeight="Bold"
+                                           Foreground="{StaticResource TextMutedBrush}"
+                                           Margin="24,0,0,10"/>
+
+                                <Button x:Name="HomeButton"
+                                        Style="{StaticResource NavButtonStyle}"
+                                        Click="HomeButton_Click">
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="&#xE80F;"
+                                                   FontFamily="Segoe MDL2 Assets"
+                                                   FontSize="16"
+                                                   Margin="0,0,14,0"
+                                                   VerticalAlignment="Center"/>
+                                        <TextBlock Text="Home"
+                                                   VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                </Button>
+                                <Button x:Name="WallpaperButton"
+                                        Style="{StaticResource NavButtonStyle}"
+                                        Click="NavWallpapers_Click">
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="&#xEB9F;"
+                                                   FontFamily="Segoe MDL2 Assets"
+                                                   FontSize="16"
+                                                   Margin="0,0,14,0"
+                                                   VerticalAlignment="Center"/>
+                                        <TextBlock Text="Wallpapers"
+                                                   VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                </Button>
+                                <Button x:Name="PluginsButton"
+                                        Style="{StaticResource NavButtonStyle}"
+                                        Click="PluginsButton_Click">
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="&#xEA86;"
+                                                   FontFamily="Segoe MDL2 Assets"
+                                                   FontSize="16"
+                                                   Margin="0,0,14,0"
+                                                   VerticalAlignment="Center"/>
+                                        <TextBlock Text="Plugins"
+                                                   VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                </Button>
+                                <Button x:Name="RecorderButton"
+                                        Style="{StaticResource NavButtonStyle}"
+                                        Click="RecorderButton_Click">
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="&#xE714;"
+                                                   FontFamily="Segoe MDL2 Assets"
+                                                   FontSize="16"
+                                                   Margin="0,0,14,0"
+                                                   VerticalAlignment="Center"/>
+                                        <TextBlock Text="ZeroRecord"
+                                                   VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                </Button>
+                                <Button x:Name="AssistantButton"
+                                        Style="{StaticResource NavButtonStyle}"
+                                        Click="AssistantButton_Click">
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="&#xE77B;"
+                                                   FontFamily="Segoe MDL2 Assets"
+                                                   FontSize="16"
+                                                   Margin="0,0,14,0"
+                                                   VerticalAlignment="Center"/>
+                                        <TextBlock Text="Assistant"
+                                                   VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                </Button>
+
+                                <!-- Separator -->
+                                <Border Height="1" Background="#161C28" Margin="20,12"/>
+
+                                <Button x:Name="AboutButton"
+                                        Style="{StaticResource NavButtonStyle}"
+                                        Click="AboutButton_Click">
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="&#xE946;"
+                                                   FontFamily="Segoe MDL2 Assets"
+                                                   FontSize="16"
+                                                   Margin="0,0,14,0"
+                                                   VerticalAlignment="Center"/>
+                                        <TextBlock Text="About"
+                                                   VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                </Button>
+                            </StackPanel>
+
+                            <!-- Footer -->
+                            <StackPanel Grid.Row="2" Margin="20,0,20,20">
+                                <TextBlock x:Name="StatusLabel"
+                                           Text="Systems Initialized"
+                                           FontSize="10"
+                                           Foreground="{StaticResource TextMutedBrush}"
+                                           Margin="4,0,0,12"
+                                           TextWrapping="Wrap"/>
+
+                                <!-- Language Switcher -->
                                 <TextBlock Text="LANGUAGE"
-                                        Foreground="#3F4E64"
-                                        FontSize="9"
-                                        FontWeight="Black"
-                                        Margin="0,0,0,5"/>
+                                           Foreground="{StaticResource TextMutedBrush}"
+                                           FontSize="9"
+                                           FontWeight="Bold"
+                                           Margin="4,0,0,6"/>
                                 <ComboBox x:Name="LanguageComboBox"
-                                        SelectionChanged="LanguageComboBox_SelectionChanged"
-                                          Background="#12161F"
-                                        Foreground="#12161F"
-                                        BorderThickness="1"
-                                        BorderBrush="#1A202C"
-                                          Padding="8,4"
-                                        FontSize="11">
-                                    <ComboBox.Resources>
-                                        <SolidColorBrush x:Key="{x:Static SystemColors.WindowBrushKey}"
-                                                Color="#0C0E14"/>
-                                        <SolidColorBrush x:Key="{x:Static SystemColors.WindowTextBrushKey}"
-                                                Color="White"/>
-                                    </ComboBox.Resources>
-                                    <ComboBoxItem Content="English"
-                                            Tag="en-US"/>
-                                    <ComboBoxItem Content="Indonesia"
-                                            Tag="id-ID"/>
-                                    <ComboBoxItem Content="日本語"
-                                            Tag="ja-JP"/>
-                                    <ComboBoxItem Content="中文"
-                                            Tag="zh-CN"/>
+                                          SelectionChanged="LanguageComboBox_SelectionChanged"
+                                          Background="{StaticResource SurfaceBrush}"
+                                          Foreground="{StaticResource TextBrush}"
+                                          BorderThickness="1"
+                                          BorderBrush="{StaticResource BorderBrush}"
+                                          Padding="10,6"
+                                          FontSize="11"
+                                          HorizontalContentAlignment="Left">
+                                    <ComboBoxItem Content="English" Tag="en-US"/>
+                                    <ComboBoxItem Content="Indonesia" Tag="id-ID"/>
+                                    <ComboBoxItem Content="日本語" Tag="ja-JP"/>
+                                    <ComboBoxItem Content="中文" Tag="zh-CN"/>
                                 </ComboBox>
                             </StackPanel>
-                        </StackPanel>
-                    </Grid>
-                </Border>
+                        </Grid>
+                    </Border>
 
-                <!-- Content Area -->
-                <Grid Grid.Column="1"
-                        Margin="50,45,50,40">
+                    <!-- ──────────────── CONTENT AREA ──────────────── -->
+                    <Grid Grid.Column="1" Margin="40,32,40,32">
 
-                    <!-- Home View -->
-                    <ScrollViewer x:Name="HomeContent"
-                            VerticalScrollBarVisibility="Hidden"
-                            BorderThickness="0">
-                        <StackPanel>
-
-                            <Border BorderBrush="#1A202C" BorderThickness="0,0,0,1" Margin="0,0,0,25" Padding="0,0,0,15">
-                                <StackPanel>
+                        <!-- ═══ HOME VIEW ═══ -->
+                        <ScrollViewer x:Name="HomeContent"
+                                      VerticalScrollBarVisibility="Hidden"
+                                      BorderThickness="0">
+                            <StackPanel>
+                                <!-- Welcome Header -->
+                                <StackPanel Margin="0,0,0,32">
                                     <TextBlock Text="Welcome back"
-                                            FontSize="32"
-                                            FontWeight="ExtraBold"
-                                            Foreground="White"
-                                            Margin="0,0,0,5"/>
+                                               FontSize="30"
+                                               FontWeight="ExtraBold"
+                                               Foreground="{StaticResource TextBrush}"
+                                               Margin="0,0,0,6"/>
                                     <TextBlock Text="Ready to optimize your experience today?"
-                                            FontSize="16"
-                                            Foreground="{StaticResource SubTextBrush}"/>
+                                               FontSize="14"
+                                               Foreground="{StaticResource SubTextBrush}"/>
                                 </StackPanel>
-                            </Border>
 
-                            <!-- Quick Actions -->
-                            <TextBlock Text="QUICK OPERATIONS"
-                                    FontSize="12"
-                                    FontWeight="Black"
-                                    Foreground="{StaticResource NeonBlueBrush}"
-                                    Margin="0,0,0,20"/>
-                            <Grid Margin="0,0,0,40">
-                                <Grid.RowDefinitions>
-                                    <RowDefinition Height="Auto"/>
-                                    <RowDefinition Height="Auto"/>
-                                </Grid.RowDefinitions>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="*"/>
-                                    <ColumnDefinition Width="*"/>
-                                    <ColumnDefinition Width="*"/>
-                                </Grid.ColumnDefinitions>
+                                <!-- Quick Actions -->
+                                <TextBlock Text="QUICK OPERATIONS"
+                                           FontSize="11"
+                                           FontWeight="Bold"
+                                           Foreground="{StaticResource TextMutedBrush}"
+                                           Margin="0,0,0,16"/>
 
-                                <!-- Row 0 -->
-                                <Button x:Name="EnableMonitoringBtn"
-                                        Grid.Row="0"
-                                        Grid.Column="0"
-                                        Click="EnableMonitoringBtn_Click"
-                                        Style="{StaticResource QuickActionButton}"
-                                        Margin="0,0,8,12">
-                                    <StackPanel>
-                                        <TextBlock Text=""
-                                                FontFamily="Segoe MDL2 Assets"
-                                                FontSize="36"
-                                                Foreground="{StaticResource NeonBlueBrush}"
-                                                HorizontalAlignment="Center"
-                                                Margin="0,0,0,12"/>
-                                        <TextBlock Text="System Health"
-                                                FontSize="14"
-                                                FontWeight="SemiBold"
-                                                HorizontalAlignment="Center"/>
-                                    </StackPanel>
-                                </Button>
+                                <Grid Margin="0,0,0,32">
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                    </Grid.RowDefinitions>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
 
-                                <Button x:Name="OpenClockBtn"
-                                        Grid.Row="0"
-                                        Grid.Column="1"
-                                        Click="OpenClockBtn_Click"
-                                        Style="{StaticResource QuickActionButton}"
-                                        Margin="8,0,8,12">
-                                    <StackPanel>
-                                        <TextBlock Text=""
-                                                FontFamily="Segoe MDL2 Assets"
-                                                FontSize="36"
-                                                Foreground="{StaticResource NeonBlueBrush}"
-                                                HorizontalAlignment="Center"
-                                                Margin="0,0,0,12"/>
-                                        <TextBlock Text="Neural Clock"
-                                                FontSize="14"
-                                                FontWeight="SemiBold"
-                                                HorizontalAlignment="Center"/>
-                                    </StackPanel>
-                                </Button>
-
-                                <Button x:Name="TaskbarToggleBtn"
-                                        Grid.Row="0"
-                                        Grid.Column="2"
-                                        Click="TaskbarToggleBtn_Click"
-                                        Style="{StaticResource QuickActionButton}"
-                                        Margin="8,0,0,12">
-                                    <StackPanel>
-                                        <TextBlock Text=""
-                                                FontFamily="Segoe MDL2 Assets"
-                                                FontSize="36"
-                                                Foreground="{StaticResource NeonBlueBrush}"
-                                                HorizontalAlignment="Center"
-                                                Margin="0,0,0,12"/>
-                                        <TextBlock Text="Ghost Taskbar"
-                                                FontSize="14"
-                                                FontWeight="SemiBold"
-                                                HorizontalAlignment="Center"/>
-                                    </StackPanel>
-                                </Button>
-
-                                <!-- Row 1 -->
-                                <Button x:Name="HomeRecordBtn"
-                                        Grid.Row="1"
-                                        Grid.Column="0"
-                                        Click="ZeroRecordBtn_Click"
-                                        Style="{StaticResource QuickActionButton}"
-                                        Margin="0,0,12,0">
-                                    <StackPanel>
-                                        <TextBlock Text=""
-                                                FontFamily="Segoe MDL2 Assets"
-                                                FontSize="36"
-                                                Foreground="#FF4444"
-                                                HorizontalAlignment="Center"
-                                                Margin="0,0,0,12"/>
-                                        <TextBlock x:Name="HomeRecordBtnText"
-                                                Text="ZeroRecord"
-                                                FontSize="14"
-                                                FontWeight="SemiBold"
-                                                HorizontalAlignment="Center"/>
-                                    </StackPanel>
-                                </Button>
-                            </Grid>
-
-                            <!-- Monitoring Panel -->
-                            <Border x:Name="MonitoringPanel"
-                                    Style="{StaticResource CardBorder}"
-                                    Visibility="Collapsed">
-                                <StackPanel>
-                                    <Grid Margin="0,0,0,25">
-                                        <TextBlock Text="Core Statistics"
-                                                FontSize="18"
-                                                FontWeight="Bold"
-                                                Foreground="White"/>
-                                        <Button x:Name="DisableMonitoringBtn"
-                                                Content=""
-                                                FontFamily="Segoe MDL2 Assets"
-                                                Click="DisableMonitoringBtn_Click"
-                                                Style="{StaticResource ActionButton}"
-                                                FontSize="14"
-                                                HorizontalAlignment="Right"
-                                                BorderThickness="0"
-                                                Background="Transparent"
-                                                Foreground="#4A5568"/>
-                                    </Grid>
-
-                                    <Grid Margin="0,0,0,25">
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="*"/>
-                                            <ColumnDefinition Width="*"/>
-                                            <ColumnDefinition Width="*"/>
-                                        </Grid.ColumnDefinitions>
-
-                                        <!-- CPU -->
-                                        <StackPanel Grid.Column="0"
-                                                Margin="0,0,20,0">
-                                            <TextBlock Text="CPU Engine"
-                                                    Foreground="{StaticResource SubTextBrush}"
-                                                    FontSize="11"
-                                                    FontWeight="Bold"
-                                                    Margin="0,0,0,10"/>
-                                            <TextBlock x:Name="CpuPercentText"
-                                                    Text="0.0 %"
-                                                    FontSize="26"
-                                                    FontWeight="Black"
-                                                    Foreground="White"
-                                                    Margin="0,0,0,12"/>
-                                            <ProgressBar x:Name="CpuProgressBar"
-                                                    Height="4"
-                                                    Maximum="100"
-                                                    Foreground="{StaticResource NeonBlueBrush}"
-                                                    Background="#1A202C"
-                                                    BorderThickness="0"/>
+                                    <!-- Row 0 -->
+                                    <Button x:Name="EnableMonitoringBtn"
+                                            Grid.Row="0" Grid.Column="0"
+                                            Click="EnableMonitoringBtn_Click"
+                                            Style="{StaticResource QuickActionButton}"
+                                            Margin="0,0,8,10">
+                                        <StackPanel>
+                                            <TextBlock Text="&#xE9D9;"
+                                                       FontFamily="Segoe MDL2 Assets"
+                                                       FontSize="28"
+                                                       Foreground="{StaticResource NeonBlueBrush}"
+                                                       HorizontalAlignment="Center"
+                                                       Margin="0,0,0,10"/>
+                                            <TextBlock Text="System Health"
+                                                       FontSize="13"
+                                                       FontWeight="SemiBold"
+                                                       HorizontalAlignment="Center"/>
                                         </StackPanel>
+                                    </Button>
 
-                                        <!-- RAM -->
-                                        <StackPanel Grid.Column="1"
-                                                Margin="10,0">
-                                            <TextBlock Text="Memory Array"
-                                                    Foreground="{StaticResource SubTextBrush}"
-                                                    FontSize="11"
-                                                    FontWeight="Bold"
-                                                    Margin="0,0,0,10"/>
-                                            <TextBlock x:Name="RamPercentText"
-                                                    Text="0.0 %"
-                                                    FontSize="26"
-                                                    FontWeight="Black"
-                                                    Foreground="White"
-                                                    Margin="0,0,0,12"/>
-                                            <ProgressBar x:Name="RamProgressBar"
-                                                    Height="4"
-                                                    Maximum="100"
-                                                    Foreground="{StaticResource NeonBlueBrush}"
-                                                    Background="#1A202C"
-                                                    BorderThickness="0"/>
+                                    <Button x:Name="OpenClockBtn"
+                                            Grid.Row="0" Grid.Column="1"
+                                            Click="OpenClockBtn_Click"
+                                            Style="{StaticResource QuickActionButton}"
+                                            Margin="4,0,4,10">
+                                        <StackPanel>
+                                            <TextBlock Text="&#xE823;"
+                                                       FontFamily="Segoe MDL2 Assets"
+                                                       FontSize="28"
+                                                       Foreground="{StaticResource NeonBlueBrush}"
+                                                       HorizontalAlignment="Center"
+                                                       Margin="0,0,0,10"/>
+                                            <TextBlock Text="Neural Clock"
+                                                       FontSize="13"
+                                                       FontWeight="SemiBold"
+                                                       HorizontalAlignment="Center"/>
                                         </StackPanel>
+                                    </Button>
 
-                                        <!-- Disk -->
-                                        <StackPanel Grid.Column="2"
-                                                Margin="20,0,0,0">
-                                            <TextBlock Text="Data Stream"
-                                                    Foreground="{StaticResource SubTextBrush}"
-                                                    FontSize="11"
-                                                    FontWeight="Bold"
-                                                    Margin="0,0,0,10"/>
-                                            <TextBlock x:Name="DiskPercentText"
-                                                    Text="0.0 %"
-                                                    FontSize="26"
-                                                    FontWeight="Black"
-                                                    Foreground="White"
-                                                    Margin="0,0,0,12"/>
-                                            <ProgressBar x:Name="DiskProgressBar"
-                                                    Height="4"
-                                                    Maximum="100"
-                                                    Foreground="{StaticResource NeonBlueBrush}"
-                                                    Background="#1A202C"
-                                                    BorderThickness="0"/>
+                                    <Button x:Name="TaskbarToggleBtn"
+                                            Grid.Row="0" Grid.Column="2"
+                                            Click="TaskbarToggleBtn_Click"
+                                            Style="{StaticResource QuickActionButton}"
+                                            Margin="8,0,0,10">
+                                        <StackPanel>
+                                            <TextBlock Text="&#xE737;"
+                                                       FontFamily="Segoe MDL2 Assets"
+                                                       FontSize="28"
+                                                       Foreground="{StaticResource NeonBlueBrush}"
+                                                       HorizontalAlignment="Center"
+                                                       Margin="0,0,0,10"/>
+                                            <TextBlock Text="Ghost Taskbar"
+                                                       FontSize="13"
+                                                       FontWeight="SemiBold"
+                                                       HorizontalAlignment="Center"/>
                                         </StackPanel>
-                                    </Grid>
+                                    </Button>
 
-                                    <Grid>
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="1.2*"/>
-                                            <ColumnDefinition Width="*"/>
-                                        </Grid.ColumnDefinitions>
+                                    <!-- Row 1 -->
+                                    <Button x:Name="HomeRecordBtn"
+                                            Grid.Row="1" Grid.Column="0"
+                                            Click="ZeroRecordBtn_Click"
+                                            Style="{StaticResource QuickActionButton}"
+                                            Margin="0,0,8,0">
+                                        <StackPanel>
+                                            <TextBlock Text="&#xE7C8;"
+                                                       FontFamily="Segoe MDL2 Assets"
+                                                       FontSize="28"
+                                                       Foreground="#FF4D4D"
+                                                       HorizontalAlignment="Center"
+                                                       Margin="0,0,0,10"/>
+                                            <TextBlock x:Name="HomeRecordBtnText"
+                                                       Text="ZeroRecord"
+                                                       FontSize="13"
+                                                       FontWeight="SemiBold"
+                                                       HorizontalAlignment="Center"/>
+                                        </StackPanel>
+                                    </Button>
+                                </Grid>
 
-                                        <StackPanel Grid.Column="0"
-                                                Margin="0,0,20,0">
-                                            <TextBlock Text="SYSTEM REGISTRY"
-                                                    FontWeight="Black"
-                                                    Foreground="{StaticResource NeonBlueBrush}"
-                                                    FontSize="10"
-                                                    Margin="0,0,0,15"/>
-                                            <Border Background="#12161F"
-                                                    CornerRadius="12"
-                                                    Padding="15">
+                                <!-- Monitoring Panel -->
+                                <Border x:Name="MonitoringPanel"
+                                        Style="{StaticResource CardBorder}"
+                                        Visibility="Collapsed">
+                                    <StackPanel>
+                                        <Grid Margin="0,0,0,20">
+                                            <TextBlock Text="Core Statistics"
+                                                       FontSize="16"
+                                                       FontWeight="Bold"
+                                                       Foreground="{StaticResource TextBrush}"/>
+                                            <Button x:Name="DisableMonitoringBtn"
+                                                    Content="&#xE711;"
+                                                    FontFamily="Segoe MDL2 Assets"
+                                                    Click="DisableMonitoringBtn_Click"
+                                                    Style="{StaticResource ActionButton}"
+                                                    FontSize="12"
+                                                    HorizontalAlignment="Right"
+                                                    BorderThickness="0"
+                                                    Background="Transparent"
+                                                    Foreground="{StaticResource SubTextBrush}"/>
+                                        </Grid>
+
+                                        <!-- Stats Row -->
+                                        <Grid Margin="0,0,0,24">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="*"/>
+                                            </Grid.ColumnDefinitions>
+
+                                            <!-- CPU -->
+                                            <Border Grid.Column="0" Background="#111620" CornerRadius="12" Padding="16" Margin="0,0,6,0">
                                                 <StackPanel>
-                                                    <TextBlock x:Name="OsVersionText"
-                                                            Text="OS: Loading..."
-                                                            Foreground="White"
-                                                            FontSize="12"
-                                                            Margin="0,0,0,8"/>
-                                                    <TextBlock x:Name="ProcessorText"
-                                                            Text="CPU: Architecture"
-                                                            Foreground="{StaticResource SubTextBrush}"
-                                                            FontSize="12"
-                                                            Margin="0,0,0,8"/>
-                                                    <TextBlock x:Name="TotalRamText"
-                                                            Text="RAM: Calculating"
-                                                            Foreground="{StaticResource SubTextBrush}"
-                                                            FontSize="12"
-                                                            Margin="0,0,0,8"/>
-                                                    <TextBlock x:Name="NetworkText"
-                                                            Text="Net: Scanning"
-                                                            Foreground="{StaticResource SubTextBrush}"
-                                                            FontSize="12"/>
+                                                    <TextBlock Text="CPU"
+                                                               Foreground="{StaticResource TextMutedBrush}"
+                                                               FontSize="10"
+                                                               FontWeight="Bold"
+                                                               Margin="0,0,0,8"/>
+                                                    <TextBlock x:Name="CpuPercentText"
+                                                               Text="0.0 %"
+                                                               FontSize="24"
+                                                               FontWeight="Black"
+                                                               Foreground="{StaticResource TextBrush}"
+                                                               Margin="0,0,0,10"/>
+                                                    <ProgressBar x:Name="CpuProgressBar"
+                                                                 Height="5"
+                                                                 Maximum="100"
+                                                                 Foreground="{StaticResource NeonBlueBrush}"
+                                                                 Background="#1A2030"
+                                                                 BorderThickness="0"/>
                                                 </StackPanel>
                                             </Border>
-                                        </StackPanel>
 
-                                        <StackPanel Grid.Column="1">
-                                            <TextBlock Text="MAINTENANCE"
-                                                    FontWeight="Black"
-                                                    Foreground="{StaticResource NeonBlueBrush}"
-                                                    FontSize="10"
-                                                    Margin="0,0,0,15"/>
-                                            <StackPanel Orientation="Horizontal"
-                                                    Margin="0,0,0,15">
-                                                <Button x:Name="ClearCacheButton"
-                                                        Content="Purge Cache"
-                                                        Click="ClearCacheButton_Click"
-                                                        Style="{StaticResource ActionButton}"
-                                                        Margin="0,0,10,0"/>
-                                                <Button x:Name="RefreshProcessesBtn"
-                                                        Content="Sync"
-                                                        Click="RefreshProcessesBtn_Click"
-                                                        Style="{StaticResource ActionButton}"/>
-                                            </StackPanel>
-                                            <TextBlock x:Name="CacheStatusText"
-                                                    Text=""
-                                                    FontSize="10"
-                                                    Foreground="{StaticResource NeonBlueBrush}"
-                                                    Margin="0,0,0,10"/>
+                                            <!-- RAM -->
+                                            <Border Grid.Column="1" Background="#111620" CornerRadius="12" Padding="16" Margin="3,0">
+                                                <StackPanel>
+                                                    <TextBlock Text="MEMORY"
+                                                               Foreground="{StaticResource TextMutedBrush}"
+                                                               FontSize="10"
+                                                               FontWeight="Bold"
+                                                               Margin="0,0,0,8"/>
+                                                    <TextBlock x:Name="RamPercentText"
+                                                               Text="0.0 %"
+                                                               FontSize="24"
+                                                               FontWeight="Black"
+                                                               Foreground="{StaticResource TextBrush}"
+                                                               Margin="0,0,0,10"/>
+                                                    <ProgressBar x:Name="RamProgressBar"
+                                                                 Height="5"
+                                                                 Maximum="100"
+                                                                 Foreground="{StaticResource NeonBlueBrush}"
+                                                                 Background="#1A2030"
+                                                                 BorderThickness="0"/>
+                                                </StackPanel>
+                                            </Border>
 
-                                            <ListBox x:Name="ProcessList"
-                                                    Height="90"
-                                                    BorderThickness="0"
-                                                    Background="#0C1016"
-                                                    Foreground="{StaticResource SubTextBrush}"
-                                                    FontSize="11">
-                                                <ListBox.ItemContainerStyle>
-                                                    <Style TargetType="ListBoxItem">
-                                                        <Setter Property="Padding"
-                                                                Value="10,5"/>
-                                                        <Setter Property="Template">
-                                                            <Setter.Value>
-                                                                <ControlTemplate TargetType="ListBoxItem">
-                                                                    <Border Background="{TemplateBinding Background}"
-                                                                            CornerRadius="6"
-                                                                            Margin="0,2">
-                                                                        <ContentPresenter/>
-                                                                    </Border>
-                                                                </ControlTemplate>
-                                                            </Setter.Value>
-                                                        </Setter>
-                                                    </Style>
-                                                </ListBox.ItemContainerStyle>
-                                            </ListBox>
-                                        </StackPanel>
-                                    </Grid>
-                                </StackPanel>
-                            </Border>
-                        </StackPanel>
-                    </ScrollViewer>
+                                            <!-- Disk -->
+                                            <Border Grid.Column="2" Background="#111620" CornerRadius="12" Padding="16" Margin="6,0,0,0">
+                                                <StackPanel>
+                                                    <TextBlock Text="DISK"
+                                                               Foreground="{StaticResource TextMutedBrush}"
+                                                               FontSize="10"
+                                                               FontWeight="Bold"
+                                                               Margin="0,0,0,8"/>
+                                                    <TextBlock x:Name="DiskPercentText"
+                                                               Text="0.0 %"
+                                                               FontSize="24"
+                                                               FontWeight="Black"
+                                                               Foreground="{StaticResource TextBrush}"
+                                                               Margin="0,0,0,10"/>
+                                                    <ProgressBar x:Name="DiskProgressBar"
+                                                                 Height="5"
+                                                                 Maximum="100"
+                                                                 Foreground="{StaticResource NeonBlueBrush}"
+                                                                 Background="#1A2030"
+                                                                 BorderThickness="0"/>
+                                                </StackPanel>
+                                            </Border>
+                                        </Grid>
 
-
-                    <Grid x:Name="WallpapersContent"
-                            Visibility="Collapsed">
-                        <wallpapers:WallpapersView/>
-                    </Grid>
-
-                    <!-- Assistant Management View -->
-                    <ScrollViewer x:Name="AssistantContent"
-                            Visibility="Collapsed"
-                            VerticalScrollBarVisibility="Auto">
-                        <StackPanel Margin="25,20,25,40">
-                            <!-- Header with Master Toggle -->
-                            <Grid Margin="0,0,0,30">
-                                <StackPanel>
-                                    <TextBlock Text="VIRTUAL ASSISTANT"
-                                            FontSize="20"
-                                            FontWeight="Black"
-                                            Foreground="White"
-                                            Opacity="0.9"/>
-                                    <TextBlock Text="Manage your desktop companions."
-                                            FontSize="11"
-                                            Foreground="{StaticResource SubTextBrush}"/>
-                                </StackPanel>
-                                
-                                <!-- Master Switch -->
-                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
-                                    <TextBlock x:Name="AssistantStatusText" Text="OFFLINE" Foreground="#718096" FontSize="11" FontWeight="Bold" Margin="0,0,10,0" VerticalAlignment="Center"/>
-                                    <CheckBox x:Name="AssistantMasterToggle" Style="{StaticResource ModernCheckBox}" Checked="AssistantMasterToggle_Checked" Unchecked="AssistantMasterToggle_Unchecked"/>
-                                </StackPanel>
-                            </Grid>
-
-                            <WrapPanel Orientation="Horizontal" HorizontalAlignment="Left">
-                                <!-- Frieren Card (Compact) -->
-                                <Border Width="160" Background="#12161F" CornerRadius="16" BorderThickness="1" BorderBrush="#2D3748" Margin="0,0,15,15" Padding="0">
-                                    <StackPanel>
-                                        <Border Height="140" CornerRadius="16,16,0,0" Background="#1A202C" ClipToBounds="True">
-                                            <Image Source="Virtual_Assisten/VA_Thumbnails/Frieren.png" Stretch="UniformToFill" VerticalAlignment="Top"/>
-                                        </Border>
-                                    <StackPanel Margin="12">
-                                        <TextBlock Text="Frieren" FontSize="14" FontWeight="Bold" Foreground="White"/>
-                                        <TextBlock Text="Mage / Elf" FontSize="10" Foreground="{StaticResource SubTextBrush}" Margin="0,2,0,10"/>
-                                        <Button Content="ACTIVATE" Click="OpenFrieren_Click" Style="{StaticResource ActionButton}" FontSize="10" Height="28"/>
-                                    </StackPanel>
-                                    </StackPanel>
-                                </Border>
-
-                                <!-- Fern Card (Compact) -->
-                                <Border Width="160" Background="#12161F" CornerRadius="16" BorderThickness="1" BorderBrush="#2D3748" Margin="0,0,15,15" Padding="0">
-                                    <StackPanel>
-                                        <Border Height="140" CornerRadius="16,16,0,0" Background="#1A202C" ClipToBounds="True">
-                                            <Image Source="Virtual_Assisten/VA_Thumbnails/fern.jpg" Stretch="UniformToFill" VerticalAlignment="Top"/>
-                                        </Border>
-                                    <StackPanel Margin="12">
-                                        <TextBlock Text="Fern" FontSize="14" FontWeight="Bold" Foreground="White"/>
-                                        <TextBlock Text="Mage / Human" FontSize="10" Foreground="{StaticResource SubTextBrush}" Margin="0,2,0,10"/>
-                                        <Button Content="ACTIVATE" Click="OpenFern_Click" Style="{StaticResource ActionButton}" FontSize="10" Height="28"/>
-                                    </StackPanel>
-                                    </StackPanel>
-                                </Border>
-
-                                <!-- Huohuo Card (Compact) -->
-                                <Border Width="160" Background="#12161F" CornerRadius="16" BorderThickness="1" BorderBrush="#2D3748" Margin="0,0,15,15" Padding="0">
-                                    <StackPanel>
-                                        <Border Height="140" CornerRadius="16,16,0,0" Background="#1A202C" ClipToBounds="True">
-                                            <Image Source="Virtual_Assisten/VA_Thumbnails/Huohuo.jpg" 
-                                                   Stretch="UniformToFill" VerticalAlignment="Top"/>
-                                        </Border>
-                                    <StackPanel Margin="12">
-                                        <TextBlock Text="Huohuo" FontSize="14" FontWeight="Bold" Foreground="White"/>
-                                        <TextBlock Text="Judicator / Fox" FontSize="10" Foreground="{StaticResource SubTextBrush}" Margin="0,2,0,10"/>
-                                        <Button Content="ACTIVATE" Click="OpenHuohuo_Click" Style="{StaticResource ActionButton}" FontSize="10" Height="28"/>
-                                    </StackPanel>
-                                    </StackPanel>
-                                </Border>
-                            </WrapPanel>
-
-                            <Border Style="{StaticResource CardBorder}" Margin="0,30,0,0">
-                                <StackPanel>
-                                    <TextBlock Text="Tips Assistant" FontWeight="Bold" FontSize="18" Margin="0,0,0,10"/>
-                                    <TextBlock Text="• Klik pada karkater untuk mengobrol." Foreground="{StaticResource SubTextBrush}" Margin="0,0,0,5"/>
-                                    <TextBlock Text="• Tahan klik dan tarik untuk memindahkan posisi." Foreground="{StaticResource SubTextBrush}" Margin="0,0,0,5"/>
-                                    <TextBlock Text="• Matanya akan selalu mengikutimu~" Foreground="{StaticResource SubTextBrush}"/>
-                                </StackPanel>
-                            </Border>
-                        </StackPanel>
-                    </ScrollViewer>
-
-                    <!-- About View -->
-                    <ScrollViewer x:Name="AboutContent"
-                            Visibility="Collapsed"
-                            VerticalScrollBarVisibility="Hidden"
-                            BorderThickness="0">
-                        <StackPanel MaxWidth="650"
-                                HorizontalAlignment="Left">
-                            <Border Style="{StaticResource CardBorder}">
-                                <StackPanel>
-                                    <TextBlock Text="Neural Core: ZeroMix"
-                                            FontSize="24"
-                                            FontWeight="Bold"
-                                            Foreground="White"
-                                            Margin="0,0,0,25"/>
-                                    <TextBlock TextWrapping="Wrap"
-                                            FontSize="15"
-                                            LineHeight="28"
-                                            Foreground="White">
-                                        <Run FontWeight="Black"
-                                                Foreground="{StaticResource NeonBlueBrush}">ZeroMix</Run> is the ultimate productivity nexus for Windows. Engineered for precision and aesthetic dominance.
-                                    </TextBlock>
-                                    <TextBlock TextWrapping="Wrap"
-                                            FontSize="14"
-                                            LineHeight="28"
-                                            Foreground="{StaticResource SubTextBrush}"
-                                            Margin="0,15,0,0">
-                                        Integrated with real-time biometric-inspired system monitoring, quantum wallpaper management, and ghost-level taskbar transparency.
-                                    </TextBlock>
-
-                                    <!-- Version & Update Section -->
-                                    <Border Background="#12161F"
-                                            CornerRadius="8"
-                                            Padding="15"
-                                            Margin="0,25,0,25"
-                                            BorderBrush="#2D3748"
-                                            BorderThickness="1">
+                                        <!-- System Info + Maintenance -->
                                         <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="1.2*"/>
+                                                <ColumnDefinition Width="*"/>
+                                            </Grid.ColumnDefinitions>
+
+                                            <StackPanel Grid.Column="0" Margin="0,0,12,0">
+                                                <TextBlock Text="SYSTEM INFO"
+                                                           FontWeight="Bold"
+                                                           Foreground="{StaticResource TextMutedBrush}"
+                                                           FontSize="10"
+                                                           Margin="0,0,0,10"/>
+                                                <Border Background="#111620" CornerRadius="12" Padding="14">
+                                                    <StackPanel>
+                                                        <TextBlock x:Name="OsVersionText" Text="OS: Loading..." Foreground="{StaticResource TextBrush}" FontSize="12" Margin="0,0,0,6"/>
+                                                        <TextBlock x:Name="ProcessorText" Text="CPU: Architecture" Foreground="{StaticResource SubTextBrush}" FontSize="12" Margin="0,0,0,6"/>
+                                                        <TextBlock x:Name="TotalRamText" Text="RAM: Calculating" Foreground="{StaticResource SubTextBrush}" FontSize="12" Margin="0,0,0,6"/>
+                                                        <TextBlock x:Name="NetworkText" Text="Net: Scanning" Foreground="{StaticResource SubTextBrush}" FontSize="12"/>
+                                                    </StackPanel>
+                                                </Border>
+                                            </StackPanel>
+
+                                            <StackPanel Grid.Column="1">
+                                                <TextBlock Text="MAINTENANCE"
+                                                           FontWeight="Bold"
+                                                           Foreground="{StaticResource TextMutedBrush}"
+                                                           FontSize="10"
+                                                           Margin="0,0,0,10"/>
+                                                <StackPanel Orientation="Horizontal" Margin="0,0,0,12">
+                                                    <Button x:Name="ClearCacheButton"
+                                                            Content="Purge Cache"
+                                                            Click="ClearCacheButton_Click"
+                                                            Style="{StaticResource ActionButton}"
+                                                            Margin="0,0,8,0"/>
+                                                    <Button x:Name="RefreshProcessesBtn"
+                                                            Content="Sync"
+                                                            Click="RefreshProcessesBtn_Click"
+                                                            Style="{StaticResource ActionButton}"/>
+                                                </StackPanel>
+                                                <TextBlock x:Name="CacheStatusText"
+                                                           Text=""
+                                                           FontSize="10"
+                                                           Foreground="{StaticResource NeonBlueBrush}"
+                                                           Margin="0,0,0,8"/>
+                                                <ListBox x:Name="ProcessList"
+                                                         Height="90"
+                                                         BorderThickness="0"
+                                                         Background="#0D1117"
+                                                         Foreground="{StaticResource SubTextBrush}"
+                                                         FontSize="11">
+                                                    <ListBox.ItemContainerStyle>
+                                                        <Style TargetType="ListBoxItem">
+                                                            <Setter Property="Padding" Value="10,4"/>
+                                                            <Setter Property="Template">
+                                                                <Setter.Value>
+                                                                    <ControlTemplate TargetType="ListBoxItem">
+                                                                        <Border Background="{TemplateBinding Background}"
+                                                                                CornerRadius="4"
+                                                                                Margin="0,1">
+                                                                            <ContentPresenter/>
+                                                                        </Border>
+                                                                    </ControlTemplate>
+                                                                </Setter.Value>
+                                                            </Setter>
+                                                        </Style>
+                                                    </ListBox.ItemContainerStyle>
+                                                </ListBox>
+                                            </StackPanel>
+                                        </Grid>
+                                    </StackPanel>
+                                </Border>
+                            </StackPanel>
+                        </ScrollViewer>
+
+                        <!-- ═══ WALLPAPERS VIEW ═══ -->
+                        <Grid x:Name="WallpapersContent" Visibility="Collapsed">
+                            <wallpapers:WallpapersView/>
+                        </Grid>
+
+                        <!-- ═══ ASSISTANT VIEW ═══ -->
+                        <ScrollViewer x:Name="AssistantContent"
+                                      Visibility="Collapsed"
+                                      VerticalScrollBarVisibility="Auto">
+                            <StackPanel Margin="0">
+                                <!-- Header -->
+                                <Grid Margin="0,0,0,28">
+                                    <StackPanel>
+                                        <TextBlock Text="Virtual Assistant"
+                                                   FontSize="24"
+                                                   FontWeight="ExtraBold"
+                                                   Foreground="{StaticResource TextBrush}"
+                                                   Margin="0,0,0,4"/>
+                                        <TextBlock Text="Manage your desktop companions."
+                                                   FontSize="13"
+                                                   Foreground="{StaticResource SubTextBrush}"/>
+                                    </StackPanel>
+                                    <!-- Master Switch -->
+                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                                        <TextBlock x:Name="AssistantStatusText" Text="OFFLINE"
+                                                   Foreground="{StaticResource TextMutedBrush}"
+                                                   FontSize="11" FontWeight="Bold"
+                                                   Margin="0,0,10,0" VerticalAlignment="Center"/>
+                                        <CheckBox x:Name="AssistantMasterToggle"
+                                                   Style="{StaticResource ModernCheckBox}"
+                                                   Checked="AssistantMasterToggle_Checked"
+                                                   Unchecked="AssistantMasterToggle_Unchecked"/>
+                                    </StackPanel>
+                                </Grid>
+
+                                <!-- Character Cards -->
+                                <WrapPanel Orientation="Horizontal" HorizontalAlignment="Left">
+                                    <!-- Frieren -->
+                                    <Border Width="180" Background="#111620" CornerRadius="14"
+                                            BorderThickness="1" BorderBrush="#1A2030"
+                                            Margin="0,0,12,12">
+                                        <StackPanel>
+                                            <Border Height="150" CornerRadius="14,14,0,0"
+                                                    Background="#141922" ClipToBounds="True">
+                                                <Image Source="Virtual_Assisten/VA_Thumbnails/Frieren.png"
+                                                       Stretch="UniformToFill" VerticalAlignment="Top"/>
+                                            </Border>
+                                            <StackPanel Margin="14">
+                                                <TextBlock Text="Frieren" FontSize="14" FontWeight="Bold" Foreground="{StaticResource TextBrush}"/>
+                                                <TextBlock Text="Mage / Elf" FontSize="10"
+                                                           Foreground="{StaticResource SubTextBrush}" Margin="0,3,0,12"/>
+                                                <Button Content="ACTIVATE" Click="OpenFrieren_Click"
+                                                        Style="{StaticResource ActionButton}" FontSize="10" Height="30"/>
+                                            </StackPanel>
+                                        </StackPanel>
+                                    </Border>
+
+                                    <!-- Fern -->
+                                    <Border Width="180" Background="#111620" CornerRadius="14"
+                                            BorderThickness="1" BorderBrush="#1A2030"
+                                            Margin="0,0,12,12">
+                                        <StackPanel>
+                                            <Border Height="150" CornerRadius="14,14,0,0"
+                                                    Background="#141922" ClipToBounds="True">
+                                                <Image Source="Virtual_Assisten/VA_Thumbnails/fern.jpg"
+                                                       Stretch="UniformToFill" VerticalAlignment="Top"/>
+                                            </Border>
+                                            <StackPanel Margin="14">
+                                                <TextBlock Text="Fern" FontSize="14" FontWeight="Bold" Foreground="{StaticResource TextBrush}"/>
+                                                <TextBlock Text="Mage / Human" FontSize="10"
+                                                           Foreground="{StaticResource SubTextBrush}" Margin="0,3,0,12"/>
+                                                <Button Content="ACTIVATE" Click="OpenFern_Click"
+                                                        Style="{StaticResource ActionButton}" FontSize="10" Height="30"/>
+                                            </StackPanel>
+                                        </StackPanel>
+                                    </Border>
+
+                                    <!-- Huohuo -->
+                                    <Border Width="180" Background="#111620" CornerRadius="14"
+                                            BorderThickness="1" BorderBrush="#1A2030"
+                                            Margin="0,0,12,12">
+                                        <StackPanel>
+                                            <Border Height="150" CornerRadius="14,14,0,0"
+                                                    Background="#141922" ClipToBounds="True">
+                                                <Image Source="Virtual_Assisten/VA_Thumbnails/Huohuo.jpg"
+                                                       Stretch="UniformToFill" VerticalAlignment="Top"/>
+                                            </Border>
+                                            <StackPanel Margin="14">
+                                                <TextBlock Text="Huohuo" FontSize="14" FontWeight="Bold" Foreground="{StaticResource TextBrush}"/>
+                                                <TextBlock Text="Judicator / Fox" FontSize="10"
+                                                           Foreground="{StaticResource SubTextBrush}" Margin="0,3,0,12"/>
+                                                <Button Content="ACTIVATE" Click="OpenHuohuo_Click"
+                                                        Style="{StaticResource ActionButton}" FontSize="10" Height="30"/>
+                                            </StackPanel>
+                                        </StackPanel>
+                                    </Border>
+                                </WrapPanel>
+
+                                <!-- Tips -->
+                                <Border Background="#111620" CornerRadius="12" Padding="16" Margin="0,20,0,0"
+                                        BorderThickness="1" BorderBrush="#1A2030">
+                                    <StackPanel>
+                                        <TextBlock Text="💡 Tips" FontWeight="Bold" FontSize="13" Foreground="{StaticResource TextBrush}" Margin="0,0,0,8"/>
+                                        <TextBlock Text="• Klik pada karakter untuk mengobrol." Foreground="{StaticResource SubTextBrush}" FontSize="12" Margin="0,0,0,4"/>
+                                        <TextBlock Text="• Tahan klik dan tarik untuk memindahkan posisi." Foreground="{StaticResource SubTextBrush}" FontSize="12" Margin="0,0,0,4"/>
+                                        <TextBlock Text="• Matanya akan selalu mengikutimu~" Foreground="{StaticResource SubTextBrush}" FontSize="12"/>
+                                    </StackPanel>
+                                </Border>
+                            </StackPanel>
+                        </ScrollViewer>
+
+                        <!-- ═══ ABOUT VIEW ═══ -->
+                        <ScrollViewer x:Name="AboutContent"
+                                      Visibility="Collapsed"
+                                      VerticalScrollBarVisibility="Hidden"
+                                      BorderThickness="0">
+                            <StackPanel MaxWidth="700" HorizontalAlignment="Left">
+                                <Border Style="{StaticResource CardBorder}">
+                                    <StackPanel>
+                                        <!-- Title -->
+                                        <TextBlock Text="About ZeroMix"
+                                                   FontSize="24"
+                                                   FontWeight="ExtraBold"
+                                                   Foreground="{StaticResource TextBrush}"
+                                                   Margin="0,0,0,20"/>
+                                        <TextBlock TextWrapping="Wrap" FontSize="14" LineHeight="26" Foreground="White">
+                                            <Run FontWeight="Bold" Foreground="{StaticResource NeonBlueBrush}">ZeroMix</Run> is the ultimate productivity nexus for Windows. Engineered for precision and aesthetic dominance.
+                                        </TextBlock>
+                                        <TextBlock TextWrapping="Wrap" FontSize="13" LineHeight="24"
+                                                   Foreground="{StaticResource SubTextBrush}" Margin="0,10,0,0">
+                                            Integrated with real-time system monitoring, wallpaper management, and ghost-level taskbar transparency.
+                                        </TextBlock>
+
+                                        <!-- Version -->
+                                        <Border Background="#111620" CornerRadius="10" Padding="16" Margin="0,24,0,24"
+                                                BorderBrush="#1A2030" BorderThickness="1">
+                                            <Grid>
+                                                <StackPanel>
+                                                    <TextBlock Text="VERSION"
+                                                               FontWeight="Bold"
+                                                               Foreground="{StaticResource TextMutedBrush}"
+                                                               FontSize="10"
+                                                               Margin="0,0,0,6"/>
+                                                    <StackPanel Orientation="Horizontal">
+                                                        <TextBlock x:Name="VersionText"
+                                                                   Text="v2.7.0-Beta"
+                                                                   FontSize="18"
+                                                                   FontWeight="Bold"
+                                                                   Foreground="White"
+                                                                   VerticalAlignment="Center"/>
+                                                        <Border x:Name="UpdateBadge"
+                                                                Background="#1C4532"
+                                                                CornerRadius="4"
+                                                                Padding="8,3"
+                                                                Margin="12,0,0,0"
+                                                                Visibility="Collapsed">
+                                                            <TextBlock Text="UPDATE AVAILABLE"
+                                                                       FontSize="10"
+                                                                       FontWeight="Bold"
+                                                                       Foreground="#68D391"/>
+                                                        </Border>
+                                                    </StackPanel>
+                                                </StackPanel>
+                                                <Button x:Name="CheckUpdateBtn"
+                                                        Content="Check for Updates"
+                                                        HorizontalAlignment="Right"
+                                                        VerticalAlignment="Center"
+                                                        Style="{StaticResource ActionButton}"
+                                                        Padding="16,8"
+                                                        Click="CheckUpdateBtn_Click"/>
+                                            </Grid>
+                                        </Border>
+
+                                        <!-- Support -->
+                                        <TextBlock Text="Support &amp; Credits"
+                                                   FontSize="18" FontWeight="Bold"
+                                                   Foreground="White" Margin="0,0,0,14"/>
+
+                                        <Border Background="#1A1225" CornerRadius="12" Padding="20" Margin="0,0,0,24"
+                                                BorderBrush="#2D1B3D" BorderThickness="1">
                                             <StackPanel>
-                                                <TextBlock Text="CORE VERSION"
-                                                        FontWeight="Black"
-                                                        Foreground="{StaticResource NeonBlueBrush}"
-                                                        FontSize="12"
-                                                        Margin="0,0,0,5"/>
-                                                <StackPanel Orientation="Horizontal">
-                                                    <TextBlock x:Name="VersionText"
-                                                            Text="v2.7.0-Beta"
-                                                            FontSize="18"
-                                                            FontWeight="Bold"
-                                                            Foreground="White"
-                                                            VerticalAlignment="Center"/>
-                                                    <Border x:Name="UpdateBadge"
-                                                            Background="#276749"
-                                                            CornerRadius="4"
-                                                            Padding="6,2"
-                                                            Margin="10,0,0,0"
-                                                            Visibility="Collapsed">
-                                                        <TextBlock Text="UPDATE AVAILABLE"
-                                                                FontSize="10"
-                                                                FontWeight="Bold"
-                                                                Foreground="#68D391"/>
+                                                <TextBlock Text="Dukung ZeroMix ☕" FontWeight="Bold" FontSize="16"
+                                                           Foreground="#FF69B4" Margin="0,0,0,8"/>
+                                                <TextBlock Text="ZeroMix akan selalu gratis. Dukungan Kakak sangat berarti bagi pengembangan aplikasi ini."
+                                                           TextWrapping="Wrap" Foreground="White" FontSize="13" Margin="0,0,0,14"/>
+                                                <Button Content="Support via Trakteer" Style="{StaticResource ActionButton}"
+                                                        Background="#FF69B4" Click="DonationLink_Click" HorizontalAlignment="Left"/>
+                                            </StackPanel>
+                                        </Border>
+
+                                        <!-- Credits -->
+                                        <TextBlock Text="Live2D Model Credits" FontWeight="Bold" Foreground="White" FontSize="14" Margin="0,0,0,10"/>
+                                        <StackPanel Margin="8,0,0,20">
+                                            <TextBlock Margin="0,0,0,4" Foreground="{StaticResource SubTextBrush}" FontSize="12">
+                                                Model Frieren &amp; Fern oleh <Hyperlink RequestNavigate="Hyperlink_RequestNavigate" NavigateUri="https://kyoki.booth.pm/">Kyoki (Booth.pm)</Hyperlink>
+                                            </TextBlock>
+                                            <TextBlock Margin="0,0,0,4" Foreground="{StaticResource SubTextBrush}" FontSize="12">
+                                                Model HouHou oleh <Hyperlink RequestNavigate="Hyperlink_RequestNavigate" NavigateUri="https://bailyovo.booth.pm/">Bailyovo (Booth.pm)</Hyperlink>
+                                            </TextBlock>
+                                        </StackPanel>
+
+                                        <TextBlock Text="Privacy &amp; Security"
+                                                   FontSize="18" FontWeight="Bold"
+                                                   Foreground="White" Margin="0,8,0,10"/>
+                                        <TextBlock TextWrapping="Wrap" Foreground="{StaticResource SubTextBrush}" LineHeight="22" FontSize="13" Margin="0,0,0,16">
+                                            ZeroMix bekerja 100% secara lokal. Tidak ada data yang dikirim ke cloud. Privasi Kakak adalah prioritas utama kami.
+                                        </TextBlock>
+
+                                        <TextBlock Text="External Asset Credits"
+                                                   FontSize="18" FontWeight="Bold"
+                                                   Foreground="White" Margin="0,12,0,10"/>
+                                        <TextBlock Text="Special thanks to these amazing creators on Pixabay for the beautiful atmospheric videos:"
+                                                   Foreground="{StaticResource SubTextBrush}" TextWrapping="Wrap" FontSize="12" Margin="0,0,0,12"/>
+                                        <StackPanel Margin="8,0,0,16">
+                                            <TextBlock Margin="0,0,0,4" FontSize="12">
+                                                <Run Text="• " Foreground="{StaticResource NeonBlueBrush}"/><Hyperlink RequestNavigate="Hyperlink_RequestNavigate" NavigateUri="https://pixabay.com/id/users/hans-2/">Hans (Pixabay)</Hyperlink>
+                                            </TextBlock>
+                                            <TextBlock Margin="0,0,0,4" FontSize="12">
+                                                <Run Text="• " Foreground="{StaticResource NeonBlueBrush}"/><Hyperlink RequestNavigate="Hyperlink_RequestNavigate" NavigateUri="https://pixabay.com/id/users/nickype-10327513/">Nicky ❤️🌿🐞🌿❤️ (Pixabay)</Hyperlink>
+                                            </TextBlock>
+                                        </StackPanel>
+
+                                        <Border Background="#141922" CornerRadius="10" Padding="14" Margin="0,8,0,0">
+                                            <TextBlock Text="Note: Weather effects vary dynamically based on current city time and real-world conditions."
+                                                       Foreground="{StaticResource SubTextBrush}" FontSize="11"
+                                                       FontStyle="Italic" HorizontalAlignment="Center"/>
+                                        </Border>
+                                    </StackPanel>
+                                </Border>
+                            </StackPanel>
+                        </ScrollViewer>
+
+                        <!-- ═══ PLUGINS VIEW ═══ -->
+                        <ScrollViewer x:Name="PluginsContent"
+                                      Visibility="Collapsed"
+                                      VerticalScrollBarVisibility="Auto"
+                                      BorderThickness="0">
+                            <StackPanel>
+                                <!-- Header -->
+                                <Grid Margin="0,0,0,24">
+                                    <StackPanel>
+                                        <TextBlock Text="Extensions"
+                                                   FontSize="28"
+                                                   FontWeight="ExtraBold"
+                                                   Foreground="White"
+                                                   Margin="0,0,0,4"/>
+                                        <TextBlock Text="Enhance your experience with custom modules"
+                                                   FontSize="14"
+                                                   Foreground="{StaticResource SubTextBrush}"/>
+                                    </StackPanel>
+                                    <Button x:Name="CreatePluginBtn"
+                                            HorizontalAlignment="Right"
+                                            VerticalAlignment="Bottom"
+                                            Style="{StaticResource ActionButton}"
+                                            Padding="16,8"
+                                            Click="CreatePluginBtn_Click">
+                                        <StackPanel Orientation="Horizontal">
+                                            <TextBlock Text="&#xE710;"
+                                                       FontFamily="Segoe MDL2 Assets"
+                                                       VerticalAlignment="Center"
+                                                       Margin="0,0,8,0"/>
+                                            <TextBlock Text="Buat Plugin"
+                                                       VerticalAlignment="Center"
+                                                       FontWeight="SemiBold"/>
+                                        </StackPanel>
+                                    </Button>
+                                </Grid>
+
+                                <!-- Plugins List -->
+                                <StackPanel x:Name="PluginsListPanel">
+                                    <TextBlock Text="PLUGINS &amp; EXTENSIONS"
+                                               FontWeight="Bold"
+                                               Foreground="{StaticResource TextMutedBrush}"
+                                               FontSize="10"
+                                               Margin="0,0,0,14"/>
+                                    <!-- Built-in -->
+                                    <weather:WeatherPluginUI/>
+                                    <battery:BatteryPluginUI/>
+                                    <spotify:SpotifyPluginUI/>
+                                    <StackPanel x:Name="UserPluginsContainer" Margin="0,12,0,0"/>
+                                </StackPanel>
+                            </StackPanel>
+                        </ScrollViewer>
+
+                        <!-- ═══ RECORDER VIEW ═══ -->
+                        <ScrollViewer x:Name="RecorderContent"
+                                      Visibility="Collapsed"
+                                      VerticalScrollBarVisibility="Auto"
+                                      BorderThickness="0">
+                            <StackPanel Margin="0">
+                                <!-- Header -->
+                                <Grid Margin="0,0,0,24">
+                                    <StackPanel>
+                                        <TextBlock Text="ZeroRecord"
+                                                   FontSize="24"
+                                                   FontWeight="ExtraBold"
+                                                   Foreground="{StaticResource TextBrush}"
+                                                   Margin="0,0,0,4"/>
+                                        <TextBlock Text="Simpler, Faster, GPU Capture."
+                                                   FontSize="13"
+                                                   Foreground="{StaticResource SubTextBrush}"/>
+                                    </StackPanel>
+                                    <StackPanel Orientation="Horizontal"
+                                                HorizontalAlignment="Right"
+                                                VerticalAlignment="Center">
+                                        <TextBlock x:Name="RecordDurationText"
+                                                   Text="00:00"
+                                                   Foreground="#FF69B4"
+                                                   FontSize="16"
+                                                   FontWeight="Bold"
+                                                   Margin="0,0,14,0"
+                                                   Visibility="Collapsed"/>
+                                        <Border Background="#FF4D4D"
+                                                Width="10" Height="10"
+                                                CornerRadius="5">
+                                            <Border.Style>
+                                                <Style TargetType="Border">
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding ElementName=RecordDurationText, Path=Visibility}" Value="Visible">
+                                                            <DataTrigger.EnterActions>
+                                                                <BeginStoryboard>
+                                                                    <Storyboard RepeatBehavior="Forever">
+                                                                        <DoubleAnimation Storyboard.TargetProperty="Opacity"
+                                                                                         From="1" To="0"
+                                                                                         Duration="0:0:0.7"
+                                                                                         AutoReverse="True"/>
+                                                                    </Storyboard>
+                                                                </BeginStoryboard>
+                                                            </DataTrigger.EnterActions>
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </Border.Style>
+                                        </Border>
+                                    </StackPanel>
+                                </Grid>
+
+                                <!-- Controls -->
+                                <Border Background="#111620" CornerRadius="16" Padding="28"
+                                        BorderThickness="1" BorderBrush="#1A2030">
+                                    <StackPanel>
+                                        <Grid Margin="0,0,0,20">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+
+                                            <StackPanel Grid.Column="0">
+                                                <TextBlock Text="CAPTURE SETTINGS"
+                                                           FontSize="10" FontWeight="Bold"
+                                                           Foreground="{StaticResource TextMutedBrush}"
+                                                           Margin="0,0,0,14"/>
+                                                <Grid>
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="*"/>
+                                                        <ColumnDefinition Width="*"/>
+                                                        <ColumnDefinition Width="*"/>
+                                                    </Grid.ColumnDefinitions>
+
+                                                    <StackPanel Grid.Column="0" Margin="0,0,8,0">
+                                                        <TextBlock Text="FPS" FontSize="9"
+                                                                   Foreground="{StaticResource SubTextBrush}" Margin="0,0,0,5"/>
+                                                        <ComboBox x:Name="FpsComboBox"
+                                                                  Background="#141922" Foreground="{StaticResource TextBrush}"
+                                                                  BorderThickness="1" BorderBrush="#1A2030">
+                                                            <ComboBoxItem Content="30 FPS" IsSelected="True" Foreground="{StaticResource TextBrush}"/>
+                                                            <ComboBoxItem Content="45 FPS" Foreground="{StaticResource TextBrush}"/>
+                                                            <ComboBoxItem Content="50 FPS" Foreground="{StaticResource TextBrush}"/>
+                                                            <ComboBoxItem Content="60 FPS" Foreground="{StaticResource TextBrush}"/>
+                                                        </ComboBox>
+                                                    </StackPanel>
+                                                    <StackPanel Grid.Column="1" Margin="4,0">
+                                                        <TextBlock Text="MIC" FontSize="9"
+                                                                   Foreground="{StaticResource SubTextBrush}" Margin="0,0,0,5"/>
+                                                        <ComboBox x:Name="MicComboBox"
+                                                                  Background="#141922" Foreground="{StaticResource TextBrush}"
+                                                                  BorderThickness="1" BorderBrush="#1A2030"
+                                                                  FontSize="10"/>
+                                                    </StackPanel>
+                                                    <StackPanel Grid.Column="2" Margin="8,0,0,0">
+                                                        <TextBlock Text="SPEAKER" FontSize="9"
+                                                                   Foreground="{StaticResource SubTextBrush}" Margin="0,0,0,5"/>
+                                                        <ComboBox x:Name="SpeakerComboBox"
+                                                                  Background="#141922" Foreground="{StaticResource TextBrush}"
+                                                                  BorderThickness="1" BorderBrush="#1A2030"
+                                                                  FontSize="10"/>
+                                                    </StackPanel>
+                                                </Grid>
+
+                                                <!-- Hotkey -->
+                                                <StackPanel Margin="0,14,0,0" Orientation="Horizontal">
+                                                    <TextBlock Text="CAMERA HOTKEY:"
+                                                               FontSize="9" FontWeight="Bold"
+                                                               Foreground="{StaticResource SubTextBrush}"
+                                                               VerticalAlignment="Center"
+                                                               Margin="0,0,10,0"/>
+                                                    <Border x:Name="HotkeyBorder"
+                                                            Background="#141922" CornerRadius="6"
+                                                            Padding="12,5"
+                                                            BorderThickness="1" BorderBrush="#1A2030"
+                                                            Cursor="Hand"
+                                                            MouseLeftButtonDown="HotkeyBorder_MouseLeftButtonDown">
+                                                        <TextBlock x:Name="HotkeyDisplayText"
+                                                                   Text="F9" FontSize="11"
+                                                                   FontWeight="Bold"
+                                                                   Foreground="{StaticResource NeonBlueBrush}"/>
                                                     </Border>
                                                 </StackPanel>
                                             </StackPanel>
-                                            <Button x:Name="CheckUpdateBtn"
-                                                    Content="Check for Updates"
-                                                    HorizontalAlignment="Right"
-                                                    VerticalAlignment="Center"
-                                                    Style="{StaticResource ActionButton}"
-                                                    Padding="15,8"
-                                                    Click="CheckUpdateBtn_Click"/>
+
+                                            <!-- Record Button -->
+                                            <Button Grid.Column="1"
+                                                    x:Name="RecorderPageRecordBtn"
+                                                    Width="70" Height="70"
+                                                    Click="ZeroRecordBtn_Click"
+                                                    Margin="24,0,0,0">
+                                                <Button.Template>
+                                                    <ControlTemplate TargetType="Button">
+                                                        <Grid>
+                                                            <Ellipse x:Name="bg" Fill="#FF4D4D" Opacity="0.08"/>
+                                                            <Ellipse x:Name="ring" Stroke="#FF4D4D" StrokeThickness="2" Margin="-5"/>
+                                                            <Ellipse x:Name="dot" Fill="#FF4D4D" Width="28" Height="28"/>
+                                                        </Grid>
+                                                        <ControlTemplate.Triggers>
+                                                            <Trigger Property="IsMouseOver" Value="True">
+                                                                <Setter TargetName="bg" Property="Opacity" Value="0.15"/>
+                                                                <Setter TargetName="dot" Property="Width" Value="32"/>
+                                                                <Setter TargetName="dot" Property="Height" Value="32"/>
+                                                            </Trigger>
+                                                        </ControlTemplate.Triggers>
+                                                    </ControlTemplate>
+                                                </Button.Template>
+                                            </Button>
                                         </Grid>
-                                    </Border>
-                                    <TextBlock Text="Support &amp; Credits"
-                                            FontSize="20"
-                                            FontWeight="Bold"
-                                            Foreground="White"
-                                            Margin="0,0,0,15"/>
-                                    
-                                    <!-- Donation Link -->
-                                    <Border Background="#2D1B2D" CornerRadius="12" Padding="20" Margin="0,0,0,25" BorderBrush="#5B2C5B" BorderThickness="1">
-                                        <StackPanel>
-                                            <TextBlock Text="Dukung ZeroMix ☕" FontWeight="Bold" FontSize="18" Foreground="#FF69B4" Margin="0,0,0,10"/>
-                                            <TextBlock Text="ZeroMix akan selalu gratis. Dukungan Kakak sangat berarti bagi pengembangan aplikasi ini." 
-                                                       TextWrapping="Wrap" Foreground="White" Margin="0,0,0,15"/>
-                                            <Button Content="Support via Trakteer" Style="{StaticResource ActionButton}" 
-                                                    Background="#FF69B4" Click="DonationLink_Click" HorizontalAlignment="Left"/>
-                                        </StackPanel>
-                                    </Border>
 
-                                    <!-- Model Credits -->
-                                    <TextBlock Text="Live2D Model Credits" FontWeight="Bold" Foreground="White" Margin="0,0,0,10"/>
-
-                                    <StackPanel Margin="10,0,0,25">
-                                        <TextBlock Margin="0,0,0,5" Foreground="{StaticResource SubTextBrush}">
-                                            Model Frieren &amp; Fern oleh <Hyperlink RequestNavigate="Hyperlink_RequestNavigate" NavigateUri="https://kyoki.booth.pm/">Kyoki (Booth.pm)</Hyperlink>
-                                        </TextBlock>
-                                        <TextBlock Margin="0,0,0,5" Foreground="{StaticResource SubTextBrush}">
-                                            Model HouHou oleh <Hyperlink RequestNavigate="Hyperlink_RequestNavigate" NavigateUri="https://bailyovo.booth.pm/">Bailyovo (Booth.pm)</Hyperlink>
-                                        </TextBlock>
+                                        <Border Background="#141922" CornerRadius="10" Padding="14">
+                                            <StackPanel Orientation="Horizontal">
+                                                <Ellipse Width="6" Height="6" Fill="#00D68F"
+                                                         Margin="0,0,8,0" VerticalAlignment="Center"/>
+                                                <TextBlock Text="Cinematic pan-to-center transition"
+                                                           FontSize="11" Foreground="{StaticResource SubTextBrush}"/>
+                                            </StackPanel>
+                                        </Border>
                                     </StackPanel>
+                                </Border>
 
-                                    <TextBlock Text="Privacy &amp; Security"
-                                            FontSize="20"
-                                            FontWeight="Bold"
-                                            Foreground="White"
-                                            Margin="0,20,0,10"/>
-                                    <TextBlock TextWrapping="Wrap" Foreground="{StaticResource SubTextBrush}" LineHeight="24" Margin="0,0,0,20">
-                                        ZeroMix bekerja 100% secara lokal. Tidak ada data yang dikirim ke cloud. Privasi Kakak adalah prioritas utama kami.
-                                    </TextBlock>
-
-                                    <TextBlock Text="External Asset Credits"
-                                            FontSize="20"
-                                            FontWeight="Bold"
-                                            Foreground="White"
-                                            Margin="0,20,0,10"/>
-                                    <TextBlock Text="Special thanks to these amazing creators on Pixabay for the beautiful atmospheric videos:"
-                                            Foreground="{StaticResource SubTextBrush}"
-                                            TextWrapping="Wrap"
-                                            Margin="0,0,0,15"/>
-
-                                    <StackPanel Margin="10,0,0,20">
-                                        <TextBlock Margin="0,0,0,5">
-                                            <Run Text="• "
-                                                    Foreground="{StaticResource NeonBlueBrush}"/><Hyperlink RequestNavigate="Hyperlink_RequestNavigate"
-                                                    NavigateUri="https://pixabay.com/id/users/hans-2/">Hans (Pixabay)</Hyperlink>
-                                        </TextBlock>
-                                        <TextBlock Margin="0,0,0,5">
-                                            <Run Text="• "
-                                                    Foreground="{StaticResource NeonBlueBrush}"/><Hyperlink RequestNavigate="Hyperlink_RequestNavigate"
-                                                    NavigateUri="https://pixabay.com/id/users/nickype-10327513/">Nicky ❤️🌿🐞🌿❤️ (Pixabay)</Hyperlink>
-                                        </TextBlock>
-                                    </StackPanel>
-
-                                    <Border Background="#1A202C"
-                                            CornerRadius="10"
-                                            Padding="15"
-                                            Margin="0,10,0,0">
-                                        <TextBlock Text="Note: Weather effects vary dynamically based on current city time and real-world conditions."
-                                                Foreground="{StaticResource SubTextBrush}"
-                                                FontSize="12"
-                                                FontStyle="Italic"
-                                                HorizontalAlignment="Center"/>
-                                    </Border>
-                                </StackPanel>
-                            </Border>
-                        </StackPanel>
-                    </ScrollViewer>
-
-                    <!-- Plugins View -->
-                    <ScrollViewer x:Name="PluginsContent"
-                            Visibility="Collapsed"
-                            VerticalScrollBarVisibility="Auto"
-                            BorderThickness="0">
-                        <StackPanel>
-
-                            <Grid Margin="0,0,0,25">
-                                <StackPanel>
-                                    <TextBlock Text="Extensions"
-                                            FontSize="36"
-                                            FontWeight="ExtraBold"
-                                            Foreground="White"
-                                            Margin="0,0,0,5"/>
-                                    <TextBlock Text="Enhance your experience with custom modules"
-                                            FontSize="16"
-                                            Foreground="{StaticResource SubTextBrush}"/>
-                                </StackPanel>
-
-                                <Button x:Name="CreatePluginBtn"
-                                        HorizontalAlignment="Right"
-                                        VerticalAlignment="Bottom"
-                                        Style="{StaticResource ActionButton}"
-                                        Padding="15,8"
-                                        Click="CreatePluginBtn_Click">
-                                    <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text=""
-                                                FontFamily="Segoe MDL2 Assets"
-                                                VerticalAlignment="Center"
-                                                Margin="0,0,8,0"/>
-                                        <TextBlock Text="Buat Plugin"
-                                                VerticalAlignment="Center"
-                                                FontWeight="SemiBold"/>
-                                    </StackPanel>
-                                </Button>
-                            </Grid>
-
-                            <!-- Plugin List -->
-                            <StackPanel x:Name="PluginsListPanel"
-                                    Margin="0,0">
-                                <TextBlock Text="PLUGINS &amp; EXTENSIONS"
-                                        FontWeight="Black"
-                                        Foreground="{StaticResource NeonBlueBrush}"
-                                        FontSize="12"
-                                        Margin="0,0,0,15"/>
-
-                                <!-- Built-in Plugins -->
-                                <weather:WeatherPluginUI/>
-                                <battery:BatteryPluginUI/>
-                                <spotify:SpotifyPluginUI/>
-
-                                <StackPanel x:Name="UserPluginsContainer"
-                                        Margin="0,15,0,0"/>
-
-                            </StackPanel>
-                        </StackPanel>
-                    </ScrollViewer>
-
-                    <!-- ZeroRecord View (Simpler & Elegant) -->
-                    <ScrollViewer x:Name="RecorderContent"
-                            Visibility="Collapsed"
-                            VerticalScrollBarVisibility="Auto"
-                            BorderThickness="0">
-                        <StackPanel Margin="25,20,25,40">
-                            <!-- Header Area -->
-                            <Grid Margin="0,0,0,30">
-                                <StackPanel>
-                                    <TextBlock Text="ZERORECORD"
-                                            FontSize="20"
-                                            FontWeight="Black"
-                                            Foreground="White"
-                                            Opacity="0.9"/>
-                                    <TextBlock Text="Simpler, Faster, GPU Capture."
-                                            FontSize="11"
-                                            Foreground="{StaticResource SubTextBrush}"/>
-                                </StackPanel>
-                                <StackPanel Orientation="Horizontal"
-                                        HorizontalAlignment="Right"
-                                        VerticalAlignment="Center">
-                                    <TextBlock x:Name="RecordDurationText"
-                                            Text="00:00"
-                                            Foreground="#FF69B4"
-                                            FontSize="16"
-                                            FontWeight="Bold"
-                                            Margin="0,0,15,0"
-                                            Visibility="Collapsed"/>
-                                    <Border Background="#FF4444"
-                                            Width="10"
-                                            Height="10"
-                                            CornerRadius="5">
-                                        <Border.Style>
-                                            <Style TargetType="Border">
-                                                <Style.Triggers>
-                                                    <DataTrigger Binding="{Binding ElementName=RecordDurationText, Path=Visibility}"
-                                                            Value="Visible">
-                                                        <DataTrigger.EnterActions>
-                                                            <BeginStoryboard>
-                                                                <Storyboard RepeatBehavior="Forever">
-                                                                    <DoubleAnimation Storyboard.TargetProperty="Opacity"
-                                                                            From="1"
-                                                                            To="0"
-                                                                            Duration="0:0:0.7"
-                                                                            AutoReverse="True"/>
-                                                                </Storyboard>
-                                                            </BeginStoryboard>
-                                                        </DataTrigger.EnterActions>
-                                                    </DataTrigger>
-                                                </Style.Triggers>
-                                            </Style>
-                                        </Border.Style>
-                                    </Border>
-                                </StackPanel>
-                            </Grid>
-
-                            <!-- Primary Control Dashboard -->
-                            <Border Background="#12161F"
-                                    CornerRadius="20"
-                                    Padding="30"
-                                    BorderThickness="1"
-                                    BorderBrush="#2D3748">
-                                <StackPanel>
-                                    <Grid Margin="0,0,0,25">
+                                <!-- Recordings Library -->
+                                <Border CornerRadius="12" Padding="20" Margin="0,12,0,0"
+                                        Background="#111620"
+                                        BorderThickness="1" BorderBrush="#1A2030">
+                                    <Grid>
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="*"/>
                                             <ColumnDefinition Width="Auto"/>
                                         </Grid.ColumnDefinitions>
-
-                                        <StackPanel Grid.Column="0">
-                                            <TextBlock Text="CAPTURE SETTINGS"
-                                                    FontSize="10"
-                                                    FontWeight="Bold"
-                                                    Foreground="{StaticResource NeonBlueBrush}"
-                                                    Margin="0,0,0,15"/>
-                                            <Grid>
-                                                <Grid.ColumnDefinitions>
-                                                    <ColumnDefinition Width="*"/>
-                                                    <ColumnDefinition Width="*"/>
-                                                    <ColumnDefinition Width="*"/>
-                                                </Grid.ColumnDefinitions>
-                                                <StackPanel Grid.Column="0"
-                                                        Margin="0,0,10,0">
-                                                    <TextBlock Text="FPS"
-                                                            FontSize="9"
-                                                            Foreground="{StaticResource SubTextBrush}"
-                                                            Margin="0,0,0,5"/>
-                                                    <ComboBox x:Name="FpsComboBox"
-                                                            Background="#1A1F2B"
-                                                            Foreground="White"
-                                                            BorderThickness="0,0,0,1"
-                                                            BorderBrush="#333">
-                                                        <ComboBoxItem Content="30 FPS"
-                                                                IsSelected="True"/>
-                                                        <ComboBoxItem Content="45 FPS"/>
-                                                        <ComboBoxItem Content="50 FPS"/>
-                                                        <ComboBoxItem Content="60 FPS"/>
-                                                    </ComboBox>
-                                                </StackPanel>
-                                                <StackPanel Grid.Column="1"
-                                                        Margin="0,0,10,0">
-                                                    <TextBlock Text="MIC"
-                                                            FontSize="9"
-                                                            Foreground="{StaticResource SubTextBrush}"
-                                                            Margin="0,0,0,5"/>
-                                                    <ComboBox x:Name="MicComboBox"
-                                                            Background="#1A1F2B"
-                                                            Foreground="White"
-                                                            BorderThickness="0,0,0,1"
-                                                            BorderBrush="#333"
-                                                            FontSize="10"/>
-                                                </StackPanel>
-                                                <StackPanel Grid.Column="2">
-                                                    <TextBlock Text="SPEAKER"
-                                                            FontSize="9"
-                                                            Foreground="{StaticResource SubTextBrush}"
-                                                            Margin="0,0,0,5"/>
-                                                    <ComboBox x:Name="SpeakerComboBox"
-                                                            Background="#1A1F2B"
-                                                            Foreground="White"
-                                                            BorderThickness="0,0,0,1"
-                                                            BorderBrush="#333"
-                                                            FontSize="10"/>
-                                                </StackPanel>
-                                            </Grid>
-
-                                            <!-- Hotkey Section (Compact) -->
-                                            <StackPanel Margin="0,15,0,0"
-                                                    Orientation="Horizontal">
-                                                <TextBlock Text="CAMERA HOTKEY:"
-                                                        FontSize="9"
-                                                        FontWeight="Bold"
-                                                        Foreground="{StaticResource SubTextBrush}"
-                                                        VerticalAlignment="Center"
-                                                        Margin="0,0,10,0"/>
-                                                <Border x:Name="HotkeyBorder"
-                                                        Background="#1A1F2B"
-                                                        CornerRadius="6"
-                                                        Padding="12,5"
-                                                        BorderThickness="1"
-                                                        BorderBrush="#333"
-                                                        Cursor="Hand"
-                                                        MouseLeftButtonDown="HotkeyBorder_MouseLeftButtonDown">
-                                                    <TextBlock x:Name="HotkeyDisplayText"
-                                                            Text="F9"
-                                                            FontSize="11"
-                                                            FontWeight="Bold"
-                                                            Foreground="{StaticResource NeonBlueBrush}"/>
-                                                </Border>
-                                            </StackPanel>
+                                        <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                                            <TextBlock Text="Recordings Library"
+                                                       FontSize="13" FontWeight="Bold"
+                                                       Foreground="{StaticResource TextBrush}" Margin="0,0,0,4"/>
+                                            <TextBlock Text="Organize and manage all your recorded videos"
+                                                       FontSize="12"
+                                                       Foreground="{StaticResource SubTextBrush}"/>
                                         </StackPanel>
-
-                                        <Button Grid.Column="1"
-                                                x:Name="RecorderPageRecordBtn"
-                                                Width="70"
-                                                Height="70"
-                                                Click="ZeroRecordBtn_Click"
-                                                Margin="20,0,0,0">
-                                            <Button.Template>
-                                                <ControlTemplate TargetType="Button">
-                                                    <Grid>
-                                                        <Ellipse x:Name="bg"
-                                                                Fill="#FF4444"
-                                                                Opacity="0.1"/>
-                                                        <Ellipse x:Name="ring"
-                                                                Stroke="#FF4444"
-                                                                StrokeThickness="2"
-                                                                Margin="-5"/>
-                                                        <Ellipse x:Name="dot"
-                                                                Fill="#FF4444"
-                                                                Width="30"
-                                                                Height="30"/>
-                                                    </Grid>
-                                                    <ControlTemplate.Triggers>
-                                                        <Trigger Property="IsMouseOver"
-                                                                Value="True">
-                                                            <Setter TargetName="bg"
-                                                                    Property="Opacity"
-                                                                    Value="0.2"/>
-                                                            <Setter TargetName="dot"
-                                                                    Property="Width"
-                                                                    Value="35"/>
-                                                            <Setter TargetName="dot"
-                                                                    Property="Height"
-                                                                    Value="35"/>
-                                                        </Trigger>
-                                                    </ControlTemplate.Triggers>
-                                                </ControlTemplate>
-                                            </Button.Template>
-                                        </Button>
-                                    </Grid>
-
-                                    <Border  Background="#161B26"
-                                            CornerRadius="12"
-                                            Padding="15">
-                                        <StackPanel Orientation="Horizontal">
-                                            <Ellipse Width="6"
-                                                    Height="6"
-                                                    Fill="#00FF88"
-                                                    Margin="0,0,8,0"
-                                                    VerticalAlignment="Center"/>
-                                            <TextBlock Text="Cinematic pan-to-center transition"
-                                                    FontSize="10"
-                                                    Foreground="White"/>
-                                        </StackPanel>
-                                    </Border>
-                                </StackPanel>
-                            </Border>
-
-                            <!-- Footer Action -->
-                            <Border CornerRadius="12"
-                                    Padding="20"
-                                    Background="#161B26"
-                                    BorderThickness="1"
-                                    BorderBrush="#2D3748">
-                                <Grid>
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="Auto"/>
-                                    </Grid.ColumnDefinitions>
-
-                                    <StackPanel Grid.Column="0"
-                                            VerticalAlignment="Center">
-                                        <TextBlock Text="Recordings Library"
-                                                FontSize="12"
-                                                FontWeight="Bold"
-                                                Foreground="White"
-                                                Margin="0,0,0,4"/>
-                                        <TextBlock Text="Organize and manage all your recorded videos"
+                                        <Button x:Name="OpenRecordingsBtn"
+                                                Grid.Column="1"
+                                                Content="OPEN FOLDER"
+                                                Click="OpenRecordingsBtn_Click"
+                                                Style="{StaticResource ActionButton}"
+                                                Padding="20,10"
                                                 FontSize="11"
-                                                Foreground="{StaticResource SubTextBrush}"/>
-                                    </StackPanel>
+                                                FontWeight="Bold"
+                                                Margin="16,0,0,0"/>
+                                    </Grid>
+                                </Border>
+                            </StackPanel>
+                        </ScrollViewer>
 
-                                    <Button x:Name="OpenRecordingsBtn"
-                                            Grid.Column="1"
-                                            Content="OPEN FOLDER"
-                                            Click="OpenRecordingsBtn_Click"
-                                            Style="{StaticResource ActionButton}"
-                                            Padding="25,10"
-                                            FontSize="12"
-                                            FontWeight="Bold"
-                                            Margin="20,0,0,0"/>
-                                </Grid>
-                            </Border>
-                        </StackPanel>
-                    </ScrollViewer>
-
+                    </Grid>
                 </Grid>
             </Grid>
 
-            <!-- Window Control Buttons (Custom Title Bar)-->
-            <StackPanel Orientation="Horizontal"
-                    HorizontalAlignment="Right"
-                    VerticalAlignment="Top"
-                    Margin="0,15,20,0">
-                <Button Content=""
-                        FontFamily="Segoe MDL2 Assets"
-                        Background="Transparent"
-                        BorderThickness="0"
-                        Foreground="#4A5568"
-                        Padding="10,5"
-                        Click="Minimize_Click"/>
-                <Button Content=""
-                        FontFamily="Segoe MDL2 Assets"
-                        Background="Transparent"
-                        BorderThickness="0"
-                        Foreground="#4A5568"
-                        Padding="10,5"
-                        Click="Close_Click"/>
-            </StackPanel>
+            <!-- Resize Grip Visual -->
+            <Path Data="M 8,0 L 0,8" Stroke="#2A3040" StrokeThickness="1"
+                  HorizontalAlignment="Right" VerticalAlignment="Bottom"
+                  Margin="0,0,6,6"/>
+            <Path Data="M 8,0 L 0,8" Stroke="#2A3040" StrokeThickness="1"
+                  HorizontalAlignment="Right" VerticalAlignment="Bottom"
+                  Margin="0,0,10,10"/>
         </Grid>
     </Border>
 </Window>

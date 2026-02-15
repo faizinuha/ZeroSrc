@@ -160,7 +160,6 @@ namespace ZeroMix
             InitializeTrayIcon();
             InitializeTaskbarWatcher();
             // InitializeRecorder(); // Removed to prevent startup crash, handled in background task below
-            this.MouseLeftButtonDown += MainWindow_MouseLeftButtonDown;
 
             // Register Global Hotkey (F9) immediately
             this.Loaded += (s, e) => {
@@ -1149,6 +1148,32 @@ namespace ZeroMix
         private void Minimize_Click(object sender, RoutedEventArgs e)
         {
             this.WindowState = WindowState.Minimized;
+        }
+
+        private void MaximizeRestore_Click(object sender, RoutedEventArgs e)
+        {
+            if (this.WindowState == WindowState.Maximized)
+            {
+                this.WindowState = WindowState.Normal;
+            }
+            else
+            {
+                this.WindowState = WindowState.Maximized;
+            }
+        }
+
+        private void Window_StateChanged(object sender, EventArgs e)
+        {
+            if (MaximizeButton == null) return;
+
+            if (this.WindowState == WindowState.Maximized)
+            {
+                MaximizeButton.Content = "\uE923"; // Restore icon
+            }
+            else
+            {
+                MaximizeButton.Content = "\uE922"; // Maximize icon
+            }
         }
 
         private void Close_Click(object sender, RoutedEventArgs e)

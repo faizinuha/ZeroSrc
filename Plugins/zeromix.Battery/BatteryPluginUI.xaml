@@ -5,7 +5,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              mc:Ignorable="d"
              d:DesignHeight="150"
-        d:DesignWidth="800">
+             d:DesignWidth="800">
     <UserControl.Resources>
         <ResourceDictionary Source="../Styles.xaml"/>
     </UserControl.Resources>
@@ -13,7 +13,8 @@
     <StackPanel>
         <Border x:Name="BatteryCard"
                 Style="{StaticResource CompactCardBorder}"
-                MouseDown="BatteryCard_MouseDown">
+                MouseDown="BatteryCard_MouseDown"
+                Cursor="Hand">
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto"/>
@@ -21,64 +22,36 @@
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
 
-                <Border Grid.Column="0"
-                        Width="45"
-                        Height="45"
-                        CornerRadius="8"
-                        Background="#1A202C"
-                        Margin="0,0,15,0">
-                    <Image Source="Maskot/Say.png"
-                            Stretch="Uniform"
-                            Margin="5"/>
+                <!-- Icon -->
+                <Border Grid.Column="0" Width="42" Height="42" CornerRadius="10" Background="#141922" Margin="0,0,14,0">
+                    <TextBlock Text="&#xEBA7;" FontFamily="Segoe MDL2 Assets" FontSize="20"
+                               Foreground="#00D68F"
+                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
                 </Border>
 
-                <StackPanel Grid.Column="1"
-                        VerticalAlignment="Center">
-                    <TextBlock Text="Battery Assistant Mascot"
-                            Foreground="White"
-                            FontSize="15"
-                            FontWeight="Bold"
-                            Margin="0,0,0,2"/>
-                    <TextBlock Text="Cute notifications when your battery is low."
-                            Foreground="{StaticResource SubTextBrush}"
-                            FontSize="11"/>
+                <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                    <TextBlock Text="Battery Assistant" Foreground="White" FontSize="14" FontWeight="Bold" Margin="0,0,0,3"/>
+                    <TextBlock Text="Cute mascot notifications when battery is low." Foreground="{StaticResource SubTextBrush}" FontSize="11"/>
 
-                    <!-- Download/Uninstall Progress -->
-                    <StackPanel x:Name="PluginProgressPanel"
-                            Visibility="Collapsed"
-                            Margin="0,10,0,0">
-                        <TextBlock x:Name="PluginStatusText"
-                                Text="Processing Plugin... 0%"
-                                Foreground="{StaticResource NeonBlueBrush}"
-                                FontSize="12"
-                                Margin="0,0,0,5"/>
-                        <ProgressBar x:Name="PluginProgressBar"
-                                Height="4"
-                                Maximum="100"
-                                Foreground="{StaticResource NeonBlueBrush}"
-                                Background="#1A202C"
-                                BorderThickness="0"/>
+                    <!-- Progress -->
+                    <StackPanel x:Name="PluginProgressPanel" Visibility="Collapsed" Margin="0,10,0,0">
+                        <TextBlock x:Name="PluginStatusText" Text="Processing Plugin... 0%" Foreground="{StaticResource NeonBlueBrush}" FontSize="11" Margin="0,0,0,5"/>
+                        <ProgressBar x:Name="PluginProgressBar" Height="4" Maximum="100" Foreground="{StaticResource NeonBlueBrush}" Background="#141922" BorderThickness="0"/>
                     </StackPanel>
                 </StackPanel>
 
-                <StackPanel Grid.Column="2"
-                        Orientation="Horizontal"
-                        VerticalAlignment="Center">
-                    <Button x:Name="SetupBatteryBtn"
-                            Content="⚙️"
+                <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                    <Button x:Name="SetupBatteryBtn" Content="&#xE713;"
+                            FontFamily="Segoe MDL2 Assets"
                             Style="{StaticResource ActionButton}"
-                            Padding="8"
+                            Padding="10"
+                            FontSize="14"
                             Margin="0,0,10,0"
                             Click="SetupBatteryBtn_Click"
                             VerticalAlignment="Center"/>
-                    <CheckBox x:Name="BatteryPluginToggle"
-                            VerticalAlignment="Center"
-                            Click="BatteryPluginToggle_Click">
-                        <CheckBox.LayoutTransform>
-                            <ScaleTransform ScaleX="1.5"
-                                    ScaleY="1.5"/>
-                        </CheckBox.LayoutTransform>
-                    </CheckBox>
+                    <CheckBox x:Name="BatteryPluginToggle" VerticalAlignment="Center"
+                              Click="BatteryPluginToggle_Click"
+                              Style="{StaticResource ModernCheckBox}"/>
                 </StackPanel>
             </Grid>
         </Border>
@@ -87,89 +60,51 @@
         <Border x:Name="BatterySettingsBorder"
                 Style="{StaticResource CardBorder}"
                 Visibility="Collapsed"
-                Margin="20,0,0,0">
+                Margin="0,0,0,0">
             <StackPanel>
                 <TextBlock Text="CUSTOMIZE MASCOT DIALOG"
-                        FontWeight="Black"
+                        FontWeight="Bold"
                         Foreground="{StaticResource NeonBlueBrush}"
                         FontSize="10"
-                        Margin="0,0,0,15"/>
+                        Margin="0,0,0,16"/>
 
                 <UniformGrid Columns="2">
-                    <StackPanel Margin="0,0,10,10">
-                        <TextBlock Text="🌅 Pagi"
-                                Foreground="{StaticResource SubTextBrush}"
-                                FontSize="11"
-                                Margin="0,0,0,5"/>
-                        <TextBox x:Name="TxtMorning"
-                                Background="#12161F"
-                                Foreground="White"
-                                Padding="8"
-                                BorderThickness="1"
-                                BorderBrush="#333"/>
+                    <StackPanel Margin="0,0,8,10">
+                        <TextBlock Text="🌅 Pagi" Foreground="{StaticResource SubTextBrush}" FontSize="11" Margin="0,0,0,5"/>
+                        <TextBox x:Name="TxtMorning" Background="#141922" Foreground="White" Padding="10,8" BorderThickness="1" BorderBrush="{StaticResource BorderBrush}">
+                            <TextBox.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="8"/></Style></TextBox.Resources>
+                        </TextBox>
                     </StackPanel>
                     <StackPanel Margin="0,0,0,10">
-                        <TextBlock Text="☀️ Siang"
-                                Foreground="{StaticResource SubTextBrush}"
-                                FontSize="11"
-                                Margin="0,0,0,5"/>
-                        <TextBox x:Name="TxtAfternoon"
-                                Background="#12161F"
-                                Foreground="White"
-                                Padding="8"
-                                BorderThickness="1"
-                                BorderBrush="#333"/>
+                        <TextBlock Text="☀️ Siang" Foreground="{StaticResource SubTextBrush}" FontSize="11" Margin="0,0,0,5"/>
+                        <TextBox x:Name="TxtAfternoon" Background="#141922" Foreground="White" Padding="10,8" BorderThickness="1" BorderBrush="{StaticResource BorderBrush}">
+                            <TextBox.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="8"/></Style></TextBox.Resources>
+                        </TextBox>
                     </StackPanel>
-                    <StackPanel Margin="0,0,10,10">
-                        <TextBlock Text="🌇 Sore"
-                                Foreground="{StaticResource SubTextBrush}"
-                                FontSize="11"
-                                Margin="0,0,0,5"/>
-                        <TextBox x:Name="TxtEvening"
-                                Background="#12161F"
-                                Foreground="White"
-                                Padding="8"
-                                BorderThickness="1"
-                                BorderBrush="#333"/>
+                    <StackPanel Margin="0,0,8,10">
+                        <TextBlock Text="🌇 Sore" Foreground="{StaticResource SubTextBrush}" FontSize="11" Margin="0,0,0,5"/>
+                        <TextBox x:Name="TxtEvening" Background="#141922" Foreground="White" Padding="10,8" BorderThickness="1" BorderBrush="{StaticResource BorderBrush}">
+                            <TextBox.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="8"/></Style></TextBox.Resources>
+                        </TextBox>
                     </StackPanel>
                     <StackPanel Margin="0,0,0,10">
-                        <TextBlock Text="🌙 Malam"
-                                Foreground="{StaticResource SubTextBrush}"
-                                FontSize="11"
-                                Margin="0,0,0,5"/>
-                        <TextBox x:Name="TxtNight"
-                                Background="#12161F"
-                                Foreground="White"
-                                Padding="8"
-                                BorderThickness="1"
-                                BorderBrush="#333"/>
+                        <TextBlock Text="🌙 Malam" Foreground="{StaticResource SubTextBrush}" FontSize="11" Margin="0,0,0,5"/>
+                        <TextBox x:Name="TxtNight" Background="#141922" Foreground="White" Padding="10,8" BorderThickness="1" BorderBrush="{StaticResource BorderBrush}">
+                            <TextBox.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="8"/></Style></TextBox.Resources>
+                        </TextBox>
                     </StackPanel>
                 </UniformGrid>
 
-                <TextBlock Text="⚠️ Battery Warnings"
-                        Foreground="{StaticResource SubTextBrush}"
-                        FontSize="11"
-                        Margin="0,10,0,5"/>
-                <TextBox x:Name="TxtBattWarn"
-                        Background="#12161F"
-                        Foreground="White"
-                        Padding="8"
-                        Margin="0,0,0,10"
-                        BorderThickness="1"
-                        BorderBrush="#333"/>
-                <TextBox x:Name="TxtBattCrit"
-                        Background="#12161F"
-                        Foreground="White"
-                        Padding="8"
-                        BorderThickness="1"
-                        BorderBrush="#333"/>
+                <TextBlock Text="⚠️ Battery Warnings" Foreground="{StaticResource SubTextBrush}" FontSize="11" Margin="0,10,0,6"/>
+                <TextBox x:Name="TxtBattWarn" Background="#141922" Foreground="White" Padding="10,8" Margin="0,0,0,8" BorderThickness="1" BorderBrush="{StaticResource BorderBrush}">
+                    <TextBox.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="8"/></Style></TextBox.Resources>
+                </TextBox>
+                <TextBox x:Name="TxtBattCrit" Background="#141922" Foreground="White" Padding="10,8" BorderThickness="1" BorderBrush="{StaticResource BorderBrush}">
+                    <TextBox.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="8"/></Style></TextBox.Resources>
+                </TextBox>
 
-                <Button Content="Save Custom Dialog"
-                        Style="{StaticResource ActionButton}"
-                        Margin="0,15,0,0"
-                        Click="SaveDialog_Click"/>
+                <Button Content="Save Dialog" Style="{StaticResource ActionButton}" Margin="0,16,0,0" Click="SaveDialog_Click" HorizontalAlignment="Left" Padding="24,10"/>
             </StackPanel>
         </Border>
     </StackPanel>
 </UserControl>
-

@@ -20,7 +20,6 @@ namespace ZeroMix.Studio
 {
     public partial class StudioWindow : Window
     {
-        private string _selectedVideoPath = "";
         private string _selectedMusicPath = "";
         private DispatcherTimer _timer;
         private double _lastVolume = 0.5;
