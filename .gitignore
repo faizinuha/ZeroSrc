@@ -13,7 +13,11 @@ Exe/ZeroMix-Setup-*.exe
 Exe\libcrypto-3-x64.dll
 Exe\libssl-3-x64.dll
 Exe\libcrypto-3-x86.dll
+Exe\Virtual_Assisten
+Exe\ZeroMix.csproj
 
+virtual_assisten/Native/CubismSdkForNative/**
+C:\ZeroMix\ZeroMix\Virtual_Assisten\Native\CubismSdkForNative
 # API Keys & Secrets
 ApiKeys.cs
 ZeroMixCert_base64.txt

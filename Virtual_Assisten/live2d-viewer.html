@@ -70,8 +70,40 @@
       let isModelLoaded = false;
       let autoMotionTimer = null;
 
+      // Log Proxy to WPF Terminal
+      const originalLog = console.log;
+      const originalWarn = console.warn;
+      const originalError = console.error;
+
+      function sendToWPF(type, args) {
+        if (window.chrome && window.chrome.webview) {
+          const msg = Array.from(args)
+            .map((a) => (typeof a === "object" ? JSON.stringify(a) : a))
+            .join(" ");
+          window.chrome.webview.postMessage({
+            type: "log",
+            level: type,
+            content: msg,
+          });
+        }
+      }
+
+      console.log = function () {
+        originalLog.apply(console, arguments);
+        sendToWPF("info", arguments);
+      };
+      console.warn = function () {
+        originalWarn.apply(console, arguments);
+        sendToWPF("warn", arguments);
+      };
+      console.error = function () {
+        originalError.apply(console, arguments);
+        sendToWPF("error", arguments);
+      };
+
       // Initialize
       async function init() {
+        console.log("[Live2D] Initializing PIXI...");
         const canvas = document.getElementById("canvas");
         const loading = document.getElementById("loading");
 
@@ -86,21 +118,36 @@
             backgroundAlpha: 0,
             resizeTo: window,
             antialias: true,
+            powerPreference: "low-power",
+            autoDensity: true,
           });
 
-          // Performance Optimization: Limit FPS
-          app.ticker.maxFPS = 50;
+          app.ticker.maxFPS = 30;
+          console.log("[Live2D] PIXI App created at 30 FPS");
 
-          await loadModel(MODEL_PATH);
+          if (MODEL_PATH) {
+            console.log("[Live2D] Loading initial model:", MODEL_PATH);
+            await loadModel(MODEL_PATH);
+          } else {
+            console.log("[Live2D] Ready. Waiting for model from WPF...");
+            loading.style.display = "none"; // Hide loading if no initial model
+          }
 
-          // Start update loop
           app.ticker.add(updateLoop);
 
-          // Auto-Motion every 5 seconds
+          // RAM Optimization: Throttle when window is not active or minimized
+          window.addEventListener("blur", () => {
+            app.ticker.maxFPS = 15;
+          });
+          window.addEventListener("focus", () => {
+            app.ticker.maxFPS = 30;
+          });
+
+          // Auto-Motion every 8 seconds (longer interval saves CPU)
           if (autoMotionTimer) clearInterval(autoMotionTimer);
           autoMotionTimer = setInterval(() => {
             if (isModelLoaded) playSpecialMotion();
-          }, 5000);
+          }, 8000);
 
           console.log("[Live2D] Initialized");
         } catch (error) {
@@ -224,22 +271,26 @@
         isDragging = false;
       });
 
+      let isMotionPlaying = false;
+
       function onModelClick() {
         if (window.chrome && window.chrome.webview) {
           window.chrome.webview.postMessage({ type: "click" });
         }
 
-        playSpecialMotion();
+        if (!isMotionPlaying) {
+          playSpecialMotion();
+        }
       }
 
-      function playSpecialMotion() {
-        if (!model || !model.internalModel) return;
+      async function playSpecialMotion() {
+        if (!model || !model.internalModel || isMotionPlaying) return;
 
         try {
+          isMotionPlaying = true;
           let expressions = [];
 
           if (MODEL_PATH.toLowerCase().includes("frieren")) {
-            // Frieren specific
             expressions = [
               "anya",
               "anya2",
@@ -254,13 +305,12 @@
               "W",
               "erd",
             ];
-            model.motion(""); // Play random motion from default group
+            // Play a random motion from any available group
+            model.motion("Idle");
           } else if (MODEL_PATH.toLowerCase().includes("fern")) {
-            // Fern specific
             expressions = ["lh", "sq", "sy"];
-            model.motion("");
+            model.motion("Idle");
           } else if (MODEL_PATH.toLowerCase().includes("huohuo")) {
-            // Huohuo specific
             expressions = [
               "angry",
               "baozhen",
@@ -269,8 +319,9 @@
               "qizi2",
               "white eyes",
             ];
-            // Huohuo motions are also under default group "" in our JSON
-            model.motion("");
+            // For Huohuo, we use direct motion names from his json if known,
+            // or just let PIXI handle expressions which is lighter.
+            // Avoiding model.motion("") as it might be unstable on this model.
           }
 
           if (expressions.length > 0) {
@@ -279,8 +330,14 @@
             model.expression(randomExp);
             console.log("[Live2D] Playing expression:", randomExp);
           }
+
+          // Reset motion flag after 3 seconds
+          setTimeout(() => {
+            isMotionPlaying = false;
+          }, 3000);
         } catch (e) {
           console.error("[Live2D] Error playing motion:", e);
+          isMotionPlaying = false;
         }
       }
 

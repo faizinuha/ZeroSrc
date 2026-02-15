@@ -29,20 +29,20 @@
     <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.3650.58" />
     <PackageReference Include="MoonSharp" Version="2.0.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
-    <PackageReference Include="System.Drawing.Common" Version="9.0.0" />
-    <PackageReference Include="System.Management" Version="9.0.0" />
     <PackageReference Include="Vortice.D3DCompiler" Version="3.8.2" />
     <PackageReference Include="Vortice.Direct2D1" Version="3.8.2" />
     <PackageReference Include="Vortice.Direct3D9" Version="3.8.2" />
     <PackageReference Include="Vortice.Direct3D11" Version="3.8.2" />
     <PackageReference Include="Vortice.DXGI" Version="3.8.2" />
-    <PackageReference Include="Vortice.Mathematics" Version="2.1.0" /> 
+    <PackageReference Include="Vortice.Mathematics" Version="2.1.0" />
+    <PackageReference Include="System.Management" Version="9.0.0" />
   </ItemGroup>
 
   <ItemGroup>
     <Resource Include="zeromix.ico" />
     <Resource Include="assets\**" />
   </ItemGroup>
+
 
   <ItemGroup>
     <Content Include="Resource\**">
@@ -69,10 +69,28 @@
     </Content>
   </ItemGroup>
 
-  <!-- Virtual Assistant Assets (Protected inside EXE) -->
+  <!-- Virtual Assistant assets: copy runtime files (models, textures, json) to output -->
   <ItemGroup>
-    <Resource Include="Virtual_Assisten\VA_Thumbnails\**\*" />
-    <EmbeddedResource Include="Virtual_Assisten\**\*" Exclude="Virtual_Assisten\VA_Thumbnails\**\*" />
+    <Content Include="Virtual_Assisten\**\*.moc3">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Virtual_Assisten\**\*.model3.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Virtual_Assisten\**\*.physics3.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Virtual_Assisten\**\*.vtube.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Virtual_Assisten\**\*.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Virtual_Assisten\**\*.jpg">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Virtual_Assisten\**\*" Exclude="**\*.cs;**\*.xaml;**\*.user;**\*.vspscc;**\*.dll;**\*.exe">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
-
 </Project>

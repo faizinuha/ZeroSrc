@@ -10,7 +10,7 @@
     </UserControl.Resources>
     
     <StackPanel>
-        <Border x:Name="WeatherCard" Style="{StaticResource CompactCardBorder}" MouseDown="WeatherCard_MouseDown">
+        <Border x:Name="WeatherCard" Style="{StaticResource CompactCardBorder}" MouseDown="WeatherCard_MouseDown" Cursor="Hand">
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto"/>
@@ -18,72 +18,76 @@
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
 
-                <Border Grid.Column="0" Width="45" Height="45" CornerRadius="8" Background="#1A202C" Margin="0,0,15,0">
-                    <Image Source="assets/1.png" Stretch="Uniform" Margin="5"/>
+                <!-- Icon -->
+                <Border Grid.Column="0" Width="42" Height="42" CornerRadius="10" Background="#141922" Margin="0,0,14,0">
+                    <TextBlock Text="&#xE9CA;" FontFamily="Segoe MDL2 Assets" FontSize="20"
+                               Foreground="{StaticResource NeonBlueBrush}"
+                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
                 </Border>
 
                 <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                    <TextBlock Text="Dynamic Weather Wallpaper" Foreground="White" FontSize="15" FontWeight="Bold" Margin="0,0,0,2"/>
-                    <TextBlock Text="Sync your desktop atmosphere with real-time weather." Foreground="{StaticResource SubTextBrush}" FontSize="11"/>
+                    <TextBlock Text="Dynamic Weather" Foreground="White" FontSize="14" FontWeight="Bold" Margin="0,0,0,3"/>
+                    <TextBlock Text="Sync desktop with real-time weather conditions." Foreground="{StaticResource SubTextBrush}" FontSize="11"/>
 
-                    <!-- Download/Uninstall Progress -->
+                    <!-- Progress -->
                     <StackPanel x:Name="PluginProgressPanel" Visibility="Collapsed" Margin="0,10,0,0">
-                        <TextBlock x:Name="PluginStatusText" Text="Processing Plugin... 0%" Foreground="{StaticResource NeonBlueBrush}" FontSize="12" Margin="0,0,0,5"/>
-                        <ProgressBar x:Name="PluginProgressBar" Height="4" Maximum="100" Foreground="{StaticResource NeonBlueBrush}" Background="#1A202C" BorderThickness="0"/>
+                        <TextBlock x:Name="PluginStatusText" Text="Processing Plugin... 0%" Foreground="{StaticResource NeonBlueBrush}" FontSize="11" Margin="0,0,0,5"/>
+                        <ProgressBar x:Name="PluginProgressBar" Height="4" Maximum="100" Foreground="{StaticResource NeonBlueBrush}" Background="#141922" BorderThickness="0"/>
                     </StackPanel>
                 </StackPanel>
 
                 <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
-                    <CheckBox x:Name="WeatherPluginToggle" VerticalAlignment="Center" Click="WeatherPluginToggle_Click">
-                        <CheckBox.LayoutTransform>
-                            <ScaleTransform ScaleX="1.5" ScaleY="1.5"/>
-                        </CheckBox.LayoutTransform>
-                    </CheckBox>
+                    <CheckBox x:Name="WeatherPluginToggle" VerticalAlignment="Center" Click="WeatherPluginToggle_Click"
+                              Style="{StaticResource ModernCheckBox}"/>
                 </StackPanel>
             </Grid>
         </Border>
 
-        <!-- Weather Config -->
+        <!-- Weather Config (Expandable) -->
         <Border x:Name="WeatherConfigBorder" Style="{StaticResource CardBorder}" Visibility="Collapsed">
             <StackPanel>
-                <TextBlock Text="WEATHER CONFIGURATION" FontWeight="Black" Foreground="{StaticResource NeonBlueBrush}" FontSize="10" Margin="0,0,0,20" />
+                <TextBlock Text="CONFIGURATION" FontWeight="Bold" Foreground="{StaticResource NeonBlueBrush}" FontSize="10" Margin="0,0,0,16"/>
 
-                <TextBlock Text="City Location" Foreground="White" FontSize="12" Margin="0,0,0,8"/>
+                <TextBlock Text="City" Foreground="{StaticResource SubTextBrush}" FontSize="11" Margin="0,0,0,6"/>
                 <Grid Margin="0,0,0,20">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
-                    <TextBox x:Name="WeatherCityInput" Background="#12161F" Foreground="White" BorderBrush="{StaticResource BorderBrush}" Padding="15,10" VerticalContentAlignment="Center">
+                    <TextBox x:Name="WeatherCityInput" Background="#141922" Foreground="White"
+                             BorderBrush="{StaticResource BorderBrush}" Padding="14,10" VerticalContentAlignment="Center">
                         <TextBox.Resources>
                             <Style TargetType="Border">
-                                <Setter Property="CornerRadius" Value="8"/>
+                                <Setter Property="CornerRadius" Value="10"/>
                             </Style>
                         </TextBox.Resources>
                     </TextBox>
-                    <Button Grid.Column="1" Content="Save" Style="{StaticResource ActionButton}" Padding="25,10" Margin="10,0,0,0" Click="UpdateWeatherLocation_Click"/>
+                    <Button Grid.Column="1" Content="Save" Style="{StaticResource ActionButton}" Padding="24,10" Margin="10,0,0,0" Click="UpdateWeatherLocation_Click"/>
                 </Grid>
 
-                <TextBlock Text="Weather Assets (Automated)" Foreground="White" FontSize="12" Margin="0,0,0,8"/>
-                <UniformGrid Columns="4" Margin="0,0,0,10">
-                    <StackPanel Margin="0,0,5,0">
-                        <TextBlock Text="☀️ Sunny" Foreground="{StaticResource SubTextBrush}" FontSize="11" Margin="0,0,0,5"/>
-                        <Border Background="#1A202C" CornerRadius="8" Height="35">
-                            <TextBlock Text="Auto Sync" VerticalAlignment="Center" HorizontalAlignment="Center" Foreground="{StaticResource NeonBlueBrush}" FontSize="10"/>
-                        </Border>
-                    </StackPanel>
-                    <StackPanel Margin="5,0,5,0">
-                        <TextBlock Text="🌧️ Rainy" Foreground="{StaticResource SubTextBrush}" FontSize="11" Margin="0,0,0,5"/>
-                        <Border Background="#1A202C" CornerRadius="8" Height="35">
-                            <TextBlock Text="Auto Sync" VerticalAlignment="Center" HorizontalAlignment="Center" Foreground="{StaticResource NeonBlueBrush}" FontSize="10"/>
-                        </Border>
-                    </StackPanel>
-                    <StackPanel Margin="5,0,0,0">
-                        <TextBlock Text="☁️ Cloudy" Foreground="{StaticResource SubTextBrush}" FontSize="11" Margin="0,0,0,5"/>
-                        <Border Background="#1A202C" CornerRadius="8" Height="35">
-                            <TextBlock Text="Auto Sync" VerticalAlignment="Center" HorizontalAlignment="Center" Foreground="{StaticResource NeonBlueBrush}" FontSize="10"/>
-                        </Border>
-                    </StackPanel>
+                <TextBlock Text="Weather Assets" Foreground="{StaticResource SubTextBrush}" FontSize="11" Margin="0,0,0,10"/>
+                <UniformGrid Columns="3" Margin="0,0,0,4">
+                    <Border Background="#141922" CornerRadius="10" Padding="10" Margin="0,0,6,0">
+                        <StackPanel HorizontalAlignment="Center">
+                            <TextBlock Text="☀️" FontSize="18" HorizontalAlignment="Center" Margin="0,0,0,4"/>
+                            <TextBlock Text="Sunny" Foreground="{StaticResource SubTextBrush}" FontSize="10" HorizontalAlignment="Center" Margin="0,0,0,4"/>
+                            <TextBlock Text="Auto" Foreground="{StaticResource NeonBlueBrush}" FontSize="9" FontWeight="Bold" HorizontalAlignment="Center"/>
+                        </StackPanel>
+                    </Border>
+                    <Border Background="#141922" CornerRadius="10" Padding="10" Margin="3,0">
+                        <StackPanel HorizontalAlignment="Center">
+                            <TextBlock Text="🌧️" FontSize="18" HorizontalAlignment="Center" Margin="0,0,0,4"/>
+                            <TextBlock Text="Rainy" Foreground="{StaticResource SubTextBrush}" FontSize="10" HorizontalAlignment="Center" Margin="0,0,0,4"/>
+                            <TextBlock Text="Auto" Foreground="{StaticResource NeonBlueBrush}" FontSize="9" FontWeight="Bold" HorizontalAlignment="Center"/>
+                        </StackPanel>
+                    </Border>
+                    <Border Background="#141922" CornerRadius="10" Padding="10" Margin="6,0,0,0">
+                        <StackPanel HorizontalAlignment="Center">
+                            <TextBlock Text="☁️" FontSize="18" HorizontalAlignment="Center" Margin="0,0,0,4"/>
+                            <TextBlock Text="Cloudy" Foreground="{StaticResource SubTextBrush}" FontSize="10" HorizontalAlignment="Center" Margin="0,0,0,4"/>
+                            <TextBlock Text="Auto" Foreground="{StaticResource NeonBlueBrush}" FontSize="9" FontWeight="Bold" HorizontalAlignment="Center"/>
+                        </StackPanel>
+                    </Border>
                 </UniformGrid>
             </StackPanel>
         </Border>
