@@ -90,7 +90,7 @@ namespace ZeroMix.Recorder
                         try
                         {
                             using var dxgiSurfaceIn = inputTexture.QueryInterface<IDXGISurface>();
-                            _inputBitmapCached = _d2dContext.CreateBitmapFromDxgiSurface(dxgiSurfaceIn);
+                            _inputBitmapCached = _d2dContext!.CreateBitmapFromDxgiSurface(dxgiSurfaceIn);
                             _lastInputTexture = inputTexture;
                         }
                         catch (Exception ex)
@@ -105,7 +105,7 @@ namespace ZeroMix.Recorder
                     bool drawingStarted = false;
                     try
                     {
-                        _d2dContext.BeginDraw();
+                        _d2dContext!.BeginDraw();
                         drawingStarted = true;
 
                         _d2dContext.Clear(new Color4(0, 0, 0, 1.0f));
@@ -144,7 +144,7 @@ namespace ZeroMix.Recorder
                             new Vector2(cursorX + 11, cursorY + 9)
                         };
 
-                        using var geometry = _d2dFactory.CreatePathGeometry();
+                        using var geometry = _d2dFactory!.CreatePathGeometry();
                         using var sink = geometry.Open();
                         sink.BeginFigure(cursorPoints[0], FigureBegin.Filled);
                         sink.AddLines(cursorPoints);

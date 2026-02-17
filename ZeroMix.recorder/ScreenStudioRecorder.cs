@@ -24,6 +24,7 @@ namespace ZeroMix.Recorder
         private bool _isRecording = false;
         private Thread? _recordingThread;
         private Stopwatch _recordingTimer = new();
+        public bool IsZoomEnabled { get; set; } = true;
 
         public bool IsRecording => _isRecording;
         public bool IsInitialized => (_dxgiCapturer?.IsInitialized ?? false) || (_gdiCapturer?.IsInitialized ?? false);
@@ -155,7 +156,7 @@ namespace ZeroMix.Recorder
                 _cursorTracker?.Update();
                 if (_camera != null && _cursorTracker != null)
                 {
-                    _camera.Update(_cursorTracker);
+                    _camera.Update(_cursorTracker, IsZoomEnabled);
                 }
 
                 Vortice.Direct3D11.ID3D11Texture2D? rawFrame = null;

@@ -228,17 +228,24 @@ namespace ZeroMix.Shortcuts
                 Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory) // <-- Path Desktop ditambahkan di sini
             };
 
-            foreach (var path in scanPaths.Where(Directory.Exists))
+            foreach (var path in scanPaths)
             {
-                // Untuk Desktop, kita hanya pindai folder utama, bukan sub-folder.
-                var searchOption = path.Contains("Desktop") ? SearchOption.TopDirectoryOnly : SearchOption.AllDirectories;
-                var lnkFiles = Directory.GetFiles(path, "*.lnk", searchOption);
-                foreach (var file in lnkFiles)
+                try
                 {
-                    string name = Path.GetFileNameWithoutExtension(file);
-                    if (!string.IsNullOrEmpty(name) && !appList.Any(a => a.Name.Equals(name, StringComparison.OrdinalIgnoreCase)))
-                        appList.Add(new InstalledApplication { Name = name, Path = file });
+                    if (Directory.Exists(path))
+                    {
+                        // Untuk Desktop, kita hanya pindai folder utama, bukan sub-folder.
+                        var searchOption = path.Contains("Desktop") ? SearchOption.TopDirectoryOnly : SearchOption.AllDirectories;
+                        var lnkFiles = Directory.GetFiles(path, "*.lnk", searchOption);
+                        foreach (var file in lnkFiles)
+                        {
+                            string name = Path.GetFileNameWithoutExtension(file);
+                            if (!string.IsNullOrEmpty(name) && !appList.Any(a => a.Name.Equals(name, StringComparison.OrdinalIgnoreCase)))
+                                appList.Add(new InstalledApplication { Name = name, Path = file });
+                        }
+                    }
                 }
+                catch { } // Ignore permission errors
             }
 
             // Urutkan berdasarkan nama dan tambahkan ke ObservableCollection
@@ -252,13 +259,17 @@ namespace ZeroMix.Shortcuts
         {
             if (File.Exists(ShortcutsFilePath))
             {
-                var json = File.ReadAllText(ShortcutsFilePath);
-                var shortcuts = JsonConvert.DeserializeObject<ObservableCollection<CustomShortcut>>(json);
-                if (shortcuts != null)
+                try
                 {
-                    Shortcuts = shortcuts;
-                    ShortcutListView.ItemsSource = Shortcuts;
+                    var json = File.ReadAllText(ShortcutsFilePath);
+                    var shortcuts = JsonConvert.DeserializeObject<ObservableCollection<CustomShortcut>>(json);
+                    if (shortcuts != null)
+                    {
+                        Shortcuts = shortcuts;
+                        ShortcutListView.ItemsSource = Shortcuts;
+                    }
                 }
+                catch { }
             }
         }
 

@@ -329,13 +329,11 @@ namespace ZeroMix
         {
             var windowHelper = new WindowInteropHelper(this);
 
-            // ACCENT_ENABLE_ACRYLICBLURBEHIND = 4 (Modern Windows 10/11)
-            // ACCENT_ENABLE_BLURBEHIND = 3 (Legacy Windows 10)
             var accent = new AccentPolicy
             {
-                AccentState = AccentState.ACCENT_ENABLE_ACRYLICBLURBEHIND,
-                AccentFlags = 2,
-                GradientColor = 0x01FFFFFF // Very slight tint
+                AccentState = AccentState.ACCENT_ENABLE_BLURBEHIND, // Use standard blur, let XAML handle color
+                AccentFlags = 0,
+                GradientColor = 0
             };
 
             var accentStructSize = Marshal.SizeOf(accent);
@@ -1076,13 +1074,22 @@ namespace ZeroMix
         {
             try
             {
+                // Ensure instance is created on UI thread
                 var shortcutWindow = new CustomShortcutWindow();
                 shortcutWindow.Show();
                 BeginFadeOutAndClose();
             }
             catch (Exception ex)
             {
-                ShowNotification("Error opening settings", NotificationType.Error);
+                // Fallback: Try to open the Shortcuts folder in Explorer
+                try 
+                {
+                    string appData = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "ZeroMix");
+                    if (Directory.Exists(appData)) Process.Start("explorer.exe", appData);
+                } 
+                catch {}
+
+                ShowNotification("Error opening settings. Folder opened instead.", NotificationType.Error);
                 System.Diagnostics.Debug.WriteLine($"Error opening shortcut window: {ex.Message}");
             }
         }

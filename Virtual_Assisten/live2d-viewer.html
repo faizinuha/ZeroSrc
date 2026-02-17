@@ -14,7 +14,7 @@
         width: 100%;
         height: 100%;
         overflow: hidden;
-        background: transparent;
+        background: #0a0d13; /* Dark background to prevent white flicker */
       }
       #canvas {
         width: 100%;
@@ -29,7 +29,7 @@
         left: 50%;
         transform: translate(-50%, -50%);
         text-align: center;
-        color: #ff69b4;
+        color: #00d68f; /* Neon Blue instead of pink */
         font-family: "Segoe UI", sans-serif;
       }
       #loading .emoji {
@@ -117,8 +117,8 @@
             view: canvas,
             backgroundAlpha: 0,
             resizeTo: window,
-            antialias: true,
-            powerPreference: "low-power",
+            antialias: false, // Turned off antialias for better performance
+            powerPreference: "high-performance", // Changed to high-performance for Huohuo
             autoDensity: true,
           });
 
@@ -143,11 +143,11 @@
             app.ticker.maxFPS = 30;
           });
 
-          // Auto-Motion every 8 seconds (longer interval saves CPU)
+          // Auto-Motion every 4 seconds (longer interval saves CPU)
           if (autoMotionTimer) clearInterval(autoMotionTimer);
           autoMotionTimer = setInterval(() => {
             if (isModelLoaded) playSpecialMotion();
-          }, 8000);
+          }, 4000);
 
           console.log("[Live2D] Initialized");
         } catch (error) {

@@ -105,6 +105,8 @@ namespace ZeroMix
 
         private string[]? _startupArgs;
         private Virtual_Assisten.VirtualAssistantWindow? _assistantWindow;
+        private string _selectedRecordingMode = "FullScreen";
+        private System.Collections.ObjectModel.ObservableCollection<RecordingHistoryItem> _recordingHistory = new();
 
         public void ChangeLanguage(string cultureCode)
         {
@@ -654,11 +656,112 @@ namespace ZeroMix
         private void RecorderButton_Click(object sender, RoutedEventArgs e)
         {
             DeactivateAllTabs();
-            RecorderContent.Visibility = Visibility.Visible;
+            var recorderContent = FindName("RecorderContent") as UIElement;
+            if (recorderContent != null) recorderContent.Visibility = Visibility.Visible;
             RecorderButton.Background = (System.Windows.Media.SolidColorBrush)FindResource("NavSelectedBrush");
             
-            // Load audio devices
+            // Load audio devices & history
             LoadAudioDevices();
+            LoadRecordingHistory();
+        }
+
+        private void RecordingMode_Click(object sender, MouseButtonEventArgs e)
+        {
+            if (sender is Border border)
+            {
+                _selectedRecordingMode = border.Tag?.ToString() ?? "FullScreen";
+
+                // Update UI Visuals
+                var modes = new[] { ModeFullScreen, ModeApp, ModeArea, ModeWindow };
+                foreach (var m in modes)
+                {
+                    if (m == null) continue;
+                    if (m == border)
+                    {
+                        m.BorderBrush = (System.Windows.Media.SolidColorBrush)FindResource("NeonBlueBrush");
+                        m.BorderThickness = new Thickness(2);
+                        m.Background = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(20, 25, 34));
+                    }
+                    else
+                    {
+                        m.BorderBrush = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(26, 32, 48));
+                        m.BorderThickness = new Thickness(1);
+                        m.Background = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(17, 22, 32));
+                    }
+                }
+            }
+        }
+
+        private void PlayRecording_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is Button btn && btn.DataContext is RecordingHistoryItem item)
+            {
+                try
+                {
+                    Process.Start(new ProcessStartInfo(item.FilePath) { UseShellExecute = true });
+                }
+                catch (Exception ex)
+                {
+                    System.Windows.MessageBox.Show("Gagal memutar video: " + ex.Message);
+                }
+            }
+        }
+
+        private void DeleteRecording_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is Button btn && btn.DataContext is RecordingHistoryItem item)
+            {
+                var result = System.Windows.MessageBox.Show($"Hapus rekaman {item.FileName}?", "Konfirmasi", MessageBoxButton.YesNo, MessageBoxImage.Warning);
+                if (result == MessageBoxResult.Yes)
+                {
+                    try
+                    {
+                        if (File.Exists(item.FilePath)) File.Delete(item.FilePath);
+                        _recordingHistory.Remove(item);
+                    }
+                    catch (Exception ex)
+                    {
+                        System.Windows.MessageBox.Show("Gagal menghapus file: " + ex.Message);
+                    }
+                }
+            }
+        }
+
+        private void LoadRecordingHistory()
+        {
+            try
+            {
+                string path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyVideos), "ZeroRecord");
+                if (!Directory.Exists(path)) Directory.CreateDirectory(path);
+
+                var files = new DirectoryInfo(path).GetFiles("*.mp4")
+                    .OrderByDescending(f => f.CreationTime)
+                    .Take(10); // Show last 10
+
+                _recordingHistory.Clear();
+                foreach (var file in files)
+                {
+                    _recordingHistory.Add(new RecordingHistoryItem
+                    {
+                        FileName = file.Name,
+                        FilePath = file.FullName,
+                        CreationDate = file.CreationTime.ToString("dd MMM yyyy, HH:mm"),
+                        FileSize = (file.Length / (1024.0 * 1024.0)).ToString("0.0") + " MB"
+                    });
+                }
+
+                // Assuming RecordingHistoryList is a ListBox or similar control in your XAML
+                // You might need to cast FindName result if it's not directly accessible
+                var recordingHistoryList = FindName("RecordingHistoryList") as System.Windows.Controls.ItemsControl;
+                if (recordingHistoryList != null)
+                {
+                    recordingHistoryList.ItemsSource = _recordingHistory;
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine("[ZeroRecord] Failed to load history: " + ex.Message);
+            }
         }
 
 
@@ -818,12 +921,8 @@ namespace ZeroMix
                 int fps = 30;
                 if (FpsComboBox != null)
                 {
-                    switch (FpsComboBox.SelectedIndex)
-                    {
-                        case 1: fps = 45; break;
-                        case 2: fps = 50; break;
-                        case 3: fps = 60; break;
-                    }
+                    string content = (FpsComboBox.SelectedItem as ComboBoxItem)?.Content?.ToString() ?? "30 FPS";
+                    int.TryParse(content.Split(' ')[0], out fps);
                 }
 
                 // Get Audio Devices
@@ -839,72 +938,49 @@ namespace ZeroMix
                     return;
                 }
 
-                // We no longer block on _recordingManager.IsInitialized because it has a GDI fallback now.
-                // Just start the recording.
-
                 bool started = await Task.Run(() => 
                 {
                     try 
                     {
-                        Console.WriteLine("[ZeroRecord] Attempting to start recording...");
                         _recordingManager.StartRecording($"ZeroRecord_{timestamp}.mp4", fps, mic, speaker);
-                        Console.WriteLine("[ZeroRecord] Recording started successfully!");
                         return true;
-                    }
-                    catch (InvalidOperationException iex)
-                    {
-                        Console.WriteLine($"[ZeroRecord] Initialization Error: {iex.Message}");
-                        Dispatcher.Invoke(() => System.Windows.MessageBox.Show(
-                            $"Cannot start recording:\n\n{iex.Message}\n\nTroubleshooting:\n" +
-                            "1. Update GPU drivers (NVIDIA/Intel/AMD)\n" +
-                            "2. Check that Direct3D 11 is working\n" +
-                            "3. Try disabling hardware acceleration in graphics settings\n" +
-                            "4. Ensure FFmpeg is properly installed",
-                            "ZeroRecord - Hardware Error", MessageBoxButton.OK, MessageBoxImage.Error));
-                        return false;
                     }
                     catch (Exception ex)
                     {
-                        Console.WriteLine($"[ZeroRecord] FATAL ERROR: {ex.GetType().Name}: {ex.Message}");
-                        Dispatcher.Invoke(() => System.Windows.MessageBox.Show(
-                            $"Recording Error:\n{ex.Message}\n\nCheck console output for details.",
-                            "ZeroRecord Error", MessageBoxButton.OK, MessageBoxImage.Error));
+                        Console.WriteLine($"[ZeroRecord] Start Error: {ex.Message}");
                         return false;
                     }
                 });
 
                 if (started)
                 {
+                    // Apply Cinematic Zoom setting
+                    if (_recordingManager.Recorder != null)
+                    {
+                        _recordingManager.Recorder.IsZoomEnabled = CinematicZoomToggle?.IsChecked ?? true;
+                    }
+
                     _isRecordingActive = true;
                     UpdateRecordUI(true);
                     
-                    // Start duration UI timer
                     RecordDurationText.Visibility = Visibility.Visible;
                     if (_recordDurationTimer == null)
                     {
                         _recordDurationTimer = new DispatcherTimer();
                         _recordDurationTimer.Interval = TimeSpan.FromSeconds(1);
                         _recordDurationTimer.Tick += (s, args) => {
-                            string dur = _recordingManager.GetDuration();
-                            RecordDurationText.Text = dur;
-                            if (_notifyIcon != null) _notifyIcon.Text = $"🔴 RECORDING - {dur}";
+                            RecordDurationText.Text = _recordingManager.GetDuration();
                         };
                     }
                     _recordDurationTimer.Start();
-                    
-                    if (_notifyIcon != null)
-                    {
-                        _notifyIcon.BalloonTipTitle = "ZeroRecord Started";
-                        _notifyIcon.BalloonTipText = "Recording your desktop screen...";
-                        _notifyIcon.ShowBalloonTip(2000);
-                    }
                     StatusLabel.Text = "Recording Active";
                 }
                 else
                 {
-                    Console.WriteLine("[ZeroRecord] Failed to start recording.");
                     UpdateRecordUI(false);
                 }
+                
+                if (HomeRecordBtn != null) HomeRecordBtn.IsEnabled = true;
             }
             else
             {
@@ -913,42 +989,19 @@ namespace ZeroMix
 
                 await Task.Run(() => 
                 {
-                    try
-                    {
-                        Console.WriteLine("[ZeroRecord] Stopping recording and finalizing video...");
-                        _recordingManager.StopRecording();
-                        Console.WriteLine("[ZeroRecord] Recording successfully saved!");
-                    }
-                    catch (Exception ex)
-                    {
-                        Console.WriteLine($"[ZeroRecord] Error during Stop: {ex.Message}");
-                        Dispatcher.Invoke(() => System.Windows.MessageBox.Show(
-                            $"Error saving video:\n{ex.Message}",
-                            "ZeroRecord - Save Error", MessageBoxButton.OK, MessageBoxImage.Warning));
-                    }
+                    try { _recordingManager.StopRecording(); } catch { }
                 });
 
                 _isRecordingActive = false;
                 _recordDurationTimer?.Stop();
-                
                 UpdateRecordUI(false);
-                if (RecordDurationText != null)
-                {
-                    RecordDurationText.Visibility = Visibility.Collapsed;
-                    RecordDurationText.Text = "00:00";
-                }
+                if (RecordDurationText != null) RecordDurationText.Visibility = Visibility.Collapsed;
                 
-                if (_notifyIcon != null)
-                {
-                    _notifyIcon.Text = "ZeroMix Dashboard";
-                    _notifyIcon.BalloonTipTitle = "ZeroRecord Stopped";
-                    _notifyIcon.BalloonTipText = "Video saved to Videos\\ZeroRecord folder.";
-                    _notifyIcon.ShowBalloonTip(2000);
-                }
-                StatusLabel.Text = "Recording Saved to Videos\\ZeroRecord";
+                // Refresh History
+                Dispatcher.Invoke(LoadRecordingHistory);
+                StatusLabel.Text = "Recording Saved!";
+                if (HomeRecordBtn != null) HomeRecordBtn.IsEnabled = true;
             }
-
-            if (HomeRecordBtn != null) HomeRecordBtn.IsEnabled = true;
         }
 
         private void OpenRecordingsBtn_Click(object sender, RoutedEventArgs e)
@@ -985,15 +1038,14 @@ namespace ZeroMix
             IntPtr taskbarHandle = FindWindow("Shell_TrayWnd", null);
             
             // Mode Clear: ACCENT_ENABLE_TRANSPARENTGRADIENT (2)
-            // Color: 0x00000000 (Full Transparent)
-            // Flags: 2 (Draw borders/refresh policy)
-            ApplyTaskbarAccent(taskbarHandle, AccentState.ACCENT_ENABLE_TRANSPARENTGRADIENT, 2, 0x00000000);
+            // Color: 0x01140A0D (Almost transparent dark to hide 'square' glitches)
+            ApplyTaskbarAccent(taskbarHandle, AccentState.ACCENT_ENABLE_TRANSPARENTGRADIENT, 2, 0x01140A0D);
 
             // Shell_SecondaryTrayWnd for extra monitors
             IntPtr secondaryTaskbarHandle = FindWindow("Shell_SecondaryTrayWnd", null);
             if (secondaryTaskbarHandle != IntPtr.Zero)
             {
-                ApplyTaskbarAccent(secondaryTaskbarHandle, AccentState.ACCENT_ENABLE_TRANSPARENTGRADIENT, 2, 0x00000000);
+                ApplyTaskbarAccent(secondaryTaskbarHandle, AccentState.ACCENT_ENABLE_TRANSPARENTGRADIENT, 2, 0x01140A0D);
             }
         }
 
@@ -1002,16 +1054,15 @@ namespace ZeroMix
             // Shell_TrayWnd is the main taskbar
             IntPtr taskbarHandle = FindWindow("Shell_TrayWnd", null);
             
-            // On Windows 10/11, state 0 (Disabled) often results in a solid black bar.
-            // Using state 1 (Gradient) with color 0 often tells Windows to go back 
-            // to its own internal theme-based rendering (Default/Blur/Acrylic).
-            ApplyTaskbarAccent(taskbarHandle, AccentState.ACCENT_ENABLE_GRADIENT, 0, 0x00000000);
+            // Returning to ACCENT_DISABLED (0) lets Windows take back control of rendering
+            // based on the user's system theme (Light/Dark/Blur).
+            ApplyTaskbarAccent(taskbarHandle, AccentState.ACCENT_DISABLED, 0, 0x00000000);
 
             // Re-apply for secondary taskbar
             IntPtr secondaryTaskbarHandle = FindWindow("Shell_SecondaryTrayWnd", null);
             if (secondaryTaskbarHandle != IntPtr.Zero)
             {
-                ApplyTaskbarAccent(secondaryTaskbarHandle, AccentState.ACCENT_ENABLE_GRADIENT, 0, 0x00000000);
+                ApplyTaskbarAccent(secondaryTaskbarHandle, AccentState.ACCENT_DISABLED, 0, 0x00000000);
             }
         }
 
@@ -1587,5 +1638,12 @@ end";
                 System.Windows.MessageBox.Show("Gagal membuka ZeroMix Studio: " + ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
+    }
+    public class RecordingHistoryItem
+    {
+        public string FileName { get; set; } = "";
+        public string FilePath { get; set; } = "";
+        public string CreationDate { get; set; } = "";
+        public string FileSize { get; set; } = "";
     }
 }

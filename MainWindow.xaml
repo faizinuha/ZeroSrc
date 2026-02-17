@@ -23,7 +23,8 @@
         KeyDown="Window_KeyDown"
         AllowsTransparency="True"
         ResizeMode="CanResizeWithGrip"
-        StateChanged="Window_StateChanged">
+        StateChanged="Window_StateChanged"
+        ShowInTaskbar="True">
 
     <Window.Resources>
         <ResourceDictionary>
@@ -1001,194 +1002,211 @@
 
                         <!-- ═══ RECORDER VIEW ═══ -->
                         <ScrollViewer x:Name="RecorderContent"
-                                      Visibility="Collapsed"
-                                      VerticalScrollBarVisibility="Auto"
-                                      BorderThickness="0">
-                            <StackPanel Margin="0">
-                                <!-- Header -->
+                                       Visibility="Collapsed"
+                                       VerticalScrollBarVisibility="Auto"
+                                       BorderThickness="0">
+                            <StackPanel Margin="0,0,0,30">
+                                <!-- Header Section -->
                                 <Grid Margin="0,0,0,24">
                                     <StackPanel>
                                         <TextBlock Text="ZeroRecord"
-                                                   FontSize="24"
-                                                   FontWeight="ExtraBold"
-                                                   Foreground="{StaticResource TextBrush}"
+                                                   FontSize="32"
+                                                   FontWeight="Black"
+                                                   Foreground="{StaticResource NeonBlueBrush}"
                                                    Margin="0,0,0,4"/>
-                                        <TextBlock Text="Simpler, Faster, GPU Capture."
-                                                   FontSize="13"
-                                                   Foreground="{StaticResource SubTextBrush}"/>
+                                        <TextBlock Text="Cinematic, Smooth, GPU-Powered Capture."
+                                                   FontSize="14"
+                                                   Foreground="{StaticResource SubTextBrush}"
+                                                   Opacity="0.8"/>
                                     </StackPanel>
+                                    
+                                    <!-- Recording Status Indicator -->
                                     <StackPanel Orientation="Horizontal"
                                                 HorizontalAlignment="Right"
                                                 VerticalAlignment="Center">
                                         <TextBlock x:Name="RecordDurationText"
                                                    Text="00:00"
-                                                   Foreground="#FF69B4"
-                                                   FontSize="16"
+                                                   Foreground="#FF4D4D"
+                                                   FontSize="20"
                                                    FontWeight="Bold"
                                                    Margin="0,0,14,0"
                                                    Visibility="Collapsed"/>
-                                        <Border Background="#FF4D4D"
-                                                Width="10" Height="10"
-                                                CornerRadius="5">
+                                        <Border x:Name="RecordingPulse"
+                                                Background="#FF4D4D"
+                                                Width="12" Height="12"
+                                                CornerRadius="6"
+                                                Visibility="Collapsed">
                                             <Border.Style>
                                                 <Style TargetType="Border">
                                                     <Style.Triggers>
-                                                        <DataTrigger Binding="{Binding ElementName=RecordDurationText, Path=Visibility}" Value="Visible">
-                                                            <DataTrigger.EnterActions>
+                                                        <Trigger Property="Visibility" Value="Visible">
+                                                            <Trigger.EnterActions>
                                                                 <BeginStoryboard>
                                                                     <Storyboard RepeatBehavior="Forever">
                                                                         <DoubleAnimation Storyboard.TargetProperty="Opacity"
-                                                                                         From="1" To="0"
-                                                                                         Duration="0:0:0.7"
+                                                                                         From="1" To="0.2"
+                                                                                         Duration="0:0:0.6"
                                                                                          AutoReverse="True"/>
+                                                                        <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleX)"
+                                                                                         From="1" To="1.5" Duration="0:0:0.6" AutoReverse="True"/>
+                                                                        <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleY)"
+                                                                                         From="1" To="1.5" Duration="0:0:0.6" AutoReverse="True"/>
                                                                     </Storyboard>
                                                                 </BeginStoryboard>
-                                                            </DataTrigger.EnterActions>
-                                                        </DataTrigger>
+                                                            </Trigger.EnterActions>
+                                                        </Trigger>
                                                     </Style.Triggers>
                                                 </Style>
                                             </Border.Style>
+                                            <Border.RenderTransform>
+                                                <ScaleTransform CenterX="6" CenterY="6"/>
+                                            </Border.RenderTransform>
                                         </Border>
                                     </StackPanel>
                                 </Grid>
 
-                                <!-- Controls -->
-                                <Border Background="#111620" CornerRadius="16" Padding="28"
-                                        BorderThickness="1" BorderBrush="#1A2030">
-                                    <StackPanel>
-                                        <Grid Margin="0,0,0,20">
-                                            <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="*"/>
-                                                <ColumnDefinition Width="Auto"/>
-                                            </Grid.ColumnDefinitions>
+                                <!-- 1. MODE SELECTION (4 OPTIONS) -->
+                                <TextBlock Text="RECORDING MODE" FontSize="11" FontWeight="Bold" Foreground="{StaticResource TextMutedBrush}" Margin="0,0,0,12"/>
+                                <UniformGrid Columns="4" Margin="0,0,0,20">
+                                    <Border x:Name="ModeFullScreen" CornerRadius="12" Background="#141922" BorderThickness="2" BorderBrush="{StaticResource NeonBlueBrush}" Margin="0,0,8,0" Padding="15" Cursor="Hand" Tag="FullScreen" MouseLeftButtonDown="RecordingMode_Click">
+                                        <StackPanel HorizontalAlignment="Center">
+                                            <TextBlock Text="🖥️" FontSize="20" HorizontalAlignment="Center" Margin="0,0,0,5"/>
+                                            <TextBlock Text="Full Screen" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource TextBrush}" HorizontalAlignment="Center"/>
+                                            <TextBlock Text="Captures Entire Monitor" FontSize="9" Foreground="{StaticResource SubTextBrush}" HorizontalAlignment="Center" Opacity="0.6"/>
+                                        </StackPanel>
+                                    </Border>
+                                    <Border x:Name="ModeApp" CornerRadius="12" Background="#111620" BorderThickness="1" BorderBrush="#1A2030" Margin="4,0" Padding="15" Cursor="Hand" Tag="Application" MouseLeftButtonDown="RecordingMode_Click">
+                                        <StackPanel HorizontalAlignment="Center">
+                                            <TextBlock Text="🎮" FontSize="20" HorizontalAlignment="Center" Margin="0,0,0,5"/>
+                                            <TextBlock Text="Specific App" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource TextBrush}" HorizontalAlignment="Center"/>
+                                            <TextBlock Text="Games &amp; Software" FontSize="9" Foreground="{StaticResource SubTextBrush}" HorizontalAlignment="Center" Opacity="0.6"/>
+                                        </StackPanel>
+                                    </Border>
+                                    <Border x:Name="ModeArea" CornerRadius="12" Background="#111620" BorderThickness="1" BorderBrush="#1A2030" Margin="4,0" Padding="15" Cursor="Hand" Tag="Area" MouseLeftButtonDown="RecordingMode_Click">
+                                        <StackPanel HorizontalAlignment="Center">
+                                            <TextBlock Text="📐" FontSize="20" HorizontalAlignment="Center" Margin="0,0,0,5"/>
+                                            <TextBlock Text="Select Area" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource TextBrush}" HorizontalAlignment="Center"/>
+                                            <TextBlock Text="Custom Rectangle" FontSize="9" Foreground="{StaticResource SubTextBrush}" HorizontalAlignment="Center" Opacity="0.6"/>
+                                        </StackPanel>
+                                    </Border>
+                                    <Border x:Name="ModeWindow" CornerRadius="12" Background="#111620" BorderThickness="1" BorderBrush="#1A2030" Margin="8,0,0,0" Padding="15" Cursor="Hand" Tag="Window" MouseLeftButtonDown="RecordingMode_Click">
+                                        <StackPanel HorizontalAlignment="Center">
+                                            <TextBlock Text="🪟" FontSize="20" HorizontalAlignment="Center" Margin="0,0,0,5"/>
+                                            <TextBlock Text="Window" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource TextBrush}" HorizontalAlignment="Center"/>
+                                            <TextBlock Text="Single Window Capture" FontSize="9" Foreground="{StaticResource SubTextBrush}" HorizontalAlignment="Center" Opacity="0.6"/>
+                                        </StackPanel>
+                                    </Border>
+                                </UniformGrid>
 
-                                            <StackPanel Grid.Column="0">
-                                                <TextBlock Text="CAPTURE SETTINGS"
-                                                           FontSize="10" FontWeight="Bold"
-                                                           Foreground="{StaticResource TextMutedBrush}"
-                                                           Margin="0,0,0,14"/>
-                                                <Grid>
-                                                    <Grid.ColumnDefinitions>
-                                                        <ColumnDefinition Width="*"/>
-                                                        <ColumnDefinition Width="*"/>
-                                                        <ColumnDefinition Width="*"/>
-                                                    </Grid.ColumnDefinitions>
-
-                                                    <StackPanel Grid.Column="0" Margin="0,0,8,0">
-                                                        <TextBlock Text="FPS" FontSize="9"
-                                                                   Foreground="{StaticResource SubTextBrush}" Margin="0,0,0,5"/>
-                                                        <ComboBox x:Name="FpsComboBox"
-                                                                  Background="#141922" Foreground="{StaticResource TextBrush}"
-                                                                  BorderThickness="1" BorderBrush="#1A2030">
-                                                            <ComboBoxItem Content="30 FPS" IsSelected="True" Foreground="{StaticResource TextBrush}"/>
-                                                            <ComboBoxItem Content="45 FPS" Foreground="{StaticResource TextBrush}"/>
-                                                            <ComboBoxItem Content="50 FPS" Foreground="{StaticResource TextBrush}"/>
-                                                            <ComboBoxItem Content="60 FPS" Foreground="{StaticResource TextBrush}"/>
-                                                        </ComboBox>
-                                                    </StackPanel>
-                                                    <StackPanel Grid.Column="1" Margin="4,0">
-                                                        <TextBlock Text="MIC" FontSize="9"
-                                                                   Foreground="{StaticResource SubTextBrush}" Margin="0,0,0,5"/>
-                                                        <ComboBox x:Name="MicComboBox"
-                                                                  Background="#141922" Foreground="{StaticResource TextBrush}"
-                                                                  BorderThickness="1" BorderBrush="#1A2030"
-                                                                  FontSize="10"/>
-                                                    </StackPanel>
-                                                    <StackPanel Grid.Column="2" Margin="8,0,0,0">
-                                                        <TextBlock Text="SPEAKER" FontSize="9"
-                                                                   Foreground="{StaticResource SubTextBrush}" Margin="0,0,0,5"/>
-                                                        <ComboBox x:Name="SpeakerComboBox"
-                                                                  Background="#141922" Foreground="{StaticResource TextBrush}"
-                                                                  BorderThickness="1" BorderBrush="#1A2030"
-                                                                  FontSize="10"/>
-                                                    </StackPanel>
-                                                </Grid>
-
-                                                <!-- Hotkey -->
-                                                <StackPanel Margin="0,14,0,0" Orientation="Horizontal">
-                                                    <TextBlock Text="CAMERA HOTKEY:"
-                                                               FontSize="9" FontWeight="Bold"
-                                                               Foreground="{StaticResource SubTextBrush}"
-                                                               VerticalAlignment="Center"
-                                                               Margin="0,0,10,0"/>
-                                                    <Border x:Name="HotkeyBorder"
-                                                            Background="#141922" CornerRadius="6"
-                                                            Padding="12,5"
-                                                            BorderThickness="1" BorderBrush="#1A2030"
-                                                            Cursor="Hand"
-                                                            MouseLeftButtonDown="HotkeyBorder_MouseLeftButtonDown">
-                                                        <TextBlock x:Name="HotkeyDisplayText"
-                                                                   Text="F9" FontSize="11"
-                                                                   FontWeight="Bold"
-                                                                   Foreground="{StaticResource NeonBlueBrush}"/>
-                                                    </Border>
-                                                </StackPanel>
-                                            </StackPanel>
-
-                                            <!-- Record Button -->
-                                            <Button Grid.Column="1"
-                                                    x:Name="RecorderPageRecordBtn"
-                                                    Width="70" Height="70"
-                                                    Click="ZeroRecordBtn_Click"
-                                                    Margin="24,0,0,0">
-                                                <Button.Template>
-                                                    <ControlTemplate TargetType="Button">
-                                                        <Grid>
-                                                            <Ellipse x:Name="bg" Fill="#FF4D4D" Opacity="0.08"/>
-                                                            <Ellipse x:Name="ring" Stroke="#FF4D4D" StrokeThickness="2" Margin="-5"/>
-                                                            <Ellipse x:Name="dot" Fill="#FF4D4D" Width="28" Height="28"/>
-                                                        </Grid>
-                                                        <ControlTemplate.Triggers>
-                                                            <Trigger Property="IsMouseOver" Value="True">
-                                                                <Setter TargetName="bg" Property="Opacity" Value="0.15"/>
-                                                                <Setter TargetName="dot" Property="Width" Value="32"/>
-                                                                <Setter TargetName="dot" Property="Height" Value="32"/>
-                                                            </Trigger>
-                                                        </ControlTemplate.Triggers>
-                                                    </ControlTemplate>
-                                                </Button.Template>
-                                            </Button>
-                                        </Grid>
-
-                                        <Border Background="#141922" CornerRadius="10" Padding="14">
-                                            <StackPanel Orientation="Horizontal">
-                                                <Ellipse Width="6" Height="6" Fill="#00D68F"
-                                                         Margin="0,0,8,0" VerticalAlignment="Center"/>
-                                                <TextBlock Text="Cinematic pan-to-center transition"
-                                                           FontSize="11" Foreground="{StaticResource SubTextBrush}"/>
-                                            </StackPanel>
-                                        </Border>
-                                    </StackPanel>
-                                </Border>
-
-                                <!-- Recordings Library -->
-                                <Border CornerRadius="12" Padding="20" Margin="0,12,0,0"
-                                        Background="#111620"
-                                        BorderThickness="1" BorderBrush="#1A2030">
+                                <!-- 2. CAPTURE CONTROLS -->
+                                <Border Background="#111620" CornerRadius="16" Padding="24" BorderThickness="1" BorderBrush="#1A2030">
                                     <Grid>
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="*"/>
                                             <ColumnDefinition Width="Auto"/>
                                         </Grid.ColumnDefinitions>
-                                        <StackPanel Grid.Column="0" VerticalAlignment="Center">
-                                            <TextBlock Text="Recordings Library"
-                                                       FontSize="13" FontWeight="Bold"
-                                                       Foreground="{StaticResource TextBrush}" Margin="0,0,0,4"/>
-                                            <TextBlock Text="Organize and manage all your recorded videos"
-                                                       FontSize="12"
-                                                       Foreground="{StaticResource SubTextBrush}"/>
+
+                                        <StackPanel>
+                                            <TextBlock Text="HARDWARE SETTINGS" FontSize="10" FontWeight="Bold" Foreground="{StaticResource TextMutedBrush}" Margin="0,0,0,15"/>
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="*"/>
+                                                </Grid.ColumnDefinitions>
+                                                <StackPanel Grid.Column="0" Margin="0,0,10,0">
+                                                    <TextBlock Text="FRAMERATE" FontSize="9" Foreground="{StaticResource SubTextBrush}" Margin="0,0,0,6"/>
+                                                    <ComboBox x:Name="FpsComboBox" Style="{StaticResource ModernComboBox}" SelectedIndex="0">
+                                                        <ComboBoxItem Content="30 FPS"/>
+                                                        <ComboBoxItem Content="60 FPS"/>
+                                                        <ComboBoxItem Content="120 FPS (Pro)"/>
+                                                    </ComboBox>
+                                                </StackPanel>
+                                                <StackPanel Grid.Column="1" Margin="5,0">
+                                                    <TextBlock Text="AUDIO SOURCE" FontSize="9" Foreground="{StaticResource SubTextBrush}" Margin="0,0,0,6"/>
+                                                    <ComboBox x:Name="MicComboBox" Style="{StaticResource ModernComboBox}"/>
+                                                </StackPanel>
+                                                <StackPanel Grid.Column="2" Margin="10,0,0,0">
+                                                    <TextBlock Text="SYSTEM SOUND" FontSize="9" Foreground="{StaticResource SubTextBrush}" Margin="0,0,0,6"/>
+                                                    <ComboBox x:Name="SpeakerComboBox" Style="{StaticResource ModernComboBox}"/>
+                                                </StackPanel>
+                                            </Grid>
+
+                                            <!-- Features & Info -->
+                                            <StackPanel Orientation="Horizontal" Margin="0,20,0,0">
+                                                <CheckBox x:Name="CinematicZoomToggle" IsChecked="True" Style="{StaticResource ModernCheckBox}" Margin="0,0,20,0">
+                                                    <TextBlock Text="Cinematic Camera Zoom" FontSize="10" Foreground="#00D68F" FontWeight="Bold"/>
+                                                </CheckBox>
+                                                <Border x:Name="HotkeyBorder" Background="#2000D9FF" CornerRadius="4" Padding="8,4" Cursor="Hand" MouseLeftButtonDown="HotkeyBorder_MouseLeftButtonDown">
+                                                    <TextBlock x:Name="HotkeyDisplayText" Text="Hotkey: F9" FontSize="10" Foreground="{StaticResource NeonBlueBrush}" FontWeight="Bold"/>
+                                                </Border>
+                                            </StackPanel>
                                         </StackPanel>
-                                        <Button x:Name="OpenRecordingsBtn"
-                                                Grid.Column="1"
-                                                Content="OPEN FOLDER"
-                                                Click="OpenRecordingsBtn_Click"
-                                                Style="{StaticResource ActionButton}"
-                                                Padding="20,10"
-                                                FontSize="11"
-                                                FontWeight="Bold"
-                                                Margin="16,0,0,0"/>
+
+                                        <!-- Pulse Record Button -->
+                                        <Button Grid.Column="1" x:Name="RecorderPageRecordBtn" Width="80" Height="80" Click="ZeroRecordBtn_Click" Margin="20,0,0,0">
+                                            <Button.Template>
+                                                <ControlTemplate TargetType="Button">
+                                                    <Grid>
+                                                        <Ellipse x:Name="outer" Stroke="#FF4D4D" StrokeThickness="2" Margin="-6" Opacity="0.3"/>
+                                                        <Ellipse x:Name="bg" Fill="#FF4D4D" Opacity="0.1"/>
+                                                        <Ellipse x:Name="dot" Fill="#FF4D4D" Width="34" Height="34"/>
+                                                    </Grid>
+                                                    <ControlTemplate.Triggers>
+                                                        <Trigger Property="IsMouseOver" Value="True">
+                                                            <Setter TargetName="dot" Property="Width" Value="38"/>
+                                                            <Setter TargetName="dot" Property="Height" Value="38"/>
+                                                            <Setter TargetName="bg" Property="Opacity" Value="0.2"/>
+                                                        </Trigger>
+                                                    </ControlTemplate.Triggers>
+                                                </ControlTemplate>
+                                            </Button.Template>
+                                        </Button>
                                     </Grid>
                                 </Border>
+
+                                <!-- 3. RECORDING HISTORY -->
+                                <Grid Margin="0,24,0,0">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Grid.Column="0" Text="RECENT RECORDINGS" FontSize="11" FontWeight="Bold" Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center"/>
+                                    <Button Grid.Column="1" Content="OPEN FOLDER" Style="{StaticResource CasualBtn}" FontSize="10" Click="OpenRecordingsBtn_Click"/>
+                                </Grid>
+
+                                <ScrollViewer Height="250" Margin="0,12,0,0">
+                                    <ItemsControl x:Name="RecordingHistoryList">
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <Border Background="#141922" CornerRadius="10" Padding="15" Margin="0,0,0,8" BorderThickness="1" BorderBrush="#1A2030">
+                                                    <Grid>
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="Auto"/>
+                                                            <ColumnDefinition Width="*"/>
+                                                            <ColumnDefinition Width="Auto"/>
+                                                        </Grid.ColumnDefinitions>
+                                                        <Border Grid.Column="0" Width="40" Height="40" Background="#1A2030" CornerRadius="8" Margin="0,0,15,0">
+                                                            <TextBlock Text="🎬" FontSize="20" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                        </Border>
+                                                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                                            <TextBlock Text="{Binding FileName}" FontSize="13" FontWeight="Bold" Foreground="{StaticResource TextBrush}"/>
+                                                            <StackPanel Orientation="Horizontal">
+                                                                <TextBlock Text="{Binding CreationDate}" FontSize="11" Foreground="{StaticResource SubTextBrush}"/>
+                                                                <TextBlock Text=" • " Foreground="{StaticResource SubTextBrush}"/>
+                                                                <TextBlock Text="{Binding FileSize}" FontSize="11" Foreground="{StaticResource SubTextBrush}"/>
+                                                            </StackPanel>
+                                                        </StackPanel>
+                                                        <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                                                            <Button Content="PLAY" Style="{StaticResource ActionButton}" Padding="12,5" FontSize="10" Margin="0,0,8,0" Click="PlayRecording_Click"/>
+                                                            <Button Content="✕" Style="{StaticResource CasualBtn}" Padding="10,5" FontSize="10" Foreground="#FF5555" Click="DeleteRecording_Click"/>
+                                                        </StackPanel>
+                                                    </Grid>
+                                                </Border>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </ScrollViewer>
                             </StackPanel>
                         </ScrollViewer>
 

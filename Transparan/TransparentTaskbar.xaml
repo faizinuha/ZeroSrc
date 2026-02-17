@@ -20,33 +20,34 @@
         <Color x:Key="AccentColor">#00D9FF</Color>
         <Color x:Key="HoverColor">#2A2A3E</Color>
 
-        <SolidColorBrush x:Key="GlassBrush" Color="{StaticResource GlassOverlay}" Opacity="0.8"/>
-        <SolidColorBrush x:Key="TextBrush" Color="{StaticResource TextColor}"/>
-        <SolidColorBrush x:Key="AccentBrush" Color="{StaticResource AccentColor}"/>
-        <SolidColorBrush x:Key="HoverBrush" Color="{StaticResource HoverColor}" Opacity="0.6"/>
+        <SolidColorBrush x:Key="GlassBrush" Color="#0A0D14" Opacity="0.95"/>
+        <SolidColorBrush x:Key="TextBrush" Color="#EEF2F7"/>
+        <SolidColorBrush x:Key="AccentBrush" Color="#00D9FF"/>
+        <SolidColorBrush x:Key="HoverBrush" Color="#303846" Opacity="0.8"/>
 
         <!-- Button Style -->
         <Style x:Key="TaskbarButton" TargetType="Button">
             <Setter Property="Background" Value="Transparent"/>
             <Setter Property="Foreground" Value="{StaticResource TextBrush}"/>
             <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="Padding" Value="12,8"/>
-            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="Padding" Value="10,6"/>
+            <Setter Property="FontSize" Value="12"/>
             <Setter Property="Cursor" Value="Hand"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
-                        <Border Background="{TemplateBinding Background}" 
-                                CornerRadius="8"
+                        <Border x:Name="border" 
+                                Background="{TemplateBinding Background}" 
+                                CornerRadius="6"
                                 Padding="{TemplateBinding Padding}">
                             <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter Property="Background" Value="{StaticResource HoverBrush}"/>
+                                <Setter TargetName="border" Property="Background" Value="{StaticResource HoverBrush}"/>
                             </Trigger>
                             <Trigger Property="IsPressed" Value="True">
-                                <Setter Property="Opacity" Value="0.8"/>
+                                <Setter TargetName="border" Property="Opacity" Value="0.7"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -56,128 +57,94 @@
     </Window.Resources>
 
     <Border Background="{StaticResource GlassBrush}" 
-            CornerRadius="0,0,16,16"
             BorderBrush="{StaticResource AccentBrush}"
-            BorderThickness="0,0,0,1"
-            Effect="None">
+            BorderThickness="0,0,0,2">
+        <Border.Effect>
+            <DropShadowEffect Color="#00D9FF" BlurRadius="10" ShadowDepth="1" Opacity="0.2"/>
+        </Border.Effect>
 
-        <Grid Margin="15,0">
+        <Grid Margin="20,0">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
 
-            <!-- Logo / App Name -->
+            <!-- Logo Section -->
             <StackPanel Grid.Column="0" 
-                       VerticalAlignment="Center"
-                       Orientation="Horizontal"
-                       Margin="10,0,20,0">
-                <TextBlock Text="⚡" FontSize="18" Margin="0,0,8,0"/>
-                <TextBlock Text="ZeroMix"
-                          FontSize="14"
-                          FontWeight="Bold"
-                          Foreground="{StaticResource AccentBrush}"
-                          VerticalAlignment="Center"/>
+                        VerticalAlignment="Center"
+                        Orientation="Horizontal"
+                        Margin="0,0,30,0">
+                <Grid>
+                    <Ellipse Stroke="{StaticResource AccentBrush}" StrokeThickness="1" Width="24" Height="24"/>
+                    <TextBlock Text="Z" 
+                               FontSize="14" 
+                               FontWeight="Bold" 
+                               Foreground="{StaticResource AccentBrush}"
+                               HorizontalAlignment="Center" 
+                               VerticalAlignment="Center"/>
+                </Grid>
+                <TextBlock Text="ZeroMix Bar"
+                           FontSize="13"
+                           FontWeight="Medium"
+                           Foreground="{StaticResource TextBrush}"
+                           Margin="10,0,0,0"
+                           VerticalAlignment="Center"
+                           Opacity="0.9"/>
             </StackPanel>
 
-            <!-- Center App Buttons -->
+            <!-- Center Navigation -->
             <StackPanel Grid.Column="1" 
-                       Orientation="Horizontal" 
-                       VerticalAlignment="Center"
-                       Margin="20,0">
-                <Button Style="{StaticResource TaskbarButton}" 
-                       Content="🏠 Home"
-                       Name="HomeTaskbarBtn"
-                       Click="HomeTaskbarBtn_Click"/>
-                <Button Style="{StaticResource TaskbarButton}" 
-                       Content="📊 Dashboard"
-                       Name="DashboardTaskbarBtn"
-                       Click="DashboardTaskbarBtn_Click"
-                       Margin="8,0,0,0"/>
-                <Button Style="{StaticResource TaskbarButton}" 
-                       Content="🎮 Launcher"
-                       Name="LauncherTaskbarBtn"
-                       Click="LauncherTaskbarBtn_Click"
-                       Margin="8,0,0,0"/>
-                <Button Style="{StaticResource TaskbarButton}" 
-                       Content="⚙️ Settings"
-                       Name="SettingsTaskbarBtn"
-                       Click="SettingsTaskbarBtn_Click"
-                       Margin="8,0,0,0"/>
+                        Orientation="Horizontal" 
+                        VerticalAlignment="Center"
+                        HorizontalAlignment="Left">
+                <Button Style="{StaticResource TaskbarButton}" Content="Dashboard" Name="HomeTaskbarBtn" Click="HomeTaskbarBtn_Click" Margin="0,0,10,0"/>
+                <Button Style="{StaticResource TaskbarButton}" Content="Statistics" Name="DashboardTaskbarBtn" Click="DashboardTaskbarBtn_Click" Margin="0,0,10,0"/>
+                <Button Style="{StaticResource TaskbarButton}" Content="Plugins" Name="LauncherTaskbarBtn" Click="LauncherTaskbarBtn_Click" Margin="0,0,10,0"/>
+                <Button Style="{StaticResource TaskbarButton}" Content="Settings" Name="SettingsTaskbarBtn" Click="SettingsTaskbarBtn_Click"/>
             </StackPanel>
 
-            <!-- Right Side Info -->
+            <!-- Stats & Clock Section -->
             <StackPanel Grid.Column="2" 
-                       Orientation="Horizontal"
-                       VerticalAlignment="Center"
-                       Margin="20,0,15,0">
-                <!-- Time -->
+                        Orientation="Horizontal"
+                        VerticalAlignment="Center"
+                        Margin="30,0,10,0">
+                
+                <StackPanel Orientation="Vertical" VerticalAlignment="Center" Margin="0,0,20,0">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="CPU" FontSize="9" Foreground="{StaticResource TextBrush}" Opacity="0.6" Margin="0,0,5,0"/>
+                        <TextBlock Name="CpuDisplay" Text="0%" FontSize="10" Foreground="{StaticResource AccentBrush}" FontWeight="SemiBold"/>
+                    </StackPanel>
+                    <ProgressBar Height="2" IsIndeterminate="False" Maximum="100" Name="CpuProgress" Value="0" Width="40" Background="#20FFFFFF" Foreground="{StaticResource AccentBrush}" Margin="0,2,0,0"/>
+                </StackPanel>
+
+                <StackPanel Orientation="Vertical" VerticalAlignment="Center" Margin="0,0,20,0">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="RAM" FontSize="9" Foreground="{StaticResource TextBrush}" Opacity="0.6" Margin="0,0,5,0"/>
+                        <TextBlock Name="RamDisplay" Text="0%" FontSize="10" Foreground="LimeGreen" FontWeight="SemiBold"/>
+                    </StackPanel>
+                    <ProgressBar Height="2" IsIndeterminate="False" Maximum="100" Name="RamProgress" Value="0" Width="40" Background="#20FFFFFF" Foreground="LimeGreen" Margin="0,2,0,0"/>
+                </StackPanel>
+
+                <Border Width="1" Height="20" Background="#30FFFFFF" Margin="0,0,20,0"/>
+
                 <TextBlock Name="TimeDisplay"
-                          Text="14:23"
-                          FontSize="12"
-                          Foreground="{StaticResource TextBrush}"
-                          VerticalAlignment="Center"
-                          FontFamily="Courier New"
-                          FontWeight="Bold"
-                          Margin="0,0,15,0"/>
-
-                <!-- Separator -->
-                <Border Width="1" Background="{StaticResource AccentBrush}" Opacity="0.3" Margin="0,0,15,0"/>
-
-                <!-- CPU -->
-                <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,15,0">
-                    <TextBlock Text="CPU:" FontSize="11" Foreground="{StaticResource TextBrush}" Margin="0,0,4,0"/>
-                    <TextBlock Name="CpuDisplay" 
-                              Text="00%"
-                              FontSize="11" 
-                              Foreground="{StaticResource AccentBrush}"
-                              FontWeight="Bold"
-                              MinWidth="35"/>
-                </StackPanel>
-
-                <!-- RAM -->
-                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                    <TextBlock Text="RAM:" FontSize="11" Foreground="{StaticResource TextBrush}" Margin="0,0,4,0"/>
-                    <TextBlock Name="RamDisplay" 
-                              Text="00%"
-                              FontSize="11" 
-                              Foreground="{StaticResource AccentBrush}"
-                              FontWeight="Bold"
-                              MinWidth="35"/>
-                </StackPanel>
+                           Text="00:00"
+                           FontSize="14"
+                           FontWeight="Bold"
+                           Foreground="{StaticResource TextBrush}"
+                           VerticalAlignment="Center"
+                           FontFamily="Inter, Segoe UI"/>
             </StackPanel>
 
-            <!-- Right Buttons -->
+            <!-- Control Buttons -->
             <StackPanel Grid.Column="3" 
-                       Orientation="Horizontal"
-                       VerticalAlignment="Center"
-                       Margin="0,0,10,0">
-                <Button Style="{StaticResource TaskbarButton}" 
-                       Content="📌"
-                       Name="PinButton"
-                       Click="PinButton_Click"
-                       ToolTip="Pin to Top"
-                       Padding="8,8"/>
-                <Button Style="{StaticResource TaskbarButton}" 
-                       Content="⚙️"
-                       Name="TaskbarSettingsBtn"
-                       Click="TaskbarSettingsBtn_Click"
-                       ToolTip="Taskbar Settings"
-                       Padding="8,8"
-                       Margin="8,0,0,0"/>
+                        Orientation="Horizontal"
+                        VerticalAlignment="Center">
+                <Button Style="{StaticResource TaskbarButton}" Content="📌" Name="PinButton" Click="PinButton_Click" Margin="0,0,5,0"/>
+                <Button Style="{StaticResource TaskbarButton}" Content="✕" Click="CloseTaskbarBtn_Click" Foreground="#FF5555"/>
             </StackPanel>
-
-            <!-- Close Button -->
-            <Button Grid.Column="4" 
-                   Style="{StaticResource TaskbarButton}" 
-                   Content="✕"
-                   Click="CloseTaskbarBtn_Click"
-                   Foreground="#FF6B6B"
-                   ToolTip="Close"
-                   Padding="8,8"/>
         </Grid>
     </Border>
 </Window>
