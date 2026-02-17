@@ -4,12 +4,21 @@ Update besar kali ini membawa teman baru ke desktop Kakak, sekaligus memperkuat 
 
 ### ✨ Fitur Baru (New Features)
 
-- **🎭 Virtual Assistant 2.0 Integration**:
+- **🎭 Virtual Assistant 2.0 Integration**: ( UpCooming )
   - **New Model: HuoHuo (Honkai Star Rail)**: Karakter baru telah ditambahkan ke dalam koleksi.
   - **Model Frieren & Fern**: Karakter ikonik sekarang siap menemani Kakak di pojok layar.
   - **Auto-Motion System**: Karakter kini lebih "hidup" dengan animasi otomatis setiap 5 detik.
   - **Interactive Chat**: Klik pada asisten untuk memunculkan bubble chat berisi dialog unik.
   - **Global Eye Tracking (Fixed)**: Mata asisten akan mengikuti kursor mouse Kakak dengan logika arah yang lebih alami (Up is Up!).
+- **📹 ZeroRecord 2.0 (Premium Revamp)**:
+  - **Neon Glassmorphism UI**: Tampilan baru dengan aksen _Neon Blue_ dan efek transparan premium untuk pengalaman merekam yang lebih mewah.
+  - **4 Smart Capture Modes**: Pilihan mode fleksibel: _Full Screen, Specific App, Select Area,_ & _Window_.
+  - **Integrated Recording History**: Riwayat rekaman terintegrasi di dashboard untuk akses cepat (Play & Manage).
+  - **Cinematic Zoom System**: Zoom kamera lebih halus (_smooth damping_) dan _Typing Zoom_ yang lebih profesional (1.15x).
+  - **Pulsating Status Indicator**: Indikator status rekaman real-time dengan animasi denyut yang modern.
+- **🌈 Smart Taskbar Integration**:
+  - **System Theme Reversion**: Taskbar otomatis kembali ke tema asli Windows (_Blur/Acrylic/Default_) saat transparansi dimatikan.
+  - **Anti-Glitch Layer**: Menghilangkan bug "kotak hitam/putih" saat kursor melayang di atas taskbar transparan.
 - **🎴 Advanced Assistant Dashboard**:
   - **Master Toggle Switch**: Saklar utama untuk menghidupkan/mematikan asisten secara total guna menghemat RAM.
   - **Compact Pro Cards**: Desain kartu karakter yang lebih mungil, rapi, dan responsif.
@@ -17,16 +26,17 @@ Update besar kali ini membawa teman baru ke desktop Kakak, sekaligus memperkuat 
 
 ### 🛡️ Security & Performance (Under the Hood)
 
-- **🔒 Zero-Theft Asset Protection**: Semua model Live2D kini dienkripsi di dalam file `.exe` (Embedded Resource). Tidak ada lagi folder aset yang bisa di-copy orang lain.
+- **🔒 Zero-Theft Asset Protection**: Semua model Live2D kini dienkripsi di dalam file `.exe` (Embedded Resource). Tidak ada lagi folder aset yang bisa di-copy Demi keamanan
 - **🚀 Resource Interceptor**: Menggunakan sistem _Virtual Resource Serving_ di memory untuk memuat aset tanpa meninggalkan jejak file fisik di harddisk.
-- **📦 Compressed Single-File**: Aplikasi kini dibungkus dalam satu file `.exe` yang sudah dikompresi (Self-Contained), tanpa perlu install .NET runtime tambahan.
-- **🧹 Pro Uninstaller**: Proses uninstall kini lebih bersih, cepat (Silent Process Kill), dan minim pop-up yang mengganggu.
+- **🧹 Hook & Memory Optimization**: Menghapus sistem _Global Mouse Hook_ lama yang berat, menggantinya dengan pelacak berbasis event yang jauh lebih ringan untuk performa CPU maksimal.
+- **🧹 Uninstaller**: Proses uninstall kini lebih bersih, cepat (Silent Process Kill), dan minim pop-up yang mengganggu.
 
 ### 🎨 UI & UX Improvements
 
 - **🛠️ Navigation Overhaul**: Menghapus tab redundan untuk tampilan sidebar yang lebih minimalis.
 - **📦 Unified Credits**: Bagian Donasi (Trakteer) dan Credit Asset sekarang terpusat di halaman About.
 - **🧼 Smooth Transitions**: Efek _Fade-in_ saat memuat model Live2D untuk menghilangkan kedipan kotak hitam.
+- **⚪ High-Visibility Text**: Semua tombol sekarang menggunakan _Pure White Text_ untuk keterbacaan maksimal di berbagai kondisi pencahayaan.
 
 ### 🔧 Bug Fixes & Stability
 
@@ -34,8 +44,6 @@ Update besar kali ini membawa teman baru ke desktop Kakak, sekaligus memperkuat 
 - **Fixed**: Kesalahan nama filter pada WebView2 API yang menyebabkan aplikasi crash.
 - **Fixed**: Masalah rendering pada komponen `WallpapersView` saat berpindah tab secara cepat.
 - **Improved**: Optimalisasi memori saat asisten dimatikan (Clear from Task Manager).
-
----
 
 ### 📥 Cara Update:
 

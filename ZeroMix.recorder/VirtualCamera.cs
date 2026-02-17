@@ -17,15 +17,15 @@ namespace ZeroMix.Recorder
         private float _velZoom = 0;
 
         // Tuning untuk FEELS PREMIUM (Target: Ease In-Out ala Screen Studio)
-        private const float SMOOTH_TIME_ACTIVE = 0.15f; // Detik untuk sampe ke target kursor
-        private const float SMOOTH_TIME_IDLE = 0.30f;   // Lebih lambat pas balik ke center (Cinematic)
-        private const float SMOOTH_TIME_TYPE = 0.10f;   // Lebih cepat untuk typing (responsive)
-        private const float ZOOM_SMOOTH_TIME = 0.12f;   // Kecepatan transisi zoom
+        private const float SMOOTH_TIME_ACTIVE = 0.22f; // Slower follow to avoid jarring jumps
+        private const float SMOOTH_TIME_IDLE = 0.40f;   // Very smooth back to center
+        private const float SMOOTH_TIME_TYPE = 0.18f;   // Responsive but smooth for typing
+        private const float ZOOM_SMOOTH_TIME = 0.20f;   // Softer zoom transition
         
         private const float ZOOM_IDLE = 1.0f;
-        private const float ZOOM_TYPE = 1.35f;          // Typing zoom (mirip Screen Studio)
-        private const float ZOOM_CLICK = 1.70f;         // Click zoom
-        private const float ZOOM_DRAG = 2.00f;          // Drag zoom
+        private const float ZOOM_TYPE = 1.30f;          // More noticeable typing zoom
+        private const float ZOOM_CLICK = 1.30f;         // Same as typing, avoids "too close" feel
+        private const float ZOOM_DRAG = 1.60f;          // Moderate drag zoom
 
         private int _screenWidth;
         private int _screenHeight;
@@ -38,11 +38,18 @@ namespace ZeroMix.Recorder
             Y = screenHeight / 2f;
         }
 
-        public void Update(CursorTracker cursor)
+        public void Update(CursorTracker cursor, bool isZoomEnabled = true)
         {
             float deltaTime = 1f / 60f; // Asumsi loop 60fps
 
-            // 1. Zoom Logic dengan PRIORITY: DRAG > CLICK > TYPE > IDLE
+            if (!isZoomEnabled)
+            {
+                _targetZoom = 1.0f;
+                _zoomSustainTicks = 0;
+            }
+            else
+            {
+                // 1. Zoom Logic dengan PRIORITY: DRAG > CLICK > TYPE > IDLE
             if (cursor.IsDragging) 
             {
                 // Drag Zoom (2.0) selalu prioritas
@@ -64,9 +71,9 @@ namespace ZeroMix.Recorder
             }
             else if (cursor.IsTyping)
             {
-                // Type Zoom (1.35) - mirip Screen Studio
+                // Type Zoom (1.15) - Stay zoomed longer to avoid jitters
                 _targetZoom = ZOOM_TYPE;
-                _zoomSustainTicks = 15;  // Quick reset pas stop typing
+                _zoomSustainTicks = 60;  // 1 second sustain at 60fps
             }
             else 
             {
@@ -80,6 +87,7 @@ namespace ZeroMix.Recorder
                     _targetZoom = ZOOM_IDLE;
                 }
             }
+        }
 
             // Zoom dengan Ease In-Out
             Zoom = SmoothDamp(Zoom, _targetZoom, ref _velZoom, ZOOM_SMOOTH_TIME, deltaTime);

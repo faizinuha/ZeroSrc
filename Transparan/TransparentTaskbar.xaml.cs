@@ -59,6 +59,7 @@ namespace ZeroMix
             {
                 float cpuUsage = _cpuCounter.NextValue();
                 CpuDisplay.Text = $"{(int)cpuUsage}%";
+                if (CpuProgress != null) CpuProgress.Value = cpuUsage;
                 
                 // Color based on usage
                 if (cpuUsage > 80)
@@ -74,6 +75,7 @@ namespace ZeroMix
             {
                 float ramUsage = _ramCounter.NextValue();
                 RamDisplay.Text = $"{(int)ramUsage}%";
+                if (RamProgress != null) RamProgress.Value = ramUsage;
                 
                 // Color based on usage
                 if (ramUsage > 80)

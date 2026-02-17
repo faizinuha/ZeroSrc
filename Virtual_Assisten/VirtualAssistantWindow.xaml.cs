@@ -19,6 +19,7 @@ namespace ZeroMix.Virtual_Assisten
         private DispatcherTimer? _eyeTrackingTimer;
         private string _currentCharacter = "Frieren";
         private bool _isWebViewInitialized = false;
+        private bool _isScriptRunning = false; // Flag to prevent command overlap
 
         private readonly Dictionary<string, List<string>> _characterMessages = new()
         {
@@ -51,8 +52,8 @@ namespace ZeroMix.Virtual_Assisten
             _autoTalkTimer.Tick += (s, e) => ShowNextChatMessage();
             _autoTalkTimer.Start();
 
-            // Eye Tracking Timer (Global Mouse Tracking)
-            _eyeTrackingTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(50) };
+            // Eye Tracking Timer (Global Mouse Tracking) - Lowered frequency to reduce CPU load
+            _eyeTrackingTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(100) };
             _eyeTrackingTimer.Tick += UpdateEyeTracking;
             _eyeTrackingTimer.Start();
         }
@@ -67,7 +68,7 @@ namespace ZeroMix.Virtual_Assisten
                 // --disable-features=LayoutService... reduces overhead
                 // --disable-gpu-shader-disk-cache prevents disk I/O lag
                 string extraArgs = "--disable-features=LayoutService,PrivacySandboxSettings4 " +
-                                  "--disable-gpu-shader-disk-cache --disable-extensions " +
+                                  "--disable-extensions " +
                                   "--mute-audio --no-proxy-server --disable-notifications";
 
                 var userDataFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "ZeroMix", "WebView2_VA");
@@ -181,7 +182,7 @@ namespace ZeroMix.Virtual_Assisten
 
         private DateTime _lastMemoryCleanupTime = DateTime.MinValue;
 
-        private void UpdateEyeTracking(object? sender, EventArgs e)
+        private async void UpdateEyeTracking(object? sender, EventArgs e)
         {
             if (!_isWebViewInitialized || !this.IsVisible) return;
 
@@ -200,8 +201,19 @@ namespace ZeroMix.Virtual_Assisten
             diffX = Math.Max(-1, Math.Min(1, diffX));
             diffY = Math.Max(-1, Math.Min(1, -diffY)); // Invert Y for correct JS logic Up is Positive
 
-            // Send to WebView
-            WebView.ExecuteScriptAsync($"if(typeof updateEyeTracking === 'function') updateEyeTracking({diffX:F2}, {diffY:F2});");
+            // Send to WebView (Debounced/Skip if busy)
+            if (!_isScriptRunning)
+            {
+                _isScriptRunning = true;
+                try
+                {
+                    await WebView.ExecuteScriptAsync($"if(typeof updateEyeTracking === 'function') updateEyeTracking({diffX:F2}, {diffY:F2});");
+                }
+                finally
+                {
+                    _isScriptRunning = false;
+                }
+            }
             
             // Memory Sweep every 30 seconds, only ONCE per cycle
             if ((DateTime.Now - _lastMemoryCleanupTime).TotalSeconds > 30) 

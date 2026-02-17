@@ -12,15 +12,14 @@ namespace ZeroMix.Recorder
     {
         private ScreenStudioRecorder? _recorder;
         private string _ffmpegPath;
-        private GlobalMouseHook _mouseHook;
 
         public bool IsInitialized => _recorder?.IsInitialized ?? false;
         public string FFmpegPath => _ffmpegPath;
+        public ScreenStudioRecorder? Recorder => _recorder;
 
         public RecordingManager(string ffmpegPath)
         {
             _ffmpegPath = ffmpegPath;
-            _mouseHook = new GlobalMouseHook();
             
             // Initialize the GPU-first recorder
             _recorder = new ScreenStudioRecorder(ffmpegPath, 30);
@@ -43,7 +42,6 @@ namespace ZeroMix.Recorder
             string outputPath = Path.Combine(zeroRecordDir, outputFileName);
             Console.WriteLine($"[RecordingManager] Starting recording to: {outputPath}");
 
-            _mouseHook.Install();
             _recorder.StartRecording(outputPath, micDevice, speakerDevice);
         }
 
@@ -51,7 +49,6 @@ namespace ZeroMix.Recorder
         {
             if (_recorder == null || !_recorder.IsRecording) return;
             _recorder.StopRecording();
-            _mouseHook.Uninstall();
         }
     }
 }

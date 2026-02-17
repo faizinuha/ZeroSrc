@@ -31,7 +31,7 @@ namespace ZeroMix.Recorder
         // Keyboard tracking
         private bool _wasKeyPressedLastFrame = false;
         private int _typeActiveTicks = 0;
-        private const int TYPE_SUSTAIN_TICKS = 20;  // Quick reset pas stop typing
+        private const int TYPE_SUSTAIN_TICKS = 45;  // 0.75s sustain at 60fps
         
         // List of keys to ignore (modifiers, function keys)
         private static readonly int[] IgnoredKeys = new[]
