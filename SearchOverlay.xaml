@@ -42,7 +42,7 @@
         <local:NullToVisibilityConverter x:Key="NullToVisibilityConverter"/>
         <local:NullToVisibilityConverter x:Key="NullToVisibilityConverterInverse" IsInverse="True"/>
 
-        <FontFamily x:Key="MainFont">Segoe UI Variable Display, Segoe UI, sans-serif</FontFamily>
+        <FontFamily x:Key="MainFont">JetBrains Mono, Fira Code,Segoe UI Variable Display, Segoe UI, sans-serif</FontFamily>
         <SolidColorBrush x:Key="PrimaryBackground" Color="#121212"/>
         <SolidColorBrush x:Key="SecondaryBackground" Color="#1E1E1E"/>
         <SolidColorBrush x:Key="AccentColor" Color="#007AFF"/>
