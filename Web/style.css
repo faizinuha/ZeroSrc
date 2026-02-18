@@ -241,67 +241,7 @@ body {
   color: var(--primary-accent);
 }
 
-/* ===== SPLASH SCREEN ===== */
-.splash-screen {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(135deg, #0a0a0f 0%, #050508 100%);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 9999;
-  transition: opacity 0.5s ease-out;
-}
 
-.splash-content {
-  text-align: center;
-}
-
-.splash-logo {
-  max-width: 150px;
-  margin-bottom: 20px;
-  animation: float 3s ease-in-out infinite;
-}
-
-.splash-title {
-  font-size: 2.5rem;
-  color: var(--primary-accent);
-  margin: 10px 0;
-}
-
-.splash-subtitle {
-  color: var(--text-secondary);
-  font-size: 1.1rem;
-}
-
-.splash-loader {
-  width: 200px;
-  height: 4px;
-  background: var(--surface-color);
-  border-radius: 10px;
-  margin: 30px auto;
-  overflow: hidden;
-}
-
-.loader-bar {
-  height: 100%;
-  background: linear-gradient(90deg, var(--primary-accent), var(--text-secondary));
-  border-radius: 10px;
-  animation: loading 2s ease-in-out;
-}
-
-@keyframes float {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-20px); }
-}
-
-@keyframes loading {
-  0% { width: 0%; }
-  100% { width: 100%; }
-}
 
 /* ===== HEADER / HERO ===== */
 header {
@@ -644,9 +584,9 @@ section h2::after {
 
 .gallery-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 20px;
-  max-width: 1300px;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 24px;
+  max-width: 1200px;
   margin: 0 auto;
 }
 

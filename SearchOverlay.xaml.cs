@@ -14,7 +14,6 @@ using System.Windows.Media;
 using System.Windows.Media.Animation;
 using System.Windows.Media.Imaging;
 using System.Windows.Threading;
-using ZeroMix.Shortcuts;
 
 namespace ZeroMix
 {
@@ -1074,7 +1073,6 @@ namespace ZeroMix
         {
             try
             {
-                // Ensure instance is created on UI thread
                 var shortcutWindow = new CustomShortcutWindow();
                 shortcutWindow.Show();
                 BeginFadeOutAndClose();
@@ -1089,7 +1087,7 @@ namespace ZeroMix
                 } 
                 catch {}
 
-                ShowNotification("Error opening settings. Folder opened instead.", NotificationType.Error);
+                ShowNotification($"Error opening settings: {ex.Message}", NotificationType.Error);
                 System.Diagnostics.Debug.WriteLine($"Error opening shortcut window: {ex.Message}");
             }
         }
