@@ -8,10 +8,9 @@ using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
-
 using System.Runtime.InteropServices;
 
-namespace ZeroMix.Shortcuts
+namespace ZeroMix
 {
     public partial class CustomShortcutWindow : Window
     {
@@ -60,10 +59,8 @@ namespace ZeroMix.Shortcuts
         }
         #endregion
 
-        // SOLUSI: Gunakan path yang sama dengan HotkeyCore dari folder AppData.
         private static readonly string AppDataFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "ZeroMix");
         private static readonly string ShortcutsFilePath = Path.Combine(AppDataFolder, "custom_shortcuts.json");
-
 
         public ObservableCollection<CustomShortcut> Shortcuts { get; set; }
         public ObservableCollection<InstalledApplication> InstalledApps { get; set; }
@@ -84,14 +81,15 @@ namespace ZeroMix.Shortcuts
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
-            // EnableBlur(); // Efek blur dihilangkan sesuai permintaan
+            // Efek blur dihilangkan jika menyebabkan masalah, namun jika ingin dicoba:
+            // EnableBlur();
         }
 
         private void Window_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
             if (e.ButtonState == MouseButtonState.Pressed)
             {
-                DragMove();
+                try { DragMove(); } catch { }
             }
         }
 
@@ -120,11 +118,7 @@ namespace ZeroMix.Shortcuts
         private void SaveButton_Click(object sender, RoutedEventArgs e)
         {
             SaveShortcuts();
-
-            // Panggil metode reload di instance HotkeyCore yang sedang berjalan.
             App.HotkeyCoreInstance?.ReloadCustomHotkeys();
-
-            // Ubah pesan, karena restart tidak lagi diperlukan
             System.Windows.MessageBox.Show("Pintasan telah diperbarui dan sekarang aktif.", "Sukses", MessageBoxButton.OK, MessageBoxImage.Information);
             this.Close();
         }
@@ -136,13 +130,9 @@ namespace ZeroMix.Shortcuts
 
         private void HotkeyTextBox_PreviewKeyDown(object sender, System.Windows.Input.KeyEventArgs e)
         {
-            // Mencegah tombol diproses oleh TextBox
             e.Handled = true;
-
-            // Dapatkan tombol yang ditekan, abaikan pengubah
             Key key = (e.Key == Key.System) ? e.SystemKey : e.Key;
 
-            // Abaikan penekanan hanya pengubah
             if (key == Key.LeftCtrl || key == Key.RightCtrl ||
                 key == Key.LeftAlt || key == Key.RightAlt ||
                 key == Key.LeftShift || key == Key.RightShift ||
@@ -157,8 +147,6 @@ namespace ZeroMix.Shortcuts
             if ((Keyboard.Modifiers & ModifierKeys.Shift) != 0) hotkeyParts.Add("Shift");
             if ((Keyboard.Modifiers & ModifierKeys.Windows) != 0) hotkeyParts.Add("Win");
 
-            // Perbarui TextBox dengan nama tombol
-            // Gunakan KeyConverter untuk mendapatkan nama yang lebih baik (misal: "OemComma" menjadi ",")
             var keyConverter = new KeyConverter();
             var keyName = keyConverter.ConvertToString(key);
             if (keyName != null)
@@ -170,11 +158,9 @@ namespace ZeroMix.Shortcuts
         private void AddShortcutButton_Click(object sender, RoutedEventArgs e)
         {
             string hotkey = HotkeyTextBox.Text;
-            // BUG FIX: Gunakan SelectedValue (path) jika ada, jika tidak, gunakan Text.
-            // Ini memastikan path file yang disimpan, bukan hanya nama aplikasinya.
             string appPath = AppPathComboBox.SelectedValue as string ?? AppPathComboBox.Text;
 
-            if (string.IsNullOrWhiteSpace(hotkey) || hotkey == "Klik dan tekan kombinasi tombol")
+            if (string.IsNullOrWhiteSpace(hotkey) || hotkey == "Click and press key combination")
             {
                 System.Windows.MessageBox.Show("Silakan rekam hotkey.", "Informasi Hilang", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
@@ -186,17 +172,14 @@ namespace ZeroMix.Shortcuts
                 return;
             }
 
-            // Cek duplikat hotkey
             if (Shortcuts.Any(s => s.Hotkey.Equals(hotkey, StringComparison.OrdinalIgnoreCase)))
             {
-                System.Windows.MessageBox.Show("Hotkey ini sudah digunakan. Silakan pilih yang lain.", "Hotkey Duplikat", MessageBoxButton.OK, MessageBoxImage.Warning);
+                System.Windows.MessageBox.Show("Hotkey ini sudah digunakan.", "Hotkey Duplikat", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
 
             Shortcuts.Add(new CustomShortcut { Hotkey = hotkey, ApplicationPath = appPath });
-
-            // Kosongkan input untuk entri berikutnya
-            HotkeyTextBox.Text = "Klik dan tekan kombinasi tombol";
+            HotkeyTextBox.Text = "Click and press key combination";
             AppPathComboBox.Text = "";
             AppPathComboBox.SelectedIndex = -1;
         }
@@ -206,12 +189,11 @@ namespace ZeroMix.Shortcuts
             var selectedShortcut = ShortcutListView.SelectedItem as CustomShortcut;
             if (selectedShortcut == null)
             {
-                System.Windows.MessageBox.Show("Silakan pilih pintasan dari daftar untuk dihapus.", "Tidak Ada Pintasan Dipilih", MessageBoxButton.OK, MessageBoxImage.Warning);
+                System.Windows.MessageBox.Show("Silakan pilih pintasan.", "Tidak Ada Pintasan", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
 
-            var result = System.Windows.MessageBox.Show($"Apakah Anda yakin ingin menghapus pintasan '{selectedShortcut.Hotkey}'?", "Konfirmasi Penghapusan", MessageBoxButton.YesNo, MessageBoxImage.Question);
-            if (result == MessageBoxResult.Yes)
+            if (System.Windows.MessageBox.Show($"Hapus '{selectedShortcut.Hotkey}'?", "Konfirmasi", MessageBoxButton.YesNo) == MessageBoxResult.Yes)
             {
                 Shortcuts.Remove(selectedShortcut);
             }
@@ -220,12 +202,11 @@ namespace ZeroMix.Shortcuts
         private void LoadInstalledApplications()
         {
             var appList = new List<InstalledApplication>();
-            // Tambahkan Desktop ke daftar path yang akan dipindai
             string[] scanPaths =
             {
                 Environment.GetFolderPath(Environment.SpecialFolder.CommonStartMenu),
                 Environment.GetFolderPath(Environment.SpecialFolder.StartMenu),
-                Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory) // <-- Path Desktop ditambahkan di sini
+                Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory)
             };
 
             foreach (var path in scanPaths)
@@ -234,7 +215,6 @@ namespace ZeroMix.Shortcuts
                 {
                     if (Directory.Exists(path))
                     {
-                        // Untuk Desktop, kita hanya pindai folder utama, bukan sub-folder.
                         var searchOption = path.Contains("Desktop") ? SearchOption.TopDirectoryOnly : SearchOption.AllDirectories;
                         var lnkFiles = Directory.GetFiles(path, "*.lnk", searchOption);
                         foreach (var file in lnkFiles)
@@ -245,10 +225,9 @@ namespace ZeroMix.Shortcuts
                         }
                     }
                 }
-                catch { } // Ignore permission errors
+                catch { }
             }
 
-            // Urutkan berdasarkan nama dan tambahkan ke ObservableCollection
             foreach (var app in appList.OrderBy(a => a.Name))
             {
                 InstalledApps.Add(app);
@@ -265,8 +244,8 @@ namespace ZeroMix.Shortcuts
                     var shortcuts = JsonConvert.DeserializeObject<ObservableCollection<CustomShortcut>>(json);
                     if (shortcuts != null)
                     {
-                        Shortcuts = shortcuts;
-                        ShortcutListView.ItemsSource = Shortcuts;
+                        Shortcuts.Clear();
+                        foreach(var s in shortcuts) Shortcuts.Add(s);
                     }
                 }
                 catch { }

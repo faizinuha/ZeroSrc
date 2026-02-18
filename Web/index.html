@@ -22,26 +22,16 @@
       crossorigin="anonymous"
       referrerpolicy="no-referrer"
     />
-    <link rel="stylesheet" href="gsap.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+      integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    />
   </head>
 
   <body>
-    <!--splash screen / Intro animation -->
-    <div class="splash-screen" id="splashScreen">
-      <div class="splash-content">
-        <img
-          src="zeromix-high-resolution-logo-transparent.png"
-          alt="zeromix"
-          class="splash-logo"
-        />
-        <h1 class="splash-title">ZeroMix</h1>
-        <p class="splash-subtitle">Smart Launcher Desktop</p>
-        <div class="splash-loader">
-          <div class="loader-bar"></div>
-        </div>
-      </div>
-    </div>
-
     <!-- Navigation Bar -->
     <nav class="navbar">
       <div class="nav-container">
@@ -89,9 +79,39 @@
         >
           Aplikasi Desktop & Extension untuk Produktivitas Tanpa Batas 🚀
         </p>
-        <a href="#download" class="btn" data-translate="Download Sekarang"
-          >Download Sekarang</a
+        <div
+          class="hero-buttons"
+          style="
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 30px;
+            flex-wrap: wrap;
+          "
         >
+          <a
+            href="Changelog.html"
+            class="btn"
+            data-translate="Download Sekarang"
+          >
+            <i class="fab fa-windows" style="margin-right: 8px"></i>Download
+            Sekarang
+          </a>
+          <a
+            href="https://github.com/faizinuha/ZeroMix"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="btn btn-secondary"
+            data-translate="View GitHub"
+            style="
+              background: transparent;
+              border: 2px solid var(--primary-accent);
+              color: var(--primary-accent);
+            "
+          >
+            <i class="fab fa-github" style="margin-right: 8px"></i>View GitHub
+          </a>
+        </div>
       </div>
     </header>
 
@@ -201,71 +221,26 @@
       </div>
     </section>
 
-    <!-- Download Section -->
-    <section id="download">
-      <h2>⬇️ Download ZeroMix</h2>
-      <div class="download-cards">
-        <div class="download-card reveal">
-          <h3>💻 ZeroMix Desktop</h3>
-          <p>Installer untuk Windows – Versi Terbaru 1.5.5</p>
-          <p style="color: var(--text-tertiary); font-size: 0.9rem">
-            Kompatibel dengan Windows 10 & 11
-          </p>
-          <div class="download-buttons">
-            <a
-              href="https://github.com/faizinuha/ZeroMix/releases"
-              class="btn-1"
-              target="_blank"
-              rel="noopener noreferrer"
-              >📥 Download EXE</a
-            >
-            <a
-              href="https://github.com/faizinuha/ZeroMix/releases"
-              class="btn-2"
-              target="_blank"
-              rel="noopener noreferrer"
-              >📦 Download ZIP</a
-            >
-            <a
-              href="https://github.com/faizinuha/ZeroMix/releases"
-              class="btn-3"
-              target="_blank"
-              rel="noopener noreferrer"
-              >🔗 GitHub</a
-            >
-          </div>
-        </div>
-
-        <div class="download-card reveal">
-          <h3>🌐 ZeroMix Extension</h3>
-          <p>Paket Extension untuk Chrome / Edge / Opera</p>
-          <p style="color: var(--text-tertiary); font-size: 0.9rem">
-            Sinkronisasi otomatis dengan Desktop App
-          </p>
-          <div class="download-buttons">
-            <button class="btn-1" onclick="handleExtensionDownload()">
-              📦 Download ZIP
-            </button>
-            <a
-              href="https://github.com/faizinuha/ZeroMix/releases"
-              class="btn-3"
-              target="_blank"
-              rel="noopener noreferrer"
-              >🔗 Alternatif Link</a
-            >
-          </div>
-        </div>
+    <section class="reveal">
+      <div
+        style="
+          max-width: 1000px;
+          margin: 0 auto 40px auto;
+          border-radius: 16px;
+          overflow: hidden;
+          box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        "
+      >
+        <video
+          src="https://github.com/user-attachments/assets/0a5c1928-32b8-4b32-a391-aefdb5b3d2f5"
+          width="100%"
+          autoplay
+          muted
+          loop
+          playsinline
+        ></video>
       </div>
     </section>
-    <div style="left: 0; margin-bottom: 20px; text-align: center">
-      <video
-        src="https://github.com/user-attachments/assets/0a5c1928-32b8-4b32-a391-aefdb5b3d2f5"
-        width="1000"
-        autoplay
-        muted
-        loop
-      ></video>
-    </div>
     <!-- Media Showcase Section -->
     <section id="showcase">
       <h2 class="reveal" data-translate="🖼️ Galeri & Media">
@@ -659,28 +634,11 @@
       </div>
     </footer>
     <!-- Pustaka Eksternal -->
-    <!-- GSAP Library -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
-    <!-- GSAP Splash Screen Animation -->
-    <script src="gsap.js"></script>
+
     <!-- Translations Dictionary -->
     <script src="translations.js"></script>
     <!-- Auto Translator -->
     <script src="auto-translator.js"></script>
-    <script>
-      function handleExtensionDownload() {
-        const message = `
-Terima kasih telah tertarik dengan ZeroMix Extension!
-
-Pengembang saat ini mengirim update langsung ke link GitHub.
-Silakan kunjungi halaman GitHub untuk download terbaru.
-
-Jangan lupa untuk memberikan star ⭐ jika Anda menyukai project ini!
-        `;
-        alert(message);
-        window.location.href = "https://github.com/faizinuha/ZeroMix/releases";
-      }
-    </script>
     <script>
       // Gallery Filter Logic
       const filterBtns = document.querySelectorAll(".filter-btn");

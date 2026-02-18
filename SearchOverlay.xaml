@@ -41,8 +41,9 @@
         <local:StringToVisibilityConverter x:Key="StringToVisibilityConverter"/>
         <local:NullToVisibilityConverter x:Key="NullToVisibilityConverter"/>
         <local:NullToVisibilityConverter x:Key="NullToVisibilityConverterInverse" IsInverse="True"/>
-
-        <FontFamily x:Key="MainFont">JetBrains Mono, Fira Code,Segoe UI Variable Display, Segoe UI, sans-serif</FontFamily>
+        <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
+        
+        <FontFamily x:Key="MainFont">'JetBrains Mono', 'Fira Code', 'Segoe UI Variable Display', 'Segoe UI', sans-serif</FontFamily>
         <SolidColorBrush x:Key="PrimaryBackground" Color="#121212"/>
         <SolidColorBrush x:Key="SecondaryBackground" Color="#1E1E1E"/>
         <SolidColorBrush x:Key="AccentColor" Color="#007AFF"/>
@@ -242,7 +243,7 @@
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
                     
                     <!-- Preview Header -->
@@ -254,7 +255,7 @@
                     </Grid>
                     
                     <!-- Preview Content -->
-                    <ScrollViewer Grid.Row="1" Padding="16">
+                    <ScrollViewer Grid.Row="1" Padding="16" MaxHeight="450">
                         <StackPanel>
                             <!-- Image Preview -->
                             <Border x:Name="ImagePreviewContainer" CornerRadius="8" ClipToBounds="True" Visibility="Collapsed" Margin="0,0,0,16">
