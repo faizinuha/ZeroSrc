@@ -19,6 +19,7 @@ using ZeroMix.Recorder;
 using ZeroMix.Widgets;
 using System.Windows.Documents;
 using System.Windows.Navigation;
+using ZeroMix.ZeroShell;
 
 // using COmponene ZeroMixcreatePlugns
 using CheckBox = System.Windows.Controls.CheckBox;
@@ -107,6 +108,7 @@ namespace ZeroMix
         private Virtual_Assisten.VirtualAssistantWindow? _assistantWindow;
         private string _selectedRecordingMode = "FullScreen";
         private System.Collections.ObjectModel.ObservableCollection<RecordingHistoryItem> _recordingHistory = new();
+        private Window? _zeroShellWindow;
 
         public void ChangeLanguage(string cultureCode)
         {
@@ -337,9 +339,57 @@ namespace ZeroMix
             var contextMenu = new ContextMenuStrip();
             contextMenu.Items.Add("Show Dashboard", null, (s, args) => ShowWindow());
             contextMenu.Items.Add("ZeroMix Studio (Editor)", null, (s, args) => OpenVideoEditor());
+            
+            var shellItem = new ToolStripMenuItem("Enable ZeroShell");
+            shellItem.Click += (s, args) => ToggleZeroShell();
+            contextMenu.Items.Add(shellItem);
+
+            contextMenu.Items.Add("Show Terminal", null, (s, args) => {
+                if (_zeroShellWindow != null) {
+                    _zeroShellWindow.Show();
+                    _zeroShellWindow.Activate();
+                    _zeroShellWindow.WindowState = WindowState.Normal;
+                } else {
+                    ToggleZeroShell();
+                }
+            });
+
             contextMenu.Items.Add(new ToolStripSeparator());
             contextMenu.Items.Add("Exit", null, (s, args) => ExitApplication());
             _notifyIcon.ContextMenuStrip = contextMenu;
+        }
+
+        private void ToggleZeroShell()
+        {
+            if (_zeroShellWindow == null)
+            {
+                _zeroShellWindow = new ZeroShellWindow();
+                _zeroShellWindow.Show();
+                
+                // Update menu text if possible
+                UpdateTrayMenuText("Disable ZeroShell");
+            }
+            else
+            {
+                _zeroShellWindow.Close();
+                _zeroShellWindow = null;
+                UpdateTrayMenuText("Enable ZeroShell");
+            }
+        }
+
+        private void UpdateTrayMenuText(string newText)
+        {
+            if (_notifyIcon?.ContextMenuStrip != null)
+            {
+                foreach (ToolStripItem item in _notifyIcon.ContextMenuStrip.Items)
+                {
+                    if (item.Text.EndsWith("ZeroShell"))
+                    {
+                        item.Text = newText;
+                        break;
+                    }
+                }
+            }
         }
 
         private void InitializePerformanceCounters()

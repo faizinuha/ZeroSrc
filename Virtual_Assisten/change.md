@@ -1,57 +1,45 @@
-# 🚀 ZeroMix v2.7.0-Beta - The "Companion & Security" Update
+# 🚀 ZeroMix v3.0.0 - The "ZeroShell" Evolution
 
-Update besar kali ini membawa teman baru ke desktop Kakak, sekaligus memperkuat keamanan internal aplikasi agar tetap ringan namun sulit ditembus.
+Update terbesar dalam sejarah ZeroMix. Kami memperkenalkan **ZeroShell**, sebuah revolusi cara Kakak berinteraksi dengan desktop Windows. Bukan sekadar aplikasi, ini adalah ekosistem desktop kustom yang memadukan estetika _Liquid Glass_ dengan performa tingkat tinggi.
 
-### ✨ Fitur Baru (New Features)
+### ✨ Fitur Utama v3.0.0 (ZeroShell)
 
-- **🎭 Virtual Assistant 2.0 Integration**: ( UpCooming )
-  - **New Model: HuoHuo (Honkai Star Rail)**: Karakter baru telah ditambahkan ke dalam koleksi.
-  - **Model Frieren & Fern**: Karakter ikonik sekarang siap menemani Kakak di pojok layar.
-  - **Auto-Motion System**: Karakter kini lebih "hidup" dengan animasi otomatis setiap 5 detik.
-  - **Interactive Chat**: Klik pada asisten untuk memunculkan bubble chat berisi dialog unik.
-  - **Global Eye Tracking (Fixed)**: Mata asisten akan mengikuti kursor mouse Kakak dengan logika arah yang lebih alami (Up is Up!).
-- **📹 ZeroRecord 2.0 (Premium Revamp)**:
-  - **Neon Glassmorphism UI**: Tampilan baru dengan aksen _Neon Blue_ dan efek transparan premium untuk pengalaman merekam yang lebih mewah.
-  - **4 Smart Capture Modes**: Pilihan mode fleksibel: _Full Screen, Specific App, Select Area,_ & _Window_.
-  - **Integrated Recording History**: Riwayat rekaman terintegrasi di dashboard untuk akses cepat (Play & Manage).
-  - **Cinematic Zoom System**: Zoom kamera lebih halus (_smooth damping_) dan _Typing Zoom_ yang lebih profesional (1.15x).
-  - **Pulsating Status Indicator**: Indikator status rekaman real-time dengan animasi denyut yang modern.
-- **🌈 Smart Taskbar Integration**:
-  - **System Theme Reversion**: Taskbar otomatis kembali ke tema asli Windows (_Blur/Acrylic/Default_) saat transparansi dimatikan.
-  - **Anti-Glitch Layer**: Menghilangkan bug "kotak hitam/putih" saat kursor melayang di atas taskbar transparan.
-- **🎴 Advanced Assistant Dashboard**:
-  - **Master Toggle Switch**: Saklar utama untuk menghidupkan/mematikan asisten secara total guna menghemat RAM.
-  - **Compact Pro Cards**: Desain kartu karakter yang lebih mungil, rapi, dan responsif.
-  - **Smart State Persistence**: Mengingat karakter terakhir yang Kakak gunakan.
+- **🌌 Zero Terminal - Neofetch Anime Evolution**:
+  - **Neofetch Style UI**: Tampilan info sistem bergaya Neofetch yang legendaris, lengkap dengan blok warna palet dan info detail OS/CPU/RAM.
+  - **Anime Sidebar Integration**: Slot khusus di sisi kiri untuk menampilkan karakter anime pilihan Kakak (cukup taruh `character.png` di folder `ZeroShell`).
+  - **Dynamic StatusBar**: Status bar bergaya Linux/ZSH dengan info user, path, dan jam digital yang minimalis.
+  - **Pro Power Commands**:
+    - `!help`, `!wifi`, `!sys`, `!ip`, `!battery`, `!disk`, `!apps`, `!startup`.
+    - Navigasi riwayat perintah menggunakan tombol **Atas/Bawah**.
+- **📑 ZeroShell Core Integration**:
+  - **Glass Explorer Magic**: Membuat tampilan Windows Explorer menjadi transparan dengan efek blur/acrylic yang cantik.
+- **🎭 Virtual Assistant 2.0 (Stable)**:
+  - **Full Model Support**: Optimalisasi untuk model HuoHuo, Frieren, dan Fern.
+  - **Memory Efficiency**: Penggunaan RAM yang jauh lebih kecil saat asisten aktif di background.
 
-### 🛡️ Security & Performance (Under the Hood)
+### 🛡️ Jaminan Keamanan & Privasi (Security Verified)
 
-- **🔒 Zero-Theft Asset Protection**: Semua model Live2D kini dienkripsi di dalam file `.exe` (Embedded Resource). Tidak ada lagi folder aset yang bisa di-copy Demi keamanan
-- **🚀 Resource Interceptor**: Menggunakan sistem _Virtual Resource Serving_ di memory untuk memuat aset tanpa meninggalkan jejak file fisik di harddisk.
-- **🧹 Hook & Memory Optimization**: Menghapus sistem _Global Mouse Hook_ lama yang berat, menggantinya dengan pelacak berbasis event yang jauh lebih ringan untuk performa CPU maksimal.
-- **🧹 Uninstaller**: Proses uninstall kini lebih bersih, cepat (Silent Process Kill), dan minim pop-up yang mengganggu.
+Kami paham bahwa mengubah tampilan sistem seringkali membuat pengguna khawatir. Berikut adalah komitmen keamanan ZeroMix v3.0.0:
 
-### 🎨 UI & UX Improvements
+1. **🔒 100% Local Execution**: ZeroMix **TIDAK PERNAH** mengirimkan data desktop, file, atau aktivitas Kakak ke server manapun. Semua proses perubahan tampilan terjadi secara lokal di komputer Kakak.
+2. **🚫 No System File Injection**: ZeroShell bekerja dengan metode _Window Hooking_ dan _API Interception_ yang resmi disediakan oleh Windows. Kami tidak merusak atau memodifikasi file sistem asli Windows (`explorer.exe` tetap asli).
+3. **🛡️ Code Integrity**: Aplikasi ini dibangun dengan .NET 9 terbaru yang memiliki proteksi memori ketat. Aset asisten dan shell dienkripsi di dalam paket aplikasi untuk mencegah penyisipan kode berbahaya (malware) dari luar.
+4. **🔍 Transparency Mode**: Pengguna dapat melihat setiap proses yang dijalankan melalui Dashboard. Tidak ada proses tersembunyi yang berjalan tanpa seizin Kakak.
 
-- **🛠️ Navigation Overhaul**: Menghapus tab redundan untuk tampilan sidebar yang lebih minimalis.
-- **📦 Unified Credits**: Bagian Donasi (Trakteer) dan Credit Asset sekarang terpusat di halaman About.
-- **🧼 Smooth Transitions**: Efek _Fade-in_ saat memuat model Live2D untuk menghilangkan kedipan kotak hitam.
-- **⚪ High-Visibility Text**: Semua tombol sekarang menggunakan _Pure White Text_ untuk keterbacaan maksimal di berbagai kondisi pencahayaan.
+### 🎨 UI & UX Professional Polish
 
-### 🔧 Bug Fixes & Stability
+- **Smooth UI Animation**: Semua transisi jendela sekarang menggunakan _Easing Functions_ kelas dunia (Linear & Cubic).
+- **High DPI Support**: Tampilan tetap tajam meski digunakan di monitor 4K dengan _scaling_ tinggi.
+- **Zero-Latency Response**: Klik pada tray dan logo Windows kustom memberikan respon instan tanpa _delay_.
 
-- **Fixed**: Error build `NETSDK1175` terkait fitur Trimming pada Windows Forms.
-- **Fixed**: Kesalahan nama filter pada WebView2 API yang menyebabkan aplikasi crash.
-- **Fixed**: Masalah rendering pada komponen `WallpapersView` saat berpindah tab secara cepat.
-- **Improved**: Optimalisasi memori saat asisten dimatikan (Clear from Task Manager).
+### 📥 Langkah Sederhana Menggunakan ZeroShell:
 
-### 📥 Cara Update:
-
-1. Unduh installer `ZeroMix-v2.7.0-beta-Setup.exe`.
-2. Jalankan installer (installer akan otomatis mendeteksi dan memperbarui versi lama).
-3. Buka menu **Assistant** dan aktifkan saklar **ONLINE** untuk memulai!
+1. Jalankan ZeroMix v3.0.0.
+2. Klik ikon **Gear** di Search Overlay atau klik kanan ikon **Tray**.
+3. Pilih **"Enable ZeroShell"** untuk mengubah desktop Kakak menjadi mahakarya visual.
+4. Gunakan sidebar untuk mengatur posisi jam dan kartu ikon.
 
 ---
 
 **Note dari Pengembang:**
-Update ini adalah langkah besar menuju ZeroMix yang lebih personal. Jika Kakak menyukai update ini, dukung kami terus melalui [Trakteer](https://trakteer.id/MyCici). Terima kasih, Kak! 🥰
+v3.0.0 adalah impian kami untuk membuat Windows terasa lebih "hidup" dan personal. Keamanan Kakak adalah prioritas nomor satu kami. Jika Kakak merasa terbantu, dukung pengembangan ini di [Trakteer](https://trakteer.id/MyCici). Selamat menikmati desktop baru, Kak! 🥰

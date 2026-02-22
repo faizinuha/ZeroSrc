@@ -1,0 +1,191 @@
+<Window x:Class="ZeroMix.ZeroShell.ZeroShellWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Zero Terminal" 
+        Height="700" Width="1200"
+        WindowStyle="None"
+        AllowsTransparency="True"
+        Background="Transparent"
+        ShowInTaskbar="True"
+        WindowStartupLocation="CenterScreen"
+        Loaded="Window_Loaded"
+        MouseDown="Window_MouseDown">
+
+    <Window.Resources>
+        <Style TargetType="{x:Type ScrollBar}">
+            <Setter Property="Width" Value="5"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Style.Resources>
+                <Style TargetType="RepeatButton"><Setter Property="Visibility" Value="Collapsed"/></Style>
+                <Style TargetType="Thumb">
+                    <Setter Property="Background" Value="#25FFFFFF"/>
+                    <Setter Property="Template">
+                        <Setter.Value>
+                            <ControlTemplate TargetType="Thumb">
+                                <Border Background="{TemplateBinding Background}" CornerRadius="3"/>
+                            </ControlTemplate>
+                        </Setter.Value>
+                    </Setter>
+                </Style>
+            </Style.Resources>
+        </Style>
+    </Window.Resources>
+
+    <Grid>
+        <!-- MAIN WINDOW -->
+        <Border CornerRadius="16" Margin="12">
+            <Border.Background>
+                <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                    <GradientStop Color="#F5101820" Offset="0"/>
+                    <GradientStop Color="#F5080E14" Offset="1"/>
+                </LinearGradientBrush>
+            </Border.Background>
+            <Border.Effect>
+                <DropShadowEffect BlurRadius="30" Color="Black" Opacity="0.6" ShadowDepth="0"/>
+            </Border.Effect>
+
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="38"/>  <!-- Title Bar -->
+                    <RowDefinition Height="*"/>   <!-- Neofetch Area -->
+                    <RowDefinition Height="42"/>  <!-- Status Bar -->
+                    <RowDefinition Height="*" MinHeight="120" MaxHeight="250"/>  <!-- Terminal -->
+                    <RowDefinition Height="48"/>  <!-- Input -->
+                </Grid.RowDefinitions>
+
+                <!-- TITLE BAR -->
+                <Grid Grid.Row="0" Background="#18FFFFFF">
+                    <StackPanel Orientation="Horizontal" Margin="16,0" VerticalAlignment="Center">
+                        <Ellipse Width="12" Height="12" Fill="#FFFF5F56" Margin="0,0,8,0"/>
+                        <Ellipse Width="12" Height="12" Fill="#FFFFBD2E" Margin="0,0,8,0"/>
+                        <Ellipse Width="12" Height="12" Fill="#FF27C93F" Margin="0,0,20,0"/>
+                        <TextBlock Text="zero@terminal: ~" Foreground="#88FFFFFF" FontFamily="Consolas" FontSize="12"/>
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,0,10,0">
+                        <Button Content="─" Width="32" Height="28" Background="Transparent" BorderBrush="Transparent" Foreground="#88FFFFFF" Click="MinimizeButton_Click" FontSize="13"/>
+                        <Button Content="✕" Width="32" Height="28" Background="Transparent" BorderBrush="Transparent" Foreground="#88FF5F56" Click="CloseButton_Click" FontSize="13"/>
+                    </StackPanel>
+                </Grid>
+
+                <!-- NEOFETCH AREA -->
+                <Grid Grid.Row="1" Margin="30,20,30,10">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="250"/>  <!-- Anime Character -->
+                        <ColumnDefinition Width="*"/>    <!-- System Info -->
+                    </Grid.ColumnDefinitions>
+
+                    <!-- ANIME CHARACTER -->
+                    <Border Grid.Column="0" CornerRadius="12" Margin="0,0,25,0">
+                        <Border.Background>
+                            <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                                <GradientStop Color="#15FFFFFF" Offset="0"/>
+                                <GradientStop Color="#05FFFFFF" Offset="1"/>
+                            </LinearGradientBrush>
+                        </Border.Background>
+                        <Grid>
+                            <Image x:Name="AnimeCharImage" Stretch="UniformToFill" VerticalAlignment="Bottom" RenderOptions.BitmapScalingMode="HighQuality"/>
+                            <!-- Fallback Text jika belum ada gambar -->
+                            <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" x:Name="CharPlaceholder">
+                                <TextBlock Text="零" FontSize="80" Foreground="#2500D4FF" HorizontalAlignment="Center" FontWeight="Bold"/>
+                                <TextBlock Text="ZERO" Foreground="#25FFFFFF" FontSize="12" HorizontalAlignment="Center"/>
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+
+                    <!-- SYSTEM INFO (Neofetch style) -->
+                    <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                        
+                        <!-- Block 1: OS Info (Red/Orange) -->
+                        <StackPanel Margin="0,0,0,8">
+                            <TextBlock FontFamily="Consolas" FontSize="13" Margin="0,3">
+                                <Run Text=" 🖥 " Foreground="#FFFF6B6B"/><Run x:Name="OsInfoText" Text="Windows 11" Foreground="#EEEEEE"/>
+                            </TextBlock>
+                            <TextBlock FontFamily="Consolas" FontSize="13" Margin="0,3">
+                                <Run Text=" 🔧 " Foreground="#FFFF6B6B"/><Run x:Name="KernelText" Text="NT 10.0" Foreground="#CCCCCC"/>
+                            </TextBlock>
+                            <TextBlock FontFamily="Consolas" FontSize="13" Margin="0,3">
+                                <Run Text=" ⏱ " Foreground="#FFFF6B6B"/><Run x:Name="UptimeText" Text="-- mins" Foreground="#CCCCCC"/>
+                            </TextBlock>
+                            <!-- Red Bar -->
+                            <TextBlock Text="● ● ● ● ● ● ● ● ● ●" Foreground="#FFFF6B6B" FontSize="10" Margin="5,5,0,0"/>
+                        </StackPanel>
+
+                        <!-- Block 2: Shell Info (Magenta/Purple) -->
+                        <StackPanel Margin="0,0,0,8">
+                            <TextBlock FontFamily="Consolas" FontSize="13" Margin="0,3">
+                                <Run Text=" 📦 " Foreground="#FFCC6BFF"/><Run x:Name="ShellText" Text="PowerShell" Foreground="#EEEEEE"/>
+                            </TextBlock>
+                            <TextBlock FontFamily="Consolas" FontSize="13" Margin="0,3">
+                                <Run Text=" 🎨 " Foreground="#FFCC6BFF"/><Run Text="ZeroMix Terminal" Foreground="#CCCCCC"/>
+                            </TextBlock>
+                            <!-- Magenta Bar -->
+                            <TextBlock Text="◆ ◆ ◆ ◆ ◆ ◆ ◆ ◆ ◆ ◆" Foreground="#FFCC6BFF" FontSize="10" Margin="5,5,0,0"/>
+                        </StackPanel>
+
+                        <!-- Block 3: Hardware Info (Yellow/Green) -->
+                        <StackPanel Margin="0,0,0,8">
+                            <TextBlock FontFamily="Consolas" FontSize="13" Margin="0,3">
+                                <Run Text=" 💻 " Foreground="#FFFFDA6B"/><Run x:Name="CpuInfoText" Text="Loading..." Foreground="#EEEEEE"/>
+                            </TextBlock>
+                            <TextBlock FontFamily="Consolas" FontSize="13" Margin="0,3">
+                                <Run Text=" 🎮 " Foreground="#FFFFDA6B"/><Run x:Name="GpuInfoText" Text="Loading..." Foreground="#CCCCCC"/>
+                            </TextBlock>
+                            <TextBlock FontFamily="Consolas" FontSize="13" Margin="0,3">
+                                <Run Text=" 🧠 " Foreground="#FFFFDA6B"/><Run x:Name="RamInfoText" Text="Loading..." Foreground="#CCCCCC"/>
+                            </TextBlock>
+                            <!-- Yellow Bar -->
+                            <TextBlock Text="▲ ▲ ▲ ▲ ▲ ▲ ▲ ▲ ▲ ▲" Foreground="#FFFFDA6B" FontSize="10" Margin="5,5,0,0"/>
+                        </StackPanel>
+
+                        <!-- Color Palette Row -->
+                        <StackPanel Orientation="Horizontal" Margin="5,10,0,0">
+                            <Border Width="22" Height="22" CornerRadius="4" Background="#FFFF6B6B" Margin="0,0,5,0"/>
+                            <Border Width="22" Height="22" CornerRadius="4" Background="#FFFF9F43" Margin="0,0,5,0"/>
+                            <Border Width="22" Height="22" CornerRadius="4" Background="#FFFFDA6B" Margin="0,0,5,0"/>
+                            <Border Width="22" Height="22" CornerRadius="4" Background="#FF27C93F" Margin="0,0,5,0"/>
+                            <Border Width="22" Height="22" CornerRadius="4" Background="#FF6BDDFF" Margin="0,0,5,0"/>
+                            <Border Width="22" Height="22" CornerRadius="4" Background="#FFCC6BFF" Margin="0,0,5,0"/>
+                            <Border Width="22" Height="22" CornerRadius="4" Background="#FFFF6BCA" Margin="0,0,5,0"/>
+                            <Border Width="22" Height="22" CornerRadius="4" Background="#FFFFFFFF" Margin="0,0,5,0"/>
+                        </StackPanel>
+                    </StackPanel>
+                </Grid>
+
+                <!-- STATUS BAR (Like the prompt bar in the screenshot) -->
+                <Border Grid.Row="2" Background="#12FFFFFF" Margin="20,0" CornerRadius="6" Padding="15,0">
+                    <Grid>
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <Border Background="#FF27C93F" CornerRadius="4" Padding="10,4" Margin="0,0,2,0">
+                                <TextBlock x:Name="UserNameText" Text=" zero " FontFamily="Consolas" FontSize="11" Foreground="#111111" FontWeight="Bold"/>
+                            </Border>
+                            <Border Background="#FF6BDDFF" CornerRadius="0,4,4,0" Padding="10,4" Margin="0,0,15,0">
+                                <TextBlock Text=" ~/zero-terminal " FontFamily="Consolas" FontSize="11" Foreground="#111111"/>
+                            </Border>
+                            <TextBlock x:Name="DateTimeText" Text="--" Foreground="#66FFFFFF" FontFamily="Consolas" FontSize="11" VerticalAlignment="Center"/>
+                        </StackPanel>
+                        <TextBlock Text="!help" Foreground="#44FFFFFF" FontFamily="Consolas" FontSize="10" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                    </Grid>
+                </Border>
+
+                <!-- TERMINAL OUTPUT -->
+                <ScrollViewer x:Name="TerminalScroll" Grid.Row="3" VerticalScrollBarVisibility="Auto" Margin="20,10,20,5">
+                    <TextBlock x:Name="TerminalOutput" Foreground="#CCCCCC" FontFamily="Consolas" FontSize="13" TextWrapping="Wrap" LineHeight="20"/>
+                </ScrollViewer>
+
+                <!-- INPUT -->
+                <Border Grid.Row="4" Background="#10FFFFFF" Margin="20,0,20,12" CornerRadius="8" Padding="5,0">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Text=" ~/.local/zero/bin ❯ " Foreground="#FF27C93F" FontFamily="Consolas" FontSize="13" VerticalAlignment="Center" Margin="10,0,0,0"/>
+                        <TextBox x:Name="TerminalInput" Grid.Column="1" Background="Transparent" BorderBrush="Transparent" 
+                                 Foreground="#EEEEEE" FontFamily="Consolas" FontSize="13" CaretBrush="#FF27C93F" 
+                                 KeyDown="TerminalInput_KeyDown" Padding="5" VerticalAlignment="Center"/>
+                    </Grid>
+                </Border>
+            </Grid>
+        </Border>
+    </Grid>
+</Window>
