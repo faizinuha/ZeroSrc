@@ -6,9 +6,8 @@ Selamat datang di era baru kustomisasi desktop. **ZeroShell v4.2.0** bukan sekad
 
 - **📑 Tabbed Terminal System**: Jalankan banyak sesi terminal sekaligus dalam satu jendela. Gunakan `!tab` untuk menambah sesi dan `!close` untuk menutupnya.
 - **💾 Persistent Alias System**: Simpan perintah favorit Kakak secara permanen. Contoh: `!alias c=cls` (tersimpan otomatis di `aliases.json`).
-- **🔤 Pro Fonts & Layouts**: Dukungan penuh font **JetBrains Mono** dan **Fira Code**. Ganti font dan layout secara visual melalui perintah `!font` dan `!layout`.
-- **⌨️ Advanced Console**: Fitur Tab Auto-complete, navigasi riwayat perintah (Atas/Bawah), dan shortcut `Ctrl+L` untuk membersihkan layar.
-- **📂 Integrated File Explorer**: Telusuri file dan folder secara visual di panel kiri dengan perintah `!explorer`. Double-click untuk navigasi cepat.
+- **📂 Interactive Selection Menu**: Ganti font dan layout secara visual tanpa ngetik angka. Cukup pake tombol panah (↑/↓) di tengah layar.
+- **🔍 Stealth Process Mode**: Perintah sistem (`!sys`, `!wifi`, dll) sekarang menyembunyikan log mentah dan menampilkan status "Processing..." yang lebih bersih.
 
 ### 🌌 Fitur Ekosistem ZeroShell Core
 
@@ -18,12 +17,11 @@ Selamat datang di era baru kustomisasi desktop. **ZeroShell v4.2.0** bukan sekad
 
 ### ⌨️ Daftar Perintah Cepat
 
-| Kategori     | Perintah                                                                                          |
-| :----------- | :------------------------------------------------------------------------------------------------ |
-| **Sesi**     | `!tab`, `!close`, `!exit`                                                                         |
-| **Tools**    | `!explorer`, `!alias`, `!unalias`                                                                 |
-| **Sistem**   | `!wifi`, `!sys`, `!ip`, `!battery`, `!disk`, `!apps`, `!startup`, `!network`, `!drivers`, `!temp` |
-| **Tampilan** | `!font`, `!layout`, `cls`, `Ctrl+L`                                                               |
+| Kategori   | Perintah                                                         |
+| :--------- | :--------------------------------------------------------------- |
+| **Sesi**   | `!tab`, `!close`, `!exit`                                        |
+| **Visual** | `!font`, `!layout`, `!alias`, `!unalias`, `cls`                  |
+| **Sistem** | `!wifi`, `!sys`, `!ip`, `!battery`, `!disk`, `!apps`, `!startup` |
 
 ---
 

@@ -8,8 +8,8 @@ AppId={{ZeroMix-v2-ZeroMix-identifier}}
 AppName=ZeroMix
 
 ; Set AppVersion for display, and MetadataVersion for file properties (must be numeric)
-#define AppVersionStr AppVersion
-#define AppVersionNumeric "3.0.0.0"
+#define AppVersionStr "4.2.0"
+#define AppVersionNumeric "4.2.0.0"
 
 AppVersion={#AppVersionStr}
 VersionInfoVersion={#AppVersionNumeric}
