@@ -1,0 +1,85 @@
+<UserControl x:Class="ZeroMix.Plugins.Translate.TranslatePluginUI"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             mc:Ignorable="d" 
+             d:DesignHeight="450" d:DesignWidth="800">
+    <UserControl.Resources>
+        <ResourceDictionary Source="../Styles.xaml"/>
+    </UserControl.Resources>
+    
+    <StackPanel>
+        <Border x:Name="TranslateCard" Style="{StaticResource CompactCardBorder}" MouseDown="TranslateCard_MouseDown" Cursor="Hand">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <!-- Icon -->
+                <Border Grid.Column="0" Width="42" Height="42" CornerRadius="10" Background="#141922" Margin="0,0,14,0">
+                    <TextBlock Text="&#xE8C1;" FontFamily="Segoe MDL2 Assets" FontSize="20"
+                               Foreground="{StaticResource NeonBlueBrush}"
+                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </Border>
+
+                <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                    <TextBlock Text="ZeroMix Translate" Foreground="White" FontSize="14" FontWeight="Bold" Margin="0,0,0,3"/>
+                    <TextBlock Text="Multi-language translator (Indo, China, Japan, English, Spain)." Foreground="{StaticResource SubTextBrush}" FontSize="11"/>
+                </StackPanel>
+
+                <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                    <CheckBox x:Name="TranslatePluginToggle" VerticalAlignment="Center" Click="TranslatePluginToggle_Click"
+                               Style="{StaticResource ModernCheckBox}"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- Translate Config (Expandable) -->
+        <Border x:Name="TranslateConfigBorder" Style="{StaticResource CardBorder}" Visibility="Collapsed">
+            <StackPanel>
+                <TextBlock Text="TRANSLATOR PRO" FontWeight="Bold" Foreground="{StaticResource NeonBlueBrush}" FontSize="10" Margin="0,0,0,16"/>
+
+                <Grid Margin="0,0,0,10">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    
+                    <ComboBox x:Name="SourceLangCombo" Grid.Column="0" Background="#141922" Foreground="White" BorderBrush="{StaticResource BorderBrush}">
+                        <ComboBoxItem Content="Indonesian" Tag="id" IsSelected="True"/>
+                        <ComboBoxItem Content="English" Tag="en"/>
+                        <ComboBoxItem Content="Chinese" Tag="zh-CN"/>
+                        <ComboBoxItem Content="Japanese" Tag="ja"/>
+                        <ComboBoxItem Content="Spanish" Tag="es"/>
+                    </ComboBox>
+
+                    <Button Grid.Column="1" Content="⇄" Style="{StaticResource ActionButton}" Margin="10,0" Padding="10,2" Click="SwapLanguages_Click"/>
+
+                    <ComboBox x:Name="TargetLangCombo" Grid.Column="2" Background="#141922" Foreground="White" BorderBrush="{StaticResource BorderBrush}">
+                        <ComboBoxItem Content="English" Tag="en" IsSelected="True"/>
+                        <ComboBoxItem Content="Indonesian" Tag="id"/>
+                        <ComboBoxItem Content="Chinese" Tag="zh-CN"/>
+                        <ComboBoxItem Content="Japanese" Tag="ja"/>
+                        <ComboBoxItem Content="Spanish" Tag="es"/>
+                    </ComboBox>
+                </Grid>
+
+                <TextBlock Text="Input Text" Foreground="{StaticResource SubTextBrush}" FontSize="11" Margin="0,5,0,5"/>
+                <TextBox x:Name="TranslateInput" Background="#141922" Foreground="White" 
+                         BorderBrush="{StaticResource BorderBrush}" Padding="10" 
+                         TextWrapping="Wrap" AcceptsReturn="True" Height="80" Margin="0,0,0,10"/>
+
+                <Button Content="TRANSLATE" Style="{StaticResource ActionButton}" HorizontalAlignment="Stretch" Click="DoTranslate_Click" Margin="0,5,0,15"/>
+
+                <TextBlock Text="Translation Results" Foreground="{StaticResource SubTextBrush}" FontSize="11" Margin="0,5,0,5"/>
+                <Border Background="#0AFFFFFF" CornerRadius="8" Padding="10">
+                    <TextBlock x:Name="TranslateOutput" Foreground="White" FontSize="13" TextWrapping="Wrap" MinHeight="40"/>
+                </Border>
+            </StackPanel>
+        </Border>
+    </StackPanel>
+</UserControl>
