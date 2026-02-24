@@ -155,13 +155,17 @@ namespace ZeroMix.ZeroShell
             TerminalsContainer.Children.Add(tab.ScrollViewer);
 
             SwitchToTab(tab);
-    
-    // Welcome Header (Thick Block Style)
-    AppendToTab(tab, "\n", "#CCCCCC");
-    AppendToTab(tab, "  █▄  █ █▀▀ █ █ █▀▀█ \n", "#FF6BDDFF");
-    AppendToTab(tab, "  █ █ █ █▀▀ █▄▀ █  █ \n", "#FF6BDDFF");
-    AppendToTab(tab, "  ▀  ▀▀ ▀▀▀ ▀  ▀ ▀▀▀▀ \n", "#FF6BDDFF");
-    AppendToTab(tab, "  [ N E K O  T E R M I N A L ]\n\n", "#FF6BDDFF");
+            PrintHeader(tab);
+        }
+
+        private void PrintHeader(TerminalTab tab)
+        {
+            if (tab == null) return;
+            AppendToTab(tab, "\n", "#CCCCCC");
+            AppendToTab(tab, "  █▄  █ █▀▀ █ █ █▀▀█ \n", "#FF6BDDFF");
+            AppendToTab(tab, "  █ █ █ █▀▀ █▄▀ █  █ \n", "#FF6BDDFF");
+            AppendToTab(tab, "  ▀  ▀▀ ▀▀▀ ▀  ▀ ▀▀▀▀ \n", "#FF6BDDFF");
+            AppendToTab(tab, "  [ N E K O  T E R M I N A L ]\n\n", "#FF6BDDFF");
         }
 
         private void SwitchToTab(TerminalTab tab)
@@ -464,7 +468,13 @@ namespace ZeroMix.ZeroShell
             }
 
             // CLEAR
-            if (low == "cls" || low == "clear") { if (_activeTab.Output != null) _activeTab.Output.Inlines.Clear(); return; }
+            if (low == "cls" || low == "clear") { 
+                if (_activeTab.Output != null) {
+                    _activeTab.Output.Inlines.Clear();
+                    PrintHeader(_activeTab);
+                }
+                return; 
+            }
 
             // HELP / ?
             if (low == "!help" || low == "?") {
