@@ -364,6 +364,10 @@ namespace ZeroMix
             if (_zeroShellWindow == null)
             {
                 _zeroShellWindow = new ZeroShellWindow();
+                _zeroShellWindow.Closed += (s, ev) => {
+                    _zeroShellWindow = null;
+                    UpdateTrayMenuText("Enable ZeroShell");
+                };
                 _zeroShellWindow.Show();
                 
                 // Update menu text if possible

@@ -1,45 +1,39 @@
-# 🚀 ZeroMix v3.0.0 - The "ZeroShell" Evolution
+# 🚀 ZeroMix v4.2.0 - The "ZeroShell" Professional Evolution
 
-Update terbesar dalam sejarah ZeroMix. Kami memperkenalkan **ZeroShell**, sebuah revolusi cara Kakak berinteraksi dengan desktop Windows. Bukan sekadar aplikasi, ini adalah ekosistem desktop kustom yang memadukan estetika _Liquid Glass_ dengan performa tingkat tinggi.
+Selamat datang di era baru kustomisasi desktop. **ZeroShell v4.2.0** bukan sekadar pembaruan, melainkan transformasi total yang menggabungkan estetika _Glassmorphism_ dengan produktivitas terminal tingkat Pro.
 
-### ✨ Fitur Utama v3.0.0 (ZeroShell)
+### ✨ Fitur Utama Terminal (v4.2.0)
 
-- **🌌 Zero Terminal - Neofetch Anime Evolution**:
-  - **Neofetch Style UI**: Tampilan info sistem bergaya Neofetch yang legendaris, lengkap dengan blok warna palet dan info detail OS/CPU/RAM.
-  - **Anime Sidebar Integration**: Slot khusus di sisi kiri untuk menampilkan karakter anime pilihan Kakak (cukup taruh `character.png` di folder `ZeroShell`).
-  - **Dynamic StatusBar**: Status bar bergaya Linux/ZSH dengan info user, path, dan jam digital yang minimalis.
-  - **Pro Power Commands**:
-    - `!help`, `!wifi`, `!sys`, `!ip`, `!battery`, `!disk`, `!apps`, `!startup`.
-    - Navigasi riwayat perintah menggunakan tombol **Atas/Bawah**.
-- **📑 ZeroShell Core Integration**:
-  - **Glass Explorer Magic**: Membuat tampilan Windows Explorer menjadi transparan dengan efek blur/acrylic yang cantik.
-- **🎭 Virtual Assistant 2.0 (Stable)**:
-  - **Full Model Support**: Optimalisasi untuk model HuoHuo, Frieren, dan Fern.
-  - **Memory Efficiency**: Penggunaan RAM yang jauh lebih kecil saat asisten aktif di background.
+- **📑 Tabbed Terminal System**: Jalankan banyak sesi terminal sekaligus dalam satu jendela. Gunakan `!tab` untuk menambah sesi dan `!close` untuk menutupnya.
+- **💾 Persistent Alias System**: Simpan perintah favorit Kakak secara permanen. Contoh: `!alias c=cls` (tersimpan otomatis di `aliases.json`).
+- **🔤 Pro Fonts & Layouts**: Dukungan penuh font **JetBrains Mono** dan **Fira Code**. Ganti font dan layout secara visual melalui perintah `!font` dan `!layout`.
+- **⌨️ Advanced Console**: Fitur Tab Auto-complete, navigasi riwayat perintah (Atas/Bawah), dan shortcut `Ctrl+L` untuk membersihkan layar.
+- **📂 Integrated File Explorer**: Telusuri file dan folder secara visual di panel kiri dengan perintah `!explorer`. Double-click untuk navigasi cepat.
 
-### 🛡️ Jaminan Keamanan & Privasi (Security Verified)
+### 🌌 Fitur Ekosistem ZeroShell Core
 
-Kami paham bahwa mengubah tampilan sistem seringkali membuat pengguna khawatir. Berikut adalah komitmen keamanan ZeroMix v3.0.0:
+- **�️ Glass Explorer Magic**: Membuat tampilan Windows Explorer menjadi transparan dengan efek acrylic/blur yang sangat elegan.
+- **� Virtual Assistant 2.0**: Dukungan penuh untuk model HuoHuo, Frieren, dan Fern dengan penggunaan memori yang lebih efisien.
+- **🎨 Anime Terminal Aesthetic**: Tampilan Neofetch dengan info sistem detail dan sidebar anime kustom (`character.png`) yang tetap menjadi ciri khas utama.
 
-1. **🔒 100% Local Execution**: ZeroMix **TIDAK PERNAH** mengirimkan data desktop, file, atau aktivitas Kakak ke server manapun. Semua proses perubahan tampilan terjadi secara lokal di komputer Kakak.
-2. **🚫 No System File Injection**: ZeroShell bekerja dengan metode _Window Hooking_ dan _API Interception_ yang resmi disediakan oleh Windows. Kami tidak merusak atau memodifikasi file sistem asli Windows (`explorer.exe` tetap asli).
-3. **🛡️ Code Integrity**: Aplikasi ini dibangun dengan .NET 9 terbaru yang memiliki proteksi memori ketat. Aset asisten dan shell dienkripsi di dalam paket aplikasi untuk mencegah penyisipan kode berbahaya (malware) dari luar.
-4. **🔍 Transparency Mode**: Pengguna dapat melihat setiap proses yang dijalankan melalui Dashboard. Tidak ada proses tersembunyi yang berjalan tanpa seizin Kakak.
+### ⌨️ Daftar Perintah Cepat
 
-### 🎨 UI & UX Professional Polish
+| Kategori     | Perintah                                                                                          |
+| :----------- | :------------------------------------------------------------------------------------------------ |
+| **Sesi**     | `!tab`, `!close`, `!exit`                                                                         |
+| **Tools**    | `!explorer`, `!alias`, `!unalias`                                                                 |
+| **Sistem**   | `!wifi`, `!sys`, `!ip`, `!battery`, `!disk`, `!apps`, `!startup`, `!network`, `!drivers`, `!temp` |
+| **Tampilan** | `!font`, `!layout`, `cls`, `Ctrl+L`                                                               |
 
-- **Smooth UI Animation**: Semua transisi jendela sekarang menggunakan _Easing Functions_ kelas dunia (Linear & Cubic).
-- **High DPI Support**: Tampilan tetap tajam meski digunakan di monitor 4K dengan _scaling_ tinggi.
-- **Zero-Latency Response**: Klik pada tray dan logo Windows kustom memberikan respon instan tanpa _delay_.
+---
 
-### 📥 Langkah Sederhana Menggunakan ZeroShell:
+### 🛡️ Jaminan Keamanan & Privasi
 
-1. Jalankan ZeroMix v3.0.0.
-2. Klik ikon **Gear** di Search Overlay atau klik kanan ikon **Tray**.
-3. Pilih **"Enable ZeroShell"** untuk mengubah desktop Kakak menjadi mahakarya visual.
-4. Gunakan sidebar untuk mengatur posisi jam dan kartu ikon.
+- **100% Local**: Semua proses, alias, dan data Kakak diproses lokal. Tidak ada data yang dikirim ke server luar.
+- **No System Injection**: Kami menggunakan API resmi Windows, tidak memodifikasi file sistem asli.
+- **Stable & Safe**: Build menggunakan .NET 9 dengan manajemen memori yang aman.
 
 ---
 
 **Note dari Pengembang:**
-v3.0.0 adalah impian kami untuk membuat Windows terasa lebih "hidup" dan personal. Keamanan Kakak adalah prioritas nomor satu kami. Jika Kakak merasa terbantu, dukung pengembangan ini di [Trakteer](https://trakteer.id/MyCici). Selamat menikmati desktop baru, Kak! 🥰
+Versi 4.2.0 adalah pencapaian terbesar kami dalam hal fungsionalitas. Kami ingin ZeroShell menjadi satu-satunya terminal yang Kakak butuhkan untuk bekerja dan bermain. Selamat bereksperimen, Kak! 🥰
