@@ -69,6 +69,12 @@
     </Content>
   </ItemGroup>
 
+  <ItemGroup>
+    <Content Include="ZeroShell\**\*.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
   <!-- Virtual Assistant assets: copy runtime files (models, textures, json) to output -->
   <ItemGroup>
     <Content Include="Virtual_Assisten\**\*.moc3">

@@ -15,6 +15,7 @@ using System.Windows.Documents;
 using System.Management;
 using System.Linq;
 using System.Text.Json;
+using Microsoft.Win32;
 
 namespace ZeroMix.ZeroShell
 {
@@ -121,9 +122,10 @@ namespace ZeroMix.ZeroShell
             tab.Output = new TextBlock {
                 Foreground = new SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString(Themes[_currentLayout].OutputColor)),
                 FontFamily = new System.Windows.Media.FontFamily(FontNames[_currentFont]),
-                FontSize = 13,
+                FontWeight = FontWeights.Bold,
+                FontSize = 14,
                 TextWrapping = TextWrapping.Wrap,
-                LineHeight = 20
+                LineHeight = 22
             };
 
             tab.ScrollViewer = new ScrollViewer {
@@ -144,23 +146,22 @@ namespace ZeroMix.ZeroShell
             };
             tab.TabButton.Click += (s, e) => SwitchToTab(tab);
 
-            // Start Process
-            try {
-                tab.Process = StartShellProcess();
-                tab.Input = tab.Process.StandardInput;
-                tab.Input.AutoFlush = true;
-                Task.Run(() => ReadOutputAsync(tab.Process.StandardOutput, tab));
-                Task.Run(() => ReadOutputAsync(tab.Process.StandardError, tab));
-            } catch (Exception ex) {
-                AppendToTab(tab, $"[ERROR]: {ex.Message}\n", "#FFFF6B6B");
-            }
+            // Start Process (Removed cmd.exe fallback for Pure Neko experience)
+            tab.Process = null;
+            tab.Input = null;
 
             _tabs.Add(tab);
             TabBar.Children.Add(tab.TabButton);
             TerminalsContainer.Children.Add(tab.ScrollViewer);
 
             SwitchToTab(tab);
-            AppendToTab(tab, $"Terminal Kakak '{title}' sudah siap!\n", Themes[_currentLayout].AccentColor);
+    
+    // Welcome Header (Thick Block Style)
+    AppendToTab(tab, "\n", "#CCCCCC");
+    AppendToTab(tab, "  █▄  █ █▀▀ █ █ █▀▀█ \n", "#FF6BDDFF");
+    AppendToTab(tab, "  █ █ █ █▀▀ █▄▀ █  █ \n", "#FF6BDDFF");
+    AppendToTab(tab, "  ▀  ▀▀ ▀▀▀ ▀  ▀ ▀▀▀▀ \n", "#FF6BDDFF");
+    AppendToTab(tab, "  [ N E K O  T E R M I N A L ]\n\n", "#FF6BDDFF");
         }
 
         private void SwitchToTab(TerminalTab tab)
@@ -465,26 +466,39 @@ namespace ZeroMix.ZeroShell
             // CLEAR
             if (low == "cls" || low == "clear") { if (_activeTab.Output != null) _activeTab.Output.Inlines.Clear(); return; }
 
-            // HELP
+            // HELP / ?
             if (low == "!help" || low == "?") {
                 AppendToTab(_activeTab, "\n", "#CCCCCC");
-                AppendToTab(_activeTab, "  ╔══════════════════════════════════════════════════╗\n", "#FF6BDDFF");
-                AppendToTab(_activeTab, "  ║      Z E R O   T E R M I N A L   v 4 . 2       ║\n", "#FF6BDDFF");
-                AppendToTab(_activeTab, "  ╚══════════════════════════════════════════════════╝\n\n", "#FF6BDDFF");
-                AppendToTab(_activeTab, "  !help          Tampilkan bantuan ini\n", "#FF27C93F");
-                AppendToTab(_activeTab, "  !wifi          Lihat password WiFi tersimpan\n", "#FF27C93F");
-                AppendToTab(_activeTab, "  !sys           Info detail sistem (CPU/RAM/OS)\n", "#FF27C93F");
-                AppendToTab(_activeTab, "  !ip            Tampilkan IP Address\n", "#FF27C93F");
-                AppendToTab(_activeTab, "  !battery       Cek status baterai\n", "#FF27C93F");
-                AppendToTab(_activeTab, "  !disk          Info disk/storage\n", "#FF27C93F");
-                AppendToTab(_activeTab, "  !apps          List aplikasi terinstal\n", "#FF27C93F");
-                AppendToTab(_activeTab, "  !startup       List program startup\n", "#FF27C93F");
-                AppendToTab(_activeTab, "  !font          Ganti Font (Interaktif)\n", "#FFCC6BFF");
-                AppendToTab(_activeTab, "  !layout        Ganti Layout (Interaktif)\n", "#FFCC6BFF");
-                AppendToTab(_activeTab, "  !tab           Buka tab terminal baru\n", "#FFFF9F43");
-                AppendToTab(_activeTab, "  !alias         Info & Buat command alias\n", "#FF6BDDFF");
-                AppendToTab(_activeTab, "  !exit          Keluar terminal\n", "#FFFF6B6B");
-                AppendToTab(_activeTab, "\n  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n", "#FF6BDDFF");
+                AppendToTab(_activeTab, "  ███╗   ██╗███████╗██╗  ██╗ ██████╗ \n", "#FF6BDDFF");
+                AppendToTab(_activeTab, "  ████╗  ██║██╔════╝██║ ██╔╝██╔═══██╗\n", "#FF6BDDFF");
+                AppendToTab(_activeTab, "  ██╔██╗ ██║█████╗  █████╔╝ ██║   ██║\n", "#FF6BDDFF");
+                AppendToTab(_activeTab, "  ██║╚██╗██║██╔══╝  ██╔═██╗ ██║   ██║\n", "#FF6BDDFF");
+                AppendToTab(_activeTab, "  ██║ ╚████║███████╗██║  ██╗╚██████╔╝\n", "#FF6BDDFF");
+                AppendToTab(_activeTab, "  ╚═╝  ╚═══╝╚══════╝╚═╝  ╚═╝ ╚═════╝ \n", "#FF6BDDFF");
+                AppendToTab(_activeTab, "           N E K O  T E R M I N A L\n\n", "#FF6BDDFF");
+                
+                AppendToTab(_activeTab, "  ✨ Pilih aksi atau ketik perintah:\n\n", "#FFFFDA6B");
+                
+                AppendToTab(_activeTab, "  [ 💻 SISTEM ]\n", "#FFFFDA6B");
+                AppendToTab(_activeTab, "  !sys       Info Detail Sistem\n", "#FF27C93F");
+                AppendToTab(_activeTab, "  !wifi      Lihat Password WiFi\n", "#FF27C93F");
+                AppendToTab(_activeTab, "  !ip        Lihat Alamat IP\n", "#FF27C93F");
+                AppendToTab(_activeTab, "  !battery   Status Baterai\n", "#FF27C93F");
+                AppendToTab(_activeTab, "  !disk      Info Disk\n", "#FF27C93F");
+                AppendToTab(_activeTab, "  !apps      List Aplikasi\n", "#FF27C93F");
+                AppendToTab(_activeTab, "  !startup   List Startup Items\n", "#FF27C93F");
+
+                AppendToTab(_activeTab, "\n  [ 🎨 VISUAL ]\n", "#FFFFDA6B");
+                AppendToTab(_activeTab, "  !font      Ganti Font (Interaktif)\n", "#FFCC6BFF");
+                AppendToTab(_activeTab, "  !layout    Ganti Layout (Interaktif)\n", "#FFCC6BFF");
+                AppendToTab(_activeTab, "  !alias     Custom Command Alias\n", "#FFCC6BFF");
+
+                AppendToTab(_activeTab, "\n  [ 📑 TABS ]\n", "#FFFFDA6B");
+                AppendToTab(_activeTab, "  !tab       Buka Tab Baru\n", "#FFFF9F43");
+                AppendToTab(_activeTab, "  !close     Tutup Tab Aktif\n", "#FFFF9F43");
+                AppendToTab(_activeTab, "  !exit      Keluar Terminal\n", "#FFFF6B6B");
+                
+                AppendToTab(_activeTab, "\n  💬 Tips: Gunakan Tanda Panah ↑ ↓ buat milih font/layout.\n\n", "#888888");
                 return;
             }
 
@@ -550,48 +564,144 @@ namespace ZeroMix.ZeroShell
                 return;
             }
 
-            // SYSTEM COMMANDS (Hiding raw cmd, showing status)
-            if (low == "!wifi") { 
-                AppendToTab(_activeTab, "\n  � Processing: Scanning WiFi Profiles...\n", "#FFCC6BFF"); 
-                _activeTab.Input?.WriteLine("(netsh wlan show profiles) | Select-String '\\:(.+)$' | %{$name=$_.Matches.Groups[1].Value.Trim(); $r=netsh wlan show profile name=\"$name\" key=clear; $p=($r | Select-String 'Key Content\\W+\\:(.+)$'); if($p){$pw=$p.Matches.Groups[1].Value.Trim(); Write-Host \"  [⠿] $name  →  $pw\"} else {Write-Host \"  [⠿] $name  →  (none)\"}}"); 
-                return; 
+            // OPTIMIZED SYSTEM COMMANDS (Instant & Stealth)
+            if (low == "!sys") {
+                AppendToTab(_activeTab, "\n  📊 [ N E K O  S Y S T E M  I N F O ]\n", "#FFFFDA6B");
+                Task.Run(() => {
+                    try {
+                        var os = ""; var build = "";
+                        using (var searcher = new ManagementObjectSearcher("SELECT * FROM Win32_OperatingSystem"))
+                        foreach (var obj in searcher.Get()) { os = obj["Caption"]?.ToString(); build = obj["Version"]?.ToString(); }
+                        
+                        string cpu = "";
+                        using (var searcher = new ManagementObjectSearcher("SELECT * FROM Win32_Processor"))
+                        foreach (var obj in searcher.Get()) cpu = obj["Name"]?.ToString();
+
+                        string gpu = "";
+                        using (var searcher = new ManagementObjectSearcher("SELECT * FROM Win32_VideoController"))
+                        foreach (var obj in searcher.Get()) gpu = obj["Caption"]?.ToString();
+
+                        Dispatcher.Invoke(() => {
+                            AppendToTab(_activeTab, $"  ✨ OS    : {os}\n", "#FF6BDDFF");
+                            AppendToTab(_activeTab, $"  ✨ BUILD : {build}\n", "#FF6BDDFF");
+                            AppendToTab(_activeTab, $"  ✨ CPU   : {cpu?.Trim()}\n", "#FF6BDDFF");
+                            AppendToTab(_activeTab, $"  ✨ GPU   : {gpu}\n\n", "#FF6BDDFF");
+                        });
+                    } catch { Dispatcher.Invoke(() => AppendToTab(_activeTab, "  ❌ Gagal ambil info sistem.\n\n", "#FFFF6B6B")); }
+                });
+                return;
             }
-            if (low == "!sys") { 
-                AppendToTab(_activeTab, "\n  📊 Processing: Gathering System Info...\n", "#FFFFDA6B"); 
-                _activeTab.Input?.WriteLine("Get-CimInstance Win32_OperatingSystem | Select-Object @{N='OS';E={$_.Caption}}, @{N='Build';E={$_.Version}}, @{N='Mem_Free';E={'{0}GB' -f [math]::Round($_.FreePhysicalMemory/1MB,1)}}, @{N='Mem_Total';E={'{0}GB' -f [math]::Round($_.TotalVisibleMemorySize/1MB,1)}} | Format-Table -AutoSize"); 
-                return; 
+
+            if (low == "!wifi") {
+                AppendToTab(_activeTab, "\n  🔐 [ S C A N N I N G  W I F I ]\n", "#FFCC6BFF");
+                Task.Run(() => {
+                    try {
+                        var proc = new Process { StartInfo = new ProcessStartInfo("netsh", "wlan show profiles") { UseShellExecute = false, RedirectStandardOutput = true, CreateNoWindow = true } };
+                        proc.Start(); string output = proc.StandardOutput.ReadToEnd(); proc.WaitForExit();
+                        var profiles = new List<string>();
+                        foreach (var line in output.Split('\n')) if (line.Contains(":")) profiles.Add(line.Split(':')[1].Trim());
+                        
+                        foreach (var p in profiles) {
+                            if (string.IsNullOrEmpty(p)) continue;
+                            var p2 = new Process { StartInfo = new ProcessStartInfo("netsh", $"wlan show profile name=\"{p}\" key=clear") { UseShellExecute = false, RedirectStandardOutput = true, CreateNoWindow = true } };
+                            p2.Start(); string output2 = p2.StandardOutput.ReadToEnd(); p2.WaitForExit();
+                            foreach (var line in output2.Split('\n')) {
+                                if (line.Contains("Key Content")) {
+                                    string pw = line.Split(':')[1].Trim();
+                                    Dispatcher.Invoke(() => AppendToTab(_activeTab, $"  ⠿ {p,-20} → {pw}\n", "#FF27C93F"));
+                                }
+                            }
+                        }
+                        Dispatcher.Invoke(() => AppendToTab(_activeTab, "\n", "#888888"));
+                    } catch { Dispatcher.Invoke(() => AppendToTab(_activeTab, "  ❌ Gagal scan WiFi.\n\n", "#FFFF6B6B")); }
+                });
+                return;
             }
-            if (low == "!ip") { 
-                AppendToTab(_activeTab, "\n  🌐 Processing: Fetching IP Address...\n", "#FF6BDDFF");
-                _activeTab.Input?.WriteLine("Get-NetIPAddress -AddressFamily IPv4 | Where-Object {$_.InterfaceAlias -notmatch 'Loopback'} | Select-Object @{N='IFACE';E={$_.InterfaceAlias}}, @{N='IPV4';E={$_.IPAddress}} | Format-Table -AutoSize"); 
-                return; 
+
+            if (low == "!ip") {
+                AppendToTab(_activeTab, "\n  🌐 [ N E T W O R K  I N F O ]\n", "#FF6BDDFF");
+                try {
+                    foreach (var ni in System.Net.NetworkInformation.NetworkInterface.GetAllNetworkInterfaces()) {
+                        if (ni.OperationalStatus == System.Net.NetworkInformation.OperationalStatus.Up) {
+                            foreach (var ip in ni.GetIPProperties().UnicastAddresses) {
+                                if (ip.Address.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork) {
+                                    AppendToTab(_activeTab, $"  🖧 {ni.Name,-15} : {ip.Address}\n", "#FF6BDDFF");
+                                }
+                            }
+                        }
+                    }
+                    AppendToTab(_activeTab, "\n", "#888888");
+                } catch { AppendToTab(_activeTab, "  ❌ Gagal ambil info IP.\n\n", "#FFFF6B6B"); }
+                return;
             }
+
             if (low == "!battery") {
-                AppendToTab(_activeTab, "\n  🔋 Processing: Checking Battery...\n", "#FF27C93F");
-                _activeTab.Input?.WriteLine("Get-CimInstance Win32_Battery | Select-Object Name, EstimatedChargeRemaining, BatteryStatus | Format-List");
+                AppendToTab(_activeTab, "\n  🔋 [ B A T T E R Y  S T A T U S ]\n", "#FF27C93F");
+                using (var searcher = new ManagementObjectSearcher("SELECT * FROM Win32_Battery"))
+                foreach (var obj in searcher.Get()) {
+                    AppendToTab(_activeTab, $"  ⚡ NAME   : {obj["Name"]}\n", "#FF27C93F");
+                    AppendToTab(_activeTab, $"  ⚡ STATUS : {obj["BatteryStatus"]}\n", "#FF27C93F");
+                    AppendToTab(_activeTab, $"  ⚡ CHARGE : {obj["EstimatedChargeRemaining"]}%\n\n", "#FF27C93F");
+                }
                 return;
             }
+
             if (low == "!disk") {
-                AppendToTab(_activeTab, "\n  💾 Processing: Scanning Disk Usage...\n", "#FFFF9F43");
-                _activeTab.Input?.WriteLine("Get-PSDrive -PSProvider FileSystem | Select-Object Name, @{N='Used(GB)';E={[math]::Round($_.Used/1GB,2)}}, @{N='Free(GB)';E={[math]::Round($_.Free/1GB,2)}} | Format-Table -AutoSize");
+                AppendToTab(_activeTab, "\n  💾 [ D I S K  U S A G E ]\n", "#FFFF9F43");
+                foreach (var drive in DriveInfo.GetDrives().Where(d => d.IsReady)) {
+                    double total = drive.TotalSize / (1024.0 * 1024 * 1024);
+                    double free = drive.TotalFreeSpace / (1024.0 * 1024 * 1024);
+                    double used = total - free;
+                    AppendToTab(_activeTab, $"  📂 {drive.Name,-3} : {used:F1}GB / {total:F1}GB ({(used/total)*100:F1}%)\n", "#FFFF9F43");
+                }
+                AppendToTab(_activeTab, "\n", "#888888");
                 return;
             }
+
             if (low == "!apps") {
-                AppendToTab(_activeTab, "\n  📦 Processing: Listing Installed Apps...\n", "#FFCC6BFF");
-                _activeTab.Input?.WriteLine("Get-ItemProperty HKLM:\\Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\* | Select-Object DisplayName, DisplayVersion | Where-Object {$_.DisplayName} | Sort-Object DisplayName | Select-Object -First 30 | Format-Table -AutoSize");
+                AppendToTab(_activeTab, "\n  📦 [ I N S T A L L E D  A P P S ]\n", "#FFCC6BFF");
+                Task.Run(() => {
+                    var apps = new List<string>();
+                    string[] roots = { "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall", "SOFTWARE\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall" };
+                    foreach (var root in roots) {
+                        using (var key = Registry.LocalMachine.OpenSubKey(root)) {
+                            if (key != null) foreach (var sub in key.GetSubKeyNames()) {
+                                using (var sk = key.OpenSubKey(sub)) {
+                                    var name = sk?.GetValue("DisplayName")?.ToString();
+                                    if (!string.IsNullOrEmpty(name)) apps.Add(name);
+                                }
+                            }
+                        }
+                    }
+                    Dispatcher.Invoke(() => {
+                        foreach (var app in apps.OrderBy(a => a).Take(15)) AppendToTab(_activeTab, $"  📦 {app}\n", "#FFCC6BFF");
+                        AppendToTab(_activeTab, "  ... (Showing top 15 apps)\n\n", "#888888");
+                    });
+                });
                 return;
             }
+
             if (low == "!startup") {
-                AppendToTab(_activeTab, "\n  🚀 Processing: Fetching Startup Programs...\n", "#FF6BDDFF");
-                _activeTab.Input?.WriteLine("Get-CimInstance Win32_StartupCommand | Select-Object Name, Command, Location | Format-Table -AutoSize");
+                AppendToTab(_activeTab, "\n  🚀 [ S T A R T U P  I T E M S ]\n", "#FF6BDDFF");
+                Task.Run(() => {
+                    var items = new List<string>();
+                    using (var key = Registry.LocalMachine.OpenSubKey("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run"))
+                    if (key != null) foreach (var name in key.GetValueNames()) items.Add(name);
+                    Dispatcher.Invoke(() => {
+                        foreach (var it in items) AppendToTab(_activeTab, $"  🚀 {it}\n", "#FF6BDDFF");
+                        AppendToTab(_activeTab, "\n", "#888888");
+                    });
+                });
                 return;
             }
 
             if (low == "!exit") { this.Close(); return; }
 
-            // Standard PS
-            _activeTab.Input?.WriteLine(cmd);
+            // DEFAULT: Command not found in Pure Neko Terminal
+            // Since we are not using CMD/PS anymore, we show an exclusive error.
             AppendToTab(_activeTab, $"  ❯ {cmd}\n", Themes[_currentLayout].PromptColor);
+            AppendToTab(_activeTab, $"  ❌ Perintah '{cmd}' tidak dikenali, Kak.\n", "#FFFF6B6B");
+            AppendToTab(_activeTab, "  💡 Neko Terminal ini eksklusif. Ketik '!help' buat lihat fitur-fiturnya!\n\n", "#888888");
         }
         #endregion
 
@@ -599,9 +709,16 @@ namespace ZeroMix.ZeroShell
         private void ApplyFont()
         {
             var font = new System.Windows.Media.FontFamily(FontNames[_currentFont]);
-            foreach (var t in _tabs) { if (t.Output != null) t.Output.FontFamily = font; }
+            foreach (var t in _tabs) { 
+                if (t.Output != null) {
+                    t.Output.FontFamily = font;
+                    t.Output.FontWeight = FontWeights.Bold;
+                }
+            }
             TerminalInput.FontFamily = font;
+            TerminalInput.FontWeight = FontWeights.Bold;
             PromptText.FontFamily = font;
+            PromptText.FontWeight = FontWeights.Bold;
         }
 
         private void ApplyLayout()
