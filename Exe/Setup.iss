@@ -1,5 +1,4 @@
-; ==============================================================================
-; ZeroMix Installer Script (Fixed Professional v2.2)
+; ZeroMix Installer Script (Professional v4.2.0)
 ; ==============================================================================
 
 [Setup]
@@ -76,11 +75,6 @@ Source: "Privacy.txt"; DestDir: "{app}"; Flags: ignoreversion
 Source: "../LICENSE.txt"; DestDir: "{app}"; Flags: ignoreversion
 Source: "../Readme.md"; DestDir: "{app}"; Flags: ignoreversion
 
-; CLI Tools (commented out - folder not found)
-;Source: "../ZeroMixUpdateCli/index.js"; DestDir: "{app}\bin"; Flags: ignoreversion
-;Source: "../ZeroMixUpdateCli/package.json"; DestDir: "{app}\bin"; Flags: ignoreversion
-;Source: "../ZeroMixUpdateCli/zeromix-cli.bat"; DestDir: "{app}\bin"; Flags: ignoreversion
-
 ; FFmpeg Tools
 ; NOTE: The build fails because ffmpeg.exe is missing from the FFMPEG folder.
 ; You can download it and place it there, then uncomment the line below.
@@ -111,8 +105,8 @@ Filename: "cmd.exe"; Parameters: "/c cd /d ""{app}\bin"" && npm install --produc
 Filename: "{app}\ZeroMix.exe"; Description: "&Jalankan ZeroMix sekarang"; Flags: nowait postinstall skipifsilent; Tasks: ; Check: not CurTaskExists('autostart')
 
 [Messages]
-WelcomeLabel1=Selamat datang di Installer ZeroMix 
-WelcomeLabel2=Program ini akan menginstal ZeroMix pada komputer Anda.%n%n⚠️ Disarankan untuk menutup semua aplikasi lain sebelum melanjutkan.
+WelcomeLabel1=Selamat datang di ZeroMix Professional v4.2.0
+WelcomeLabel2=Update ini mencakup "ZeroShell" Terminal System dan Fitur Real-time Translate.%n%n⚠️ Disarankan untuk menutup semua aplikasi lain sebelum melanjutkan agar update berjalan lancar.
 
 [CustomMessages]
 LaunchProgram=&Jalankan ZeroMix sekarang
