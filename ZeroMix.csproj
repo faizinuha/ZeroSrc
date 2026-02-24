@@ -64,7 +64,7 @@
 
   <!-- If you still want other plugin PNGs copied, ensure we exclude this plugin explicitly -->
   <ItemGroup>
-    <Content Include="Plugins\**\*.png" Exclude="Plugins\zeromix.spotify\**">
+    <Content Include="Plugins\**\*.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
