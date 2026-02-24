@@ -28,6 +28,7 @@ namespace ZeroMix.ZeroShell
         public ScrollViewer? ScrollViewer { get; set; }
         public TextBlock? Output { get; set; }
         public System.Windows.Controls.Button? TabButton { get; set; }
+        public string CurrentDirectory { get; set; } = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
     }
 
     public partial class ZeroShellWindow : Window
@@ -146,9 +147,14 @@ namespace ZeroMix.ZeroShell
             };
             tab.TabButton.Click += (s, e) => SwitchToTab(tab);
 
-            // Start Process (Removed cmd.exe fallback for Pure Neko experience)
-            tab.Process = null;
-            tab.Input = null;
+            // Start Process (Restored for standard commands like ls, cd, dir)
+            try {
+                tab.Process = StartShellProcess();
+                tab.Input = tab.Process.StandardInput;
+                tab.Input.AutoFlush = true;
+                Task.Run(() => ReadOutputAsync(tab.Process.StandardOutput, tab));
+                Task.Run(() => ReadOutputAsync(tab.Process.StandardError, tab));
+            } catch { }
 
             _tabs.Add(tab);
             TabBar.Children.Add(tab.TabButton);
@@ -156,6 +162,15 @@ namespace ZeroMix.ZeroShell
 
             SwitchToTab(tab);
             PrintHeader(tab);
+            UpdatePrompt();
+        }
+
+        private void UpdatePrompt()
+        {
+            if (_activeTab == null) return;
+            string path = _activeTab.CurrentDirectory;
+            // Shorten home path to ~ if possible for aesthetic, or just show full path as requested
+            PromptText.Text = $" {path} ❯ ";
         }
 
         private void PrintHeader(TerminalTab tab)
@@ -707,11 +722,33 @@ namespace ZeroMix.ZeroShell
 
             if (low == "!exit") { this.Close(); return; }
 
-            // DEFAULT: Command not found in Pure Neko Terminal
-            // Since we are not using CMD/PS anymore, we show an exclusive error.
+            // Standard Shell Support (ls, cd, dir, etc.)
             AppendToTab(_activeTab, $"  ❯ {cmd}\n", Themes[_currentLayout].PromptColor);
-            AppendToTab(_activeTab, $"  ❌ Perintah '{cmd}' tidak dikenali, Kak.\n", "#FFFF6B6B");
-            AppendToTab(_activeTab, "  💡 Neko Terminal ini eksklusif. Ketik '!help' buat lihat fitur-fiturnya!\n\n", "#888888");
+            
+            if (_activeTab.Input != null) {
+                // Special handle for 'cd' to update the UI prompt
+                if (low.StartsWith("cd ")) {
+                    string newPath = cmd.Substring(3).Trim().Replace("\"", "");
+                    try {
+                        string combined = Path.GetFullPath(Path.Combine(_activeTab.CurrentDirectory, newPath));
+                        if (Directory.Exists(combined)) {
+                            _activeTab.CurrentDirectory = combined;
+                            UpdatePrompt();
+                        }
+                    } catch { }
+                }
+                else if (low == "cd.." || low == "cd ..") {
+                    var parent = Directory.GetParent(_activeTab.CurrentDirectory);
+                    if (parent != null) {
+                        _activeTab.CurrentDirectory = parent.FullName;
+                        UpdatePrompt();
+                    }
+                }
+
+                _activeTab.Input.WriteLine(cmd);
+            } else {
+                AppendToTab(_activeTab, $"  ❌ Shell process tidak aktif.\n", "#FFFF6B6B");
+            }
         }
         #endregion
 
@@ -747,13 +784,7 @@ namespace ZeroMix.ZeroShell
             TerminalInput.CaretBrush = new SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString(theme.PromptColor));
             PromptText.Foreground = new SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString(theme.PromptColor));
 
-            switch (_currentLayout) {
-                case 0: NeofetchArea.Visibility = Visibility.Visible; StatusBar.Visibility = Visibility.Visible; NeofetchRow.Height = GridLength.Auto; PromptText.Text = " ~/zero ❯ "; break;
-                case 1: NeofetchArea.Visibility = Visibility.Collapsed; StatusBar.Visibility = Visibility.Visible; NeofetchRow.Height = new GridLength(0); PromptText.Text = " ~/zero ❯ "; break;
-                case 2: NeofetchArea.Visibility = Visibility.Visible; StatusBar.Visibility = Visibility.Visible; NeofetchRow.Height = new GridLength(300); PromptText.Text = " ~/zero ❯ "; break;
-                case 3: NeofetchArea.Visibility = Visibility.Collapsed; StatusBar.Visibility = Visibility.Visible; NeofetchRow.Height = new GridLength(0); PromptText.Text = " C:\\> "; break;
-                case 4: NeofetchArea.Visibility = Visibility.Visible; StatusBar.Visibility = Visibility.Visible; NeofetchRow.Height = GridLength.Auto; PromptText.Text = " ⚡ ZERO ❯ "; break;
-            }
+            UpdatePrompt();
         }
         #endregion
 
