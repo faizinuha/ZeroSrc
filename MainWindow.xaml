@@ -289,7 +289,7 @@
                                                    FontSize="18"
                                                    FontWeight="ExtraBold"
                                                    Foreground="{StaticResource TextBrush}"/>
-                                        <TextBlock Text="v3.0.0"
+                                        <TextBlock Text="v4.2.0"
                                                    FontSize="10"
                                                    Foreground="{StaticResource SubTextBrush}"
                                                    Opacity="0.7"/>
@@ -861,7 +861,7 @@
                                                                Margin="0,0,0,6"/>
                                                     <StackPanel Orientation="Horizontal">
                                                         <TextBlock x:Name="VersionText"
-                                                                   Text="v3.0.0"
+                                                                   Text="v4.2.0"
                                                                    FontSize="18"
                                                                    FontWeight="Bold"
                                                                    Foreground="White"
