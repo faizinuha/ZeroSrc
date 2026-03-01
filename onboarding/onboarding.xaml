@@ -361,7 +361,7 @@
                         </Grid>
                     </Grid>
 
-                    <!-- SLIDE 5: Final / Changelog -->
+                    <!-- SLIDE 5: Changelog -->
                     <Grid x:Name="Slide5"
                           Style="{StaticResource SlideContentStyle}"
                           Visibility="Collapsed">
@@ -371,7 +371,7 @@
                                 <RowDefinition Height="*"/>
                             </Grid.RowDefinitions>
                             <TextBlock Grid.Row="0"
-                                       Text="You're all set!"
+                                       Text="What's New (v4.2.0)"
                                        FontSize="28"
                                        FontWeight="Bold"
                                        Foreground="White"
@@ -389,7 +389,7 @@
                                         <RowDefinition Height="*"/>
                                     </Grid.RowDefinitions>
                                     <TextBlock Grid.Row="0"
-                                               Text="What's New (GitHub)"
+                                               Text="Recent Releases"
                                                Foreground="#FF3B3B"
                                                FontWeight="Bold"
                                                Margin="0,0,0,10"/>
@@ -425,6 +425,49 @@
                                             </ItemsControl.ItemTemplate>
                                         </ItemsControl>
                                     </ScrollViewer>
+                                </Grid>
+                            </Border>
+                        </Grid>
+                    </Grid>
+
+                    <!-- SLIDE 6: New Features (ZeroShell Pixel & Persistence) -->
+                    <Grid x:Name="Slide6"
+                          Style="{StaticResource SlideContentStyle}"
+                          Visibility="Collapsed">
+                        <Grid VerticalAlignment="Center">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0"
+                                        Margin="0,0,40,0">
+                                <TextBlock Text="👾"
+                                           FontSize="64"
+                                           Margin="0,0,0,20"/>
+                                <TextBlock Text="ZeroShell Pixel"
+                                           FontSize="28"
+                                           FontWeight="Bold"
+                                           Foreground="#00BFA5"
+                                           Margin="0,0,0,15"/>
+                                <TextBlock Text="Nikmati estetika pixel retro yang kini lebih 'kotak' dan konsisten. Dilengkapi sistem penyimpanan (persistence) agar tema pilihan Anda tetap aktif saat restart."
+                                           Foreground="#BBB"
+                                           FontSize="15"
+                                           TextWrapping="Wrap"
+                                           LineHeight="24"/>
+                            </StackPanel>
+                            <Border Grid.Column="1"
+                                    Background="#1A1A1A"
+                                    CornerRadius="0"
+                                    BorderBrush="#00BFA5"
+                                    BorderThickness="4"
+                                    Height="250">
+                                <Grid>
+                                    <TextBlock Text="Pixel Perfection"
+                                               Foreground="#00BFA5"
+                                               FontFamily="Courier New"
+                                               FontWeight="Bold"
+                                               VerticalAlignment="Center"
+                                               HorizontalAlignment="Center"/>
                                 </Grid>
                             </Border>
                         </Grid>

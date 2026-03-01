@@ -46,6 +46,8 @@ namespace ZeroMix.ZeroShell
 
         private int _currentFont = 1; // Default to JetBrains Mono
         private int _currentLayout = 0;
+        private readonly string _fontFilePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "ZeroShell", "fonts.json");
+        private readonly string _layoutFilePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "ZeroShell", "layouts.json");
 
         // Selection Mode
         private bool _isSelectingFont = false;
@@ -65,19 +67,60 @@ namespace ZeroMix.ZeroShell
             "Full Terminal",
             "Compact",
             "Retro Green",
-            "Cyberpunk Neon"
+            "Cyberpunk Neon",
+            "Pixel Retro",
+            "Glass Minimalist"
         };
+
+        // Framework Install Mode
+        private bool _isSelectingFramework = false;
+        private bool _isSelectingLaravelVersion = false;
+        private bool _isEnteringFolderName = false;
+        private bool _isSelectingPath = false;
+        private string _selectedFramework = "";
+        private string _selectedLaravelVersion = "";
+        private string _selectedFolderName = "";
+        private string _selectedPath = "";
+
+        private static readonly string[] FrameworkNames = {
+            "React + Vite",
+            "React JS (Standard)",
+            "React Native",
+            "Laravel"
+        };
+
+        private static readonly string[] LaravelVersions = { "10", "11", "12" };
+        private static readonly string[] PathOptions = { "Current Directory", "Desktop", "Documents", "Custom Path..." };
+
+        // WDM Mode
+        private bool _isSelectingWDM = false;
+        private static readonly string[] WDMOptions = {
+            "Glass Folder Explorer",
+            "Glass Taskbar (Blur Bar)",
+            "Glass Start Menu",
+            "Hide Desktop Icons",
+            "Everything Minimalist (Apply All)",
+            "Restore to Normal"
+        };
+
+        // WDM State Persistence
+        private bool _isExplorerWdmEnabled = false;
+        private bool _isTaskbarWdmEnabled = false;
+        private bool _isStartWdmEnabled = false;
+        private System.Windows.Threading.DispatcherTimer? _wdmPulseTimer;
 
         private struct ThemeColors {
             public string Bg1, Bg2, OutputColor, InputColor, PromptColor, AccentColor;
         }
 
         private static readonly ThemeColors[] Themes = {
-            new() { Bg1="#F5101820", Bg2="#F5080E14", OutputColor="#CCCCCC", InputColor="#EEEEEE", PromptColor="#FF27C93F", AccentColor="#FF6BDDFF" },
-            new() { Bg1="#F5101820", Bg2="#F5080E14", OutputColor="#CCCCCC", InputColor="#EEEEEE", PromptColor="#FF27C93F", AccentColor="#FF6BDDFF" },
-            new() { Bg1="#F5101820", Bg2="#F5080E14", OutputColor="#CCCCCC", InputColor="#EEEEEE", PromptColor="#FF27C93F", AccentColor="#FF6BDDFF" },
-            new() { Bg1="#F50A1A0A", Bg2="#F5051205", OutputColor="#FF33FF33", InputColor="#FF33FF33", PromptColor="#FF00FF00", AccentColor="#FF00AA00" },
-            new() { Bg1="#F51A0825", Bg2="#F5100520", OutputColor="#FFEE66FF", InputColor="#FF00FFFF", PromptColor="#FFFF00FF", AccentColor="#FF00D4FF" },
+            new() { Bg1="#F5101820", Bg2="#F5080E14", OutputColor="#CCCCCC", InputColor="#EEEEEE", PromptColor="#FF27C93F", AccentColor="#FF6BDDFF" }, // Neofetch
+            new() { Bg1="#F5101820", Bg2="#F5080E14", OutputColor="#CCCCCC", InputColor="#EEEEEE", PromptColor="#FF27C93F", AccentColor="#FF6BDDFF" }, // Full
+            new() { Bg1="#F5050505", Bg2="#F5101010", OutputColor="#BBBBBB", InputColor="#FFFFFF", PromptColor="#FF00D4FF", AccentColor="#FF00D4FF" }, // Compact
+            new() { Bg1="#F50A1A0A", Bg2="#F5051205", OutputColor="#FF33FF33", InputColor="#FF33FF33", PromptColor="#FF00FF00", AccentColor="#FF00AA00" }, // Retro Green
+            new() { Bg1="#F51A0825", Bg2="#F5100520", OutputColor="#FFEE66FF", InputColor="#FF00FFFF", PromptColor="#FFFF00FF", AccentColor="#FF00D4FF" }, // Cyberpunk
+            new() { Bg1="#F5202020", Bg2="#F5101010", OutputColor="#FFFFDA6B", InputColor="#FFFFFFFF", PromptColor="#FFFF6B6B", AccentColor="#FFFF9F43" }, // Pixel Retro
+            new() { Bg1="#33080E14", Bg2="#22000000", OutputColor="#EEEEEE", InputColor="#FFFFFF", PromptColor="#FF00D4FF", AccentColor="#FF00D4FF" }, // Glass Minimalist
         };
 
         // Tab completion
@@ -88,8 +131,35 @@ namespace ZeroMix.ZeroShell
         public ZeroShellWindow() 
         { 
             InitializeComponent(); 
+            LoadSettings();
             LoadAliases();
         }
+
+        #region Settings Persistence
+        private void LoadSettings()
+        {
+            try {
+                if (File.Exists(_fontFilePath)) {
+                    string json = File.ReadAllText(_fontFilePath);
+                    _currentFont = JsonSerializer.Deserialize<int>(json);
+                }
+                if (File.Exists(_layoutFilePath)) {
+                    string json = File.ReadAllText(_layoutFilePath);
+                    _currentLayout = JsonSerializer.Deserialize<int>(json);
+                }
+            } catch { }
+        }
+
+        private void SaveSettings()
+        {
+            try {
+                string dir = Path.GetDirectoryName(_fontFilePath) ?? "";
+                if (!Directory.Exists(dir)) Directory.CreateDirectory(dir);
+                File.WriteAllText(_fontFilePath, JsonSerializer.Serialize(_currentFont));
+                File.WriteAllText(_layoutFilePath, JsonSerializer.Serialize(_currentLayout));
+            } catch { }
+        }
+        #endregion
 
         #region Alias Storage
         private void LoadAliases()
@@ -169,8 +239,9 @@ namespace ZeroMix.ZeroShell
         {
             if (_activeTab == null) return;
             string path = _activeTab.CurrentDirectory;
-            // Shorten home path to ~ if possible for aesthetic, or just show full path as requested
-            PromptText.Text = $" {path} ❯ ";
+            PromptText.Text = $" {path} > ";
+            if (StatusPathText != null) StatusPathText.Text = $" {path} ";
+            if (TitleTabText != null) TitleTabText.Text = $"{Environment.UserName}@terminal: {path}";
         }
 
         private void PrintHeader(TerminalTab tab)
@@ -273,8 +344,8 @@ namespace ZeroMix.ZeroShell
         {
             var proc = new Process();
             proc.StartInfo = new ProcessStartInfo {
-                FileName = "cmd.exe",
-                Arguments = "-NoLogo -NoProfile -ExecutionPolicy Bypass",
+                FileName = "powershell.exe",
+                Arguments = "-NoLogo -NoProfile -ExecutionPolicy Bypass -NoExit -Command \"function prompt { '> ' }; [Console]::OutputEncoding = [System.Text.Encoding]::UTF8; clear\"",
                 WorkingDirectory = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
                 UseShellExecute = false,
                 RedirectStandardInput = true,
@@ -364,7 +435,7 @@ namespace ZeroMix.ZeroShell
                 }
 
         if (string.IsNullOrEmpty(prefix) && toComplete.StartsWith("!")) {
-            string[] cmds = { "!help", "!wifi", "!sys", "!ip", "!battery", "!disk", "!apps", "!startup", "!font", "!layout", "!tab", "!close", "!alias", "!unalias", "!exit" };
+            string[] cmds = { "!help", "!wifi", "!sys", "!ip", "!battery", "!disk", "!apps", "!startup", "!font", "!layout", "!tab", "!close", "!alias", "!unalias", "!install", "!glass", "!dlayer", "!hidico", "!exit", "!wdm" };
             _tabResults.AddRange(cmds.Where(c => c.StartsWith(toComplete, StringComparison.OrdinalIgnoreCase)));
         }
 
@@ -380,9 +451,44 @@ namespace ZeroMix.ZeroShell
         #region Input Handling
         private void TerminalInput_PreviewKeyDown(object sender, System.Windows.Input.KeyEventArgs e)
         {
-            if (_isSelectingFont || _isSelectingLayout)
+            if (_isSelectingFont || _isSelectingLayout || _isSelectingFramework || _isSelectingLaravelVersion || _isSelectingPath || _isEnteringFolderName || _isSelectingWDM)
             {
-                int max = _isSelectingFont ? FontNames.Length : LayoutNames.Length;
+                if (_isEnteringFolderName)
+                {
+                    if (e.Key == Key.Enter) {
+                        if (string.IsNullOrWhiteSpace(_tempFolderName)) _tempFolderName = "my-app";
+                        _selectedFolderName = _tempFolderName;
+                        _isEnteringFolderName = false; _isSelectingPath = true; _tempSelectionIndex = 0;
+                        ShowSelectionMenu();
+                    } else if (e.Key == Key.Escape) {
+                        _isEnteringFolderName = false; SelectionOverlay.Visibility = Visibility.Collapsed;
+                    } else if (e.Key == Key.Back && _tempFolderName.Length > 0) {
+                        _tempFolderName = _tempFolderName.Substring(0, _tempFolderName.Length - 1);
+                        ShowSelectionMenu();
+                    } else {
+                        // Capture text input manually for folder name
+                        string keyStr = e.Key.ToString();
+                        if (keyStr.Length == 1 || (e.Key >= Key.D0 && e.Key <= Key.D9) || (e.Key >= Key.NumPad0 && e.Key <= Key.NumPad9) || e.Key == Key.OemMinus) {
+                            char c = (char)0;
+                            if (e.Key >= Key.A && e.Key <= Key.Z) c = (char)('a' + (e.Key - Key.A));
+                            else if (e.Key >= Key.D0 && e.Key <= Key.D9) c = (char)('0' + (e.Key - Key.D0));
+                            else if (e.Key >= Key.NumPad0 && e.Key <= Key.NumPad9) c = (char)('0' + (e.Key - Key.NumPad0));
+                            else if (e.Key == Key.OemMinus) c = '-';
+                            if (c != 0) { _tempFolderName += c; ShowSelectionMenu(); }
+                        }
+                    }
+                    e.Handled = true;
+                    return;
+                }
+
+                int max = 0;
+                if (_isSelectingFont) max = FontNames.Length;
+                else if (_isSelectingLayout) max = LayoutNames.Length;
+                else if (_isSelectingFramework) max = FrameworkNames.Length;
+                else if (_isSelectingLaravelVersion) max = LaravelVersions.Length;
+                else if (_isSelectingPath) max = PathOptions.Length;
+                else if (_isSelectingWDM) max = WDMOptions.Length;
+
                 if (e.Key == Key.Up) { 
                     _tempSelectionIndex = (_tempSelectionIndex - 1 + max) % max; 
                     ShowSelectionMenu(); e.Handled = true; 
@@ -394,21 +500,94 @@ namespace ZeroMix.ZeroShell
                 else if (e.Key == Key.Enter)
                 {
                     if (_isSelectingFont) { 
-                        _currentFont = _tempSelectionIndex; 
-                        ApplyFont(); 
+                        _currentFont = _tempSelectionIndex; ApplyFont(); 
                         AppendToTab(_activeTab!, $"\n  ✨ Font applied: {FontNames[_currentFont]}\n\n", "#FFCC6BFF"); 
+                        _isSelectingFont = false; SelectionOverlay.Visibility = Visibility.Collapsed;
                     }
-                    else { 
-                        _currentLayout = _tempSelectionIndex; 
-                        ApplyLayout(); 
+                    else if (_isSelectingLayout) { 
+                        _currentLayout = _tempSelectionIndex; ApplyLayout(); 
                         AppendToTab(_activeTab!, $"\n  🎨 Layout applied: {LayoutNames[_currentLayout]}\n\n", "#FFCC6BFF"); 
+                        _isSelectingLayout = false; SelectionOverlay.Visibility = Visibility.Collapsed;
                     }
-                    _isSelectingFont = _isSelectingLayout = false;
-                    SelectionOverlay.Visibility = Visibility.Collapsed;
+                    else if (_isSelectingFramework) {
+                        _selectedFramework = FrameworkNames[_tempSelectionIndex];
+                        _isSelectingFramework = false;
+                        if (_selectedFramework == "Laravel") { _isSelectingLaravelVersion = true; _tempSelectionIndex = 1; } // Default Laravel 11
+                        else { _isEnteringFolderName = true; _tempFolderName = ""; }
+                        ShowSelectionMenu();
+                    }
+                    else if (_isSelectingLaravelVersion) {
+                        _selectedLaravelVersion = LaravelVersions[_tempSelectionIndex];
+                        _isSelectingLaravelVersion = false; _isEnteringFolderName = true; _tempFolderName = "";
+                        ShowSelectionMenu();
+                    }
+                    else if (_isSelectingPath) {
+                        string chosenPath = PathOptions[_tempSelectionIndex];
+                        if (chosenPath == "Custom Path...") {
+                            var dialog = new System.Windows.Forms.FolderBrowserDialog();
+                            if (dialog.ShowDialog() == System.Windows.Forms.DialogResult.OK) { _selectedPath = dialog.SelectedPath; FinalizeInstall(); }
+                        } else {
+                            if (chosenPath == "Current Directory") _selectedPath = _activeTab!.CurrentDirectory;
+                            else if (chosenPath == "Desktop") _selectedPath = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
+                            else if (chosenPath == "Documents") _selectedPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+                            FinalizeInstall();
+                        }
+                    }
+                    else if (_isSelectingWDM) {
+                        int choice = _tempSelectionIndex;
+                        var handle = new WindowInteropHelper(this).Handle;
+                        
+                        _isSelectingWDM = false; 
+                        SelectionOverlay.Visibility = Visibility.Collapsed;
+                        
+                        AppendToTab(_activeTab!, $"\n  🚀 Menjalankan WDM: {WDMOptions[choice]}...\n", "#FF6BDDFF");
+
+                        switch(choice) {
+                            case 0: // Glass Explorer
+                                _isExplorerWdmEnabled = true;
+                                ShellHelper.ApplyExplorerTransparency();
+                                AppendToTab(_activeTab!, "  ✨ Windows Explorer sekarang transparan/blur!\n\n", "#CCCCCC");
+                                break;
+                            case 1: // Glass Taskbar
+                                _isTaskbarWdmEnabled = true;
+                                ShellHelper.ApplyTaskbarTransparency();
+                                AppendToTab(_activeTab!, "  ✨ Taskbar sekarang transparan/blur!\n\n", "#CCCCCC");
+                                break;
+                            case 2: // Glass Start Menu
+                                _isStartWdmEnabled = true;
+                                ShellHelper.ApplyStartMenuTransparency();
+                                AppendToTab(_activeTab!, "  ✨ Start Menu sekarang transparan/blur!\n\n", "#CCCCCC");
+                                break;
+                            case 3: // Hide Icons
+                                ShellHelper.HideDesktopIcons();
+                                AppendToTab(_activeTab!, "  🙈 Ikon Desktop disembunyikan.\n\n", "#CCCCCC");
+                                break;
+                            case 4: // Everything
+                                _isExplorerWdmEnabled = _isTaskbarWdmEnabled = _isStartWdmEnabled = true;
+                                ShellHelper.ApplyExplorerTransparency();
+                                ShellHelper.ApplyTaskbarTransparency();
+                                ShellHelper.ApplyStartMenuTransparency();
+                                ShellHelper.HideDesktopIcons();
+                                
+                                // NEW: Update terminal layout to Glass Minimalist automatically!
+                                _currentLayout = 6; 
+                                ApplyLayout();
+
+                                AppendToTab(_activeTab!, "  💎 Mode Minimalis Total Aktif! (Folder, Taskbar, Start Blur & Ikon Sembunyi)\n", "#FF6BDDFF");
+                                AppendToTab(_activeTab!, "  ✨ Terminal juga disesuaikan ke mode Glass Minimalist.\n\n", "#CCCCCC");
+                                break;
+                            case 5: // Restore
+                                _isExplorerWdmEnabled = _isTaskbarWdmEnabled = _isStartWdmEnabled = false;
+                                ShellHelper.ShowDesktopIcons();
+                                AppendToTab(_activeTab!, "  🔄 Tampilan Desktop dikembalikan.\n\n", "#CCCCCC");
+                                break;
+                        }
+                        StartWdmPulse();
+                  }
                     e.Handled = true;
                 }
                 else if (e.Key == Key.Escape) { 
-                    _isSelectingFont = _isSelectingLayout = false; 
+                    _isSelectingFont = _isSelectingLayout = _isSelectingFramework = _isSelectingLaravelVersion = _isSelectingPath = _isEnteringFolderName = _isSelectingWDM = false; 
                     SelectionOverlay.Visibility = Visibility.Collapsed;
                     AppendToTab(_activeTab!, "\n  ❌ Selection cancelled.\n\n", "#FFFF6B6B"); 
                     e.Handled = true; 
@@ -454,12 +633,79 @@ namespace ZeroMix.ZeroShell
             }
         }
 
+        private void FinalizeInstall()
+        {
+            _isSelectingPath = false;
+            SelectionOverlay.Visibility = Visibility.Collapsed;
+
+            if (_activeTab == null) return;
+
+            string cmd = "";
+            if (_selectedFramework == "React + Vite")
+                cmd = $"npm create vite@latest {_selectedFolderName} -- --template react";
+            else if (_selectedFramework == "React JS (Standard)")
+                cmd = $"npx create-react-app {_selectedFolderName}";
+            else if (_selectedFramework == "React Native")
+                cmd = $"npx react-native init {_selectedFolderName}";
+            else if (_selectedFramework == "Laravel")
+                cmd = $"composer create-project laravel/laravel:^{_selectedLaravelVersion}.0 {_selectedFolderName}";
+
+            AppendToTab(_activeTab, $"\n  🚀 Menyiapkan instalasi {_selectedFramework}...\n", "#FF6BDDFF");
+            AppendToTab(_activeTab, $"  📂 Lokasi: {_selectedPath}\n", "#FF6BDDFF");
+            AppendToTab(_activeTab, $"  📂 Folder: {_selectedFolderName}\n\n", "#FF6BDDFF");
+
+            if (_activeTab.Input != null)
+            {
+                // Move to target path and run command
+                _activeTab.Input.WriteLine($"cd /d \"{_selectedPath}\"");
+                _activeTab.Input.WriteLine(cmd);
+            }
+        }
+
+        private void StartWdmPulse()
+        {
+            if (_wdmPulseTimer == null)
+            {
+                _wdmPulseTimer = new System.Windows.Threading.DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
+                _wdmPulseTimer.Tick += (s, e) => {
+                    if (_isExplorerWdmEnabled) ShellHelper.ApplyExplorerTransparency();
+                    if (_isTaskbarWdmEnabled) ShellHelper.ApplyTaskbarTransparency();
+                    if (_isStartWdmEnabled) ShellHelper.ApplyStartMenuTransparency();
+                };
+                _wdmPulseTimer.Start();
+            }
+        }
+
+        private void StartClock()
+        {
+            _clockTimer = new System.Windows.Threading.DispatcherTimer();
+            _clockTimer.Interval = TimeSpan.FromSeconds(1);
+            _clockTimer.Tick += (s, e) => {
+                DateTimeText.Text = DateTime.Now.ToString("ddd, dd MMM yyyy  •  HH:mm:ss");
+            };
+            _clockTimer.Start();
+        }
+
         private void ShowSelectionMenu()
         {
             SelectionOverlay.Visibility = Visibility.Visible;
-            SelectionTitle.Text = _isSelectingFont ? "SET FONT" : "SET LAYOUT";
-            string[] items = _isSelectingFont ? FontNames : LayoutNames;
+            string title = "SETTING";
+            string[] items = Array.Empty<string>();
 
+            if (_isSelectingFont) { title = "SET FONT"; items = FontNames; }
+            else if (_isSelectingLayout) { title = "SET LAYOUT"; items = LayoutNames; }
+            else if (_isSelectingFramework) { title = "SELECT FRAMEWORK"; items = FrameworkNames; }
+            else if (_isSelectingLaravelVersion) { title = "SELECT LARAVEL VERSION"; items = LaravelVersions; }
+            else if (_isSelectingPath) { title = "SELECT PATH / LOCATION"; items = PathOptions; }
+            else if (_isSelectingWDM) { title = "WINDOW DESKTOP MINIMALIS (WDM)"; items = WDMOptions; }
+            else if (_isEnteringFolderName) {
+                title = "ENTER FOLDER NAME";
+                SelectionTitle.Text = title;
+                SelectionItems.Text = $"\n❯ {_tempFolderName}_\n\n(Type name and press Enter)";
+                return;
+            }
+
+            SelectionTitle.Text = title;
             var sb = new StringBuilder();
             for (int i = 0; i < items.Length; i++)
             {
@@ -468,6 +714,8 @@ namespace ZeroMix.ZeroShell
             }
             SelectionItems.Text = sb.ToString();
         }
+
+        private string _tempFolderName = "";
 
         private void ProcessCommand(string cmd)
         {
@@ -506,22 +754,30 @@ namespace ZeroMix.ZeroShell
                 
                 AppendToTab(_activeTab, "  [ 💻 SISTEM ]\n", "#FFFFDA6B");
                 AppendToTab(_activeTab, "  !sys       Info Detail Sistem\n", "#FF27C93F");
+                AppendToTab(_activeTab, "  cls        Bersihkan Terminal\n", "#FF27C93F");
                 AppendToTab(_activeTab, "  !wifi      Lihat Password WiFi\n", "#FF27C93F");
                 AppendToTab(_activeTab, "  !ip        Lihat Alamat IP\n", "#FF27C93F");
                 AppendToTab(_activeTab, "  !battery   Status Baterai\n", "#FF27C93F");
                 AppendToTab(_activeTab, "  !disk      Info Disk\n", "#FF27C93F");
                 AppendToTab(_activeTab, "  !apps      List Aplikasi\n", "#FF27C93F");
                 AppendToTab(_activeTab, "  !startup   List Startup Items\n", "#FF27C93F");
-
+                
                 AppendToTab(_activeTab, "\n  [ 🎨 VISUAL ]\n", "#FFFFDA6B");
                 AppendToTab(_activeTab, "  !font      Ganti Font (Interaktif)\n", "#FFCC6BFF");
                 AppendToTab(_activeTab, "  !layout    Ganti Layout (Interaktif)\n", "#FFCC6BFF");
                 AppendToTab(_activeTab, "  !alias     Custom Command Alias\n", "#FFCC6BFF");
+                AppendToTab(_activeTab, "  !unalias   Hapus Alias\n", "#FFCC6BFF");
+
+                AppendToTab(_activeTab, "\n  [ 🛠 TOOLS ]\n", "#FFFFDA6B");
+                AppendToTab(_activeTab, "  !install   Install Framework (React/Laravel)\n", "#FFFF9F43");
 
                 AppendToTab(_activeTab, "\n  [ 📑 TABS ]\n", "#FFFFDA6B");
                 AppendToTab(_activeTab, "  !tab       Buka Tab Baru\n", "#FFFF9F43");
                 AppendToTab(_activeTab, "  !close     Tutup Tab Aktif\n", "#FFFF9F43");
                 AppendToTab(_activeTab, "  !exit      Keluar Terminal\n", "#FFFF6B6B");
+
+                AppendToTab(_activeTab, "\n  [ 🌌 ZERO SHELL CORE ]\n", "#FFFFDA6B");
+                AppendToTab(_activeTab, "  !WDM       Window Desktop Minimalis\n", "#FF6BDDFF");
                 
                 AppendToTab(_activeTab, "\n  💬 Tips: Gunakan Tanda Panah ↑ ↓ buat milih font/layout.\n\n", "#888888");
                 return;
@@ -720,6 +976,23 @@ namespace ZeroMix.ZeroShell
                 return;
             }
 
+            // ZERO SHELL CORE COMMANDS
+            if (low == "!wdm") {
+                _isSelectingWDM = true;
+                _isSelectingFont = _isSelectingLayout = _isSelectingFramework = false;
+                _tempSelectionIndex = 0;
+                ShowSelectionMenu();
+                return;
+            }
+
+            if (low == "!install") {
+                _isSelectingFramework = true;
+                _isSelectingLaravelVersion = _isEnteringFolderName = _isSelectingPath = false;
+                _tempSelectionIndex = 0;
+                ShowSelectionMenu();
+                return;
+            }
+
             if (low == "!exit") { this.Close(); return; }
 
             // Standard Shell Support (ls, cd, dir, etc.)
@@ -771,6 +1044,35 @@ namespace ZeroMix.ZeroShell
         private void ApplyLayout()
         {
             var theme = Themes[_currentLayout];
+            
+            // Neofetch Detail: Diaktifkan untuk SEMUA layout sesuai permintaan Kakak
+            bool showNeofetch = true; 
+            var neofetchCol = this.FindName("NeofetchCol") as ColumnDefinition;
+            if (neofetchCol != null)
+                neofetchCol.Width = new GridLength(380);
+            
+            if (NeofetchArea != null)
+                NeofetchArea.Visibility = Visibility.Visible;
+
+            // PIXEL MODE: Buat kotak-kotak (Radius 0) jika tema Pixel aktif
+            if (_currentLayout == 5) { // Pixel Retro
+                MainBorder.CornerRadius = new CornerRadius(0);
+                MainBorder.BorderThickness = new Thickness(4);
+                MainBorder.BorderBrush = new SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#FFFF6B6B"));
+            } else {
+                MainBorder.CornerRadius = new CornerRadius(16);
+                MainBorder.BorderThickness = new Thickness(0);
+            }
+
+            // Retro/Pixel effects font
+            if (_currentLayout == 3 || _currentLayout == 5) {
+                _activeTab?.Output?.SetValue(TextBlock.FontFamilyProperty, new System.Windows.Media.FontFamily("Courier New"));
+                TerminalInput.FontFamily = new System.Windows.Media.FontFamily("Courier New");
+            } else {
+                _activeTab?.Output?.SetValue(TextBlock.FontFamilyProperty, new System.Windows.Media.FontFamily(FontNames[_currentFont]));
+                TerminalInput.FontFamily = new System.Windows.Media.FontFamily(FontNames[_currentFont]);
+            }
+
             var bg = new LinearGradientBrush();
             bg.StartPoint = new System.Windows.Point(0, 0); bg.EndPoint = new System.Windows.Point(1, 1);
             bg.GradientStops.Add(new GradientStop((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString(theme.Bg1), 0));
@@ -785,23 +1087,41 @@ namespace ZeroMix.ZeroShell
             PromptText.Foreground = new SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString(theme.PromptColor));
 
             UpdatePrompt();
+            SaveSettings(); // Auto-save when changed
         }
         #endregion
 
         #region Window
         private void Window_MouseDown(object sender, MouseButtonEventArgs e) { if (e.ChangedButton == MouseButton.Left) this.DragMove(); }
         private void MinimizeButton_Click(object sender, RoutedEventArgs e) => this.WindowState = WindowState.Minimized;
+        private void MaximizeButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (this.WindowState == WindowState.Maximized)
+                this.WindowState = WindowState.Normal;
+            else
+                this.WindowState = WindowState.Maximized;
+        }
         private void CloseButton_Click(object sender, RoutedEventArgs e) => this.Close();
+ 
+         private void Window_StateChanged(object sender, EventArgs e)
+         {
+             if (MaximizeButton == null) return;
+             if (this.WindowState == WindowState.Maximized)
+                 MaximizeButton.Content = "❐";
+             else
+                 MaximizeButton.Content = "▢";
+         }
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
             LoadNeofetchInfo();
             LoadAnimeCharacter();
             AddTab("Main"); // Initial Tab
+            ApplyLayout(); // Ensure initial layout is side-by-side if layout 0
             TerminalInput.Focus();
 
             _clockTimer = new System.Windows.Threading.DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
-            _clockTimer.Tick += (s, ev) => DateTimeText.Text = DateTime.Now.ToString("MMM dd, hh:mm tt");
+            _clockTimer.Tick += (s, ev) => DateTimeText.Text = DateTime.Now.ToString("ddd, dd MMM yyyy  •  HH:mm:ss");
             _clockTimer.Start();
         }
 

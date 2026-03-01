@@ -325,7 +325,6 @@ namespace ZeroMix
         {
             _notifyIcon = new NotifyIcon();
 
-            // Load the icon from embedded resources, which works in both Debug and Release
             var iconUri = new Uri("zeromix.ico", UriKind.RelativeOrAbsolute);
             var iconStream = System.Windows.Application.GetResourceStream(iconUri)?.Stream;
             if (iconStream != null)
@@ -339,12 +338,16 @@ namespace ZeroMix
             var contextMenu = new ContextMenuStrip();
             contextMenu.Items.Add("Show Dashboard", null, (s, args) => ShowWindow());
             contextMenu.Items.Add("ZeroMix Studio (Editor)", null, (s, args) => OpenVideoEditor());
+            contextMenu.Items.Add(new ToolStripSeparator());
             
             var shellItem = new ToolStripMenuItem("Enable ZeroShell");
+            shellItem.Name = "EnableShellItem";
             shellItem.Click += (s, args) => ToggleZeroShell();
             contextMenu.Items.Add(shellItem);
 
-            contextMenu.Items.Add("Show Terminal", null, (s, args) => {
+            var showTerminalItem = new ToolStripMenuItem("Show Terminal");
+            showTerminalItem.Name = "ShowTerminalItem";
+            showTerminalItem.Click += (s, args) => {
                 if (_zeroShellWindow != null) {
                     _zeroShellWindow.Show();
                     _zeroShellWindow.Activate();
@@ -352,11 +355,14 @@ namespace ZeroMix
                 } else {
                     ToggleZeroShell();
                 }
-            });
+            };
+            contextMenu.Items.Add(showTerminalItem);
 
             contextMenu.Items.Add(new ToolStripSeparator());
             contextMenu.Items.Add("Exit", null, (s, args) => ExitApplication());
             _notifyIcon.ContextMenuStrip = contextMenu;
+            
+            UpdateTrayMenuState();
         }
 
         private void ToggleZeroShell()
@@ -366,32 +372,34 @@ namespace ZeroMix
                 _zeroShellWindow = new ZeroShellWindow();
                 _zeroShellWindow.Closed += (s, ev) => {
                     _zeroShellWindow = null;
-                    UpdateTrayMenuText("Enable ZeroShell");
+                    UpdateTrayMenuState();
                 };
                 _zeroShellWindow.Show();
-                
-                // Update menu text if possible
-                UpdateTrayMenuText("Disable ZeroShell");
             }
             else
             {
                 _zeroShellWindow.Close();
                 _zeroShellWindow = null;
-                UpdateTrayMenuText("Enable ZeroShell");
             }
+            UpdateTrayMenuState();
         }
 
-        private void UpdateTrayMenuText(string newText)
+        private void UpdateTrayMenuState()
         {
             if (_notifyIcon?.ContextMenuStrip != null)
             {
-                foreach (ToolStripItem item in _notifyIcon.ContextMenuStrip.Items)
-                {
-                    if (item.Text.EndsWith("ZeroShell"))
-                    {
-                        item.Text = newText;
-                        break;
-                    }
+                var enableItem = _notifyIcon.ContextMenuStrip.Items["EnableShellItem"] as ToolStripMenuItem;
+                var showItem = _notifyIcon.ContextMenuStrip.Items["ShowTerminalItem"] as ToolStripMenuItem;
+                
+                bool isEnabled = _zeroShellWindow != null;
+                
+                if (enableItem != null) {
+                    enableItem.Checked = isEnabled;
+                    enableItem.Text = isEnabled ? "ZeroShell (Enabled)" : "Enable ZeroShell";
+                }
+                
+                if (showItem != null) {
+                    showItem.Enabled = isEnabled;
                 }
             }
         }

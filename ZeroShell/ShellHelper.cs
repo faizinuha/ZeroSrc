@@ -20,6 +20,9 @@ namespace ZeroMix.ZeroShell
         static extern int SetWindowCompositionAttribute(IntPtr hwnd, ref WindowCompositionAttributeData data);
 
         [DllImport("user32.dll")]
+        static extern uint GetWindowThreadProcessId(IntPtr hWnd, out uint lpdwProcessId);
+
+        [DllImport("user32.dll")]
         [return: MarshalAs(UnmanagedType.Bool)]
         static extern bool EnumWindows(EnumWindowsProc lpEnumFunc, IntPtr lParam);
 
@@ -89,7 +92,8 @@ namespace ZeroMix.ZeroShell
                 StringBuilder className = new StringBuilder(256);
                 GetClassName(hWnd, className, className.Capacity);
 
-                if (className.ToString() == "CabinetWClass") // Windows Explorer
+                string cls = className.ToString();
+                if (cls == "CabinetWClass" || cls == "ExplorerWClass") // Windows Explorer
                 {
                     ApplyBlur(hWnd);
                 }
@@ -101,7 +105,8 @@ namespace ZeroMix.ZeroShell
         {
             var accent = new AccentPolicy();
             accent.AccentState = AccentState.ACCENT_ENABLE_ACRYLICBLURBEHIND;
-            accent.GradientColor = (150 << 24) | (0x000000 & 0xFFFFFF); // Semi-transparent black for explorer
+            // Premium Glass: Hex #22 (low alpha) for ultra transparent feel
+            accent.GradientColor = (0x22 << 24) | (0x0A0A0A & 0xFFFFFF); 
 
             var accentStructSize = Marshal.SizeOf(accent);
             var accentPtr = Marshal.AllocHGlobal(accentStructSize);
@@ -116,6 +121,72 @@ namespace ZeroMix.ZeroShell
 
             Marshal.FreeHGlobal(accentPtr);
         }
+
+        public static void ApplyTaskbarTransparency()
+        {
+            IntPtr taskbarHwnd = FindWindow("Shell_TrayWnd", null);
+            if (taskbarHwnd != IntPtr.Zero)
+            {
+                ApplyBlur(taskbarHwnd);
+            }
+
+            // For Secondary monitors
+            EnumWindows((hWnd, lParam) =>
+            {
+                StringBuilder className = new StringBuilder(256);
+                GetClassName(hWnd, className, className.Capacity);
+                if (className.ToString() == "Shell_SecondaryTrayWnd")
+                {
+                    ApplyBlur(hWnd);
+                }
+                return true;
+            }, IntPtr.Zero);
+        }
+
+        public static void ApplyStartMenuTransparency()
+        {
+            // Windows 10/11 use different processes for Start and Search
+            // We search for all windows belonging to these system processes
+            var targetProcesses = new string[] { "startmenu", "search", "shellexperience" };
+            var targetPids = new HashSet<uint>();
+
+            foreach (var p in System.Diagnostics.Process.GetProcesses())
+            {
+                try {
+                    string name = p.ProcessName.ToLower();
+                    foreach (var target in targetProcesses) {
+                        if (name.Contains(target)) {
+                            targetPids.Add((uint)p.Id);
+                            break;
+                        }
+                    }
+                } catch { }
+            }
+
+            EnumWindows((hWnd, lParam) =>
+            {
+                uint pid;
+                GetWindowThreadProcessId(hWnd, out pid);
+                if (targetPids.Contains(pid))
+                {
+                    // Check if it's a CoreWindow or search/start window
+                    StringBuilder className = new StringBuilder(256);
+                    GetClassName(hWnd, className, className.Capacity);
+                    string cls = className.ToString();
+
+                    if (cls.Contains("Windows.UI.Core.CoreWindow") || 
+                        cls.Contains("XamlExplorerHostIslandWindow") || 
+                        cls.Contains("HostControl"))
+                    {
+                        ApplyBlur(hWnd);
+                    }
+                }
+                return true;
+            }, IntPtr.Zero);
+        }
+
+        [DllImport("user32.dll", CharSet = CharSet.Auto, SetLastError = true)]
+        static extern int GetWindowText(IntPtr hWnd, StringBuilder lpString, int nMaxCount);
 
         [DllImport("user32.dll")]
         static extern IntPtr SendMessage(IntPtr hWnd, uint Msg, IntPtr wParam, IntPtr lParam);
@@ -157,11 +228,13 @@ namespace ZeroMix.ZeroShell
             }
         }
 
-        public static void HideDesktopIcons()
+        public static void HideDesktopIcons() => SetDesktopIconsVisibility(0);
+        public static void ShowDesktopIcons() => SetDesktopIconsVisibility(5); // SW_SHOW
+
+        private static void SetDesktopIconsVisibility(int nCmdShow)
         {
             IntPtr progman = FindWindow("Progman", null);
             IntPtr shellView = FindWindowEx(progman, IntPtr.Zero, "SHELLDLL_DefView", null);
-            
             if (shellView == IntPtr.Zero)
             {
                 EnumWindows((hwnd, lParam) =>
@@ -174,7 +247,7 @@ namespace ZeroMix.ZeroShell
             if (shellView != IntPtr.Zero)
             {
                 IntPtr listView = FindWindowEx(shellView, IntPtr.Zero, "SysListView32", null);
-                if (listView != IntPtr.Zero) ShowWindow(listView, 0); 
+                if (listView != IntPtr.Zero) ShowWindow(listView, nCmdShow);
             }
         }
 

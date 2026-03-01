@@ -16,7 +16,7 @@ namespace ZeroMix.Onboarding
     {
         public event Action? OnOnboardingFinished;
         private int _currentSlideIndex = 0;
-        private const int TotalSlides = 6;
+        private const int TotalSlides = 7;
         private List<Grid> _slides = new List<Grid>();
 
         public OnboardingWindow()
@@ -35,6 +35,7 @@ namespace ZeroMix.Onboarding
             _slides.Add(Slide3);
             _slides.Add(Slide4);
             _slides.Add(Slide5);
+            _slides.Add(Slide6);
         }
 
         private void BtnNext_Click(object sender, RoutedEventArgs e)
