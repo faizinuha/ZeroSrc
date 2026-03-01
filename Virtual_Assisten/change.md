@@ -8,6 +8,8 @@ Selamat datang di era baru kustomisasi desktop. **ZeroShell v4.2.0** bukan sekad
 - **💾 Persistent Alias System**: Simpan perintah favorit Kakak secara permanen. Contoh: `!alias c=cls` (tersimpan otomatis di `aliases.json`).
 - **📂 Interactive Selection Menu**: Ganti font dan layout secara visual tanpa ngetik angka. Cukup pake tombol panah (↑/↓) di tengah layar.
 - **🔍 Stealth Process Mode**: Perintah sistem (`!sys`, `!wifi`, dll) sekarang menyembunyikan log mentah dan menampilkan status "Processing..." yang lebih bersih.
+- **🚀 Framework Installer (!install)**: Pasang framework favorit (_React + Vite_, _React JS_, _React Native_, _Laravel 10-12_) secara praktis melalui menu interaktif (pilih folder & lokasi langsung).
+- **🕒 Dynamic Status Bar**: Jam yang sinkron (`HH:mm:ss`) dan path folder yang otomatis update di bar bagian atas setiap kali Kakak pindah direktori (`cd`).
 
 ### 🌌 Fitur Ekosistem ZeroShell Core
 
@@ -21,6 +23,7 @@ Selamat datang di era baru kustomisasi desktop. **ZeroShell v4.2.0** bukan sekad
 | :--------- | :--------------------------------------------------------------- |
 | **Sesi**   | `!tab`, `!close`, `!exit`                                        |
 | **Visual** | `!font`, `!layout`, `!alias`, `!unalias`, `cls`                  |
+| **Tools**  | `!install` (Framework), `!WDM` (Desktop Minimalist)              |
 | **Sistem** | `!wifi`, `!sys`, `!ip`, `!battery`, `!disk`, `!apps`, `!startup` |
 
 ---

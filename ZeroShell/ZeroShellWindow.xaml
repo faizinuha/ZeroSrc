@@ -9,10 +9,30 @@
         ShowInTaskbar="True"
         WindowStartupLocation="CenterScreen"
         Loaded="Window_Loaded"
-        MouseDown="Window_MouseDown">
+        MouseDown="Window_MouseDown"
+        StateChanged="Window_StateChanged">
+
+    <WindowChrome.WindowChrome>
+        <WindowChrome CaptionHeight="0" 
+                      ResizeBorderThickness="8" 
+                      CornerRadius="0" 
+                      GlassFrameThickness="0" />
+    </WindowChrome.WindowChrome>
 
     <Grid>
-        <Border x:Name="MainBorder" CornerRadius="16" Margin="12">
+        <Border x:Name="MainBorder">
+            <Border.Style>
+                <Style TargetType="Border">
+                    <Setter Property="CornerRadius" Value="16"/>
+                    <Setter Property="Margin" Value="12"/>
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding WindowState, RelativeSource={RelativeSource AncestorType=Window}}" Value="Maximized">
+                            <Setter Property="CornerRadius" Value="0"/>
+                            <Setter Property="Margin" Value="0"/>
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </Border.Style>
             <Border.Background>
                 <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
                     <GradientStop Color="#F5101820" Offset="0"/>
@@ -26,10 +46,9 @@
             <Grid x:Name="RootLayout">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="38"/>
-                    <RowDefinition x:Name="NeofetchRow" Height="Auto" MaxHeight="250"/>
                     <RowDefinition x:Name="StatusBarRow" Height="42"/>
                     <RowDefinition Height="Auto"/>
-                    <RowDefinition x:Name="TerminalRow" Height="*"/>
+                    <RowDefinition x:Name="MainContentRow" Height="*"/>
                     <RowDefinition Height="48"/>
                 </Grid.RowDefinitions>
 
@@ -39,75 +58,26 @@
                         <Ellipse Width="12" Height="12" Fill="#FFFF5F56" Margin="0,0,8,0"/>
                         <Ellipse Width="12" Height="12" Fill="#FFFFBD2E" Margin="0,0,8,0"/>
                         <Ellipse Width="12" Height="12" Fill="#FF27C93F" Margin="0,0,20,0"/>
-                        <TextBlock Text="zero@terminal: ~" Foreground="#88FFFFFF" FontFamily="Consolas" FontSize="12"/>
+                        <TextBlock x:Name="TitleTabText" Text="zero@terminal: ~" Foreground="#88FFFFFF" FontFamily="Consolas" FontSize="12"/>
                     </StackPanel>
                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,0,10,0">
                         <Button Content="─" Width="32" Height="28" Background="Transparent" BorderBrush="Transparent" Foreground="#88FFFFFF" Click="MinimizeButton_Click" FontSize="13"/>
+                        <Button x:Name="MaximizeButton" Content="▢" Width="32" Height="28" Background="Transparent" BorderBrush="Transparent" Foreground="#88FFFFFF" Click="MaximizeButton_Click" FontSize="15" FontFamily="Segoe UI Symbol"/>
                         <Button Content="✕" Width="32" Height="28" Background="Transparent" BorderBrush="Transparent" Foreground="#88FF5F56" Click="CloseButton_Click" FontSize="13"/>
                     </StackPanel>
                 </Grid>
 
                 <!-- NEOFETCH AREA -->
-                <Grid x:Name="NeofetchArea" Grid.Row="1" Margin="30,20,30,10">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="200"/>
-                        <ColumnDefinition Width="*"/>
-                    </Grid.ColumnDefinitions>
-                    <Border Grid.Column="0" CornerRadius="12" Margin="0,0,25,0">
-                        <Border.Background>
-                            <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
-                                <GradientStop Color="#15FFFFFF" Offset="0"/>
-                                <GradientStop Color="#05FFFFFF" Offset="1"/>
-                            </LinearGradientBrush>
-                        </Border.Background>
-                        <Grid>
-                            <Image x:Name="AnimeCharImage" Stretch="UniformToFill" VerticalAlignment="Bottom" RenderOptions.BitmapScalingMode="HighQuality"/>
-                            <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" x:Name="CharPlaceholder">
-                                <TextBlock Text="零" FontSize="80" Foreground="#2500D4FF" HorizontalAlignment="Center" FontWeight="Bold"/>
-                                <TextBlock Text="ZERO" Foreground="#25FFFFFF" FontSize="12" HorizontalAlignment="Center"/>
-                            </StackPanel>
-                        </Grid>
-                    </Border>
-                    <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                        <StackPanel Margin="0,0,0,8">
-                            <TextBlock FontFamily="Consolas" FontSize="13" Margin="0,3"><Run Text=" 🖥 " Foreground="#FFFF6B6B"/><Run x:Name="OsInfoText" Text="Windows" Foreground="#EEEEEE"/></TextBlock>
-                            <TextBlock FontFamily="Consolas" FontSize="13" Margin="0,3"><Run Text=" 🔧 " Foreground="#FFFF6B6B"/><Run x:Name="KernelText" Text="NT" Foreground="#CCCCCC"/></TextBlock>
-                            <TextBlock FontFamily="Consolas" FontSize="13" Margin="0,3"><Run Text=" ⏱ " Foreground="#FFFF6B6B"/><Run x:Name="UptimeText" Text="--" Foreground="#CCCCCC"/></TextBlock>
-                            <TextBlock Text="● ● ● ● ● ● ● ● ● ●" Foreground="#FFFF6B6B" FontSize="10" Margin="5,5,0,0"/>
-                        </StackPanel>
-                        <StackPanel Margin="0,0,0,8">
-                            <TextBlock FontFamily="Consolas" FontSize="13" Margin="0,3"><Run Text=" 📦 " Foreground="#FFCC6BFF"/><Run x:Name="ShellText" Text="PowerShell" Foreground="#EEEEEE"/></TextBlock>
-                            <TextBlock FontFamily="Consolas" FontSize="13" Margin="0,3"><Run Text=" 🎨 " Foreground="#FFCC6BFF"/><Run Text="ZeroMix Terminal" Foreground="#CCCCCC"/></TextBlock>
-                            <TextBlock Text="◆ ◆ ◆ ◆ ◆ ◆ ◆ ◆ ◆ ◆" Foreground="#FFCC6BFF" FontSize="10" Margin="5,5,0,0"/>
-                        </StackPanel>
-                        <StackPanel Margin="0,0,0,8">
-                            <TextBlock FontFamily="Consolas" FontSize="13" Margin="0,3"><Run Text=" 💻 " Foreground="#FFFFDA6B"/><Run x:Name="CpuInfoText" Text="Loading..." Foreground="#EEEEEE"/></TextBlock>
-                            <TextBlock FontFamily="Consolas" FontSize="13" Margin="0,3"><Run Text=" 🎮 " Foreground="#FFFFDA6B"/><Run x:Name="GpuInfoText" Text="Loading..." Foreground="#CCCCCC"/></TextBlock>
-                            <TextBlock FontFamily="Consolas" FontSize="13" Margin="0,3"><Run Text=" 🧠 " Foreground="#FFFFDA6B"/><Run x:Name="RamInfoText" Text="Loading..." Foreground="#CCCCCC"/></TextBlock>
-                            <TextBlock Text="▲ ▲ ▲ ▲ ▲ ▲ ▲ ▲ ▲ ▲" Foreground="#FFFFDA6B" FontSize="10" Margin="5,5,0,0"/>
-                        </StackPanel>
-                        <StackPanel Orientation="Horizontal" Margin="5,10,0,0">
-                            <Border Width="22" Height="22" CornerRadius="4" Background="#FFFF6B6B" Margin="0,0,5,0"/>
-                            <Border Width="22" Height="22" CornerRadius="4" Background="#FFFF9F43" Margin="0,0,5,0"/>
-                            <Border Width="22" Height="22" CornerRadius="4" Background="#FFFFDA6B" Margin="0,0,5,0"/>
-                            <Border Width="22" Height="22" CornerRadius="4" Background="#FF27C93F" Margin="0,0,5,0"/>
-                            <Border Width="22" Height="22" CornerRadius="4" Background="#FF6BDDFF" Margin="0,0,5,0"/>
-                            <Border Width="22" Height="22" CornerRadius="4" Background="#FFCC6BFF" Margin="0,0,5,0"/>
-                            <Border Width="22" Height="22" CornerRadius="4" Background="#FFFF6BCA" Margin="0,0,5,0"/>
-                            <Border Width="22" Height="22" CornerRadius="4" Background="#FFFFFFFF" Margin="0,0,5,0"/>
-                        </StackPanel>
-                    </StackPanel>
-                </Grid>
 
                 <!-- STATUS BAR -->
-                <Border x:Name="StatusBar" Grid.Row="2" Background="#12FFFFFF" Margin="20,0" CornerRadius="6" Padding="15,0">
+                <Border x:Name="StatusBar" Grid.Row="1" Background="#12FFFFFF" Margin="20,5,20,5" CornerRadius="6" Padding="15,0">
                     <Grid>
                         <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                             <Border Background="#FF27C93F" CornerRadius="4" Padding="10,4" Margin="0,0,2,0">
                                 <TextBlock x:Name="UserNameText" Text=" zero " FontFamily="Consolas" FontSize="11" Foreground="#111111" FontWeight="Bold"/>
                             </Border>
                             <Border Background="#FF6BDDFF" CornerRadius="0,4,4,0" Padding="10,4" Margin="0,0,15,0">
-                                <TextBlock Text=" ~/zero-terminal " FontFamily="Consolas" FontSize="11" Foreground="#111111"/>
+                                <TextBlock x:Name="StatusPathText" Text=" ~/zero-terminal " FontFamily="Consolas" FontSize="11" Foreground="#111111"/>
                             </Border>
                             <TextBlock x:Name="DateTimeText" Text="--" Foreground="#66FFFFFF" FontFamily="Consolas" FontSize="11" VerticalAlignment="Center"/>
                         </StackPanel>
@@ -116,23 +86,76 @@
                 </Border>
 
                 <!-- TAB BAR -->
-                <Border Grid.Row="3" Margin="20,8,20,0" Padding="0">
+                <Border Grid.Row="2" Margin="20,0,20,0" Padding="0">
                     <StackPanel x:Name="TabBar" Orientation="Horizontal"/>
                 </Border>
 
                 <!-- TERMINAL CONTENT AREA -->
-                <Grid Grid.Row="4" Margin="0">
+                <!-- MAIN CONTENT AREA (SPLIT LAYOUT) -->
+                <Grid Grid.Row="3" Margin="0" x:Name="MainContentArea">
                     <Grid.ColumnDefinitions>
+                        <ColumnDefinition x:Name="NeofetchCol" Width="380"/>
                         <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
 
+                    <!-- NEOFETCH AREA (LEFT) -->
+                    <Grid x:Name="NeofetchArea" Grid.Column="0" Margin="20,10,10,10">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+                        
+                        <Border Grid.Row="0" CornerRadius="12" Margin="0,0,0,15" Height="220">
+                            <Border.Background>
+                                <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                                    <GradientStop Color="#15FFFFFF" Offset="0"/>
+                                    <GradientStop Color="#05FFFFFF" Offset="1"/>
+                                </LinearGradientBrush>
+                            </Border.Background>
+                            <Grid>
+                                <Image x:Name="AnimeCharImage" Stretch="Uniform" VerticalAlignment="Bottom" RenderOptions.BitmapScalingMode="HighQuality"/>
+                                <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" x:Name="CharPlaceholder">
+                                    <TextBlock Text="零" FontSize="60" Foreground="#2500D4FF" HorizontalAlignment="Center" FontWeight="Bold"/>
+                                    <TextBlock Text="ZERO" Foreground="#25FFFFFF" FontSize="10" HorizontalAlignment="Center"/>
+                                </StackPanel>
+                            </Grid>
+                        </Border>
 
-                    <!-- TERMINALS -->
-                    <Grid x:Name="TerminalsContainer" Grid.Column="0" Margin="20,5,20,5"/>
+                        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Hidden">
+                            <StackPanel>
+                                <StackPanel Margin="0,0,0,8">
+                                    <TextBlock FontFamily="Consolas" FontSize="12" Margin="0,2"><Run Text=" 🖥 " Foreground="#FFFF6B6B"/><Run x:Name="OsInfoText" Text="Windows" Foreground="#EEEEEE"/></TextBlock>
+                                    <TextBlock FontFamily="Consolas" FontSize="12" Margin="0,2"><Run Text=" 🔧 " Foreground="#FFFF6B6B"/><Run x:Name="KernelText" Text="NT" Foreground="#CCCCCC"/></TextBlock>
+                                    <TextBlock FontFamily="Consolas" FontSize="12" Margin="0,2"><Run Text=" ⏱ " Foreground="#FFFF6B6B"/><Run x:Name="UptimeText" Text="--" Foreground="#CCCCCC"/></TextBlock>
+                                    <TextBlock Text="● ● ● ● ● ● ● ●" Foreground="#FFFF6B6B" FontSize="10" Margin="5,4,0,0"/>
+                                </StackPanel>
+                                <StackPanel Margin="0,0,0,8">
+                                    <TextBlock FontFamily="Consolas" FontSize="12" Margin="0,2"><Run Text=" 📦 " Foreground="#FFCC6BFF"/><Run x:Name="ShellText" Text="PowerShell" Foreground="#EEEEEE"/></TextBlock>
+                                    <TextBlock FontFamily="Consolas" FontSize="12" Margin="0,2"><Run Text=" 🎨 " Foreground="#FFCC6BFF"/><Run Text="ZeroMix Terminal" Foreground="#CCCCCC"/></TextBlock>
+                                    <TextBlock Text="◆ ◆ ◆ ◆ ◆ ◆ ◆ ◆" Foreground="#FFCC6BFF" FontSize="10" Margin="5,4,0,0"/>
+                                </StackPanel>
+                                <StackPanel Margin="0,0,0,8">
+                                    <TextBlock FontFamily="Consolas" FontSize="12" Margin="0,2" TextWrapping="Wrap"><Run Text=" 💻 " Foreground="#FFFFDA6B"/><Run x:Name="CpuInfoText" Text="Loading..." Foreground="#EEEEEE"/></TextBlock>
+                                    <TextBlock FontFamily="Consolas" FontSize="12" Margin="0,2" TextWrapping="Wrap"><Run Text=" 🎮 " Foreground="#FFFFDA6B"/><Run x:Name="GpuInfoText" Text="Loading..." Foreground="#CCCCCC"/></TextBlock>
+                                    <TextBlock FontFamily="Consolas" FontSize="12" Margin="0,2"><Run Text=" 🧠 " Foreground="#FFFFDA6B"/><Run x:Name="RamInfoText" Text="Loading..." Foreground="#CCCCCC"/></TextBlock>
+                                    <TextBlock Text="▲ ▲ ▲ ▲ ▲ ▲ ▲ ▲" Foreground="#FFFFDA6B" FontSize="10" Margin="5,4,0,0"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="5,8,0,0">
+                                    <Border Width="18" Height="18" CornerRadius="3" Background="#FFFF6B6B" Margin="0,0,4,0"/>
+                                    <Border Width="18" Height="18" CornerRadius="3" Background="#FFFF9F43" Margin="0,0,4,0"/>
+                                    <Border Width="18" Height="18" CornerRadius="3" Background="#FFFFDA6B" Margin="0,0,4,0"/>
+                                    <Border Width="18" Height="18" CornerRadius="3" Background="#FF27C93F" Margin="0,0,4,0"/>
+                                    <Border Width="18" Height="18" CornerRadius="3" Background="#FF6BDDFF" Margin="0,0,4,0"/>
+                                </StackPanel>
+                            </StackPanel>
+                        </ScrollViewer>
+                    </Grid>
 
-                    <!-- SELECTION OVERLAY -->
-                    <!-- SELECTION OVERLAY -->
-                    <Border x:Name="SelectionOverlay" Grid.Column="0" Visibility="Collapsed" 
+                    <!-- TERMINAL AREA (RIGHT) -->
+                    <Grid x:Name="TerminalsContainer" Grid.Column="1" Margin="10,5,20,5"/>
+
+                    <!-- SELECTION OVERLAY (FLOATING CENTER) -->
+                    <Border x:Name="SelectionOverlay" Grid.ColumnSpan="2" Visibility="Collapsed" 
                             Background="#F0101820" CornerRadius="16" Margin="60,20" Padding="50,30"
                             BorderBrush="#FF6BDDFF" BorderThickness="1" VerticalAlignment="Center" HorizontalAlignment="Center">
                         <Border.Effect>
@@ -151,13 +174,13 @@
                 </Grid>
 
                 <!-- INPUT -->
-                <Border Grid.Row="5" Background="#10FFFFFF" Margin="20,0,20,12" CornerRadius="8" Padding="5,0">
+                <Border Grid.Row="4" Background="#10FFFFFF" Margin="20,0,20,12" CornerRadius="8" Padding="5,0">
                     <Grid>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto"/>
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
-                        <TextBlock x:Name="PromptText" Text=" ~/zero ❯ " Foreground="#FF27C93F" FontFamily="Consolas" FontSize="13" VerticalAlignment="Center" Margin="10,0,0,0"/>
+                        <TextBlock x:Name="PromptText" Text=" ~/zero > " Foreground="#FF27C93F" FontFamily="Consolas" FontSize="13" VerticalAlignment="Center" Margin="10,0,0,0"/>
                         <TextBox x:Name="TerminalInput" Grid.Column="1" Background="Transparent" BorderBrush="Transparent" 
                                  Foreground="#EEEEEE" FontFamily="Consolas" FontSize="13" CaretBrush="#FF27C93F" 
                                  KeyDown="TerminalInput_KeyDown" PreviewKeyDown="TerminalInput_PreviewKeyDown" Padding="5" VerticalAlignment="Center"/>

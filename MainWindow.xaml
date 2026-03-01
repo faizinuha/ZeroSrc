@@ -26,6 +26,13 @@
         StateChanged="Window_StateChanged"
         ShowInTaskbar="True">
 
+    <WindowChrome.WindowChrome>
+        <WindowChrome CaptionHeight="0" 
+                      ResizeBorderThickness="5" 
+                      GlassFrameThickness="0" 
+                      CornerRadius="0" />
+    </WindowChrome.WindowChrome>
+
     <Window.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
@@ -167,11 +174,32 @@
                 </Setter>
             </Style>
 
+            <Style x:Key="MainBorderStyle" TargetType="Border">
+                <Setter Property="CornerRadius" Value="16"/>
+                <Setter Property="Margin" Value="0"/>
+                <Style.Triggers>
+                    <DataTrigger Binding="{Binding WindowState, RelativeSource={RelativeSource AncestorType=Window}}" Value="Maximized">
+                        <Setter Property="CornerRadius" Value="0"/>
+                    </DataTrigger>
+                </Style.Triggers>
+            </Style>
         </ResourceDictionary>
     </Window.Resources>
+    
+    <Window.Style>
+        <Style TargetType="Window">
+            <Style.Triggers>
+                <Trigger Property="WindowState" Value="Maximized">
+                    <Setter Property="BorderThickness" Value="0" />
+                    <!-- This allows keeping taskbar visible when maximized in borderless windows -->
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+    </Window.Style>
 
     <!-- Main Container with rounded corners -->
-    <Border CornerRadius="16"
+    <Border x:Name="RootBorder"
+            Style="{StaticResource MainBorderStyle}"
             Background="{StaticResource DeepNavyBrush}"
             BorderThickness="1"
             BorderBrush="#1A2030"
