@@ -2,20 +2,22 @@
 
 Selamat datang di era baru kustomisasi desktop. **ZeroShell v4.2.0** bukan sekadar pembaruan, melainkan transformasi total yang menggabungkan estetika _Glassmorphism_ dengan produktivitas terminal tingkat Pro.
 
-### ✨ Fitur Utama Terminal (v4.2.0)
+### ✨ Fitur Utama Terminal (v4.2.0 - Redesign)
 
-- **📑 Tabbed Terminal System**: Jalankan banyak sesi terminal sekaligus dalam satu jendela. Gunakan `!tab` untuk menambah sesi dan `!close` untuk menutupnya.
-- **💾 Persistent Alias System**: Simpan perintah favorit Kakak secara permanen. Contoh: `!alias c=cls` (tersimpan otomatis di `aliases.json`).
-- **📂 Interactive Selection Menu**: Ganti font dan layout secara visual tanpa ngetik angka. Cukup pake tombol panah (↑/↓) di tengah layar.
-- **🔍 Stealth Process Mode**: Perintah sistem (`!sys`, `!wifi`, dll) sekarang menyembunyikan log mentah dan menampilkan status "Processing..." yang lebih bersih.
-- **🚀 Framework Installer (!install)**: Pasang framework favorit (_React + Vite_, _React JS_, _React Native_, _Laravel 10-12_) secara praktis melalui menu interaktif (pilih folder & lokasi langsung).
-- **🕒 Dynamic Status Bar**: Jam yang sinkron (`HH:mm:ss`) dan path folder yang otomatis update di bar bagian atas setiap kali Kakak pindah direktori (`cd`).
+- **🎨 Arch Linux Aesthetic**: Tampilan Neofetch yang didesain ulang total dengan logo Arch (ASCII), info sistem yang rapi di sisi kanan, dan deretan titik warna (●) yang ikonik. 
+- **⚡ Powerline Segmented Prompt**: Prompt terminal gaya Linux (Powerlevel10k) dengan sekat User dan Path yang dinamis dan ber-kontras tinggi.
+- **📑 Glassy Tab System**: Navigasi antar sesi menggunakan tombol "Pill" transparan yang mengkilap, memberikan kesan mewah dan modern.
+- **🔍 Smart Auto-Complete**: Perbaikan total pada fitur Tab Completion. Sekarang deteksi file dan folder 100% akurat mengikuti perpindahan direktori (`cd`).
+- **📝 Glass Notepad (!notepad)**: Buka Notepad langsung dari terminal dengan otomatis menerapkan efek Blur/Glass transparan.
+- **💎 Total Glass Mode (!everglass)**: Paksa mode transparan mewah ke seluruh elemen sistem (Explorer, Taskbar, & Start Menu) dalam satu perintah.
+- **🚀 Performance Boost**: Perintah `ls` dan `dir` sekarang diproses secepat kilat dengan sistem batching UI yang lebih efisien.
+- **🕒 Hidden Clock Tile**: Jam digital besar sekarang bersifat opsional—ketik `!clock` buat munculin atau sembunyiin ubin jamnya.
 
 ### 🌌 Fitur Ekosistem ZeroShell Core
 
-- **�️ Glass Explorer Magic**: Membuat tampilan Windows Explorer menjadi transparan dengan efek acrylic/blur yang sangat elegan.
-- **� Virtual Assistant 2.0**: Dukungan penuh untuk model HuoHuo, Frieren, dan Fern dengan penggunaan memori yang lebih efisien.
-- **🎨 Anime Terminal Aesthetic**: Tampilan Neofetch dengan info sistem detail dan sidebar anime kustom (`character.png`) yang tetap menjadi ciri khas utama.
+- **🖼️ Floating Window UI**: Desain terminal melayang dengan margin halus dan sudut membulat, memberikan impresi "Normal" yang tetap premium.
+- **🕶️ WDM (Window Desktop Minimalis)**: Integrasi efek Glass yang lebih stabil ke Start Menu dan Taskbar Windows 10/11.
+- **🤖 Virtual Assistant 2.0**: Dukungan penuh untuk model HuoHuo, Frieren, dan Fern dengan penggunaan memori yang lebih efisien.
 
 ### ⌨️ Daftar Perintah Cepat
 

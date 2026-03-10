@@ -10,7 +10,7 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Runtime.InteropServices;
 
-namespace ZeroMix
+namespace ZeroMix.Hotkeys
 {
     public partial class CustomShortcutWindow : Window
     {

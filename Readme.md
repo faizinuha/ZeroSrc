@@ -32,6 +32,7 @@ ZeroMix is packed with features that keep your system fast and your desktop stun
 | **📊 System Monitor**    | Real-time tracking of CPU, RAM, and Disk directly from your dashboard.  |
 | **🎨 Ghost Taskbar**     | Instantly make your taskbar transparent for a clean, professional look. |
 | **🎬 Video Wallpaper**   | Immersive animated wallpapers with high-performance video engine.       |
+| **💻 ZeroShell v4.2**    | **(NEW)** Pro Terminal with Powerline prompt & Arch-style system fetch. |
 | **🔍 Search Overlay**    | High-performance search bar (`Alt + Space`) for apps, files, and web.   |
 | **🧹 Memory Optimizer**  | Smart background GC collection and working set trimming.                |
 

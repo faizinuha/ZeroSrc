@@ -3,6 +3,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Collections.Generic;
 using System.IO;
+using System.Diagnostics;
 using System.Windows;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
@@ -104,9 +105,9 @@ namespace ZeroMix.ZeroShell
         private static void ApplyBlur(IntPtr hwnd)
         {
             var accent = new AccentPolicy();
+            // Higher alpha (0x66) and darker tint (#0A0A0A) to fix font readability ('aneh' font issue)
             accent.AccentState = AccentState.ACCENT_ENABLE_ACRYLICBLURBEHIND;
-            // Premium Glass: Hex #22 (low alpha) for ultra transparent feel
-            accent.GradientColor = (0x22 << 24) | (0x0A0A0A & 0xFFFFFF); 
+            accent.GradientColor = (0x66 << 24) | (0x0A0A0A & 0xFFFFFF); 
 
             var accentStructSize = Marshal.SizeOf(accent);
             var accentPtr = Marshal.AllocHGlobal(accentStructSize);
@@ -145,20 +146,15 @@ namespace ZeroMix.ZeroShell
 
         public static void ApplyStartMenuTransparency()
         {
-            // Windows 10/11 use different processes for Start and Search
-            // We search for all windows belonging to these system processes
-            var targetProcesses = new string[] { "startmenu", "search", "shellexperience" };
+            var targetProcesses = new string[] { "startmenu", "search", "shellexperience", "cortana" };
             var targetPids = new HashSet<uint>();
 
-            foreach (var p in System.Diagnostics.Process.GetProcesses())
+            foreach (var p in Process.GetProcesses())
             {
                 try {
                     string name = p.ProcessName.ToLower();
                     foreach (var target in targetProcesses) {
-                        if (name.Contains(target)) {
-                            targetPids.Add((uint)p.Id);
-                            break;
-                        }
+                        if (name.Contains(target)) { targetPids.Add((uint)p.Id); break; }
                     }
                 } catch { }
             }
@@ -169,20 +165,24 @@ namespace ZeroMix.ZeroShell
                 GetWindowThreadProcessId(hWnd, out pid);
                 if (targetPids.Contains(pid))
                 {
-                    // Check if it's a CoreWindow or search/start window
-                    StringBuilder className = new StringBuilder(256);
-                    GetClassName(hWnd, className, className.Capacity);
-                    string cls = className.ToString();
-
-                    if (cls.Contains("Windows.UI.Core.CoreWindow") || 
-                        cls.Contains("XamlExplorerHostIslandWindow") || 
-                        cls.Contains("HostControl"))
-                    {
-                        ApplyBlur(hWnd);
-                    }
+                    ApplyBlur(hWnd); 
                 }
                 return true;
             }, IntPtr.Zero);
+            
+            IntPtr startHwnd = FindWindow("Windows.UI.Core.CoreWindow", null);
+            if (startHwnd != IntPtr.Zero) ApplyBlur(startHwnd);
+        }
+
+        public static void ApplyGlassToWindow(string processName)
+        {
+            foreach (var proc in Process.GetProcessesByName(processName))
+            {
+                if (proc.MainWindowHandle != IntPtr.Zero)
+                {
+                    ApplyBlur(proc.MainWindowHandle);
+                }
+            }
         }
 
         [DllImport("user32.dll", CharSet = CharSet.Auto, SetLastError = true)]

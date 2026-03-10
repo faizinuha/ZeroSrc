@@ -23,8 +23,8 @@
         <Border x:Name="MainBorder">
             <Border.Style>
                 <Style TargetType="Border">
-                    <Setter Property="CornerRadius" Value="16"/>
-                    <Setter Property="Margin" Value="12"/>
+                    <Setter Property="CornerRadius" Value="20"/>
+                    <Setter Property="Margin" Value="20"/>
                     <Style.Triggers>
                         <DataTrigger Binding="{Binding WindowState, RelativeSource={RelativeSource AncestorType=Window}}" Value="Maximized">
                             <Setter Property="CornerRadius" Value="0"/>
@@ -52,107 +52,83 @@
                     <RowDefinition Height="48"/>
                 </Grid.RowDefinitions>
 
-                <!-- TITLE BAR -->
-                <Grid Grid.Row="0" Background="#18FFFFFF">
-                    <StackPanel Orientation="Horizontal" Margin="16,0" VerticalAlignment="Center">
-                        <Ellipse Width="12" Height="12" Fill="#FFFF5F56" Margin="0,0,8,0"/>
-                        <Ellipse Width="12" Height="12" Fill="#FFFFBD2E" Margin="0,0,8,0"/>
-                        <Ellipse Width="12" Height="12" Fill="#FF27C93F" Margin="0,0,20,0"/>
-                        <TextBlock x:Name="TitleTabText" Text="zero@terminal: ~" Foreground="#88FFFFFF" FontFamily="Consolas" FontSize="12"/>
-                    </StackPanel>
-                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,0,10,0">
-                        <Button Content="─" Width="32" Height="28" Background="Transparent" BorderBrush="Transparent" Foreground="#88FFFFFF" Click="MinimizeButton_Click" FontSize="13"/>
-                        <Button x:Name="MaximizeButton" Content="▢" Width="32" Height="28" Background="Transparent" BorderBrush="Transparent" Foreground="#88FFFFFF" Click="MaximizeButton_Click" FontSize="15" FontFamily="Segoe UI Symbol"/>
-                        <Button Content="✕" Width="32" Height="28" Background="Transparent" BorderBrush="Transparent" Foreground="#88FF5F56" Click="CloseButton_Click" FontSize="13"/>
-                    </StackPanel>
-                </Grid>
-
-                <!-- NEOFETCH AREA -->
-
-                <!-- STATUS BAR -->
-                <Border x:Name="StatusBar" Grid.Row="1" Background="#12FFFFFF" Margin="20,5,20,5" CornerRadius="6" Padding="15,0">
-                    <Grid>
-                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                            <Border Background="#FF27C93F" CornerRadius="4" Padding="10,4" Margin="0,0,2,0">
-                                <TextBlock x:Name="UserNameText" Text=" zero " FontFamily="Consolas" FontSize="11" Foreground="#111111" FontWeight="Bold"/>
-                            </Border>
-                            <Border Background="#FF6BDDFF" CornerRadius="0,4,4,0" Padding="10,4" Margin="0,0,15,0">
-                                <TextBlock x:Name="StatusPathText" Text=" ~/zero-terminal " FontFamily="Consolas" FontSize="11" Foreground="#111111"/>
-                            </Border>
-                            <TextBlock x:Name="DateTimeText" Text="--" Foreground="#66FFFFFF" FontFamily="Consolas" FontSize="11" VerticalAlignment="Center"/>
-                        </StackPanel>
-                        <TextBlock Text="!help" Foreground="#44FFFFFF" FontFamily="Consolas" FontSize="10" HorizontalAlignment="Right" VerticalAlignment="Center"/>
-                    </Grid>
-                </Border>
-
-                <!-- TAB BAR -->
-                <Border Grid.Row="2" Margin="20,0,20,0" Padding="0">
-                    <StackPanel x:Name="TabBar" Orientation="Horizontal"/>
-                </Border>
-
-                <!-- TERMINAL CONTENT AREA -->
-                <!-- MAIN CONTENT AREA (SPLIT LAYOUT) -->
-                <Grid Grid.Row="3" Margin="0" x:Name="MainContentArea">
+                <!-- TITLE BAR (Modern Pill Style) -->
+                <Grid Grid.Row="0" Margin="10,8,10,0">
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition x:Name="NeofetchCol" Width="380"/>
+                        <ColumnDefinition Width="Auto"/>
                         <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
 
-                    <!-- NEOFETCH AREA (LEFT) -->
-                    <Grid x:Name="NeofetchArea" Grid.Column="0" Margin="20,10,10,10">
+                    <Border Grid.Column="0" Background="#18FFFFFF" CornerRadius="12" Padding="10,0">
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Height="30">
+                            <Ellipse Width="10" Height="10" Fill="#FFFF5F56" Margin="0,0,8,0" MouseLeftButtonDown="CloseButton_Click" Cursor="Hand"/>
+                            <Ellipse Width="10" Height="10" Fill="#FFFFBD2E" Margin="0,0,8,0" MouseLeftButtonDown="MinimizeButton_Click" Cursor="Hand"/>
+                            <Ellipse Width="10" Height="10" Fill="#FF27C93F" Margin="0,0,15,0" MouseLeftButtonDown="MaximizeButton_Click" Cursor="Hand"/>
+                            <StackPanel x:Name="TabBar" Orientation="Horizontal"/>
+                        </StackPanel>
+                    </Border>
+                    
+                    <Border Grid.Column="1" HorizontalAlignment="Center" Background="#18FFFFFF" CornerRadius="12" Padding="15,0">
+                         <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Height="28">
+                             <TextBlock x:Name="CurrentTimeText" Text="13:28" Foreground="#CCFFFFFF" FontSize="11" VerticalAlignment="Center"/>
+                             <TextBlock Text=" ◓ 29°C " Foreground="#CC6BDDFF" FontSize="10" VerticalAlignment="Center" Margin="10,0,0,0"/>
+                         </StackPanel>
+                    </Border>
+
+                    <Border Grid.Column="2" Background="#18FFFFFF" CornerRadius="12" Padding="12,0">
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Height="30">
+                            <TextBlock Text=" BAT 34% " Foreground="#FFCC6BFF" FontSize="10" VerticalAlignment="Center" FontWeight="Bold"/>
+                            <TextBlock Text=" RAM 71% " Foreground="#FFFF9F43" FontSize="10" VerticalAlignment="Center" Margin="5,0" FontWeight="Bold"/>
+                            <TextBlock x:Name="StatusPathText" Text=" ~ " Foreground="#88FFFFFF" FontSize="10" VerticalAlignment="Center" Margin="10,0"/>
+                            <TextBlock Text="  " Foreground="#FF27C93F" FontSize="12" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Border>
+                </Grid>
+
+                <!-- SPARE ROW ( statusBarRow ) -->
+                <Grid Grid.Row="1"/>
+
+                <!-- REMOVED STANDALONE TAB BAR -->
+
+                <!-- MAIN CONTENT AREA (TILED LAYOUT) -->
+                <Grid Grid.Row="3" Margin="20,10" x:Name="MainContentArea">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition x:Name="RightColumn" Width="0"/>
+                    </Grid.ColumnDefinitions>
+
+                    <!-- LEFT TILES (Terminal + Clock) -->
+                    <Grid Grid.Column="0">
                         <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto"/>
                             <RowDefinition Height="*"/>
+                            <RowDefinition x:Name="ClockRow" Height="0"/>
                         </Grid.RowDefinitions>
-                        
-                        <Border Grid.Row="0" CornerRadius="12" Margin="0,0,0,15" Height="220">
-                            <Border.Background>
-                                <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
-                                    <GradientStop Color="#15FFFFFF" Offset="0"/>
-                                    <GradientStop Color="#05FFFFFF" Offset="1"/>
-                                </LinearGradientBrush>
-                            </Border.Background>
-                            <Grid>
-                                <Image x:Name="AnimeCharImage" Stretch="Uniform" VerticalAlignment="Bottom" RenderOptions.BitmapScalingMode="HighQuality"/>
-                                <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" x:Name="CharPlaceholder">
-                                    <TextBlock Text="零" FontSize="60" Foreground="#2500D4FF" HorizontalAlignment="Center" FontWeight="Bold"/>
-                                    <TextBlock Text="ZERO" Foreground="#25FFFFFF" FontSize="10" HorizontalAlignment="Center"/>
-                                </StackPanel>
-                            </Grid>
+
+                        <!-- TERMINAL AREA -->
+                        <Border x:Name="TermBorder" Background="#15FFFFFF" CornerRadius="12" Margin="0,0,0,5" BorderBrush="#20FFFFFF" BorderThickness="1">
+                             <Grid x:Name="TerminalsContainer" Margin="12"/>
                         </Border>
 
-                        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Hidden">
-                            <StackPanel>
-                                <StackPanel Margin="0,0,0,8">
-                                    <TextBlock FontFamily="Consolas" FontSize="12" Margin="0,2"><Run Text=" 🖥 " Foreground="#FFFF6B6B"/><Run x:Name="OsInfoText" Text="Windows" Foreground="#EEEEEE"/></TextBlock>
-                                    <TextBlock FontFamily="Consolas" FontSize="12" Margin="0,2"><Run Text=" 🔧 " Foreground="#FFFF6B6B"/><Run x:Name="KernelText" Text="NT" Foreground="#CCCCCC"/></TextBlock>
-                                    <TextBlock FontFamily="Consolas" FontSize="12" Margin="0,2"><Run Text=" ⏱ " Foreground="#FFFF6B6B"/><Run x:Name="UptimeText" Text="--" Foreground="#CCCCCC"/></TextBlock>
-                                    <TextBlock Text="● ● ● ● ● ● ● ●" Foreground="#FFFF6B6B" FontSize="10" Margin="5,4,0,0"/>
-                                </StackPanel>
-                                <StackPanel Margin="0,0,0,8">
-                                    <TextBlock FontFamily="Consolas" FontSize="12" Margin="0,2"><Run Text=" 📦 " Foreground="#FFCC6BFF"/><Run x:Name="ShellText" Text="PowerShell" Foreground="#EEEEEE"/></TextBlock>
-                                    <TextBlock FontFamily="Consolas" FontSize="12" Margin="0,2"><Run Text=" 🎨 " Foreground="#FFCC6BFF"/><Run Text="ZeroMix Terminal" Foreground="#CCCCCC"/></TextBlock>
-                                    <TextBlock Text="◆ ◆ ◆ ◆ ◆ ◆ ◆ ◆" Foreground="#FFCC6BFF" FontSize="10" Margin="5,4,0,0"/>
-                                </StackPanel>
-                                <StackPanel Margin="0,0,0,8">
-                                    <TextBlock FontFamily="Consolas" FontSize="12" Margin="0,2" TextWrapping="Wrap"><Run Text=" 💻 " Foreground="#FFFFDA6B"/><Run x:Name="CpuInfoText" Text="Loading..." Foreground="#EEEEEE"/></TextBlock>
-                                    <TextBlock FontFamily="Consolas" FontSize="12" Margin="0,2" TextWrapping="Wrap"><Run Text=" 🎮 " Foreground="#FFFFDA6B"/><Run x:Name="GpuInfoText" Text="Loading..." Foreground="#CCCCCC"/></TextBlock>
-                                    <TextBlock FontFamily="Consolas" FontSize="12" Margin="0,2"><Run Text=" 🧠 " Foreground="#FFFFDA6B"/><Run x:Name="RamInfoText" Text="Loading..." Foreground="#CCCCCC"/></TextBlock>
-                                    <TextBlock Text="▲ ▲ ▲ ▲ ▲ ▲ ▲ ▲" Foreground="#FFFFDA6B" FontSize="10" Margin="5,4,0,0"/>
-                                </StackPanel>
-                                <StackPanel Orientation="Horizontal" Margin="5,8,0,0">
-                                    <Border Width="18" Height="18" CornerRadius="3" Background="#FFFF6B6B" Margin="0,0,4,0"/>
-                                    <Border Width="18" Height="18" CornerRadius="3" Background="#FFFF9F43" Margin="0,0,4,0"/>
-                                    <Border Width="18" Height="18" CornerRadius="3" Background="#FFFFDA6B" Margin="0,0,4,0"/>
-                                    <Border Width="18" Height="18" CornerRadius="3" Background="#FF27C93F" Margin="0,0,4,0"/>
-                                    <Border Width="18" Height="18" CornerRadius="3" Background="#FF6BDDFF" Margin="0,0,4,0"/>
-                                </StackPanel>
-                            </StackPanel>
-                        </ScrollViewer>
+                        <!-- CLOCK AREA (Hidden by default) -->
+                        <Border x:Name="ClockArea" Grid.Row="1" Visibility="Collapsed" 
+                                Background="#10FFFFFF" CornerRadius="12" Margin="0,5,0,0" BorderBrush="#3000D4FF" BorderThickness="1">
+                            <Grid>
+                                <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+                                    <TextBlock x:Name="BigClockText" Text="13:28" Foreground="#FF27C93F" FontSize="80" 
+                                               FontFamily="JetBrains Mono" FontWeight="Bold" HorizontalAlignment="Center"/>
+                                    <TextBlock x:Name="BigDateText" Text="2026-03-02" Foreground="#88FFFFFF" FontSize="14" 
+                                               HorizontalAlignment="Center" Margin="0,-10,0,0"/>
+                                 </StackPanel>
+                            </Grid>
+                        </Border>
                     </Grid>
-
-                    <!-- TERMINAL AREA (RIGHT) -->
-                    <Grid x:Name="TerminalsContainer" Grid.Column="1" Margin="10,5,20,5"/>
+                    
+                    <!-- RIGHT AREA (ASCII art, toggleable) -->
+                    <Border Grid.Column="1" x:Name="RightArea" Visibility="Collapsed" 
+                            Background="#10FFFFFF" CornerRadius="12" Margin="10,0,0,0" BorderBrush="#20FFFFFF" BorderThickness="1">
+                         <Grid x:Name="RightContentArea"/>
+                    </Border>
 
                     <!-- SELECTION OVERLAY (FLOATING CENTER) -->
                     <Border x:Name="SelectionOverlay" Grid.ColumnSpan="2" Visibility="Collapsed" 
@@ -173,17 +149,43 @@
                     </Border>
                 </Grid>
 
-                <!-- INPUT -->
-                <Border Grid.Row="4" Background="#10FFFFFF" Margin="20,0,20,12" CornerRadius="8" Padding="5,0">
-                    <Grid>
+                <!-- INPUT AREA (Transparent) -->
+                <Border Grid.Row="4" x:Name="InputBorder" Background="#08FFFFFF" CornerRadius="0,0,24,24" BorderBrush="#15FFFFFF" BorderThickness="0,1,0,0">
+                    <Grid Margin="20,0">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto"/>
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
-                        <TextBlock x:Name="PromptText" Text=" ~/zero > " Foreground="#FF27C93F" FontFamily="Consolas" FontSize="13" VerticalAlignment="Center" Margin="10,0,0,0"/>
-                        <TextBox x:Name="TerminalInput" Grid.Column="1" Background="Transparent" BorderBrush="Transparent" 
-                                 Foreground="#EEEEEE" FontFamily="Consolas" FontSize="13" CaretBrush="#FF27C93F" 
-                                 KeyDown="TerminalInput_KeyDown" PreviewKeyDown="TerminalInput_PreviewKeyDown" Padding="5" VerticalAlignment="Center"/>
+                        
+                        <!-- Segmented Linux Style Prompt (Powerline) -->
+                        <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                             <!-- USER SEGMENT -->
+                             <Border Background="#00D4FF" CornerRadius="4,0,0,4" Padding="10,4">
+                                  <StackPanel Orientation="Horizontal">
+                                      <TextBlock Text="&#xE77B; " FontFamily="Segoe MDL2 Assets" Foreground="Black" FontSize="10" VerticalAlignment="Center"/>
+                                      <TextBlock x:Name="PromptUserText" Text=" Sayang " Foreground="Black" FontSize="11" FontWeight="ExtraBold"/>
+                                  </StackPanel>
+                             </Border>
+                             <!-- CHEVRON -->
+                             <TextBlock Text="&#xE974;" FontFamily="Segoe MDL2 Assets" Foreground="#00D4FF" FontSize="18" VerticalAlignment="Center" Margin="-1,0"/>
+                             
+                             <!-- PATH SEGMENT -->
+                             <Border Background="#25FFFFFF" CornerRadius="0,4,4,0" Padding="12,4">
+                                  <StackPanel Orientation="Horizontal">
+                                      <TextBlock Text="&#xED25; " FontFamily="Segoe MDL2 Assets" Foreground="#00D4FF" FontSize="10" VerticalAlignment="Center"/>
+                                      <TextBlock x:Name="PromptText" Text=" ~/Documents " Foreground="#00D4FF" FontSize="11" FontWeight="Bold"/>
+                                  </StackPanel>
+                             </Border>
+                             <!-- END ARROW -->
+                             <TextBlock Text=" ❯ " Foreground="#00D4FF" VerticalAlignment="Center" Margin="5,0" FontWeight="ExtraBold"/>
+                        </StackPanel>
+                        
+                        <TextBox Grid.Column="1" x:Name="TerminalInput" 
+                                 Background="Transparent" BorderThickness="0" 
+                                 Foreground="#EEEEEE" FontSize="14" FontFamily="JetBrains Mono" FontWeight="Bold"
+                                 VerticalContentAlignment="Center" CaretBrush="#00D4FF"
+                                 PreviewKeyDown="TerminalInput_PreviewKeyDown"
+                                 KeyDown="TerminalInput_KeyDown"/>
                     </Grid>
                 </Border>
             </Grid>

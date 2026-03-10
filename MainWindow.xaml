@@ -434,13 +434,8 @@
                                            FontWeight="Bold"
                                            Margin="4,0,0,6"/>
                                 <ComboBox x:Name="LanguageComboBox"
+                                          Style="{StaticResource ModernComboBox}"
                                           SelectionChanged="LanguageComboBox_SelectionChanged"
-                                          Background="{StaticResource SurfaceBrush}"
-                                          Foreground="{StaticResource TextBrush}"
-                                          BorderThickness="1"
-                                          BorderBrush="{StaticResource BorderBrush}"
-                                          Padding="10,6"
-                                          FontSize="11"
                                           HorizontalContentAlignment="Left">
                                     <ComboBoxItem Content="English" Tag="en-US"/>
                                     <ComboBoxItem Content="Indonesia" Tag="id-ID"/>
