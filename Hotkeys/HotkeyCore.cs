@@ -6,8 +6,9 @@ using System.Windows;
 using System.Windows.Input;
 using System.Windows.Interop;
 using Newtonsoft.Json;
+using ZeroMix.Search;
 
-namespace ZeroMix
+namespace ZeroMix.Hotkeys
 {
     public class HotkeyCore : Window
     {

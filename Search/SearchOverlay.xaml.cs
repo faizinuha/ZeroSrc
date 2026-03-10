@@ -14,8 +14,9 @@ using System.Windows.Media;
 using System.Windows.Media.Animation;
 using System.Windows.Media.Imaging;
 using System.Windows.Threading;
+using ZeroMix.Hotkeys;
 
-namespace ZeroMix
+namespace ZeroMix.Search
 {
     public enum SuggestionType
     {
@@ -132,7 +133,7 @@ namespace ZeroMix
                             // but here let's assume SearchOverlay exposes a helper or we move logic.
                             // For this Refactor, I will modify SearchOverlay to expose a public static helper.
                             
-                            icon = ZeroMix.SearchOverlay.GetIconForFile(FilePath);
+                            icon = SearchOverlay.GetIconForFile(FilePath);
                             icon?.Freeze();
                         }
                         catch {}

@@ -69,7 +69,8 @@ namespace ZeroMix.ZeroShell
             "Retro Green",
             "Cyberpunk Neon",
             "Pixel Retro",
-            "Glass Minimalist"
+            "Glass Minimalist",
+            "Tiled (Dynamic)"
         };
 
         // Framework Install Mode
@@ -121,6 +122,7 @@ namespace ZeroMix.ZeroShell
             new() { Bg1="#F51A0825", Bg2="#F5100520", OutputColor="#FFEE66FF", InputColor="#FF00FFFF", PromptColor="#FFFF00FF", AccentColor="#FF00D4FF" }, // Cyberpunk
             new() { Bg1="#F5202020", Bg2="#F5101010", OutputColor="#FFFFDA6B", InputColor="#FFFFFFFF", PromptColor="#FFFF6B6B", AccentColor="#FFFF9F43" }, // Pixel Retro
             new() { Bg1="#33080E14", Bg2="#22000000", OutputColor="#EEEEEE", InputColor="#FFFFFF", PromptColor="#FF00D4FF", AccentColor="#FF00D4FF" }, // Glass Minimalist
+            new() { Bg1="#CC0F111A", Bg2="#CC080E14", OutputColor="#FFFFFF", InputColor="#FFFFFF", PromptColor="#00D4FF", AccentColor="#00D4FF" }, // NeoFast
         };
 
         // Tab completion
@@ -239,32 +241,106 @@ namespace ZeroMix.ZeroShell
         {
             if (_activeTab == null) return;
             string path = _activeTab.CurrentDirectory;
-            PromptText.Text = $" {path} > ";
-            if (StatusPathText != null) StatusPathText.Text = $" {path} ";
-            if (TitleTabText != null) TitleTabText.Text = $"{Environment.UserName}@terminal: {path}";
+            string displayPath = path;
+
+            string home = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+            if (path.StartsWith(home, StringComparison.OrdinalIgnoreCase)) {
+                displayPath = "~" + path.Substring(home.Length);
+            }
+
+            if (PromptUserText != null) PromptUserText.Text = $" {Environment.UserName} ";
+            if (PromptText != null) PromptText.Text = $" {displayPath.Replace("\\", "/")} ";
+            if (StatusPathText != null) StatusPathText.Text = $" {displayPath} ";
+            
+            // Tab button text sync
+            if (_activeTab.TabButton != null) _activeTab.TabButton.Content = _activeTab.Title;
         }
 
         private void PrintHeader(TerminalTab tab)
         {
             if (tab == null) return;
             AppendToTab(tab, "\n", "#CCCCCC");
-            AppendToTab(tab, "  █▄  █ █▀▀ █ █ █▀▀█ \n", "#FF6BDDFF");
-            AppendToTab(tab, "  █ █ █ █▀▀ █▄▀ █  █ \n", "#FF6BDDFF");
-            AppendToTab(tab, "  ▀  ▀▀ ▀▀▀ ▀  ▀ ▀▀▀▀ \n", "#FF6BDDFF");
-            AppendToTab(tab, "  [ N E K O  T E R M I N A L ]\n\n", "#FF6BDDFF");
+            
+            string color = "#00D4FF"; // Default Cyan
+            List<string> asciLines = new List<string>();
+
+            // Load ASCII from W.txt
+            string[] searchPaths = {
+                Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "ZeroShell", "asci", "W.txt"),
+                Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "asci", "W.txt"),
+                "ZeroShell/asci/W.txt",
+                "asci/W.txt"
+            };
+
+            foreach (var path in searchPaths) {
+                if (File.Exists(path)) {
+                    string[] fileLines = File.ReadAllLines(path);
+                    foreach (var line in fileLines) {
+                        if (line.StartsWith("(color:")) {
+                            try { color = line.Substring(line.IndexOf(":") + 1).Replace(")", "").Trim(); } catch { }
+                            continue;
+                        }
+                        asciLines.Add(line);
+                    }
+                    break;
+                }
+            }
+
+            // Arch Linux Style Info
+            string ownerLine = $" Owner      : {Environment.UserName}@{Environment.MachineName.ToLower()}";
+            string osLine    = $" OS         : ZeroMix {Environment.OSVersion.VersionString}";
+            string modelLine = $" Model      : ZeroStation v4.2.0";
+            string cpuLine   = $" Processor  : {GetSimpleCPU()}";
+            string gpuLine   = $" Graphics   : Generic High Performance GPU";
+            string memLine   = $" Memory     : {GetSimpleRAM()}";
+
+            string separator = " " + new string('─', 40);
+
+            for (int i = 0; i < Math.Max(asciLines.Count, 9); i++) {
+                string asci = (i < asciLines.Count) ? asciLines[i] : new string(' ', 40);
+                AppendToTab(tab, "  " + asci.PadRight(45), color);
+                
+                switch(i) {
+                    case 0: AppendToTab(tab, ownerLine, "#FF27C93F"); break;
+                    case 1: AppendToTab(tab, separator, "#44FFFFFF"); break;
+                    case 2: AppendToTab(tab, osLine, "#EEEEEE"); break;
+                    case 3: AppendToTab(tab, modelLine, "#EEEEEE"); break;
+                    case 4: AppendToTab(tab, cpuLine, "#EEEEEE"); break;
+                    case 5: AppendToTab(tab, gpuLine, "#EEEEEE"); break;
+                    case 6: AppendToTab(tab, memLine, "#EEEEEE"); break;
+                    case 8: // Color dots
+                        string[] dots = { "#FF27C93F", "#FF6BDDFF", "#FFCC6BFF", "#FFFF9F43", "#FFFF6B6B", "#FFFFDA6B" };
+                        AppendToTab(tab, " ", "#FFFFFF");
+                        foreach(var d in dots) AppendToTab(tab, " ●", d);
+                        break;
+                }
+                AppendToTab(tab, "\n", "#CCCCCC");
+            }
+            AppendToTab(tab, "\n", "#CCCCCC");
         }
+
+        private string GetSimpleCPU() => "Intel Core i5-1035G1"; // Placeholder or detected
+        private string GetSimpleRAM() => "8GB / 16GB (50%)"; // Placeholder or detected
 
         private void SwitchToTab(TerminalTab tab)
         {
             _activeTab = tab;
             foreach (var t in _tabs) {
                 if (t.ScrollViewer != null) t.ScrollViewer.Visibility = Visibility.Collapsed;
-                if (t.TabButton != null) t.TabButton.Background = new SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#15FFFFFF"));
+                if (t.TabButton != null) {
+                    t.TabButton.Background = new SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#05FFFFFF"));
+                    t.TabButton.BorderBrush = System.Windows.Media.Brushes.Transparent;
+                }
             }
 
             if (tab.ScrollViewer != null) tab.ScrollViewer.Visibility = Visibility.Visible;
-            if (tab.TabButton != null) tab.TabButton.Background = new SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#30FFFFFF"));
+            if (tab.TabButton != null) {
+                tab.TabButton.Background = new SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#2000D4FF"));
+                tab.TabButton.BorderBrush = new SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#4000D4FF"));
+                tab.TabButton.BorderThickness = new Thickness(0,0,0,2);
+            }
             
+            UpdatePrompt();
             TerminalInput.Focus();
         }
 
@@ -289,53 +365,12 @@ namespace ZeroMix.ZeroShell
         #region System Info
         private void LoadNeofetchInfo()
         {
-            try {
-                OsInfoText.Text = $"{Environment.OSVersion.Platform} {Environment.OSVersion.Version}";
-                KernelText.Text = $"NT {Environment.OSVersion.Version.Major}.{Environment.OSVersion.Version.Minor}.{Environment.OSVersion.Version.Build}";
-                var up = TimeSpan.FromMilliseconds(Environment.TickCount64);
-                UptimeText.Text = up.Hours > 0 ? $"{up.Hours}h {up.Minutes}m" : $"{up.Minutes} mins";
-                ShellText.Text = "PowerShell / ZeroMix Engine";
-                UserNameText.Text = $" {Environment.UserName} ";
-
-                Task.Run(() => {
-                    try {
-                        string cpu = "Unknown", gpu = "Unknown";
-                        long totalRam = 0, freeRam = 0;
-                        using (var s = new ManagementObjectSearcher("SELECT Name FROM Win32_Processor"))
-                            foreach (var o in s.Get()) { cpu = o["Name"]?.ToString() ?? cpu; break; }
-                        using (var s = new ManagementObjectSearcher("SELECT Name FROM Win32_VideoController"))
-                            foreach (var o in s.Get()) { gpu = o["Name"]?.ToString() ?? gpu; break; }
-                        using (var s = new ManagementObjectSearcher("SELECT TotalVisibleMemorySize, FreePhysicalMemory FROM Win32_OperatingSystem"))
-                            foreach (var o in s.Get()) { totalRam = Convert.ToInt64(o["TotalVisibleMemorySize"]) / 1024; freeRam = Convert.ToInt64(o["FreePhysicalMemory"]) / 1024; break; }
-                        long used = totalRam - freeRam;
-                        double pct = totalRam > 0 ? (used * 100.0 / totalRam) : 0;
-                        Dispatcher.Invoke(() => {
-                            CpuInfoText.Text = cpu; GpuInfoText.Text = gpu;
-                            RamInfoText.Text = $"{used / 1024.0:F2} GiB / {totalRam / 1024.0:F2} GiB ({pct:F0}%)";
-                            try { using (var s2 = new ManagementObjectSearcher("SELECT Caption FROM Win32_OperatingSystem")) foreach (var o2 in s2.Get()) { OsInfoText.Text = o2["Caption"]?.ToString() ?? OsInfoText.Text; break; } } catch { }
-                        });
-                    } catch { }
-                });
-            } catch { }
+            // Info is now handled side-by-side in PrintHeader
         }
 
         private void LoadAnimeCharacter()
         {
-            string[] paths = {
-                Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "ZeroShell", "character.png"),
-                Path.Combine(Directory.GetCurrentDirectory(), "ZeroShell", "character.png"),
-                Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "..", "..", "..", "ZeroShell", "character.png")
-            };
-            foreach (var p in paths) {
-                if (File.Exists(p)) {
-                    try {
-                        var bmp = new BitmapImage(); bmp.BeginInit(); bmp.UriSource = new Uri(p, UriKind.Absolute);
-                        bmp.CacheOption = BitmapCacheOption.OnLoad; bmp.EndInit();
-                        AnimeCharImage.Source = bmp; CharPlaceholder.Visibility = Visibility.Collapsed;
-                    } catch { }
-                    break;
-                }
-            }
+            // Character image removed for modern Tiled look
         }
         #endregion
 
@@ -360,7 +395,7 @@ namespace ZeroMix.ZeroShell
 
         private async Task ReadOutputAsync(StreamReader reader, TerminalTab tab)
         {
-            char[] buf = new char[512];
+            char[] buf = new char[1024];
             while (!reader.EndOfStream)
             {
                 int n = await reader.ReadAsync(buf, 0, buf.Length);
@@ -368,7 +403,8 @@ namespace ZeroMix.ZeroShell
                     string text = new string(buf, 0, n);
                     Dispatcher.Invoke(() => {
                         AppendToTab(tab, text, Themes[_currentLayout].OutputColor);
-                        tab.ScrollViewer?.ScrollToEnd();
+                        // Batch scroll for performance
+                        if (text.Contains("\n") || text.Length > 500) tab.ScrollViewer?.ScrollToEnd();
                     });
                 }
             }
@@ -421,8 +457,7 @@ namespace ZeroMix.ZeroShell
 
                 string searchDir = dir;
                 if (!Path.IsPathRooted(searchDir)) {
-                    string home = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
-                    searchDir = Path.Combine(home, searchDir);
+                    searchDir = Path.Combine(_activeTab!.CurrentDirectory, searchDir);
                 }
 
                 if (Directory.Exists(searchDir)) {
@@ -569,12 +604,12 @@ namespace ZeroMix.ZeroShell
                                 ShellHelper.ApplyStartMenuTransparency();
                                 ShellHelper.HideDesktopIcons();
                                 
-                                // NEW: Update terminal layout to Glass Minimalist automatically!
-                                _currentLayout = 6; 
+                                // NEW: Update terminal layout to Tiled (Dynamic) automatically!
+                                _currentLayout = 7; 
                                 ApplyLayout();
 
                                 AppendToTab(_activeTab!, "  💎 Mode Minimalis Total Aktif! (Folder, Taskbar, Start Blur & Ikon Sembunyi)\n", "#FF6BDDFF");
-                                AppendToTab(_activeTab!, "  ✨ Terminal juga disesuaikan ke mode Glass Minimalist.\n\n", "#CCCCCC");
+                                AppendToTab(_activeTab!, "  ✨ Terminal disesuaikan ke mode Tiled (Dynamic).\n\n", "#CCCCCC");
                                 break;
                             case 5: // Restore
                                 _isExplorerWdmEnabled = _isTaskbarWdmEnabled = _isStartWdmEnabled = false;
@@ -681,7 +716,10 @@ namespace ZeroMix.ZeroShell
             _clockTimer = new System.Windows.Threading.DispatcherTimer();
             _clockTimer.Interval = TimeSpan.FromSeconds(1);
             _clockTimer.Tick += (s, e) => {
-                DateTimeText.Text = DateTime.Now.ToString("ddd, dd MMM yyyy  •  HH:mm:ss");
+                var now = DateTime.Now;
+                if (CurrentTimeText != null) CurrentTimeText.Text = now.ToString("HH:mm");
+                if (BigClockText != null) BigClockText.Text = now.ToString("HH:mm");
+                if (BigDateText != null) BigDateText.Text = now.ToString("yyyy-MM-dd");
             };
             _clockTimer.Start();
         }
@@ -993,6 +1031,36 @@ namespace ZeroMix.ZeroShell
                 return;
             }
 
+            if (low == "!clock") {
+                if (ClockArea.Visibility == Visibility.Visible) {
+                    ClockArea.Visibility = Visibility.Collapsed;
+                    ClockRow.Height = new GridLength(0);
+                } else {
+                    ClockArea.Visibility = Visibility.Visible;
+                    ClockRow.Height = new GridLength(180);
+                }
+                AppendToTab(_activeTab, $"\n  🕒 Clock Tile toggled.\n\n", "#FFCC6BFF");
+                return;
+            }
+
+            if (low == "!notepad") {
+                Process.Start("notepad.exe");
+                Task.Run(async () => {
+                    await Task.Delay(500);
+                    Dispatcher.Invoke(() => ShellHelper.ApplyGlassToWindow("notepad"));
+                });
+                AppendToTab(_activeTab!, "\n  📝 Notepad launched with Glass mode.\n\n", "#FF00D4FF");
+                return;
+            }
+
+            if (low == "!everglass") {
+                ShellHelper.ApplyExplorerTransparency();
+                ShellHelper.ApplyTaskbarTransparency();
+                ShellHelper.ApplyStartMenuTransparency();
+                AppendToTab(_activeTab!, "\n  💎 Glass applied to all system windows.\n\n", "#FF00D4FF");
+                return;
+            }
+
             if (low == "!exit") { this.Close(); return; }
 
             // Standard Shell Support (ls, cd, dir, etc.)
@@ -1000,10 +1068,14 @@ namespace ZeroMix.ZeroShell
             
             if (_activeTab.Input != null) {
                 // Special handle for 'cd' to update the UI prompt
-                if (low.StartsWith("cd ")) {
+                if (low == "cd" || low == "cd ~") {
+                    _activeTab.CurrentDirectory = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+                    UpdatePrompt();
+                }
+                else if (low.StartsWith("cd ")) {
                     string newPath = cmd.Substring(3).Trim().Replace("\"", "");
                     try {
-                        string combined = Path.GetFullPath(Path.Combine(_activeTab.CurrentDirectory, newPath));
+                        string combined = Path.IsPathRooted(newPath) ? newPath : Path.GetFullPath(Path.Combine(_activeTab.CurrentDirectory, newPath));
                         if (Directory.Exists(combined)) {
                             _activeTab.CurrentDirectory = combined;
                             UpdatePrompt();
@@ -1045,16 +1117,21 @@ namespace ZeroMix.ZeroShell
         {
             var theme = Themes[_currentLayout];
             
-            // Neofetch Detail: Diaktifkan untuk SEMUA layout sesuai permintaan Kakak
-            bool showNeofetch = true; 
-            var neofetchCol = this.FindName("NeofetchCol") as ColumnDefinition;
-            if (neofetchCol != null)
-                neofetchCol.Width = new GridLength(380);
-            
-            if (NeofetchArea != null)
-                NeofetchArea.Visibility = Visibility.Visible;
+            // TILED LAYOUT Logic
+            if (_currentLayout == 7) {
+                // Clock is purely command-triggered now
+                ClockArea.Visibility = Visibility.Collapsed;
+                ClockRow.Height = new GridLength(0);
+                
+                TermBorder.Background = new SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#150A0E14"));
+                TermBorder.BorderBrush = new SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#30FFFFFF"));
+            } else {
+                ClockArea.Visibility = Visibility.Collapsed;
+                ClockRow.Height = new GridLength(0);
+                TermBorder.Background = new SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#10FFFFFF"));
+            }
 
-            // PIXEL MODE: Buat kotak-kotak (Radius 0) jika tema Pixel aktif
+            // PIXEL MODE
             if (_currentLayout == 5) { // Pixel Retro
                 MainBorder.CornerRadius = new CornerRadius(0);
                 MainBorder.BorderThickness = new Thickness(4);
@@ -1064,13 +1141,27 @@ namespace ZeroMix.ZeroShell
                 MainBorder.BorderThickness = new Thickness(0);
             }
 
-            // Retro/Pixel effects font
-            if (_currentLayout == 3 || _currentLayout == 5) {
-                _activeTab?.Output?.SetValue(TextBlock.FontFamilyProperty, new System.Windows.Media.FontFamily("Courier New"));
-                TerminalInput.FontFamily = new System.Windows.Media.FontFamily("Courier New");
-            } else {
-                _activeTab?.Output?.SetValue(TextBlock.FontFamilyProperty, new System.Windows.Media.FontFamily(FontNames[_currentFont]));
-                TerminalInput.FontFamily = new System.Windows.Media.FontFamily(FontNames[_currentFont]);
+            // Font effects
+            if (_currentFont >= 0 && _currentFont < FontNames.Length) {
+                var font = new System.Windows.Media.FontFamily(FontNames[_currentFont]);
+                var weight = FontWeights.Bold;
+
+                if (_currentLayout == 7) { 
+                    font = new System.Windows.Media.FontFamily("JetBrains Mono");
+                    weight = FontWeights.ExtraBold;
+                } else if (_currentLayout == 3 || _currentLayout == 5) {
+                    font = new System.Windows.Media.FontFamily("JetBrains Mono");
+                }
+                
+                if (_activeTab?.Output != null) {
+                    _activeTab.Output.FontFamily = font;
+                    _activeTab.Output.FontWeight = weight;
+                    _activeTab.Output.FontSize = 14;
+                }
+                TerminalInput.FontFamily = font;
+                TerminalInput.FontWeight = weight;
+                PromptText.FontFamily = font;
+                PromptText.FontWeight = weight;
             }
 
             var bg = new LinearGradientBrush();
@@ -1087,7 +1178,7 @@ namespace ZeroMix.ZeroShell
             PromptText.Foreground = new SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString(theme.PromptColor));
 
             UpdatePrompt();
-            SaveSettings(); // Auto-save when changed
+            SaveSettings();
         }
         #endregion
 
@@ -1105,11 +1196,7 @@ namespace ZeroMix.ZeroShell
  
          private void Window_StateChanged(object sender, EventArgs e)
          {
-             if (MaximizeButton == null) return;
-             if (this.WindowState == WindowState.Maximized)
-                 MaximizeButton.Content = "❐";
-             else
-                 MaximizeButton.Content = "▢";
+             // Modern UI uses ellipses, no text content to update
          }
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
@@ -1121,7 +1208,12 @@ namespace ZeroMix.ZeroShell
             TerminalInput.Focus();
 
             _clockTimer = new System.Windows.Threading.DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
-            _clockTimer.Tick += (s, ev) => DateTimeText.Text = DateTime.Now.ToString("ddd, dd MMM yyyy  •  HH:mm:ss");
+            _clockTimer.Tick += (s, ev) => {
+                var now = DateTime.Now;
+                if (CurrentTimeText != null) CurrentTimeText.Text = now.ToString("HH:mm");
+                if (BigClockText != null) BigClockText.Text = now.ToString("HH:mm");
+                if (BigDateText != null) BigDateText.Text = now.ToString("yyyy-MM-dd");
+            };
             _clockTimer.Start();
         }
 

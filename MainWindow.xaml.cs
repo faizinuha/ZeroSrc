@@ -20,6 +20,7 @@ using ZeroMix.Widgets;
 using System.Windows.Documents;
 using System.Windows.Navigation;
 using ZeroMix.ZeroShell;
+using ZeroMix.Hotkeys;
 
 // using COmponene ZeroMixcreatePlugns
 using CheckBox = System.Windows.Controls.CheckBox;

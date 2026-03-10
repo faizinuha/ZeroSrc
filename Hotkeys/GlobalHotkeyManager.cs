@@ -3,7 +3,7 @@ using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Interop;
 
-namespace ZeroMix
+namespace ZeroMix.Hotkeys
 {
     /// <summary>
     /// Global Hotkey Manager - Works even when app is minimized to system tray

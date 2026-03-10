@@ -6,6 +6,7 @@ using System.Runtime.InteropServices;
 using System.Diagnostics;
 using System.Windows.Threading;
 using Microsoft.Win32;
+using ZeroMix.Hotkeys;
 
 namespace ZeroMix
 {
