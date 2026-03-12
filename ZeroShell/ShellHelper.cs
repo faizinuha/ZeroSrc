@@ -107,7 +107,7 @@ namespace ZeroMix.ZeroShell
             var accent = new AccentPolicy();
             // Higher alpha (0x66) and darker tint (#0A0A0A) to fix font readability ('aneh' font issue)
             accent.AccentState = AccentState.ACCENT_ENABLE_ACRYLICBLURBEHIND;
-            accent.GradientColor = (0x66 << 24) | (0x0A0A0A & 0xFFFFFF); 
+            accent.GradientColor = (0x66 << 24) | (0x000000 & 0xFFFFFF); 
 
             var accentStructSize = Marshal.SizeOf(accent);
             var accentPtr = Marshal.AllocHGlobal(accentStructSize);
@@ -154,7 +154,7 @@ namespace ZeroMix.ZeroShell
                 try {
                     string name = p.ProcessName.ToLower();
                     foreach (var target in targetProcesses) {
-                        if (name.Contains(target)) { targetPids.Add((uint)p.Id); break; }
+                        if (name.Contains(target) || name == "startmenuexperiencehost") { targetPids.Add((uint)p.Id); break; }
                     }
                 } catch { }
             }
@@ -176,11 +176,14 @@ namespace ZeroMix.ZeroShell
 
         public static void ApplyGlassToWindow(string processName)
         {
-            foreach (var proc in Process.GetProcessesByName(processName))
+            foreach (var proc in Process.GetProcesses())
             {
-                if (proc.MainWindowHandle != IntPtr.Zero)
+                if (proc.ProcessName.Equals(processName, StringComparison.OrdinalIgnoreCase))
                 {
-                    ApplyBlur(proc.MainWindowHandle);
+                    if (proc.MainWindowHandle != IntPtr.Zero)
+                    {
+                        ApplyBlur(proc.MainWindowHandle);
+                    }
                 }
             }
         }
