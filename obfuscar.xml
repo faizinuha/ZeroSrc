@@ -1,0 +1,28 @@
+<?xml version='1.0'?>
+<Obfuscator>
+  <Var name="InPath" value="." />
+  <Var name="OutPath" value=".\Protected" />
+  
+  <!-- Sembunyikan Nama Variabel & Method -->
+  <Var name="RenameProperties" value="true" />
+  <Var name="RenameMethods" value="true" />
+  <Var name="RenameFields" value="true" />
+
+  <!-- Enkripsi String (Paling Penting untuk API Keys) -->
+  <Var name="HideStrings" value="true" />
+
+  <!-- Hindari crash pada WPF/XAML (Sangat Penting) -->
+  <Module file="ZeroMix.dll">
+    <!-- JANGAN ganti nama method InitializeComponent -->
+    <SkipMethod type="ZeroMix.*" name="InitializeComponent" />
+    
+    <!-- JANGAN ganti nama class yang berkaitan dengan XAML/Resources -->
+    <SkipType name="ZeroMix.App" />
+    <SkipType name="ZeroMix.MainWindow" />
+    <SkipType name="ZeroMix.Properties.Resources" />
+    <SkipNamespace name="ZeroMix.Properties" />
+    
+    <!-- Skip XAML-based search overlay to avoid binding breaks -->
+    <SkipType name="ZeroMix.Search.SearchOverlay" />
+  </Module>
+</Obfuscator>

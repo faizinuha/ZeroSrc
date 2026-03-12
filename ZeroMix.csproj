@@ -16,13 +16,35 @@
     <SelfContained>true</SelfContained>
     <RuntimeIdentifier>win-x64</RuntimeIdentifier>
     <PublishTrimmed>false</PublishTrimmed>
-    <PublishReadyToRun>true</PublishReadyToRun>
-    <EnableCompressionInSingleFile>true</EnableCompressionInSingleFile>
-    
-    <DebugType>embedded</DebugType>
-    <DebugSymbols>true</DebugSymbols>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
+
+  <!-- Mode Debug: Simbol Aktif untuk mempermudah perbaikan -->
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <DebugType>full</DebugType>
+    <DebugSymbols>true</DebugSymbols>
+  </PropertyGroup>
+
+  <!-- Mode Release: Matikan Simbol & Debugging untuk Keamanan -->
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <DebugType>none</DebugType>
+    <DebugSymbols>false</DebugSymbols>
+  </PropertyGroup>
+
+  <!-- Masukkan Obfuscar ke dalam proses Build (Hanya dijalankan saat Release) -->
+  <ItemGroup Condition="'$(Configuration)' == 'Release'">
+    <PackageReference Include="Obfuscar" Version="2.2.39" PrivateAssets="all" GeneratePathProperty="true" />
+  </ItemGroup>
+
+  <Target Name="Obfuscate" AfterTargets="AfterBuild" Condition="'$(Configuration)' == 'Release'">
+    <PropertyGroup>
+      <ObfuscarConfig>$(ProjectDir)obfuscar.xml</ObfuscarConfig>
+      <!-- Gunakan path dari package yang di-restore -->
+      <ObfuscarExe>"$(PkgObfuscar)\tools\Obfuscar.Console.exe"</ObfuscarExe>
+    </PropertyGroup>
+    <Message Text="Running Obfuscar: $(ObfuscarExe) $(ObfuscarConfig)" Importance="high" />
+    <Exec Command="$(ObfuscarExe) $(ObfuscarConfig)" WorkingDirectory="$(TargetDir)" />
+  </Target>
 
   <ItemGroup>
     <PackageReference Include="Google.Apis.Auth" Version="1.73.0" />

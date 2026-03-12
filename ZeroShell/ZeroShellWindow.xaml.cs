@@ -602,6 +602,7 @@ namespace ZeroMix.ZeroShell
                                 ShellHelper.ApplyExplorerTransparency();
                                 ShellHelper.ApplyTaskbarTransparency();
                                 ShellHelper.ApplyStartMenuTransparency();
+                                ShellHelper.ApplyGlassToWindow("notepad");
                                 ShellHelper.HideDesktopIcons();
                                 
                                 // NEW: Update terminal layout to Tiled (Dynamic) automatically!
@@ -1046,10 +1047,12 @@ namespace ZeroMix.ZeroShell
             if (low == "!notepad") {
                 Process.Start("notepad.exe");
                 Task.Run(async () => {
-                    await Task.Delay(500);
-                    Dispatcher.Invoke(() => ShellHelper.ApplyGlassToWindow("notepad"));
+                    for (int i = 0; i < 5; i++) { // Coba 5 kali
+                        await Task.Delay(1000);
+                        Dispatcher.Invoke(() => ShellHelper.ApplyGlassToWindow("notepad"));
+                    }
                 });
-                AppendToTab(_activeTab!, "\n  📝 Notepad launched with Glass mode.\n\n", "#FF00D4FF");
+                AppendToTab(_activeTab!, "\n  📝 Notepad diluncurkan dengan mode Glass (menyiapkan...).\n\n", "#FF00D4FF");
                 return;
             }
 
