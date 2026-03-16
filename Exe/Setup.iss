@@ -1,4 +1,4 @@
-; ZeroMix Installer Script (Professional v4.2.0)
+; ZeroMix Installer Script (Professional v4.8.0)
 ; ==============================================================================
 
 [Setup]
@@ -7,8 +7,8 @@ AppId={{ZeroMix-v2-ZeroMix-identifier}}
 AppName=ZeroMix
 
 ; Set AppVersion for display, and MetadataVersion for file properties (must be numeric)
-#define AppVersionStr "4.2.0"
-#define AppVersionNumeric "4.2.0.0"
+#define AppVersionStr "4.8.0"
+#define AppVersionNumeric "4.8.0.0"
 
 AppVersion={#AppVersionStr}
 VersionInfoVersion={#AppVersionNumeric}
@@ -105,7 +105,7 @@ Filename: "cmd.exe"; Parameters: "/c cd /d ""{app}\bin"" && npm install --produc
 Filename: "{app}\ZeroMix.exe"; Description: "&Jalankan ZeroMix sekarang"; Flags: nowait postinstall skipifsilent; Tasks: ; Check: not CurTaskExists('autostart')
 
 [Messages]
-WelcomeLabel1=Selamat datang di ZeroMix Professional v4.2.0
+WelcomeLabel1=Selamat datang di ZeroMix Professional v4.8.0
 WelcomeLabel2=Update ini mencakup "ZeroShell" Terminal System dan Fitur Real-time Translate.%n%n⚠️ Disarankan untuk menutup semua aplikasi lain sebelum melanjutkan agar update berjalan lancar.
 
 [CustomMessages]

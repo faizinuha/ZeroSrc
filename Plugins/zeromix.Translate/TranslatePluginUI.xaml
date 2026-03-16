@@ -40,7 +40,7 @@
         <!-- Translate Config (Expandable) -->
         <Border x:Name="TranslateConfigBorder" Style="{StaticResource CardBorder}" Visibility="Collapsed">
             <StackPanel>
-                <TextBlock Text="TRANSLATOR PRO" FontWeight="Bold" Foreground="{StaticResource NeonBlueBrush}" FontSize="10" Margin="0,0,0,16"/>
+                <TextBlock Text="TRANSLATOR PRO - DIRECT KEYBOARD" FontWeight="Bold" Foreground="{StaticResource NeonBlueBrush}" FontSize="10" Margin="0,0,0,16"/>
 
                 <Grid Margin="0,0,0,10">
                     <Grid.ColumnDefinitions>
@@ -49,7 +49,7 @@
                         <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
                     
-                    <ComboBox x:Name="SourceLangCombo" Grid.Column="0" Background="#141922" Foreground="White" BorderBrush="{StaticResource BorderBrush}">
+                    <ComboBox x:Name="SourceLangCombo" Grid.Column="0" Background="#141922" Foreground="White" BorderBrush="{StaticResource BorderBrush}" SelectionChanged="LangCombo_SelectionChanged">
                         <ComboBoxItem Content="Indonesian" Tag="id" IsSelected="True"/>
                         <ComboBoxItem Content="English" Tag="en"/>
                         <ComboBoxItem Content="Chinese" Tag="zh-CN"/>
@@ -59,7 +59,7 @@
 
                     <Button Grid.Column="1" Content="⇄" Style="{StaticResource ActionButton}" Margin="10,0" Padding="10,2" Click="SwapLanguages_Click"/>
 
-                    <ComboBox x:Name="TargetLangCombo" Grid.Column="2" Background="#141922" Foreground="White" BorderBrush="{StaticResource BorderBrush}">
+                    <ComboBox x:Name="TargetLangCombo" Grid.Column="2" Background="#141922" Foreground="White" BorderBrush="{StaticResource BorderBrush}" SelectionChanged="LangCombo_SelectionChanged">
                         <ComboBoxItem Content="English" Tag="en" IsSelected="True"/>
                         <ComboBoxItem Content="Indonesian" Tag="id"/>
                         <ComboBoxItem Content="Chinese" Tag="zh-CN"/>
@@ -68,12 +68,18 @@
                     </ComboBox>
                 </Grid>
 
-                <TextBlock Text="Input Text" Foreground="{StaticResource SubTextBrush}" FontSize="11" Margin="0,5,0,5"/>
+                <TextBlock Text="Ketik di mana saja, tekan [Space] atau [Enter] untuk translate otomatis." 
+                           Foreground="{StaticResource SubTextBrush}" FontSize="11" Margin="0,5,0,10" TextAlignment="Center" FontStyle="Italic"/>
+
+                <Button x:Name="ResetSystemBtn" Content="RESET SYSTEM / BUFFER" Style="{StaticResource ActionSecondaryButton}" 
+                        HorizontalAlignment="Stretch" Click="ResetSystem_Click" Margin="0,5,0,15"/>
+
+                <TextBlock Text="Manual Translation" Foreground="{StaticResource SubTextBrush}" FontSize="11" Margin="0,5,0,5"/>
                 <TextBox x:Name="TranslateInput" Background="#141922" Foreground="White" 
                          BorderBrush="{StaticResource BorderBrush}" Padding="10" 
-                         TextWrapping="Wrap" AcceptsReturn="True" Height="80" Margin="0,0,0,10"/>
+                         TextWrapping="Wrap" AcceptsReturn="True" Height="60" Margin="0,0,0,10"/>
 
-                <Button Content="TRANSLATE" Style="{StaticResource ActionButton}" HorizontalAlignment="Stretch" Click="DoTranslate_Click" Margin="0,5,0,15"/>
+                <Button Content="MANUAL TRANSLATE" Style="{StaticResource ActionButton}" HorizontalAlignment="Stretch" Click="DoTranslate_Click" Margin="0,5,0,15"/>
 
                 <TextBlock Text="Translation Results" Foreground="{StaticResource SubTextBrush}" FontSize="11" Margin="0,5,0,5"/>
                 <Border Background="#0AFFFFFF" CornerRadius="8" Padding="10">

@@ -47,7 +47,7 @@ namespace ZeroMix.Plugins.Translate
                 UpdateRealTimeLangs();
                 _isExpanded = true;
                 TranslateConfigBorder.Visibility = Visibility.Visible;
-                System.Windows.MessageBox.Show("Magic Translate AKTIF! 🚀\n\nCara Pakai:\n1. Ketik di mana saja (Discord/Notepad/Browser).\n2. Tekan [Ctrl + Space] untuk sulap teksnya!\n\nPastikan bahasa asal & tujuan sudah benar ya Kak.", "ZeroMix Translate");
+                System.Windows.MessageBox.Show("Direct Keyboard Translate AKTIF! 🚀\n\nCara Pakai:\n1. Ketik kata atau kalimat.\n2. Tekan [Space] atau [Enter].\n3. Teks otomatis terhapus dan diganti hasil translate!\n\nGunakan tombol RESET jika buffer macet.", "ZeroMix Translate");
             }
             else
             {
@@ -55,6 +55,24 @@ namespace ZeroMix.Plugins.Translate
                 _realTimeTranslator = null;
                 _isExpanded = false;
                 TranslateConfigBorder.Visibility = Visibility.Collapsed;
+            }
+        }
+
+        private void LangCombo_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            UpdateRealTimeLangs();
+        }
+
+        private void ResetSystem_Click(object sender, RoutedEventArgs e)
+        {
+            if (_realTimeTranslator != null)
+            {
+                _realTimeTranslator.ResetBuffer();
+                System.Windows.MessageBox.Show("System & Buffer Berhasil di Reset! ✨", "ZeroMix Translate");
+            }
+            else
+            {
+                System.Windows.MessageBox.Show("Aktifkan plugin dulu ya Kak!", "ZeroMix Translate");
             }
         }
 

@@ -1,10 +1,10 @@
-# 🚀 ZeroMix v4.2.0 - The "ZeroShell" Professional Evolution
+# 🚀 ZeroMix v4.8.0 - The "ZeroShell" Professional Evolution
 
-Selamat datang di era baru kustomisasi desktop. **ZeroShell v4.2.0** bukan sekadar pembaruan, melainkan transformasi total yang menggabungkan estetika _Glassmorphism_ dengan produktivitas terminal tingkat Pro.
+Selamat datang di era baru kustomisasi desktop. **ZeroShell v4.8.0** bukan sekadar pembaruan, melainkan transformasi total yang menggabungkan estetika _Glassmorphism_ dengan produktivitas terminal tingkat Pro.
 
-### ✨ Fitur Utama Terminal (v4.2.0 - Redesign)
+### ✨ Fitur Utama Terminal (v4.8.0 - Redesign)
 
-- **🎨 Arch Linux Aesthetic**: Tampilan Neofetch yang didesain ulang total dengan logo Arch (ASCII), info sistem yang rapi di sisi kanan, dan deretan titik warna (●) yang ikonik. 
+- **🎨 Arch Linux Aesthetic**: Tampilan Neofetch yang didesain ulang total dengan logo Arch (ASCII), info sistem yang rapi di sisi kanan, dan deretan titik warna (●) yang ikonik.
 - **⚡ Powerline Segmented Prompt**: Prompt terminal gaya Linux (Powerlevel10k) dengan sekat User dan Path yang dinamis dan ber-kontras tinggi.
 - **📑 Glassy Tab System**: Navigasi antar sesi menggunakan tombol "Pill" transparan yang mengkilap, memberikan kesan mewah dan modern.
 - **🔍 Smart Auto-Complete**: Perbaikan total pada fitur Tab Completion. Sekarang deteksi file dan folder 100% akurat mengikuti perpindahan direktori (`cd`).
@@ -39,4 +39,4 @@ Selamat datang di era baru kustomisasi desktop. **ZeroShell v4.2.0** bukan sekad
 ---
 
 **Note dari Pengembang:**
-Versi 4.2.0 adalah pencapaian terbesar kami dalam hal fungsionalitas. Kami ingin ZeroShell menjadi satu-satunya terminal yang Kakak butuhkan untuk bekerja dan bermain. Selamat bereksperimen, Kak! 🥰
+Versi 4.8.0 adalah pencapaian terbesar kami dalam hal fungsionalitas. Kami ingin ZeroShell menjadi satu-satunya terminal yang Kakak butuhkan untuk bekerja dan bermain. Selamat bereksperimen, Kak! 🥰
