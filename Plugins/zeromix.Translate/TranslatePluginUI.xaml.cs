@@ -1,155 +1,111 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
-using System.Net.Http;
-using System.Web;
-using System.Text.RegularExpressions;
+using System.Windows.Media.Animation;
 
 namespace ZeroMix.Plugins.Translate
 {
     public partial class TranslatePluginUI : System.Windows.Controls.UserControl
     {
-        private bool _isExpanded = false;
-        private RealTimeTranslator? _realTimeTranslator;
+        private RealTimeTranslator? _coreEngine;
 
         public TranslatePluginUI()
         {
             InitializeComponent();
         }
 
-        private void TranslateCard_MouseDown(object sender, MouseButtonEventArgs e)
+        private void PowerSwitch_Click(object sender, RoutedEventArgs e)
         {
-            if (TranslatePluginToggle.IsChecked != true) 
+            if (PowerSwitch.IsChecked == true)
             {
-                System.Windows.MessageBox.Show("Aktifkan (Check) plugin dulu ya Kak, baru bisa buka pengaturannya! ✨", "ZeroMix Translate");
-                return;
-            }
-            _isExpanded = !_isExpanded;
-            TranslateConfigBorder.Visibility = _isExpanded ? Visibility.Visible : Visibility.Collapsed;
-        }
-
-        private void TranslatePluginToggle_Click(object sender, RoutedEventArgs e)
-        {
-            if (TranslatePluginToggle.IsChecked == true)
-            {
-                _realTimeTranslator = new RealTimeTranslator();
-                UpdateRealTimeLangs();
-                _isExpanded = true;
-                TranslateConfigBorder.Visibility = Visibility.Visible;
-                System.Windows.MessageBox.Show("Direct Keyboard Translate AKTIF! 🚀\n\nCara Pakai:\n1. Ketik kata atau kalimat.\n2. Tekan [Space] atau [Enter].\n3. Teks otomatis terhapus dan diganti hasil translate!\n\nGunakan tombol RESET jika buffer macet.", "ZeroMix Translate");
-            }
-            else
-            {
-                _realTimeTranslator?.Dispose();
-                _realTimeTranslator = null;
-                _isExpanded = false;
-                TranslateConfigBorder.Visibility = Visibility.Collapsed;
-            }
-        }
-
-        private void LangCombo_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            UpdateRealTimeLangs();
-        }
-
-        private void ResetSystem_Click(object sender, RoutedEventArgs e)
-        {
-            if (_realTimeTranslator != null)
-            {
-                _realTimeTranslator.ResetBuffer();
-                System.Windows.MessageBox.Show("System & Buffer Berhasil di Reset! ✨", "ZeroMix Translate");
-            }
-            else
-            {
-                System.Windows.MessageBox.Show("Aktifkan plugin dulu ya Kak!", "ZeroMix Translate");
-            }
-        }
-
-        private void UpdateRealTimeLangs()
-        {
-            if (_realTimeTranslator != null)
-            {
-                _realTimeTranslator.SourceLang = (SourceLangCombo.SelectedItem as ComboBoxItem)?.Tag.ToString() ?? "id";
-                _realTimeTranslator.TargetLang = (TargetLangCombo.SelectedItem as ComboBoxItem)?.Tag.ToString() ?? "en";
-            }
-        }
-
-        private void SwapLanguages_Click(object sender, RoutedEventArgs e)
-        {
-            int sourceIdx = SourceLangCombo.SelectedIndex;
-            int targetIdx = TargetLangCombo.SelectedIndex;
-            
-            SourceLangCombo.SelectedIndex = targetIdx;
-            TargetLangCombo.SelectedIndex = sourceIdx;
-            UpdateRealTimeLangs();
-            
-            // Auto swap text if output exists
-            if (!string.IsNullOrEmpty(TranslateOutput.Text))
-            {
-                string oldInput = TranslateInput.Text;
-                TranslateInput.Text = TranslateOutput.Text;
-                TranslateOutput.Text = oldInput;
-            }
-        }
-
-        private async void DoTranslate_Click(object sender, RoutedEventArgs e)
-        {
-            string text = TranslateInput.Text.Trim();
-            if (string.IsNullOrEmpty(text)) return;
-
-            string from = (SourceLangCombo.SelectedItem as ComboBoxItem)?.Tag.ToString() ?? "id";
-            string to = (TargetLangCombo.SelectedItem as ComboBoxItem)?.Tag.ToString() ?? "en";
-            UpdateRealTimeLangs();
-
-            TranslateOutput.Text = "Translating...";
-            
-            try
-            {
-                string result = await TranslateText(text, from, to);
-                TranslateOutput.Text = result;
-            }
-            catch (Exception ex)
-            {
-                TranslateOutput.Text = "Error: " + ex.Message;
-            }
-        }
-
-        private async Task<string> TranslateText(string input, string from, string to)
-        {
-            try
-            {
-                // Use Google Translate free endpoint (experimental/standard web)
-                string url = $"https://translate.googleapis.com/translate_a/single?client=gtx&sl={from}&tl={to}&dt=t&q={HttpUtility.UrlEncode(input)}";
+                // Engine Start
+                _coreEngine = new RealTimeTranslator();
+                _coreEngine.OnTranslated += CoreEngine_OnTranslated;
+                _coreEngine.OnError += CoreEngine_OnError;
                 
-                using (HttpClient client = new HttpClient())
-                {
-                    string json = await client.GetStringAsync(url);
-                    
-                    // Simple regex to extract the first translated segment from the json array response
-                    // Example response: [[["Hello","Halo",null,null,1]],null,"id"]
-                    var matches = Regex.Matches(json, "\"(.*?)\"");
-                    if (matches.Count > 0)
-                    {
-                        return matches[0].Groups[1].Value;
-                    }
-                    return "Translation failed.";
-                }
+                UpdateEngineConfig();
+                
+                CoreSettings.Visibility = Visibility.Visible;
+                Storyboard sb = (Storyboard)this.Resources["FadeIn"];
+                sb?.Begin(CoreSettings);
+
+                LogMsg("[OK] Engine V2 STARTED. Proteksi tabrakan ketikan AKTIF.");
             }
-            catch
+            else
             {
-                return "Network error.";
+                // Engine Stop
+                _coreEngine?.Dispose();
+                _coreEngine = null;
+                CoreSettings.Visibility = Visibility.Collapsed;
+                LogMsg("[STOP] Engine DIMATIKAN.");
             }
+        }
+
+        private void CoreEngine_OnTranslated(string original, string result)
+        {
+            Dispatcher.Invoke(() => {
+                LogMsg($"> {original} => {result}");
+            });
+        }
+
+        private void CoreEngine_OnError(string errMsg)
+        {
+            Dispatcher.Invoke(() => {
+                LogMsg($"[ERROR] {errMsg}");
+            });
+        }
+
+        private void LogMsg(string msg)
+        {
+            string time = DateTime.Now.ToString("HH:mm:ss");
+            LiveLog.Text = $"[{time}] {msg}\n" + LiveLog.Text;
+            
+            // Batasi panjang log agar memori tidak penuh
+            if (LiveLog.Text.Length > 2000)
+            {
+                LiveLog.Text = LiveLog.Text.Substring(0, 2000);
+            }
+        }
+
+        private void Langs_Changed(object sender, SelectionChangedEventArgs e)
+        {
+            UpdateEngineConfig();
+        }
+
+        private void SpeedSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        {
+            if (SpeedLabel != null)
+            {
+                int val = (int)e.NewValue;
+                string status = val < 500 ? "(Sangat Cepat - Risiko Tabrakan)" : (val < 1000 ? "(Stabil & Direkomendasikan)" : "(Lambat & Ekstra Aman)");
+                SpeedLabel.Text = $"{val} ms {status}";
+                
+                if (_coreEngine != null) _coreEngine.DebounceMs = val;
+            }
+        }
+
+        private void UpdateEngineConfig()
+        {
+            if (_coreEngine != null && ComboSource != null && ComboTarget != null)
+            {
+                _coreEngine.SourceLang = (ComboSource.SelectedItem as ComboBoxItem)?.Tag?.ToString() ?? "id";
+                _coreEngine.TargetLang = (ComboTarget.SelectedItem as ComboBoxItem)?.Tag?.ToString() ?? "en";
+                _coreEngine.DebounceMs = (int)(SpeedSlider?.Value ?? 800);
+            }
+        }
+
+        private void SwapBtn_Click(object sender, RoutedEventArgs e)
+        {
+            int s = ComboSource.SelectedIndex;
+            int t = ComboTarget.SelectedIndex;
+            ComboSource.SelectedIndex = t;
+            ComboTarget.SelectedIndex = s;
+        }
+
+        private void PurgeBtn_Click(object sender, RoutedEventArgs e)
+        {
+            _coreEngine?.ForceClear();
+            LogMsg("[PURGE] Memory Buffer telah dikosongkan.");
         }
     }
 }

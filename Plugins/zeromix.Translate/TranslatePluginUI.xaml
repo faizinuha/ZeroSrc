@@ -1,16 +1,28 @@
 <UserControl x:Class="ZeroMix.Plugins.Translate.TranslatePluginUI"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
-             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
-             mc:Ignorable="d" 
-             d:DesignHeight="450" d:DesignWidth="800">
-    <UserControl.Resources>
-        <ResourceDictionary Source="../Styles.xaml"/>
-    </UserControl.Resources>
+             Background="Transparent">
     
-    <StackPanel>
-        <Border x:Name="TranslateCard" Style="{StaticResource CompactCardBorder}" MouseDown="TranslateCard_MouseDown" Cursor="Hand">
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="../Styles.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+            
+            <Storyboard x:Key="FadeIn">
+                <DoubleAnimation Storyboard.TargetProperty="Opacity" From="0" To="1" Duration="0:0:0.3"/>
+                <ThicknessAnimation Storyboard.TargetProperty="Margin" From="0,-10,0,10" To="0,0,0,8" Duration="0:0:0.3">
+                    <ThicknessAnimation.EasingFunction>
+                        <CubicEase EasingMode="EaseOut"/>
+                    </ThicknessAnimation.EasingFunction>
+                </ThicknessAnimation>
+            </Storyboard>
+        </ResourceDictionary>
+    </UserControl.Resources>
+
+    <StackPanel x:Name="RootPanel">
+        <!-- Main Header Card (Standard Plugin Style) -->
+        <Border x:Name="HeaderCard" Style="{StaticResource CompactCardBorder}">
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto"/>
@@ -18,72 +30,96 @@
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
 
-                <!-- Icon -->
+                <!-- Icon Box -->
                 <Border Grid.Column="0" Width="42" Height="42" CornerRadius="10" Background="#141922" Margin="0,0,14,0">
                     <TextBlock Text="&#xE8C1;" FontFamily="Segoe MDL2 Assets" FontSize="20"
                                Foreground="{StaticResource NeonBlueBrush}"
                                HorizontalAlignment="Center" VerticalAlignment="Center"/>
                 </Border>
 
+                <!-- Information -->
                 <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                    <TextBlock Text="ZeroMix Translate" Foreground="White" FontSize="14" FontWeight="Bold" Margin="0,0,0,3"/>
-                    <TextBlock Text="Multi-language translator (Indo, China, Japan, English, Spain)." Foreground="{StaticResource SubTextBrush}" FontSize="11"/>
+                    <TextBlock Text="Nexus Translator Core" Foreground="White" FontSize="14" FontWeight="Bold" Margin="0,0,0,3"/>
+                    <TextBlock Text="Next-Gen Realtime Anti-Crash System v2.0" Foreground="{StaticResource SubTextBrush}" FontSize="11"/>
                 </StackPanel>
 
-                <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
-                    <CheckBox x:Name="TranslatePluginToggle" VerticalAlignment="Center" Click="TranslatePluginToggle_Click"
-                               Style="{StaticResource ModernCheckBox}"/>
+                <!-- Toggle Switch -->
+                <StackPanel Grid.Column="2" VerticalAlignment="Center">
+                    <CheckBox x:Name="PowerSwitch" Click="PowerSwitch_Click"
+                               Style="{StaticResource ModernCheckBox}" Margin="0"/>
                 </StackPanel>
             </Grid>
         </Border>
 
-        <!-- Translate Config (Expandable) -->
-        <Border x:Name="TranslateConfigBorder" Style="{StaticResource CardBorder}" Visibility="Collapsed">
+        <!-- Configuration Engine (Expandable) -->
+        <Border x:Name="CoreSettings" Style="{StaticResource CardBorder}" Visibility="Collapsed">
             <StackPanel>
-                <TextBlock Text="TRANSLATOR PRO - DIRECT KEYBOARD" FontWeight="Bold" Foreground="{StaticResource NeonBlueBrush}" FontSize="10" Margin="0,0,0,16"/>
-
-                <Grid Margin="0,0,0,10">
+                <TextBlock Text="ENGINE CONFIGURATION" Foreground="{StaticResource NeonBlueBrush}" FontSize="10" FontWeight="Bold" Margin="0,0,0,16"/>
+                
+                <Grid Margin="0,0,0,20">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="Auto"/>
                         <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
                     
-                    <ComboBox x:Name="SourceLangCombo" Grid.Column="0" Background="#141922" Foreground="White" BorderBrush="{StaticResource BorderBrush}" SelectionChanged="LangCombo_SelectionChanged">
-                        <ComboBoxItem Content="Indonesian" Tag="id" IsSelected="True"/>
-                        <ComboBoxItem Content="English" Tag="en"/>
-                        <ComboBoxItem Content="Chinese" Tag="zh-CN"/>
-                        <ComboBoxItem Content="Japanese" Tag="ja"/>
-                        <ComboBoxItem Content="Spanish" Tag="es"/>
-                    </ComboBox>
+                    <!-- Source Lang -->
+                    <StackPanel Grid.Column="0">
+                        <TextBlock Text="Dari:" Foreground="{StaticResource TextMutedBrush}" FontSize="9" Margin="4,0,0,4"/>
+                        <ComboBox x:Name="ComboSource" Style="{StaticResource ModernComboBox}" SelectionChanged="Langs_Changed">
+                            <ComboBoxItem Content="Indonesian" Tag="id" IsSelected="True"/>
+                            <ComboBoxItem Content="English" Tag="en"/>
+                            <ComboBoxItem Content="Japanese" Tag="ja"/>
+                            <ComboBoxItem Content="Korean" Tag="ko"/>
+                            <ComboBoxItem Content="Chinese" Tag="zh-CN"/>
+                        </ComboBox>
+                    </StackPanel>
 
-                    <Button Grid.Column="1" Content="⇄" Style="{StaticResource ActionButton}" Margin="10,0" Padding="10,2" Click="SwapLanguages_Click"/>
+                    <Button Grid.Column="1" Content="⇄" Background="Transparent" Foreground="{StaticResource NeonBlueBrush}" BorderThickness="0" 
+                            FontSize="16" Margin="10,20,10,0" Cursor="Hand" Click="SwapBtn_Click" VerticalAlignment="Top"/>
 
-                    <ComboBox x:Name="TargetLangCombo" Grid.Column="2" Background="#141922" Foreground="White" BorderBrush="{StaticResource BorderBrush}" SelectionChanged="LangCombo_SelectionChanged">
-                        <ComboBoxItem Content="English" Tag="en" IsSelected="True"/>
-                        <ComboBoxItem Content="Indonesian" Tag="id"/>
-                        <ComboBoxItem Content="Chinese" Tag="zh-CN"/>
-                        <ComboBoxItem Content="Japanese" Tag="ja"/>
-                        <ComboBoxItem Content="Spanish" Tag="es"/>
-                    </ComboBox>
+                    <!-- Target Lang -->
+                    <StackPanel Grid.Column="2">
+                        <TextBlock Text="Ke:" Foreground="{StaticResource TextMutedBrush}" FontSize="9" Margin="4,0,0,4"/>
+                        <ComboBox x:Name="ComboTarget" Style="{StaticResource ModernComboBox}" SelectionChanged="Langs_Changed">
+                            <ComboBoxItem Content="English" Tag="en" IsSelected="True"/>
+                            <ComboBoxItem Content="Indonesian" Tag="id"/>
+                            <ComboBoxItem Content="Japanese" Tag="ja"/>
+                            <ComboBoxItem Content="Korean" Tag="ko"/>
+                            <ComboBoxItem Content="Chinese" Tag="zh-CN"/>
+                        </ComboBox>
+                    </StackPanel>
                 </Grid>
 
-                <TextBlock Text="Ketik di mana saja, tekan [Space] atau [Enter] untuk translate otomatis." 
-                           Foreground="{StaticResource SubTextBrush}" FontSize="11" Margin="0,5,0,10" TextAlignment="Center" FontStyle="Italic"/>
+                <TextBlock Text="Delay Ketikan (ms): Algoritma Anti-Tabrakan" Foreground="{StaticResource SubTextBrush}" FontSize="11" Margin="0,0,0,8"/>
+                <Grid Margin="0,0,0,20">
+                    <Slider x:Name="SpeedSlider" Minimum="300" Maximum="2000" Value="800" TickFrequency="100" IsSnapToTickEnabled="True"
+                            VerticalAlignment="Center"/>
+                    <TextBlock x:Name="SpeedLabel" Text="800 ms" Foreground="{StaticResource NeonBlueBrush}" FontSize="10" 
+                               HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,0,-15"/>
+                </Grid>
 
-                <Button x:Name="ResetSystemBtn" Content="RESET SYSTEM / BUFFER" Style="{StaticResource ActionSecondaryButton}" 
-                        HorizontalAlignment="Stretch" Click="ResetSystem_Click" Margin="0,5,0,15"/>
-
-                <TextBlock Text="Manual Translation" Foreground="{StaticResource SubTextBrush}" FontSize="11" Margin="0,5,0,5"/>
-                <TextBox x:Name="TranslateInput" Background="#141922" Foreground="White" 
-                         BorderBrush="{StaticResource BorderBrush}" Padding="10" 
-                         TextWrapping="Wrap" AcceptsReturn="True" Height="60" Margin="0,0,0,10"/>
-
-                <Button Content="MANUAL TRANSLATE" Style="{StaticResource ActionButton}" HorizontalAlignment="Stretch" Click="DoTranslate_Click" Margin="0,5,0,15"/>
-
-                <TextBlock Text="Translation Results" Foreground="{StaticResource SubTextBrush}" FontSize="11" Margin="0,5,0,5"/>
-                <Border Background="#0AFFFFFF" CornerRadius="8" Padding="10">
-                    <TextBlock x:Name="TranslateOutput" Foreground="White" FontSize="13" TextWrapping="Wrap" MinHeight="40"/>
+                <Button Content="PURGE MEMORY BUFFER (RESET)" Background="{StaticResource DangerBrush}" Foreground="White" 
+                        FontWeight="Bold" BorderThickness="0" Padding="0,10" Cursor="Hand" Click="PurgeBtn_Click">
+                    <Button.Resources>
+                        <Style TargetType="Border">
+                            <Setter Property="CornerRadius" Value="8"/>
+                        </Style>
+                    </Button.Resources>
+                </Button>
+                
+                <!-- Terminal Log -->
+                <Border Background="#0D1117" CornerRadius="8" Padding="12" Margin="0,20,0,0" BorderThickness="1" BorderBrush="{StaticResource BorderSubtleBrush}">
+                    <StackPanel>
+                        <Grid Margin="0,0,0,8">
+                            <TextBlock Text="LIVE TERMINAL LOG" Foreground="{StaticResource TextMutedBrush}" FontSize="9" FontWeight="Bold"/>
+                            <TextBlock Text="ENC_AES_256" Foreground="{StaticResource NeonBlueBrush}" FontSize="8" HorizontalAlignment="Right" Opacity="0.5"/>
+                        </Grid>
+                        <ScrollViewer MaxHeight="80" VerticalScrollBarVisibility="Auto">
+                            <TextBlock x:Name="LiveLog" Text="[SYSTEM] Nexus Core initialized. Standing by...&#x0a;" 
+                                       Foreground="#00FF88" FontSize="11" TextWrapping="Wrap" FontFamily="Consolas" Opacity="0.9"/>
+                        </ScrollViewer>
+                    </StackPanel>
                 </Border>
             </StackPanel>
         </Border>

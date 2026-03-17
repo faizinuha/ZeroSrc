@@ -29,10 +29,11 @@ ZeroMix is packed with features that keep your system fast and your desktop stun
 | :----------------------- | :---------------------------------------------------------------------- |
 | **🧩 Lua Plugin system** | Create and share your own plugins using simple Lua scripts!             |
 | **🎥 ZeroRecord**        | **(HOT)** Screen recording with dynamic zoom based on cursor movement.  |
+| **🌍 Nexus Translate**   | **(NEW) v2.0** Magic real-time translation with Anti-Crash protection.  |
 | **📊 System Monitor**    | Real-time tracking of CPU, RAM, and Disk directly from your dashboard.  |
 | **🎨 Ghost Taskbar**     | Instantly make your taskbar transparent for a clean, professional look. |
 | **🎬 Video Wallpaper**   | Immersive animated wallpapers with high-performance video engine.       |
-| **💻 ZeroShell v4.2**    | **(NEW)** Pro Terminal with Powerline prompt & Arch-style system fetch. |
+| **💻 ZeroShell v4.8**    | **(STABLE)** Pro Terminal with Powerline prompt & Arch-style fetch.     |
 | **🔍 Search Overlay**    | High-performance search bar (`Alt + Space`) for apps, files, and web.   |
 | **🧹 Memory Optimizer**  | Smart background GC collection and working set trimming.                |
 
@@ -59,6 +60,18 @@ function OnLoad()
     ZeroMix.Notify("ZeroMix", "Plugin Loaded Successfully!")
 end
 ```
+
+---
+
+## 🌍 Nexus Translator Core v2.0
+The world's most stable real-time translator for Windows, now integrated natively.
+
+- **✨ Pure Magic Mode**: Translates automatically as you type (no hotkeys needed).
+- **🛡️ Anti-Collision Engine**: Intelligent keyboard hook prevents text corruption during injection.
+- **🚀 Triple-API Backend**: Seamless failover between MyMemory and Google Translate.
+- **💎 Glassmorphism UI**: Beautiful, premium interface with a live terminal status log.
+- **⌨️ Unicode Bypass**: Works in almost any application (Notepad, Chrome, Discord, etc).
+
 
 ---
 
