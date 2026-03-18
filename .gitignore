@@ -19,5 +19,5 @@ Exe\ZeroMix.csproj
 virtual_assisten/Native/CubismSdkForNative/**
 C:\ZeroMix\ZeroMix\Virtual_Assisten\Native\CubismSdkForNative
 # API Keys & Secrets
-ApiKeys.cs
+# ApiKeys.cs
 ZeroMixCert_base64.txt
