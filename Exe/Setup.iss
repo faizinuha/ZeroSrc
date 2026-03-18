@@ -62,8 +62,8 @@ Name: "chinese"; MessagesFile: "Languages\Chinese.isl"
 Name: "{app}"; Permissions: users-modify
 
 [Files]
-; Main application
-Source: "..\publish\win-x64\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+; Main application (Menggunakan folder Protected hasil Obfuscar)
+Source: "..\Protected\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 ; Icon
 Source: "zeromix.ico"; DestDir: "{app}"; Flags: ignoreversion
 ; Resources
@@ -75,10 +75,8 @@ Source: "Privacy.txt"; DestDir: "{app}"; Flags: ignoreversion
 Source: "../LICENSE.txt"; DestDir: "{app}"; Flags: ignoreversion
 Source: "../Readme.md"; DestDir: "{app}"; Flags: ignoreversion
 
-; FFmpeg Tools
-; NOTE: The build fails because ffmpeg.exe is missing from the FFMPEG folder.
-; You can download it and place it there, then uncomment the line below.
-;Source: "../FFMPEG/ffmpeg.exe"; DestDir: "{app}\FFMPEG"; Flags: ignoreversion
+; Aktifkan ini jika ffmpeg.exe sudah ada di folder FFMPEG
+Source: "../FFMPEG/ffmpeg.exe"; DestDir: "{app}\FFMPEG"; Flags: ignoreversion
 
 [Icons]
 Name: "{group}\ZeroMix"; Filename: "{app}\ZeroMix.exe"; IconFilename: "{app}\zeromix.ico"; WorkingDir: "{app}"

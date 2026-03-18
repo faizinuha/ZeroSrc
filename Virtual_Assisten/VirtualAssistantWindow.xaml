@@ -14,6 +14,13 @@
         WindowStartupLocation="Manual">
     
     <Grid>
+        <Grid.ContextMenu>
+            <ContextMenu>
+                <MenuItem Header="Lihat Layarku Sekarang" Click="ManualVision_Click"/>
+                <Separator/>
+                <MenuItem Header="Tutup Asisten" Click="Close_Click"/>
+            </ContextMenu>
+        </Grid.ContextMenu>
         <!-- Chat Bubble -->
         <Border x:Name="ChatBubble"
                 VerticalAlignment="Top"
@@ -47,5 +54,6 @@
                      DefaultBackgroundColor="Transparent"
                      IsHitTestVisible="True"
                      Cursor="Hand"/>
+
     </Grid>
 </Window>

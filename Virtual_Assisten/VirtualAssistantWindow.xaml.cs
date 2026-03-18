@@ -19,7 +19,11 @@ namespace ZeroMix.Virtual_Assisten
         private DispatcherTimer? _eyeTrackingTimer;
         private string _currentCharacter = "Frieren";
         private bool _isWebViewInitialized = false;
-        private bool _isScriptRunning = false; // Flag to prevent command overlap
+        private bool _isScriptRunning = false;
+        private AiVisionService? _visionService;
+        private DispatcherTimer? _visionTimer;
+        private string _apiKey = ApiKeys.OPENAI_API_KEY; 
+
 
         private readonly Dictionary<string, List<string>> _characterMessages = new()
         {
@@ -52,10 +56,17 @@ namespace ZeroMix.Virtual_Assisten
             _autoTalkTimer.Tick += (s, e) => ShowNextChatMessage();
             _autoTalkTimer.Start();
 
-            // Eye Tracking Timer (Global Mouse Tracking) - Lowered frequency to reduce CPU load
+            // Eye Tracking Timer
             _eyeTrackingTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(100) };
             _eyeTrackingTimer.Tick += UpdateEyeTracking;
             _eyeTrackingTimer.Start();
+
+            // AI Vision Setup (Auto Observation)
+            _visionService = new AiVisionService(_apiKey);
+
+            _visionTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(30) }; // Setiap 30 detik dia "melihat"
+            _visionTimer.Tick += async (s, e) => await PerformAiObservation();
+            _visionTimer.Start();
         }
 
         private async void OnWindowLoaded(object sender, RoutedEventArgs e)
@@ -240,6 +251,37 @@ namespace ZeroMix.Virtual_Assisten
             _hideChatTimer?.Start();
         }
 
+        private async Task PerformAiObservation()
+        {
+            if (_visionService == null) return;
+
+            // Jangan ganggu kalau lagi dragging
+            if (_isDragging) return;
+
+            string windowTitle = _visionService.GetActiveWindowTitle();
+            string aiComment = await _visionService.AnalyzeAppsAsync(windowTitle, _currentCharacter);
+            
+            // Tampilkan komentar AI di bubble
+            ChatText.Text = aiComment;
+            ChatBubble.Visibility = Visibility.Visible;
+            
+            _hideChatTimer?.Stop();
+            _hideChatTimer?.Start();
+            
+            Console.WriteLine($"[VirtualAssistant] AI Observation: {aiComment}");
+            App.OptimizeMemory(); // Bersihkan RAM setelah mikir
+        }
+
+        private async void ManualVision_Click(object sender, RoutedEventArgs e)
+        {
+            await PerformAiObservation();
+        }
+
+        private void Close_Click(object sender, RoutedEventArgs e)
+        {
+            this.Close();
+        }
+
         private void HideChatBubble()
         {
             ChatBubble.Visibility = Visibility.Collapsed;
@@ -276,6 +318,7 @@ namespace ZeroMix.Virtual_Assisten
         {
             _eyeTrackingTimer?.Stop();
             _autoTalkTimer?.Stop();
+            _visionTimer?.Stop();
             _hideChatTimer?.Stop();
             
             // Properly dispose WebView

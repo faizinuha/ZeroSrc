@@ -1,0 +1,59 @@
+name: 🚀 Build & Release ZeroMix
+
+on:
+  push:
+    tags:
+      - 'v*' # Trigger saat push tag versi (misal v4.8.0)
+  workflow_dispatch: # Memungkinkan jalankan manual dari web GitHub
+
+jobs:
+  build:
+    runs-on: windows-latest # Pakai Windows karena butuh Inno Setup & .NET Desktop
+
+    steps:
+    - name: 📥 Checkout Code
+      uses: actions/checkout@v4
+
+    - name: ⚙️ Setup .NET 9.0
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '9.0.x'
+
+    - name: 📦 Restore Dependencies
+      run: dotnet restore ZeroMix.csproj
+
+    - name: 🔨 Publish Application (Release Mode)
+      run: dotnet publish ZeroMix.csproj -c Release -r win-x64 --self-contained true -o publish
+      # Catatan: Karena di .csproj ada target "Obfuscate" setelah build, 
+      # Obfuscar akan otomatis jalan saat proses ini.
+
+    - name: 🛡️ Verify Obfuscation (Protected Folder)
+      shell: pwsh
+      run: |
+        if (Test-Path "Protected") {
+          echo "✓ Folder Protected ditemukan. Obfuscation Berhasil!"
+        } else {
+          echo "⚠️ Folder Protected TIDAK ditemukan. Mengecek bin/Release..."
+          # Jika target Obfuscate naruh di bin/Release, kita sesuaikan.
+        }
+
+    - name: 🏗️ Build Inno Setup Installer
+      shell: pwsh
+      run: |
+        # Inno Setup Compiler (ISCC.exe) sudah ada di runner windows-latest
+        & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" "Exe\Setup.iss"
+
+    - name: 📤 Upload Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: ZeroMix-Installer
+        path: Exe/ZeroMix-Setup-*.exe
+
+    - name: 🌟 Create GitHub Release
+      if: startsWith(github.ref, 'refs/tags/')
+      uses: softprops/action-gh-release@v2
+      with:
+        files: Exe/ZeroMix-Setup-*.exe
+        body: "Automated Release for ZeroMix v${{ github.ref_name }}"
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
