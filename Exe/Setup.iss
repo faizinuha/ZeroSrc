@@ -63,7 +63,7 @@ Name: "{app}"; Permissions: users-modify
 
 [Files]
 ; Main application (Menggunakan folder Protected hasil Obfuscar)
-Source: "..\Protected\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "..\publish\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 ; Icon
 Source: "zeromix.ico"; DestDir: "{app}"; Flags: ignoreversion
 ; Resources
