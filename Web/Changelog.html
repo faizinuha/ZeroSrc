@@ -152,13 +152,46 @@
       <div class="header-content">
         <h1>Changelog</h1>
         <p>Riwayat Update dan Perkembangan ZeroMix</p>
+        <p>Riwayat Update Aplikasi Ksk Kurohiko-Stream-kit-AIO</p>
+        <div class="nav-switch-group">
+          <button type="button" onclick="switchToZeroMix()" class="Button nav-btn" id="btn-zeromix">
+            <i class="fas fa-chevron-left"></i> ZeroMix
+          </button>
+          <button type="button" onclick="switchToKsk()" class="Button nav-btn" id="btn-ksk">
+            Ksk Project <i class="fas fa-chevron-right"></i>
+          </button>
+        </div>
       </div>
     </header>
-
+    <style>
+      .nav-switch-group {
+        display: flex;
+        gap: 15px;
+        justify-content: center;
+        margin-top: 15px;
+      }
+      .Button.nav-btn.active {
+        background-color: #007bff;
+        transform: scale(1.05);
+      }
+      .Button{
+        color : white;
+        width: auto;
+        height: auto;
+        font-size: 15px;
+        font-family: Arial, Helvetica, sans-serif;
+        border-radius: 10px;
+        border: none;
+        padding: 10px 20px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        background-color: #0a0a0f;
+      }
+    </style>
     <!-- Changelog Content -->
     <section>
       <h2>✨ Riwayat Update</h2>
-
       <div class="changelog-timeline">
         <!-- Release data will be loaded here automatically -->
       </div>
@@ -251,6 +284,7 @@
     <!-- Translations & Auto-Translator -->
     <script src="translations.js"></script>
     <script src="auto-translator.js"></script>
+    <script src="ksk.js"></script>
     <!-- Main Scripts -->
     <script src="script.js"></script>
     <script>
