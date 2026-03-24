@@ -86,28 +86,13 @@ namespace ZeroMix.ZeroShell
             return null;
         }
 
-        public static void ApplyExplorerTransparency()
-        {
-            EnumWindows((hWnd, lParam) =>
-            {
-                StringBuilder className = new StringBuilder(256);
-                GetClassName(hWnd, className, className.Capacity);
-
-                string cls = className.ToString();
-                if (cls == "CabinetWClass" || cls == "ExplorerWClass") // Windows Explorer
-                {
-                    ApplyBlur(hWnd);
-                }
-                return true;
-            }, IntPtr.Zero);
-        }
 
         private static void ApplyBlur(IntPtr hwnd)
         {
             var accent = new AccentPolicy();
-            // Higher alpha (0x66) and darker tint (#0A0A0A) to fix font readability ('aneh' font issue)
+            // Lighten the tint to fix 'Bold' font look (0x33 instead of 0x66)
             accent.AccentState = AccentState.ACCENT_ENABLE_ACRYLICBLURBEHIND;
-            accent.GradientColor = (0x66 << 24) | (0x000000 & 0xFFFFFF); 
+            accent.GradientColor = (0x33 << 24) | (0x020202 & 0xFFFFFF); 
 
             var accentStructSize = Marshal.SizeOf(accent);
             var accentPtr = Marshal.AllocHGlobal(accentStructSize);
@@ -119,73 +104,66 @@ namespace ZeroMix.ZeroShell
             data.Data = accentPtr;
 
             SetWindowCompositionAttribute(hwnd, ref data);
-
             Marshal.FreeHGlobal(accentPtr);
         }
 
         public static void ApplyTaskbarTransparency()
         {
             IntPtr taskbarHwnd = FindWindow("Shell_TrayWnd", null);
-            if (taskbarHwnd != IntPtr.Zero)
-            {
-                ApplyBlur(taskbarHwnd);
-            }
+            if (taskbarHwnd != IntPtr.Zero) ApplyBlur(taskbarHwnd);
 
             // For Secondary monitors
             EnumWindows((hWnd, lParam) =>
             {
                 StringBuilder className = new StringBuilder(256);
                 GetClassName(hWnd, className, className.Capacity);
-                if (className.ToString() == "Shell_SecondaryTrayWnd")
-                {
-                    ApplyBlur(hWnd);
-                }
+                if (className.ToString() == "Shell_SecondaryTrayWnd") ApplyBlur(hWnd);
                 return true;
             }, IntPtr.Zero);
         }
 
-        public static void ApplyStartMenuTransparency()
+        public static void ApplyExplorerTransparency()
         {
-            var targetProcesses = new string[] { "startmenu", "search", "shellexperience", "cortana" };
             var targetPids = new HashSet<uint>();
-
-            foreach (var p in Process.GetProcesses())
-            {
-                try {
-                    string name = p.ProcessName.ToLower();
-                    foreach (var target in targetProcesses) {
-                        if (name.Contains(target) || name == "startmenuexperiencehost") { targetPids.Add((uint)p.Id); break; }
-                    }
-                } catch { }
+            foreach (var p in Process.GetProcesses()) {
+                string name = p.ProcessName.ToLower();
+                if (name == "explorer") targetPids.Add((uint)p.Id);
             }
 
-            EnumWindows((hWnd, lParam) =>
-            {
+            EnumWindows((hWnd, lParam) => {
                 uint pid;
                 GetWindowThreadProcessId(hWnd, out pid);
-                if (targetPids.Contains(pid))
-                {
-                    ApplyBlur(hWnd); 
+                if (targetPids.Contains(pid)) {
+                    StringBuilder className = new StringBuilder(256);
+                    GetClassName(hWnd, className, className.Capacity);
+                    string cls = className.ToString();
+                    if (cls == "CabinetWClass" || cls == "ExplorerWClass") {
+                        ApplyCrystalBlur(hWnd);
+                    }
                 }
                 return true;
             }, IntPtr.Zero);
-            
-            IntPtr startHwnd = FindWindow("Windows.UI.Core.CoreWindow", null);
-            if (startHwnd != IntPtr.Zero) ApplyBlur(startHwnd);
         }
 
-        public static void ApplyGlassToWindow(string processName)
+        private static void ApplyCrystalBlur(IntPtr hwnd)
         {
-            foreach (var proc in Process.GetProcesses())
-            {
-                if (proc.ProcessName.Equals(processName, StringComparison.OrdinalIgnoreCase))
-                {
-                    if (proc.MainWindowHandle != IntPtr.Zero)
-                    {
-                        ApplyBlur(proc.MainWindowHandle);
-                    }
-                }
-            }
+            var accent = new AccentPolicy();
+            // State 3 (BlurBehind) is usually better for Win10 fonts
+            accent.AccentState = AccentState.ACCENT_ENABLE_BLURBEHIND;
+            // Very light white tint (0x22 alpha)
+            accent.GradientColor = (0x22 << 24) | (0xFFFFFF & 0xFFFFFF); 
+
+            var accentStructSize = Marshal.SizeOf(accent);
+            var accentPtr = Marshal.AllocHGlobal(accentStructSize);
+            Marshal.StructureToPtr(accent, accentPtr, false);
+
+            var data = new WindowCompositionAttributeData();
+            data.Attribute = WindowCompositionAttribute.WCA_ACCENT_POLICY;
+            data.SizeOfData = accentStructSize;
+            data.Data = accentPtr;
+
+            SetWindowCompositionAttribute(hwnd, ref data);
+            Marshal.FreeHGlobal(accentPtr);
         }
 
         [DllImport("user32.dll", CharSet = CharSet.Auto, SetLastError = true)]

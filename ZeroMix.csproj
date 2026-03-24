@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
@@ -62,6 +62,7 @@
   <ItemGroup>
     <Resource Include="zeromix.ico" />
     <Resource Include="assets\**" />
+    <Resource Include="SleepMode\IMG\**" />
   </ItemGroup>
 
 
@@ -83,9 +84,8 @@
     </Content>
   </ItemGroup>
 
-  <!-- If you still want other plugin PNGs copied, ensure we exclude this plugin explicitly -->
   <ItemGroup>
-    <Content Include="Plugins\**\*.png">
+    <Content Include="ZeroShell\**\*.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>

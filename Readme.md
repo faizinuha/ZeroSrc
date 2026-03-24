@@ -30,6 +30,7 @@ ZeroMix is packed with features that keep your system fast and your desktop stun
 | **🧩 Lua Plugin system** | Create and share your own plugins using simple Lua scripts!             |
 | **🎥 ZeroRecord**        | **(HOT)** Screen recording with dynamic zoom based on cursor movement.  |
 | **🌍 Nexus Translate**   | **(NEW) v2.0** Magic real-time translation with Anti-Crash protection.  |
+| **🌙 Fake Sleep Mode**   | **(NEW)** Always-On Display with multi-trigger, idle detection & hotkey.|
 | **📊 System Monitor**    | Real-time tracking of CPU, RAM, and Disk directly from your dashboard.  |
 | **🎨 Ghost Taskbar**     | Instantly make your taskbar transparent for a clean, professional look. |
 | **🎬 Video Wallpaper**   | Immersive animated wallpapers with high-performance video engine.       |
@@ -88,10 +89,43 @@ Ready to upgrade your desktop? Follow these simple steps:
 
 ---
 
+## 🌙 Fake Sleep Mode (Always-On Display)
+
+Transform your PC into a smartphone-like experience with a customizable Always-On Display overlay.
+
+### Multi-Trigger System
+You can **enable multiple triggers at once** — for example, Idle + Shortcut simultaneously:
+
+- **🖱️ Manual**: Instantly activate from the settings panel.
+- **⏱️ Idle Detection**: Auto-activates after a configurable idle period (default: 60s) using Win32 `GetLastInputInfo`.
+- **⌨️ Global Shortcut (`Alt + S`)**: Trigger sleep mode from anywhere, even when minimized to tray.
+
+### Visual Customization
+- **Digital Clock** with pulsing anti-burn-in animation
+- **Pixel Character** with subtle jump animation
+- **Brightness Slider** (20% – 100% opacity)
+- **Neo-Glow Effect** (optional decorative glow)
+- **Anti Burn-in**: Elements drift randomly every 10 seconds
+
+### Smart Features
+- **Auto-Disable on Low Battery**: Automatically turns off if battery drops below 20% (laptop only)
+- **Ultra-Low CPU Mode**: Disables all animations for extreme power saving
+- **Configurable Exit**: Choose which inputs wake the screen (mouse move, click, or keyboard)
+- **Input Protection**: 500ms delay prevents accidental wake-up on activation
+
+### How to Use
+1. Click **"Sleep Mode Settings"** on the Dashboard
+2. Check the trigger modes you want (can select multiple!)
+3. Customize visuals and exit behavior
+4. Click **"Start Sleep Mode"** to apply & activate
+
+---
+
 ## ⌨️ Keyboard Shortcuts
 
 Workflow is everything. Master ZeroMix with these shortcuts:
 
+- **`Alt + S`** : Toggle Fake Sleep Mode (Always-On Display)
 - **`Ctrl + Space`** : Open Search Overlay (Apps, Web, Files)
 - **`Ctrl + Q`** : Toggle Main Dashboard
 - **`Ctrl + R`** : Force Refresh System Metrics

@@ -56,13 +56,15 @@ namespace ZeroMix.Virtual_Assisten
 
                 var requestBody = new
                 {
-                    model = "llama-3.3-70b-versatile", // Model super pinter & gratis di Groq
+                    model = "llama-3.3-70b-versatile", 
                     messages = new[]
                     {
-                        new { role = "system", content = $"Anda adalah asisten virtual bernama {characterName}. Mode: Santai & Lucu." },
-                        new { role = "user", content = $"User sedang membuka jendela: '{windowTitle}'. Berikan komentar singkat (maks 15 kata) bahasa Indonesia santai/gaul. Jadilah asisten yang perhatian." }
+                        new { role = "system", content = $"Anda adalah {characterName} dari anime. Gunakan gaya bicara karakter tersebut (misal Frieren yang tenang/datar, atau Huohuo yang pemalu). Gunakan bahasa Indonesia santai, panggil user 'Kakak'. Jangan terlalu formal, jangan pakai 'bro'. Berikan komentar pendek yang lucu atau perhatian. Maksimal 15 kata." },
+                        new { role = "user", content = $"[Konteks Jendela: {windowTitle}] Berikan satu komentar pendek yang sesuai kepribadianmu!" }
                     },
-                    max_tokens = 50
+                    max_tokens = 60,
+                    temperature = 0.8,
+                    top_p = 0.9
                 };
 
                 string jsonRequest = JsonConvert.SerializeObject(requestBody);
@@ -88,6 +90,39 @@ namespace ZeroMix.Virtual_Assisten
                 Console.WriteLine($"[AiVision] Groq Error: {ex.Message}");
                 return "Maaf Um, ada kendala teknis sama asistennya.";
             }
+        }
+        public async Task<string> AskAiAsync(string userMessage, string characterName)
+        {
+            if (string.IsNullOrEmpty(_apiKey) || !_apiKey.StartsWith("gsk_")) return "Key Groq belum dipasang, Kak!";
+
+            try
+            {
+                string apiUrl = "https://api.groq.com/openai/v1/chat/completions";
+                var requestBody = new
+                {
+                    model = "llama-3.3-70b-versatile",
+                    messages = new[]
+                    {
+                        new { role = "system", content = $"Anda adalah {characterName} dari anime. Bicara seperti karakter tersebut. Singkat, padat, ramah. Gunakan bahasa Indonesia santai. Panggil user 'Kakak'. Maksimal 20 kata." },
+                        new { role = "user", content = userMessage }
+                    },
+                    max_tokens = 80
+                };
+
+                string jsonRequest = JsonConvert.SerializeObject(requestBody);
+                var content = new StringContent(jsonRequest, Encoding.UTF8, "application/json");
+                _httpClient.DefaultRequestHeaders.Clear();
+                _httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {_apiKey}");
+
+                var response = await _httpClient.PostAsync(apiUrl, content);
+                if (response.IsSuccessStatusCode)
+                {
+                    JObject data = JObject.Parse(await response.Content.ReadAsStringAsync());
+                    return data["choices"]?[0]?["message"]?["content"]?.ToString()?.Trim() ?? "...";
+                }
+                return "Maaf Kak, aku lagi sedikit pusing.";
+            }
+            catch { return "Gagal ngobrol sama AI."; }
         }
     }
 }

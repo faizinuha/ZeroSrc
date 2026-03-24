@@ -38,6 +38,14 @@ namespace ZeroMix.Hotkeys
             return false;
         }
 
+        public static void Unregister(IntPtr handle, int id)
+        {
+            if (UnregisterHotKey(handle, id))
+            {
+                _hotkeyActions.Remove(id);
+            }
+        }
+
         public static int RegisterCustom(IntPtr handle, uint modifiers, uint vk, string applicationPath)
         {
             int id = _nextCustomHotkeyId++;
