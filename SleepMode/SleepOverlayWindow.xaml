@@ -1,0 +1,84 @@
+<Window x:Class="ZeroMix.SleepMode.SleepOverlayWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="SleepOverlay" Height="450" Width="800"
+        WindowStyle="None" 
+        AllowsTransparency="True" 
+        Background="Black" 
+        Topmost="True" 
+        WindowState="Maximized"
+        Cursor="None"
+        ShowInTaskbar="False"
+        Focusable="True">
+    
+
+    <Grid x:Name="MainGrid" Opacity="1">
+        <!-- Background Image (3.jpg) - Sangat tipis (hampir tidak kelihatan tapi ada) -->
+        <Image Source="/SleepMode/IMG/3.jpg" 
+               Stretch="UniformToFill" 
+               Opacity="0.03"
+               IsHitTestVisible="False"/>
+
+        <!-- Konten animasi ringan (Jam digital) -->
+        <StackPanel x:Name="AnimContainer" 
+                    HorizontalAlignment="Center" 
+                    VerticalAlignment="Center">
+            
+            <TextBlock x:Name="TimeText" 
+                       Text="00:00" 
+                       FontSize="72" 
+                       FontWeight="Bold" 
+                       Foreground="#33FFFFFF" 
+                       HorizontalAlignment="Center"
+                       Visibility="Visible"/>
+            
+            <TextBlock x:Name="StatusText" 
+                       Text="Sleep Mode Active" 
+                       FontSize="16" 
+                       Foreground="#11FFFFFF" 
+                       HorizontalAlignment="Center"
+                       Margin="0,10,0,0"/>
+
+            <!-- Pixel Character Placeholder -->
+            <Grid x:Name="PixelCharContainer" 
+                  Width="64" Height="64" 
+                  Margin="0,30,0,0" 
+                  Visibility="Collapsed">
+                <Rectangle Fill="{StaticResource NeonBlueBrush}" 
+                           Width="32" Height="32" 
+                           VerticalAlignment="Bottom">
+                    <Rectangle.RenderTransform>
+                        <TranslateTransform x:Name="PixelCharMove"/>
+                    </Rectangle.RenderTransform>
+                </Rectangle>
+            </Grid>
+        </StackPanel>
+
+        <!-- Dekorasi Gambar (1 & 2) di Pojok Bawah -->
+        <Grid VerticalAlignment="Bottom" Margin="40">
+            <!-- Gambar 1 di Kiri Bawah -->
+            <Border HorizontalAlignment="Left" 
+                    Width="120" Height="120" 
+                    CornerRadius="15" 
+                    BorderThickness="1" 
+                    BorderBrush="#11FFFFFF" 
+                    ClipToBounds="True">
+                <Image Source="/SleepMode/IMG/1.jfif" 
+                       Stretch="UniformToFill" 
+                       Opacity="0.4"/>
+            </Border>
+
+            <!-- Gambar 2 di Kanan Bawah -->
+            <Border HorizontalAlignment="Right" 
+                    Width="120" Height="120" 
+                    CornerRadius="15" 
+                    BorderThickness="1" 
+                    BorderBrush="#11FFFFFF" 
+                    ClipToBounds="True">
+                <Image Source="/SleepMode/IMG/2.jfif" 
+                       Stretch="UniformToFill" 
+                       Opacity="0.4"/>
+            </Border>
+        </Grid>
+    </Grid>
+</Window>

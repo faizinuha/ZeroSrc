@@ -40,6 +40,7 @@
         font-size: 14px;
         opacity: 0.8;
       }
+
     </style>
   </head>
   <body>
@@ -382,6 +383,50 @@
           model.y = app.screen.height;
         }
       });
+
+      // SPEECH RECOGNITION (STT)
+      let recognition = null;
+      if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        recognition = new SpeechRecognition();
+        recognition.continuous = false;
+        recognition.interimResults = false;
+        recognition.lang = 'id-ID'; 
+        
+        recognition.onresult = (event) => {
+          const text = event.results[0][0].transcript;
+          console.log("[STT] Result:", text);
+          if (window.chrome && window.chrome.webview) {
+            window.chrome.webview.postMessage({ type: "speech_result", text: text });
+          }
+        };
+
+        recognition.onerror = (event) => {
+          console.error("[STT] Error:", event.error);
+          if (window.chrome && window.chrome.webview) {
+            window.chrome.webview.postMessage({ type: "speech_error", error: event.error });
+          }
+        };
+
+        recognition.onend = () => {
+          if (window.chrome && window.chrome.webview) {
+            window.chrome.webview.postMessage({ type: "speech_end" });
+          }
+        };
+      }
+
+      function startSpeech(lang = 'id-ID') {
+        if (recognition) {
+          recognition.lang = lang;
+          try { recognition.start(); } catch(e) { console.error(e); }
+        }
+      }
+
+      function stopSpeech() {
+        if (recognition) {
+          try { recognition.stop(); } catch(e) {}
+        }
+      }
 
       // Start
       document.addEventListener("DOMContentLoaded", init);

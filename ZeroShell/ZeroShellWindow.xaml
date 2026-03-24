@@ -81,15 +81,33 @@
                             <TextBlock Text=" BAT 34% " Foreground="#FFCC6BFF" FontSize="10" VerticalAlignment="Center" FontWeight="Bold"/>
                             <TextBlock Text=" RAM 71% " Foreground="#FFFF9F43" FontSize="10" VerticalAlignment="Center" Margin="5,0" FontWeight="Bold"/>
                             <TextBlock x:Name="StatusPathText" Text=" ~ " Foreground="#88FFFFFF" FontSize="10" VerticalAlignment="Center" Margin="10,0"/>
-                            <TextBlock Text="  " Foreground="#FF27C93F" FontSize="12" VerticalAlignment="Center"/>
+                            <TextBlock Text="  " Foreground="#FF27C93F" FontSize="12" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                            
+                            <!-- THE GEAR ICON (Settings Toggle) -->
+                            <TextBlock x:Name="GearBtn" Text=" &#xE713; " FontFamily="Segoe MDL2 Assets" Foreground="White" 
+                                       FontSize="14" VerticalAlignment="Center" Cursor="Hand"
+                                       MouseLeftButtonDown="GearBtn_Click">
+                                <TextBlock.Style>
+                                    <Style TargetType="TextBlock">
+                                        <Style.Triggers>
+                                            <Trigger Property="IsMouseOver" Value="True">
+                                                <Setter Property="Foreground" Value="#00D4FF"/>
+                                                <Setter Property="RenderTransform">
+                                                    <Setter.Value>
+                                                        <RotateTransform Angle="0"/>
+                                                    </Setter.Value>
+                                                </Setter>
+                                            </Trigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </TextBlock.Style>
+                            </TextBlock>
                         </StackPanel>
                     </Border>
                 </Grid>
 
                 <!-- SPARE ROW ( statusBarRow ) -->
                 <Grid Grid.Row="1"/>
-
-                <!-- REMOVED STANDALONE TAB BAR -->
 
                 <!-- MAIN CONTENT AREA (TILED LAYOUT) -->
                 <Grid Grid.Row="3" Margin="20,10" x:Name="MainContentArea">
@@ -128,6 +146,111 @@
                     <Border Grid.Column="1" x:Name="RightArea" Visibility="Collapsed" 
                             Background="#10FFFFFF" CornerRadius="12" Margin="10,0,0,0" BorderBrush="#20FFFFFF" BorderThickness="1">
                          <Grid x:Name="RightContentArea"/>
+                    </Border>
+
+                    <!-- SETTINGS OVERLAY (Black GlassDark) -->
+                    <Border x:Name="SettingsOverlay" Grid.ColumnSpan="2" Visibility="Collapsed" 
+                            Background="#F5080E14" CornerRadius="16" Margin="150,40"
+                            BorderBrush="#44FFFFFF" BorderThickness="1" VerticalAlignment="Stretch" HorizontalAlignment="Stretch">
+                        <Border.Effect>
+                            <DropShadowEffect BlurRadius="40" Color="#000000" Opacity="0.9" ShadowDepth="0"/>
+                        </Border.Effect>
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="60"/>
+                                <RowDefinition Height="*"/>
+                                <RowDefinition Height="60"/>
+                            </Grid.RowDefinitions>
+
+                            <TextBlock Text="TERMINAL CUSTOMIZER" Foreground="#00D4FF" FontWeight="Bold" FontSize="18" 
+                                       Margin="30,0" VerticalAlignment="Center" Padding="2"/>
+                            
+                            <StackPanel Grid.Row="1" Margin="30,10">
+                                <TextBlock Text="Appearance" Foreground="#88FFFFFF" FontSize="12" Margin="0,10,0,15" FontWeight="Bold"/>
+                                
+                                <!-- Font Family -->
+                                <Grid Margin="0,5">
+                                    <TextBlock Text="Font Family" Foreground="#88FFFFFF" VerticalAlignment="Center"/>
+                                    <ComboBox x:Name="FontCombo" HorizontalAlignment="Right" Width="200" 
+                                              Background="#11FFFFFF" BorderThickness="1" BorderBrush="#33FFFFFF">
+                                        <ComboBox.ItemContainerStyle>
+                                            <Style TargetType="ComboBoxItem">
+                                                <Setter Property="Background" Value="#1A1A1A"/>
+                                                <Setter Property="Foreground" Value="White"/>
+                                                <Setter Property="Padding" Value="10,5"/>
+                                            </Style>
+                                        </ComboBox.ItemContainerStyle>
+                                    </ComboBox>
+                                </Grid>
+
+                                <!-- Font Size -->
+                                <Grid Margin="0,15">
+                                    <TextBlock Text="Font Size" Foreground="#EEEEEE" VerticalAlignment="Center"/>
+                                    <Slider x:Name="FontSizeSlider" HorizontalAlignment="Right" Width="200" Minimum="10" Maximum="30" Value="14"/>
+                                </Grid>
+
+                                <!-- Background Opacity -->
+                                <Grid Margin="0,5">
+                                    <TextBlock Text="Background Opacity" Foreground="#EEEEEE" VerticalAlignment="Center"/>
+                                    <Slider x:Name="OpacitySlider" HorizontalAlignment="Right" Width="200" Minimum="0.1" Maximum="1.0" Value="0.95"/>
+                                </Grid>
+
+                                <Border Height="1" Background="#11FFFFFF" Margin="0,20"/>
+                                
+                                <TextBlock Text="Cursor Style" Foreground="#88FFFFFF" FontSize="12" Margin="0,0,0,15" FontWeight="Bold"/>
+                                <StackPanel Orientation="Horizontal">
+                                    <RadioButton x:Name="CurBlock" Content="Block" Foreground="White" IsChecked="True" Margin="0,0,20,0"/>
+                                    <RadioButton x:Name="CurLine" Content="Line" Foreground="White" Margin="0,0,20,0"/>
+                                    <RadioButton x:Name="CurUnder" Content="Underline" Foreground="White"/>
+                                </StackPanel>
+
+                                <Border Height="1" Background="#11FFFFFF" Margin="0,20"/>
+
+                                <TextBlock Text="Terminal Wallpaper (Premium)" Foreground="#00D4FF" FontSize="12" Margin="0,0,0,10" FontWeight="Bold"/>
+                                <Grid Margin="0,0,0,15">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock x:Name="WallpaperPathText" Text="No Image Selected" Foreground="#88FFFFFF" 
+                                               FontSize="11" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" Margin="0,0,10,0"/>
+                                    <Button Grid.Column="1" Content="BROWSE" Click="BrowseWallpaper_Click" Padding="15,5" 
+                                            Background="#22FFFFFF" Foreground="White" BorderThickness="1" BorderBrush="#33FFFFFF">
+                                        <Button.Resources>
+                                            <Style TargetType="Border">
+                                                <Setter Property="CornerRadius" Value="4"/>
+                                            </Style>
+                                        </Button.Resources>
+                                    </Button>
+                                </Grid>
+
+                                <Border Height="1" Background="#11FFFFFF" Margin="0,20"/>
+
+                                <TextBlock Text="Desktop Mode ( !WDM )" Foreground="#88FFFFFF" FontSize="12" Margin="0,0,0,15" FontWeight="Bold"/>
+                                <Grid>
+                                    <StackPanel Orientation="Horizontal">
+                                        <CheckBox x:Name="WdmExplorerBox" Content="Glass Explorer" Foreground="White" Margin="0,0,15,0"/>
+                                        <CheckBox x:Name="WdmTaskbarBox" Content="Glass Taskbar" Foreground="White" Margin="0,0,15,0"/>
+                                        <CheckBox x:Name="WdmHideIconsBox" Content="Hide Icons" Foreground="White"/>
+                                    </StackPanel>
+                                </Grid>
+                            </StackPanel>
+
+                            <Border Grid.Row="2" Background="#08FFFFFF" CornerRadius="0,0,16,16">
+                                <Button Content="SAVE &amp; APPLY" Width="140" Height="32" Background="#00D4FF" Foreground="Black" 
+                                        FontWeight="Bold" BorderThickness="0" Click="SaveSettings_Click">
+                                    <Button.Resources>
+                                        <Style TargetType="Border">
+                                            <Setter Property="CornerRadius" Value="16"/>
+                                        </Style>
+                                    </Button.Resources>
+                                </Button>
+                            </Border>
+
+                            <!-- Close Cross -->
+                            <TextBlock Text="✕" Foreground="#44FFFFFF" HorizontalAlignment="Right" VerticalAlignment="Top" 
+                                       Margin="20" Cursor="Hand" MouseLeftButtonDown="GearBtn_Click"/>
+                        </Grid>
                     </Border>
 
                     <!-- SELECTION OVERLAY (FLOATING CENTER) -->

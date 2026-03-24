@@ -72,40 +72,45 @@
                 </Style.Triggers>
             </Style>
 
-            <!-- Navigation Button Style -->
+            <!-- Premium Navigation Button Style -->
             <Style x:Key="NavButtonStyle" TargetType="Button">
                 <Setter Property="Background" Value="Transparent"/>
-                <Setter Property="Foreground" Value="{StaticResource SubTextBrush}"/>
-                <Setter Property="FontSize" Value="13"/>
-                <Setter Property="Padding" Value="20,11"/>
+                <Setter Property="Foreground" Value="#B0B0B0"/>
+                <Setter Property="FontSize" Value="14"/>
+                <Setter Property="Height" Value="45"/>
                 <Setter Property="Cursor" Value="Hand"/>
                 <Setter Property="BorderThickness" Value="0"/>
                 <Setter Property="HorizontalContentAlignment" Value="Left"/>
                 <Setter Property="Template">
                     <Setter.Value>
                         <ControlTemplate TargetType="Button">
-                            <Grid>
-                                <!-- Left accent bar (active indicator) -->
-                                <Border x:Name="accent"
-                                        Width="3"
+                            <Grid Background="Transparent">
+                                <Border x:Name="border"
+                                        Background="Transparent"
+                                        CornerRadius="8"
+                                        Margin="10,2,10,2">
+                                    <ContentPresenter VerticalAlignment="Center"
+                                                      Margin="15,0,0,0"/>
+                                </Border>
+                                <!-- Precise Left Indicator -->
+                                <Border x:Name="indicator"
+                                        Width="4" Height="20"
                                         HorizontalAlignment="Left"
+                                        VerticalAlignment="Center"
                                         CornerRadius="0,2,2,0"
                                         Background="{StaticResource NeonBlueBrush}"
-                                        Opacity="0"/>
-                                <Border x:Name="border"
-                                        Background="{TemplateBinding Background}"
-                                        Padding="{TemplateBinding Padding}"
-                                        CornerRadius="10"
-                                        Margin="8,2,12,2">
-                                    <ContentPresenter VerticalAlignment="Center"
-                                                      HorizontalAlignment="Left"/>
-                                </Border>
+                                        Visibility="Collapsed"/>
                             </Grid>
                             <ControlTemplate.Triggers>
                                 <Trigger Property="IsMouseOver" Value="True">
-                                    <Setter TargetName="border" Property="Background" Value="#141922"/>
-                                    <Setter Property="Foreground" Value="#E0E4EA"/>
+                                    <Setter TargetName="border" Property="Background" Value="#1AFFFFFF"/>
+                                    <Setter Property="Foreground" Value="White"/>
                                 </Trigger>
+                                <DataTrigger Binding="{Binding IsPressed, RelativeSource={RelativeSource Self}}" Value="True">
+                                    <Setter TargetName="indicator" Property="Visibility" Value="Visible"/>
+                                    <Setter TargetName="border" Property="Background" Value="#12FFFFFF"/>
+                                    <Setter Property="Foreground" Value="{StaticResource NeonBlueBrush}"/>
+                                </DataTrigger>
                             </ControlTemplate.Triggers>
                         </ControlTemplate>
                     </Setter.Value>
@@ -200,254 +205,139 @@
     <!-- Main Container with rounded corners -->
     <Border x:Name="RootBorder"
             Style="{StaticResource MainBorderStyle}"
-            Background="{StaticResource DeepNavyBrush}"
+            Background="#0A0A0A"
             BorderThickness="1"
-            BorderBrush="#1A2030"
+            BorderBrush="#33FFFFFF"
             ClipToBounds="True">
-        <Grid x:Name="MainLayoutGrid" Background="#01000000"> <!-- Nearly transparent to trap mouse events -->
-            <!-- Main Layout -->
+        <Grid x:Name="MainLayoutGrid">
+            <!-- Glassmorphism Background Layer -->
+            <Grid.Background>
+                <RadialGradientBrush Center="0.5,0" GradientOrigin="0.5,0" RadiusX="1" RadiusY="1">
+                    <GradientStop Color="#1A1A2E" Offset="0"/>
+                    <GradientStop Color="#0A0A0A" Offset="1"/>
+                </RadialGradientBrush>
+            </Grid.Background>
+
             <Grid>
                 <Grid.RowDefinitions>
-                    <!-- Title Bar -->
-                    <RowDefinition Height="44"/>
-                    <!-- Content -->
+                    <!-- Modern Title Bar -->
+                    <RowDefinition Height="38"/>
+                    <!-- Content Body -->
                     <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
 
-                <!-- ═══════════════════════════════════ -->
-                <!-- TITLE BAR                           -->
-                <!-- ═══════════════════════════════════ -->
-                <Grid Grid.Row="0" Background="#0D1118">
-                    <!-- Invisible Drag Handle (Prevents interference with buttons) -->
+                <!-- ════════ TITLE BAR (Clean & Standard) ════════ -->
+                <Grid Grid.Row="0" Background="#22000000">
                     <Border x:Name="TitleDragArea" Background="Transparent" MouseLeftButtonDown="MainWindow_MouseLeftButtonDown"/>
                     
-                    <Grid x:Name="TitleBarContentGrid">
-                        <!-- Brand (Not hit-testable so drag works through it) -->
-                        <StackPanel Orientation="Horizontal"
-                                    VerticalAlignment="Center"
-                                    Margin="20,0,0,0"
-                                    IsHitTestVisible="False">
-                            <Border Width="22" Height="22"
-                                    CornerRadius="5"
-                                    Background="{StaticResource NeonBlueBrush}"
-                                    Margin="0,0,10,0">
-                                <TextBlock Text="Z"
-                                           Foreground="Black"
-                                           FontSize="12"
-                                           FontWeight="ExtraBold"
-                                           HorizontalAlignment="Center"
-                                           VerticalAlignment="Center"/>
-                            </Border>
-                            <TextBlock Text="ZeroMix"
-                                       FontSize="13"
-                                       FontWeight="Bold"
-                                       Foreground="#C0C8D8"
-                                       VerticalAlignment="Center"/>
-                        </StackPanel>
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="12,0,0,0">
+                        <!-- Hamburger Toggle -->
+                        <Button x:Name="HamburgerBtn" 
+                                Content="&#xE700;" 
+                                FontFamily="Segoe MDL2 Assets" 
+                                FontSize="14"
+                                Background="Transparent" 
+                                BorderThickness="0" 
+                                Foreground="White"
+                                Width="34" Height="34"
+                                Cursor="Hand"
+                                Click="HamburgerBtn_Click"
+                                ToolTip="Toggle Sidebar"/>
+                        <TextBlock Text="ZeroMix Hub" 
+                                   Foreground="#AAFFFFFF" 
+                                   FontSize="11" 
+                                   FontWeight="SemiBold" 
+                                   VerticalAlignment="Center" 
+                                   Margin="10,0,0,0"
+                                   IsHitTestVisible="False"/>
+                    </StackPanel>
 
-                        <!-- Window Controls -->
-                        <StackPanel Orientation="Horizontal"
-                                    HorizontalAlignment="Right"
-                                    VerticalAlignment="Center"
-                                    Margin="0,0,8,0">
-                            <Button Content="&#xE921;"
-                                    FontFamily="Segoe MDL2 Assets"
-                                    FontSize="10"
-                                    Style="{StaticResource TitleBtn}"
-                                    Click="Minimize_Click"/>
-                            <Button x:Name="MaximizeButton"
-                                    Content="&#xE922;"
-                                    FontFamily="Segoe MDL2 Assets"
-                                    FontSize="10"
-                                    Style="{StaticResource TitleBtn}"
-                                    Click="MaximizeRestore_Click"
-                                    Margin="2,0,0,0"/>
-                            <Button Content="&#xE8BB;"
-                                    FontFamily="Segoe MDL2 Assets"
-                                    FontSize="10"
-                                    Style="{StaticResource TitleBtn}"
-                                    Click="Close_Click"
-                                    Margin="2,0,0,0"/>
-                        </StackPanel>
-                    </Grid>
+                    <!-- Window Controls -->
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,5,0">
+                        <Button Content="&#xE921;" FontFamily="Segoe MDL2 Assets" FontSize="10" Style="{StaticResource TitleBtn}" Click="Minimize_Click"/>
+                        <Button x:Name="MaximizeButton" Content="&#xE922;" FontFamily="Segoe MDL2 Assets" FontSize="10" Style="{StaticResource TitleBtn}" Click="MaximizeRestore_Click"/>
+                        <Button Content="&#xE8BB;" FontFamily="Segoe MDL2 Assets" FontSize="10" Style="{StaticResource TitleBtn}" Click="Close_Click" Background="Transparent"/>
+                    </StackPanel>
                 </Grid>
 
-                <!-- ═══════════════════════════════════ -->
-                <!-- BODY (Sidebar + Content)            -->
-                <!-- ═══════════════════════════════════ -->
+                <!-- ════════ BODY ════════ -->
                 <Grid Grid.Row="1">
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="220"/>
+                        <!-- Sidebar column set to Auto so it follows the Border's width -->
+                        <ColumnDefinition x:Name="SidebarColumn" Width="Auto"/>
                         <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
 
-                    <!-- ──────────────── SIDEBAR ──────────────── -->
-                    <Border Grid.Column="0"
-                            Background="#0C1017"
-                            BorderThickness="0,0,1,0"
-                            BorderBrush="#161C28">
+                    <!-- ──────────────── SIDEBAR (Glass Effect) ──────────────── -->
+                    <Border Grid.Column="0" 
+                            x:Name="SidebarPane"
+                            Width="220"
+                            Background="#33000000" 
+                            BorderThickness="0,0,1,0" 
+                            BorderBrush="#11FFFFFF">
                         <Grid>
                             <Grid.RowDefinitions>
-                                <RowDefinition Height="Auto"/>
                                 <RowDefinition Height="*"/>
                                 <RowDefinition Height="Auto"/>
                             </Grid.RowDefinitions>
 
-                            <!-- App Logo -->
-                            <StackPanel Grid.Row="0" Margin="24,28,20,32">
-                                <Grid>
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="Auto"/>
-                                        <ColumnDefinition Width="*"/>
-                                    </Grid.ColumnDefinitions>
-                                    <Border Grid.Column="0"
-                                            Width="38" Height="38"
-                                            CornerRadius="10"
-                                            Background="{StaticResource NeonBlueBrush}"
-                                            Margin="0,0,12,0">
-                                        <TextBlock Text="Z"
-                                                   Foreground="Black"
-                                                   FontSize="18"
-                                                   FontWeight="ExtraBold"
-                                                   HorizontalAlignment="Center"
-                                                   VerticalAlignment="Center"/>
-                                    </Border>
-                                    <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                                        <TextBlock Text="ZeroMix"
-                                                   FontSize="18"
-                                                   FontWeight="ExtraBold"
-                                                   Foreground="{StaticResource TextBrush}"/>
-                                        <TextBlock Text="v4.8.0"
-                                                   FontSize="10"
-                                                   Foreground="{StaticResource SubTextBrush}"
-                                                   Opacity="0.7"/>
-                                    </StackPanel>
-                                </Grid>
-                            </StackPanel>
-
                             <!-- Navigation Items -->
-                            <StackPanel Grid.Row="1" Margin="0,0,0,0">
-                                <!-- Section Label -->
-                                <TextBlock Text="MENU"
-                                           FontSize="10"
-                                           FontWeight="Bold"
-                                           Foreground="{StaticResource TextMutedBrush}"
-                                           Margin="24,0,0,10"/>
-
-                                <Button x:Name="HomeButton"
-                                        Style="{StaticResource NavButtonStyle}"
-                                        Click="HomeButton_Click">
+                            <StackPanel Grid.Row="0" Margin="0,15,0,0">
+                                <Button x:Name="HomeButton" Style="{StaticResource NavButtonStyle}" Click="HomeButton_Click">
                                     <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="&#xE80F;"
-                                                   FontFamily="Segoe MDL2 Assets"
-                                                   FontSize="16"
-                                                   Margin="0,0,14,0"
-                                                   VerticalAlignment="Center"/>
-                                        <TextBlock Text="Home"
-                                                   VerticalAlignment="Center"/>
+                                        <TextBlock x:Name="IconHome" Text="&#xE80F;" FontFamily="Segoe MDL2 Assets" FontSize="20" Width="30" Margin="0,0,15,0" Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" VerticalAlignment="Center"/>
+                                        <TextBlock x:Name="NavTextHome" Text="Dashboard" VerticalAlignment="Center" FontWeight="SemiBold"/>
                                     </StackPanel>
                                 </Button>
-                                <Button x:Name="WallpaperButton"
-                                        Style="{StaticResource NavButtonStyle}"
-                                        Click="NavWallpapers_Click">
+                                <Button x:Name="WallpaperButton" Style="{StaticResource NavButtonStyle}" Click="NavWallpapers_Click">
                                     <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="&#xEB9F;"
-                                                   FontFamily="Segoe MDL2 Assets"
-                                                   FontSize="16"
-                                                   Margin="0,0,14,0"
-                                                   VerticalAlignment="Center"/>
-                                        <TextBlock Text="Wallpapers"
-                                                   VerticalAlignment="Center"/>
+                                        <TextBlock x:Name="IconWall" Text="&#xEB9F;" FontFamily="Segoe MDL2 Assets" FontSize="20" Width="30" Margin="0,0,15,0" Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" VerticalAlignment="Center"/>
+                                        <TextBlock x:Name="NavTextWall" Text="Wallpapers" VerticalAlignment="Center"/>
                                     </StackPanel>
                                 </Button>
-                                <Button x:Name="PluginsButton"
-                                        Style="{StaticResource NavButtonStyle}"
-                                        Click="PluginsButton_Click">
+                                <Button x:Name="PluginsButton" Style="{StaticResource NavButtonStyle}" Click="PluginsButton_Click">
                                     <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="&#xEA86;"
-                                                   FontFamily="Segoe MDL2 Assets"
-                                                   FontSize="16"
-                                                   Margin="0,0,14,0"
-                                                   VerticalAlignment="Center"/>
-                                        <TextBlock Text="Plugins"
-                                                   VerticalAlignment="Center"/>
+                                        <TextBlock x:Name="IconPlugins" Text="&#xEA86;" FontFamily="Segoe MDL2 Assets" FontSize="20" Width="30" Margin="0,0,15,0" Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" VerticalAlignment="Center"/>
+                                        <TextBlock x:Name="NavTextPlugins" Text="Plugins" VerticalAlignment="Center"/>
                                     </StackPanel>
                                 </Button>
-                                <Button x:Name="RecorderButton"
-                                        Style="{StaticResource NavButtonStyle}"
-                                        Click="RecorderButton_Click">
+                                <Button x:Name="RecorderButton" Style="{StaticResource NavButtonStyle}" Click="RecorderButton_Click">
                                     <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="&#xE714;"
-                                                   FontFamily="Segoe MDL2 Assets"
-                                                   FontSize="16"
-                                                   Margin="0,0,14,0"
-                                                   VerticalAlignment="Center"/>
-                                        <TextBlock Text="ZeroRecord"
-                                                   VerticalAlignment="Center"/>
+                                        <TextBlock x:Name="IconRec" Text="&#xE714;" FontFamily="Segoe MDL2 Assets" FontSize="20" Width="30" Margin="0,0,15,0" Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" VerticalAlignment="Center"/>
+                                        <TextBlock x:Name="NavTextRec" Text="Capture" VerticalAlignment="Center"/>
                                     </StackPanel>
                                 </Button>
-                                <Button x:Name="AssistantButton"
-                                        Style="{StaticResource NavButtonStyle}"
-                                        Click="AssistantButton_Click">
+                                <Button x:Name="AssistantButton" Style="{StaticResource NavButtonStyle}" Click="AssistantButton_Click">
                                     <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="&#xE77B;"
-                                                   FontFamily="Segoe MDL2 Assets"
-                                                   FontSize="16"
-                                                   Margin="0,0,14,0"
-                                                   VerticalAlignment="Center"/>
-                                        <TextBlock Text="Assistant"
-                                                   VerticalAlignment="Center"/>
+                                        <TextBlock x:Name="IconAsst" Text="&#xE77B;" FontFamily="Segoe MDL2 Assets" FontSize="20" Width="30" Margin="0,0,15,0" Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" VerticalAlignment="Center"/>
+                                        <TextBlock x:Name="NavTextAsst" Text="AI Companions" VerticalAlignment="Center"/>
                                     </StackPanel>
                                 </Button>
 
-                                <!-- Separator -->
-                                <Border Height="1" Background="#161C28" Margin="20,12"/>
+                                <Border Height="1" Background="#11FFFFFF" Margin="20,15"/>
 
-                                <Button x:Name="AboutButton"
-                                        Style="{StaticResource NavButtonStyle}"
-                                        Click="AboutButton_Click">
+                                <Button x:Name="AboutButton" Style="{StaticResource NavButtonStyle}" Click="AboutButton_Click">
                                     <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="&#xE946;"
-                                                   FontFamily="Segoe MDL2 Assets"
-                                                   FontSize="16"
-                                                   Margin="0,0,14,0"
-                                                   VerticalAlignment="Center"/>
-                                        <TextBlock Text="About"
-                                                   VerticalAlignment="Center"/>
+                                        <TextBlock x:Name="IconAbout" Text="&#xE946;" FontFamily="Segoe MDL2 Assets" FontSize="20" Width="30" Margin="0,0,15,0" Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" VerticalAlignment="Center"/>
+                                        <TextBlock x:Name="NavTextAbout" Text="System Info" VerticalAlignment="Center"/>
                                     </StackPanel>
                                 </Button>
                             </StackPanel>
 
-                            <!-- Footer -->
-                            <StackPanel Grid.Row="2" Margin="20,0,20,20">
-                                <TextBlock x:Name="StatusLabel"
-                                           Text="Systems Initialized"
-                                           FontSize="10"
-                                           Foreground="{StaticResource TextMutedBrush}"
-                                           Margin="4,0,0,12"
-                                           TextWrapping="Wrap"/>
-
-                                <!-- Language Switcher -->
-                                <TextBlock Text="LANGUAGE"
-                                           Foreground="{StaticResource TextMutedBrush}"
-                                           FontSize="9"
-                                           FontWeight="Bold"
-                                           Margin="4,0,0,6"/>
-                                <ComboBox x:Name="LanguageComboBox"
-                                          Style="{StaticResource ModernComboBox}"
-                                          SelectionChanged="LanguageComboBox_SelectionChanged"
-                                          HorizontalContentAlignment="Left">
+                            <!-- Sidebar Footer -->
+                            <StackPanel Grid.Row="1" Margin="15,0,15,15">
+                                <TextBlock x:Name="StatusLabel" Text="All Systems Normal" FontSize="9" Foreground="#66FFFFFF" Margin="5,0,0,10" TextWrapping="Wrap"/>
+                                <ComboBox x:Name="LanguageComboBox" Style="{StaticResource ModernComboBox}" SelectionChanged="LanguageComboBox_SelectionChanged">
                                     <ComboBoxItem Content="English" Tag="en-US"/>
                                     <ComboBoxItem Content="Indonesia" Tag="id-ID"/>
                                     <ComboBoxItem Content="日本語" Tag="ja-JP"/>
-                                    <ComboBoxItem Content="中文" Tag="zh-CN"/>
                                 </ComboBox>
                             </StackPanel>
                         </Grid>
                     </Border>
 
-                    <!-- ──────────────── CONTENT AREA ──────────────── -->
-                    <Grid Grid.Column="1" Margin="40,32,40,32">
+                    <!-- ──────────────── CONTENT AREA (Glass Card Styles) ──────────────── -->
+                    <Grid Grid.Column="1" Margin="25">
 
                         <!-- ═══ HOME VIEW ═══ -->
                         <ScrollViewer x:Name="HomeContent"
@@ -560,6 +450,26 @@
                                                        FontSize="13"
                                                        FontWeight="SemiBold"
                                                        HorizontalAlignment="Center"/>
+                                        </StackPanel>
+                                    </Button>
+
+                                    <Button x:Name="SleepSettingsBtn"
+                                            Grid.Row="1" Grid.Column="1"
+                                            Grid.ColumnSpan="2"
+                                            Click="SleepSettingsBtn_Click"
+                                            Style="{StaticResource QuickActionButton}"
+                                            Margin="4,0,0,0">
+                                        <StackPanel Orientation="Horizontal">
+                                            <TextBlock Text="&#xE713;"
+                                                       FontFamily="Segoe MDL2 Assets"
+                                                       FontSize="24"
+                                                       Foreground="{StaticResource NeonBlueBrush}"
+                                                       VerticalAlignment="Center"
+                                                       Margin="0,0,15,0"/>
+                                            <TextBlock Text="Sleep Mode Settings"
+                                                       FontSize="14"
+                                                       FontWeight="SemiBold"
+                                                       VerticalAlignment="Center"/>
                                         </StackPanel>
                                     </Button>
                                 </Grid>
@@ -773,6 +683,36 @@
                                                    Unchecked="AssistantMasterToggle_Unchecked"/>
                                     </StackPanel>
                                 </Grid>
+
+                                <!-- Assistant Pre-Launch Settings -->
+                                <Border Background="#111620" CornerRadius="12" Padding="20" Margin="0,0,0,24" BorderBrush="#1A2030" BorderThickness="1">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <StackPanel Orientation="Horizontal">
+                                            <!-- Language Setting -->
+                                            <StackPanel Margin="0,0,30,0">
+                                                <TextBlock Text="INTERACTION LANGUAGE" FontSize="10" FontWeight="Bold" Foreground="{StaticResource TextMutedBrush}" Margin="0,0,0,8"/>
+                                                <ComboBox x:Name="AssistantLanguageSelection" Width="150" Style="{StaticResource ModernComboBox}" SelectedIndex="1">
+                                                    <ComboBoxItem Content="🇺🇸 English (US)" Tag="en-US"/>
+                                                    <ComboBoxItem Content="🇮🇩 Indonesia" Tag="id-ID"/>
+                                                    <ComboBoxItem Content="🇯🇵 日本語 (JP)" Tag="ja-JP"/>
+                                                </ComboBox>
+                                            </StackPanel>
+                                            <!-- Mic Setting -->
+                                            <StackPanel>
+                                                <TextBlock Text="DEFAULT MIC STATUS" FontSize="10" FontWeight="Bold" Foreground="{StaticResource TextMutedBrush}" Margin="0,0,0,8"/>
+                                                <StackPanel Orientation="Horizontal">
+                                                    <CheckBox x:Name="AssistantMicPreload" IsChecked="True" Style="{StaticResource ModernCheckBox}"/>
+                                                    <TextBlock Text="Auto-Enable Voice Mode" FontSize="12" Foreground="White" Margin="10,0,0,0" VerticalAlignment="Center"/>
+                                                </StackPanel>
+                                            </StackPanel>
+                                        </StackPanel>
+                                        <TextBlock Grid.Column="1" Text="AI READY" FontSize="10" Foreground="#00D68F" FontWeight="Bold" VerticalAlignment="Top"/>
+                                    </Grid>
+                                </Border>
 
                                 <!-- Character Cards -->
                                 <WrapPanel Orientation="Horizontal" HorizontalAlignment="Left">

@@ -21,6 +21,8 @@ using System.Windows.Documents;
 using System.Windows.Navigation;
 using ZeroMix.ZeroShell;
 using ZeroMix.Hotkeys;
+using System.Windows.Media.Animation;
+using ZeroMix.SleepMode;
 
 // using COmponene ZeroMixcreatePlugns
 using CheckBox = System.Windows.Controls.CheckBox;
@@ -110,6 +112,42 @@ namespace ZeroMix
         private string _selectedRecordingMode = "FullScreen";
         private System.Collections.ObjectModel.ObservableCollection<RecordingHistoryItem> _recordingHistory = new();
         private Window? _zeroShellWindow;
+        private bool _isSidebarCollapsed = false;
+        private SleepManager? _sleepManager;
+
+        private void HamburgerBtn_Click(object sender, RoutedEventArgs e)
+        {
+            _isSidebarCollapsed = !_isSidebarCollapsed;
+            double targetWidth = _isSidebarCollapsed ? 60 : 220;
+
+            // Sidebar Width Animation
+            var anim = new DoubleAnimation(targetWidth, TimeSpan.FromSeconds(0.3));
+            anim.EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut };
+            SidebarPane.BeginAnimation(FrameworkElement.WidthProperty, anim);
+
+            // Hide/Show Text Labels & Center Icons
+            var visibility = _isSidebarCollapsed ? Visibility.Collapsed : Visibility.Visible;
+            var iconMargin = _isSidebarCollapsed ? new Thickness(0) : new Thickness(0, 0, 15, 0);
+
+            if (NavTextHome != null) NavTextHome.Visibility = visibility;
+            if (NavTextWall != null) NavTextWall.Visibility = visibility;
+            if (NavTextPlugins != null) NavTextPlugins.Visibility = visibility;
+            if (NavTextRec != null) NavTextRec.Visibility = visibility;
+            if (NavTextAsst != null) NavTextAsst.Visibility = visibility;
+            if (NavTextAbout != null) NavTextAbout.Visibility = visibility;
+
+            // Adjust Icon Margins
+            if (IconHome != null) IconHome.Margin = iconMargin;
+            if (IconWall != null) IconWall.Margin = iconMargin;
+            if (IconPlugins != null) IconPlugins.Margin = iconMargin;
+            if (IconRec != null) IconRec.Margin = iconMargin;
+            if (IconAsst != null) IconAsst.Margin = iconMargin;
+            if (IconAbout != null) IconAbout.Margin = iconMargin;
+            
+            // Handle logo display or other elements if needed
+            if (StatusLabel != null) StatusLabel.Visibility = visibility;
+            if (LanguageComboBox != null) LanguageComboBox.Visibility = visibility;
+        }
 
         public void ChangeLanguage(string cultureCode)
         {
@@ -163,6 +201,18 @@ namespace ZeroMix
             
             InitializeComponent();
             InitializeTrayIcon();
+            // Initialize SleepMode
+            _sleepManager = new SleepManager();
+            _sleepManager.Start();
+
+            // Berikan handle HotkeyCore ke SleepManager (untuk pendaftaran shortcut)
+            Dispatcher.BeginInvoke(new Action(() => {
+                if (App.HotkeyCoreInstance != null)
+                {
+                    var helper = new System.Windows.Interop.WindowInteropHelper(App.HotkeyCoreInstance);
+                    _sleepManager.SetHotkeyHandle(helper.Handle);
+                }
+            }), System.Windows.Threading.DispatcherPriority.Background);
             InitializeTaskbarWatcher();
             // InitializeRecorder(); // Removed to prevent startup crash, handled in background task below
 
@@ -237,6 +287,7 @@ namespace ZeroMix
             // Set initial view after the window has loaded
             HomeButton_Click(this, new RoutedEventArgs());
             _initialWallpaperPath = GetSystemWallpaperPath();
+            _sleepManager?.Start();
 
             // Initialize Language Selector
             InitializeLanguageSelector();
@@ -601,6 +652,25 @@ namespace ZeroMix
             this.Hide();
             App.OptimizeMemory(); // Trim memory when hidden
             base.OnClosing(e);
+        }
+
+        // --- Sleep Mode Settings --- //
+
+        private void SleepSettingsBtn_Click(object sender, RoutedEventArgs e)
+        {
+            if (_sleepManager == null) return;
+
+            var settingsWindow = new SleepSettingsWindow(_sleepManager.Settings.Clone());
+            if (settingsWindow.ShowDialog() == true && settingsWindow.ResultSettings != null)
+            {
+                _sleepManager.ApplySettings(settingsWindow.ResultSettings);
+                
+                // Jika mode Manual dipilih, langsung jalankan overlay
+                if (settingsWindow.ResultSettings.HasMode(TriggerMode.Manual))
+                {
+                    _sleepManager.ShowOverlay();
+                }
+            }
         }
 
         // --- Navigation --- //
@@ -1644,6 +1714,11 @@ end";
             {
                 _assistantWindow = new Virtual_Assisten.VirtualAssistantWindow();
             }
+
+            // Get Pre-Launch Settings from Dashboard
+            string selectedLang = (AssistantLanguageSelection?.SelectedItem as ComboBoxItem)?.Tag?.ToString() ?? "id-ID";
+            bool micEnabled = AssistantMicPreload?.IsChecked ?? true;
+            _assistantWindow.PreConfigure(selectedLang, micEnabled);
 
             if (!_assistantWindow.IsVisible)
             {

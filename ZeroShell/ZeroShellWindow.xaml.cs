@@ -96,11 +96,10 @@ namespace ZeroMix.ZeroShell
         // WDM Mode
         private bool _isSelectingWDM = false;
         private static readonly string[] WDMOptions = {
-            "Glass Folder Explorer",
+            "Crystal Glass Explorer",
             "Glass Taskbar (Blur Bar)",
-            "Glass Start Menu",
             "Hide Desktop Icons",
-            "Everything Minimalist (Apply All)",
+            "Minimalist Ultimate (Apply All)",
             "Restore to Normal"
         };
 
@@ -135,6 +134,74 @@ namespace ZeroMix.ZeroShell
             InitializeComponent(); 
             LoadSettings();
             LoadAliases();
+            InitializeSettingsUI();
+        }
+
+        private void InitializeSettingsUI()
+        {
+            // Populate System Fonts (Filter for Monospace icons if possible)
+            var families = Fonts.SystemFontFamilies.OrderBy(f => f.Source).ToList();
+            FontCombo.ItemsSource = families;
+            FontCombo.DisplayMemberPath = "Source";
+            
+            // Set current font as selected
+            var current = families.FirstOrDefault((System.Windows.Media.FontFamily f) => f.Source == FontNames[_currentFont]);
+            if (current != null) FontCombo.SelectedItem = current;
+        }
+
+        private void GearBtn_Click(object sender, RoutedEventArgs e)
+        {
+            if (SettingsOverlay.Visibility == Visibility.Visible)
+                SettingsOverlay.Visibility = Visibility.Collapsed;
+            else
+                SettingsOverlay.Visibility = Visibility.Visible;
+        }
+
+        private void SaveSettings_Click(object sender, RoutedEventArgs e)
+        {
+            // Apply Font from UI
+            if (FontCombo.SelectedItem is System.Windows.Media.FontFamily selectedFont)
+            {
+                // Find index in FontNames or update FontNames
+                string name = selectedFont.Source;
+                int idx = Array.IndexOf(FontNames, name);
+                if (idx >= 0) _currentFont = idx;
+                else {
+                    // Update the active terminal font directly if not in fixed list
+                    if (_activeTab?.Output != null) _activeTab.Output.FontFamily = selectedFont;
+                }
+            }
+
+            // Apply Font Size
+            if (_activeTab?.Output != null) _activeTab.Output.FontSize = FontSizeSlider.Value;
+            
+            // Apply Opacity to MainBorder
+            MainBorder.Background.Opacity = OpacitySlider.Value;
+
+            // Apply Wallpaper if exists
+            if (!string.IsNullOrEmpty(WallpaperPathText.Text) && WallpaperPathText.Text != "No Image Selected")
+            {
+                ApplyWallpaper(WallpaperPathText.Text);
+            }
+
+            // Apply WDM Settings from UI Gear
+            if (WdmExplorerBox.IsChecked == true) { _isExplorerWdmEnabled = true; ShellHelper.ApplyExplorerTransparency(); }
+            else { _isExplorerWdmEnabled = false; }
+
+            if (WdmTaskbarBox.IsChecked == true) { _isTaskbarWdmEnabled = true; ShellHelper.ApplyTaskbarTransparency(); }
+            else { _isTaskbarWdmEnabled = false; }
+
+            if (WdmHideIconsBox.IsChecked == true) { ShellHelper.HideDesktopIcons(); }
+            else { ShellHelper.ShowDesktopIcons(); }
+
+            // Start pulse if any WDM is active
+            if (_isExplorerWdmEnabled || _isTaskbarWdmEnabled) StartWdmPulse();
+
+            // Hide Settings
+            SettingsOverlay.Visibility = Visibility.Collapsed;
+            
+            if (_activeTab != null)
+                AppendToTab(_activeTab, "\n  ✅ Settings saved and WDM logic applied!\n\n", "#FF27C93F");
         }
 
         #region Settings Persistence
@@ -577,49 +644,38 @@ namespace ZeroMix.ZeroShell
                         
                         AppendToTab(_activeTab!, $"\n  🚀 Menjalankan WDM: {WDMOptions[choice]}...\n", "#FF6BDDFF");
 
-                        switch(choice) {
-                            case 0: // Glass Explorer
+                        switch (choice)
+                        {
+                            case 0: // Crystal Glass Explorer
                                 _isExplorerWdmEnabled = true;
                                 ShellHelper.ApplyExplorerTransparency();
-                                AppendToTab(_activeTab!, "  ✨ Windows Explorer sekarang transparan/blur!\n\n", "#CCCCCC");
+                                AppendToTab(_activeTab!, "  ✨ Windows Explorer sekarang mode Crystal Clear!\n\n", "#CCCCCC");
                                 break;
                             case 1: // Glass Taskbar
                                 _isTaskbarWdmEnabled = true;
                                 ShellHelper.ApplyTaskbarTransparency();
-                                AppendToTab(_activeTab!, "  ✨ Taskbar sekarang transparan/blur!\n\n", "#CCCCCC");
+                                AppendToTab(_activeTab!, "  ✨ Taskbar sekarang transparan (Blur Bar)!\n\n", "#CCCCCC");
                                 break;
-                            case 2: // Glass Start Menu
-                                _isStartWdmEnabled = true;
-                                ShellHelper.ApplyStartMenuTransparency();
-                                AppendToTab(_activeTab!, "  ✨ Start Menu sekarang transparan/blur!\n\n", "#CCCCCC");
-                                break;
-                            case 3: // Hide Icons
+                            case 2: // Hide Icons
                                 ShellHelper.HideDesktopIcons();
                                 AppendToTab(_activeTab!, "  🙈 Ikon Desktop disembunyikan.\n\n", "#CCCCCC");
                                 break;
-                            case 4: // Everything
-                                _isExplorerWdmEnabled = _isTaskbarWdmEnabled = _isStartWdmEnabled = true;
+                            case 3: // Ultimate
+                                _isExplorerWdmEnabled = _isTaskbarWdmEnabled = true;
                                 ShellHelper.ApplyExplorerTransparency();
                                 ShellHelper.ApplyTaskbarTransparency();
-                                ShellHelper.ApplyStartMenuTransparency();
-                                ShellHelper.ApplyGlassToWindow("notepad");
                                 ShellHelper.HideDesktopIcons();
-                                
-                                // NEW: Update terminal layout to Tiled (Dynamic) automatically!
-                                _currentLayout = 7; 
-                                ApplyLayout();
-
-                                AppendToTab(_activeTab!, "  💎 Mode Minimalis Total Aktif! (Folder, Taskbar, Start Blur & Ikon Sembunyi)\n", "#FF6BDDFF");
-                                AppendToTab(_activeTab!, "  ✨ Terminal disesuaikan ke mode Tiled (Dynamic).\n\n", "#CCCCCC");
+                                _currentLayout = 7; ApplyLayout();
+                                AppendToTab(_activeTab!, "  💎 Mode Minimalis Ultimate Aktif! (Explorer & Taskbar & Ikon Sembunyi)\n", "#FF6BDDFF");
                                 break;
-                            case 5: // Restore
-                                _isExplorerWdmEnabled = _isTaskbarWdmEnabled = _isStartWdmEnabled = false;
+                            case 4: // Restore
+                                _isExplorerWdmEnabled = _isTaskbarWdmEnabled = false;
                                 ShellHelper.ShowDesktopIcons();
-                                AppendToTab(_activeTab!, "  🔄 Tampilan Desktop dikembalikan.\n\n", "#CCCCCC");
+                                AppendToTab(_activeTab!, "  🔄 Tampilan Desktop dikembalikan normal.\n\n", "#CCCCCC");
                                 break;
                         }
                         StartWdmPulse();
-                  }
+                    }
                     e.Handled = true;
                 }
                 else if (e.Key == Key.Escape) { 
@@ -706,7 +762,6 @@ namespace ZeroMix.ZeroShell
                 _wdmPulseTimer.Tick += (s, e) => {
                     if (_isExplorerWdmEnabled) ShellHelper.ApplyExplorerTransparency();
                     if (_isTaskbarWdmEnabled) ShellHelper.ApplyTaskbarTransparency();
-                    if (_isStartWdmEnabled) ShellHelper.ApplyStartMenuTransparency();
                 };
                 _wdmPulseTimer.Start();
             }
@@ -793,6 +848,7 @@ namespace ZeroMix.ZeroShell
                 
                 AppendToTab(_activeTab, "  [ 💻 SISTEM ]\n", "#FFFFDA6B");
                 AppendToTab(_activeTab, "  !sys       Info Detail Sistem\n", "#FF27C93F");
+                AppendToTab(_activeTab, "  !settings  Buka Panel Pengaturan ⚙️\n", "#FF27C93F");
                 AppendToTab(_activeTab, "  cls        Bersihkan Terminal\n", "#FF27C93F");
                 AppendToTab(_activeTab, "  !wifi      Lihat Password WiFi\n", "#FF27C93F");
                 AppendToTab(_activeTab, "  !ip        Lihat Alamat IP\n", "#FF27C93F");
@@ -825,6 +881,7 @@ namespace ZeroMix.ZeroShell
             // TAB COMMANDS
             if (low == "!tab") { AddTab($"Session {_tabs.Count + 1}"); return; }
             if (low == "!close") { CloseActiveTab(); return; }
+            if (low == "!settings") { GearBtn_Click(this, new RoutedEventArgs()); return; }
 
             // ALIAS
             if (low == "!alias") {
@@ -1046,21 +1103,14 @@ namespace ZeroMix.ZeroShell
 
             if (low == "!notepad") {
                 Process.Start("notepad.exe");
-                Task.Run(async () => {
-                    for (int i = 0; i < 5; i++) { // Coba 5 kali
-                        await Task.Delay(1000);
-                        Dispatcher.Invoke(() => ShellHelper.ApplyGlassToWindow("notepad"));
-                    }
-                });
-                AppendToTab(_activeTab!, "\n  📝 Notepad diluncurkan dengan mode Glass (menyiapkan...).\n\n", "#FF00D4FF");
+                AppendToTab(_activeTab!, "\n  📝 Notepad diluncurkan.\n\n", "#FF00D4FF");
                 return;
             }
 
             if (low == "!everglass") {
                 ShellHelper.ApplyExplorerTransparency();
                 ShellHelper.ApplyTaskbarTransparency();
-                ShellHelper.ApplyStartMenuTransparency();
-                AppendToTab(_activeTab!, "\n  💎 Glass applied to all system windows.\n\n", "#FF00D4FF");
+                AppendToTab(_activeTab!, "\n  💎 Glass applied to Explorer and Taskbar.\n\n", "#FF00D4FF");
                 return;
             }
 
@@ -1227,5 +1277,19 @@ namespace ZeroMix.ZeroShell
             base.OnClosed(e);
         }
         #endregion
+        private void BrowseWallpaper_Click(object sender, RoutedEventArgs e)
+        {
+            var open = new Microsoft.Win32.OpenFileDialog { Filter = "Images|*.jpg;*.jpeg;*.png;*.webp;*.bmp|All Files|*.*" };
+            if (open.ShowDialog() == true) WallpaperPathText.Text = open.FileName;
+        }
+
+        private void ApplyWallpaper(string path)
+        {
+            if (string.IsNullOrEmpty(path) || !System.IO.File.Exists(path)) return;
+            try {
+                var brush = new ImageBrush(new BitmapImage(new Uri(path))) { Stretch = Stretch.UniformToFill, Opacity = OpacitySlider.Value };
+                MainBorder.Background = brush;
+            } catch { }
+        }
     }
 }

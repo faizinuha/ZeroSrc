@@ -7,6 +7,9 @@ using System.Diagnostics;
 using System.Collections.Generic;
 using Microsoft.Web.WebView2.Core;
 using System.Windows.Forms;
+using System.Windows.Controls;
+using Newtonsoft.Json.Linq;
+using System.Threading.Tasks;
 
 namespace ZeroMix.Virtual_Assisten
 {
@@ -23,13 +26,23 @@ namespace ZeroMix.Virtual_Assisten
         private AiVisionService? _visionService;
         private DispatcherTimer? _visionTimer;
         private string _apiKey = ApiKeys.OPENAI_API_KEY; 
+        private string _currentLang = "id-ID";
 
+        // Voice Recognition State
+        public static readonly DependencyProperty IsListeningProperty = 
+            DependencyProperty.Register("IsListening", typeof(bool), typeof(VirtualAssistantWindow), new PropertyMetadata(false));
+
+        public bool IsListening
+        {
+            get => (bool)GetValue(IsListeningProperty);
+            set => SetValue(IsListeningProperty, value);
+        }
 
         private readonly Dictionary<string, List<string>> _characterMessages = new()
         {
-            ["Frieren"] = new List<string> { "Halo! Aku Frieren~ ✨", "Apa ada yang bisa aku bantu?", "Himmel pasti bangga padamu!", "Zoltraak!", "Hmm... bau buku sihir baru." },
-            ["Fern"] = new List<string> { "Halo, Tuan Frieren.", "Jangan malas-malasan ya.", "Zoltraak!", "Tuan Stark memang merepotkan.", "Kecil sekali..." },
-            ["Huohuo"] = new List<string> { "Aaaah! Ada hantu?! 👻", "Maaf... aku Huohuo.", "Tuan ekor... tolong!", "Jangan takut, ada aku (walaupun aku takut juga).", "Waaah! 🦊" }
+            ["Frieren"] = new List<string> { "Halo! Aku Frieren~ ✨" },
+            ["Fern"] = new List<string> { "Halo, namaku Fern." },
+            ["Huohuo"] = new List<string> { "M-maaf... aku Huohuo. 🦊" }
         };
         
         private int _messageIndex = 0;
@@ -39,10 +52,9 @@ namespace ZeroMix.Virtual_Assisten
         {
             InitializeComponent();
             
-            // Position: Bottom Right
             var workArea = SystemParameters.WorkArea;
             this.Left = workArea.Right - this.Width - 20;
-            this.Top = workArea.Bottom - this.Height - 20;
+            this.Top = workArea.Bottom - this.Height - 80;
             
             this.Loaded += OnWindowLoaded;
             this.MouseLeftButtonDown += OnMouseLeftButtonDown;
@@ -52,19 +64,15 @@ namespace ZeroMix.Virtual_Assisten
             _hideChatTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(5) };
             _hideChatTimer.Tick += (s, e) => HideChatBubble();
 
-            _autoTalkTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(45) };
+            _autoTalkTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(60) };
             _autoTalkTimer.Tick += (s, e) => ShowNextChatMessage();
-            _autoTalkTimer.Start();
 
-            // Eye Tracking Timer
             _eyeTrackingTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(100) };
             _eyeTrackingTimer.Tick += UpdateEyeTracking;
             _eyeTrackingTimer.Start();
 
-            // AI Vision Setup (Auto Observation)
             _visionService = new AiVisionService(_apiKey);
-
-            _visionTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(30) }; // Setiap 30 detik dia "melihat"
+            _visionTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(30) };
             _visionTimer.Tick += async (s, e) => await PerformAiObservation();
             _visionTimer.Start();
         }
@@ -73,111 +81,61 @@ namespace ZeroMix.Virtual_Assisten
         {
             try
             {
-                Debug.WriteLine("[VirtualAssistant] Initializing WebView2 (Memory Optimized Version)...");
-                
-                // Memory Optimization Arguments
-                // --disable-features=LayoutService... reduces overhead
-                // --disable-gpu-shader-disk-cache prevents disk I/O lag
-                string extraArgs = "--disable-features=LayoutService,PrivacySandboxSettings4 " +
-                                  "--disable-extensions " +
-                                  "--mute-audio --no-proxy-server --disable-notifications";
-
                 var userDataFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "ZeroMix", "WebView2_VA");
-                var env = await CoreWebView2Environment.CreateAsync(null, userDataFolder, new CoreWebView2EnvironmentOptions(extraArgs));
-                
+                var env = await CoreWebView2Environment.CreateAsync(null, userDataFolder);
                 await WebView.EnsureCoreWebView2Async(env);
-
-                // EXTREME RAM OPTIMIZATION: Set memory target to low
+                
                 WebView.CoreWebView2.MemoryUsageTargetLevel = CoreWebView2MemoryUsageTargetLevel.Low;
-                
-                // WebView UI Tweaks
-                WebView.CoreWebView2.Settings.AreDevToolsEnabled = false;
-                WebView.CoreWebView2.Settings.AreDefaultContextMenusEnabled = false;
-                WebView.CoreWebView2.Settings.IsStatusBarEnabled = false;
-                WebView.CoreWebView2.Settings.IsZoomControlEnabled = false;
-                WebView.CoreWebView2.Settings.AreBrowserAcceleratorKeysEnabled = false;
-                
-                // Map Virtual Folder to the ROOT directory (parent of Virtual_Assisten)
-                // This allows URL like: https://zeromix.vercel.app/Virtual_Assisten/live2d-viewer.html
+                WebView.CoreWebView2.PermissionRequested += (s, args) => {
+                    if (args.PermissionKind == CoreWebView2PermissionKind.Microphone) args.State = CoreWebView2PermissionState.Allow;
+                };
+
                 string baseDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Virtual_Assisten");
-                string? rootDir = Path.GetDirectoryName(baseDir); // Get the folder containing 'Virtual_Assisten'
-                
+                string? rootDir = Path.GetDirectoryName(baseDir);
                 if (rootDir != null)
                 {
                     WebView.CoreWebView2.SetVirtualHostNameToFolderMapping("zeromix.vercel.app", rootDir, CoreWebView2HostResourceAccessKind.Allow);
                 }
                 
-                // Logging: Navigation State
-                WebView.CoreWebView2.NavigationStarting += (s, args) => Console.WriteLine($"[WebView] Navigating to: {args.Uri}");
-                WebView.CoreWebView2.NavigationCompleted += (s, args) => {
-                    if (args.IsSuccess) 
-                    {
-                        Console.WriteLine("[WebView] Navigation Successful ✅");
-                        // Load character ONLY after page is ready
-                        SetCharacter(_currentCharacter);
-                    }
-                    else 
-                    {
-                        Console.WriteLine($"[WebView] Navigation Failed ❌ (Status: {args.WebErrorStatus})");
-                    }
-                };
-
-                // Now use the full path as requested
                 WebView.Source = new Uri("https://zeromix.vercel.app/Virtual_Assisten/live2d-viewer.html");
                 WebView.WebMessageReceived += OnWebMessageReceived;
-                
                 _isWebViewInitialized = true;
-                Console.WriteLine("[VirtualAssistant] WebView2 initialized with Root Directory mapping.");
+                SetCharacter(_currentCharacter);
             }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"[VirtualAssistant] WebView Init Error: {ex.Message}");
-            }
+            catch (Exception ex) { Console.WriteLine($"[VA] Error: {ex.Message}"); }
         }
 
-        private void OnWebMessageReceived(object? sender, CoreWebView2WebMessageReceivedEventArgs e)
+        private async void OnWebMessageReceived(object? sender, CoreWebView2WebMessageReceivedEventArgs e)
         {
             try 
             {
-                // CoreWebView2 returns JSON string for objects sent via postMessage
                 string jsonMessage = e.WebMessageAsJson;
-                
-                if (jsonMessage.Contains("\"type\":\"log\""))
-                {
-                    // For logs, we just dump the JSON for now to see everything
-                    Console.WriteLine($"[WebView-JS] {jsonMessage}");
-                }
-                else if (jsonMessage.Contains("\"type\":\"click\""))
-                {
-                    ShowNextChatMessage();
-                }
+                if (jsonMessage.Contains("\"type\":\"click\"")) ShowNextChatMessage();
                 else if (jsonMessage.Contains("\"type\":\"model_loaded\""))
                 {
-                    Console.WriteLine($"[VirtualAssistant] Model Loaded by WebView");
-                    App.OptimizeMemory();
+                    ShowNextChatMessage();
+                    if (IsListening)
+                    {
+                        await WebView.ExecuteScriptAsync($"startSpeech('{_currentLang}');");
+                    }
                 }
+                else if (jsonMessage.Contains("\"type\":\"speech_result\""))
+                {
+                    JObject data = JObject.Parse(jsonMessage);
+                    ProcessUserVoice(data["text"]?.ToString() ?? "");
+                }
+                else if (jsonMessage.Contains("\"type\":\"speech_end\"")) IsListening = false;
             } 
-            catch (Exception ex)
-            {
-                Console.WriteLine($"[VirtualAssistant] Message Processing Error: {ex.Message}");
-            }
+            catch { }
         }
 
         public async void SetCharacter(string characterName)
         {
             _currentCharacter = characterName;
-            
             if (!_isWebViewInitialized) return;
-
             string modelPath = GetModelPath(characterName);
-            // Convert to Virtual Host Path (Domain points to ROOT)
-            // Use Uri.EscapeUriString to handle spaces (e.g. "Sou Sou No Frieren")
             string webPath = modelPath.Replace(AppDomain.CurrentDomain.BaseDirectory, "https://zeromix.vercel.app/").Replace("\\", "/");
-            webPath = Uri.EscapeUriString(webPath);
-            
-            Console.WriteLine($"[VirtualAssistant] Switching character to: {characterName} ({webPath})");
-            
-            await WebView.ExecuteScriptAsync($"if(typeof changeModel === 'function') changeModel('{webPath}');");
+            await WebView.ExecuteScriptAsync($"if(typeof changeModel === 'function') changeModel('{Uri.EscapeUriString(webPath)}');");
         }
 
         private string GetModelPath(string characterName)
@@ -191,85 +149,75 @@ namespace ZeroMix.Virtual_Assisten
             };
         }
 
-        private DateTime _lastMemoryCleanupTime = DateTime.MinValue;
-
         private async void UpdateEyeTracking(object? sender, EventArgs e)
         {
-            if (!_isWebViewInitialized || !this.IsVisible) return;
-
-            // Get Global Mouse Position
-            var mousePos = GetMousePosition();
-            
-            // Window Center (Target for eye tracking 0,0)
-            double centerX = this.Left + (this.Width / 2);
-            double centerY = this.Top + (this.Height / 2) + 50; // Offset down as character is lower
-
-            // Calculate Angle/Distance normalized (-1 to 1)
-            double diffX = (mousePos.X - centerX) / 400.0;
-            double diffY = (mousePos.Y - centerY) / 400.0;
-
-            // Clamp values
-            diffX = Math.Max(-1, Math.Min(1, diffX));
-            diffY = Math.Max(-1, Math.Min(1, -diffY)); // Invert Y for correct JS logic Up is Positive
-
-            // Send to WebView (Debounced/Skip if busy)
-            if (!_isScriptRunning)
-            {
-                _isScriptRunning = true;
-                try
-                {
-                    await WebView.ExecuteScriptAsync($"if(typeof updateEyeTracking === 'function') updateEyeTracking({diffX:F2}, {diffY:F2});");
-                }
-                finally
-                {
-                    _isScriptRunning = false;
-                }
-            }
-            
-            // Memory Sweep every 30 seconds, only ONCE per cycle
-            if ((DateTime.Now - _lastMemoryCleanupTime).TotalSeconds > 30) 
-            {
-                 _lastMemoryCleanupTime = DateTime.Now;
-                 App.OptimizeMemory();
-            }
-        }
-
-        private System.Windows.Point GetMousePosition()
-        {
-            // Reliable way to get screen mouse position without dependencies
+            if (!_isWebViewInitialized || !this.IsVisible || _isScriptRunning) return;
             var point = System.Windows.Forms.Control.MousePosition;
-            return new System.Windows.Point(point.X, point.Y);
+            double diffX = Math.Max(-1, Math.Min(1, (point.X - (this.Left + Width/2)) / 400.0));
+            double diffY = Math.Max(-1, Math.Min(1, -(point.Y - (this.Top + Height/2 + 50)) / 400.0));
+            _isScriptRunning = true;
+            try { await WebView.ExecuteScriptAsync($"if(typeof updateEyeTracking === 'function') updateEyeTracking({diffX:F2}, {diffY:F2});"); }
+            finally { _isScriptRunning = false; }
         }
 
         public void ShowNextChatMessage()
         {
-            var messages = _characterMessages.ContainsKey(_currentCharacter) ? _characterMessages[_currentCharacter] : _characterMessages["Frieren"];
-            _messageIndex = _random.Next(messages.Count);
-            ChatText.Text = messages[_messageIndex];
+            var msgs = _characterMessages.ContainsKey(_currentCharacter) ? _characterMessages[_currentCharacter] : _characterMessages["Frieren"];
+            ChatText.Text = msgs[_random.Next(msgs.Count)];
             ChatBubble.Visibility = Visibility.Visible;
-            _hideChatTimer?.Stop();
-            _hideChatTimer?.Start();
+            _hideChatTimer?.Stop(); _hideChatTimer?.Start();
         }
 
         private async Task PerformAiObservation()
         {
-            if (_visionService == null) return;
-
-            // Jangan ganggu kalau lagi dragging
-            if (_isDragging) return;
-
-            string windowTitle = _visionService.GetActiveWindowTitle();
-            string aiComment = await _visionService.AnalyzeAppsAsync(windowTitle, _currentCharacter);
-            
-            // Tampilkan komentar AI di bubble
+            if (_visionService == null || _isDragging) return;
+            string aiComment = await _visionService.AnalyzeAppsAsync(_visionService.GetActiveWindowTitle(), _currentCharacter);
             ChatText.Text = aiComment;
             ChatBubble.Visibility = Visibility.Visible;
+            _hideChatTimer?.Stop(); _hideChatTimer?.Start();
+        }
+
+        private async void MicButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (IsListening) { IsListening = false; await WebView.ExecuteScriptAsync("stopSpeech();"); }
+            else { IsListening = true; await WebView.ExecuteScriptAsync($"startSpeech('{_currentLang}');"); ShowNotification("Mendengarkan..."); }
+        }
+
+        private void Language_Click(object sender, RoutedEventArgs e)
+        {
+            var langText = LanguageBtn.Template.FindName("LangText", LanguageBtn) as TextBlock;
+            if (langText == null) return;
+            if (_currentLang == "id-ID") { _currentLang = "en-US"; langText.Text = "🇺🇸"; }
+            else if (_currentLang == "en-US") { _currentLang = "jp-JP"; langText.Text = "🇯🇵"; }
+            else { _currentLang = "id-ID"; langText.Text = "🇮🇩"; }
+            ShowNotification($"Lang: {_currentLang}");
+        }
+
+        private void ShowNotification(string msg) { ChatText.Text = msg; ChatBubble.Visibility = Visibility.Visible; _hideChatTimer?.Stop(); _hideChatTimer?.Start(); }
+        public void PreConfigure(string lang, bool enableMic)
+        {
+            _currentLang = lang;
+            IsListening = enableMic;
+            // Note: We can't call WebView.ExecuteScript until it's loaded, 
+            // so we handle the initial state in OnWebMessageReceived or model_loaded.
+        }
+
+        private async void ProcessUserVoice(string text)
+        {
+            if (string.IsNullOrWhiteSpace(text)) return;
+            Console.WriteLine($"[VirtualAssistant] User Said: {text}");
             
+            ChatText.Text = $"💬: {text}";
+            ChatBubble.Visibility = Visibility.Visible;
+            
+            string aiResponse = await _visionService!.AskAiAsync(text, _currentCharacter);
+            Console.WriteLine($"[VirtualAssistant] AI Answer: {aiResponse}");
+
+            ChatText.Text = aiResponse;
+            ChatBubble.Visibility = Visibility.Visible;
             _hideChatTimer?.Stop();
             _hideChatTimer?.Start();
-            
-            Console.WriteLine($"[VirtualAssistant] AI Observation: {aiComment}");
-            App.OptimizeMemory(); // Bersihkan RAM setelah mikir
+            App.OptimizeMemory();
         }
 
         private async void ManualVision_Click(object sender, RoutedEventArgs e)
@@ -277,55 +225,11 @@ namespace ZeroMix.Virtual_Assisten
             await PerformAiObservation();
         }
 
-        private void Close_Click(object sender, RoutedEventArgs e)
-        {
-            this.Close();
-        }
-
-        private void HideChatBubble()
-        {
-            ChatBubble.Visibility = Visibility.Collapsed;
-            _hideChatTimer?.Stop();
-        }
-
-        private void OnMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
-        {
-            // Drag area: anything not the ChatBubble
-            _isDragging = true;
-            _dragOffset = e.GetPosition(this);
-            this.CaptureMouse();
-            
-            // Also notify JS to maybe stop eye tracking jitter
-        }
-
-        private void OnMouseLeftButtonUp(object sender, MouseButtonEventArgs e)
-        {
-            _isDragging = false;
-            this.ReleaseMouseCapture();
-        }
-
-        private void OnMouseMove(object sender, System.Windows.Input.MouseEventArgs e)
-        {
-            if (_isDragging)
-            {
-                var pos = e.GetPosition(this);
-                this.Left += pos.X - _dragOffset.X;
-                this.Top += pos.Y - _dragOffset.Y;
-            }
-        }
-
-        protected override void OnClosed(EventArgs e)
-        {
-            _eyeTrackingTimer?.Stop();
-            _autoTalkTimer?.Stop();
-            _visionTimer?.Stop();
-            _hideChatTimer?.Stop();
-            
-            // Properly dispose WebView
-            WebView?.Dispose();
-            
-            base.OnClosed(e);
-            App.OptimizeMemory();
-        }
+        private void Close_Click(object sender, RoutedEventArgs e) => this.Close();
+        private void HideChatBubble() => ChatBubble.Visibility = Visibility.Collapsed;
+        private void OnMouseLeftButtonDown(object sender, MouseButtonEventArgs e) { _isDragging = true; _dragOffset = e.GetPosition(this); CaptureMouse(); }
+        private void OnMouseLeftButtonUp(object sender, MouseButtonEventArgs e) { _isDragging = false; ReleaseMouseCapture(); }
+        private void OnMouseMove(object sender, System.Windows.Input.MouseEventArgs e) { if (_isDragging) { var pos = e.GetPosition(this); this.Left += pos.X - _dragOffset.X; this.Top += pos.Y - _dragOffset.Y; } }
+        protected override void OnClosed(EventArgs e) { _eyeTrackingTimer?.Stop(); _autoTalkTimer?.Stop(); _visionTimer?.Stop(); _hideChatTimer?.Stop(); WebView?.Dispose(); base.OnClosed(e); App.OptimizeMemory(); }
     }
 }
