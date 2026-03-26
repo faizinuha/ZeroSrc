@@ -16,7 +16,7 @@
         <!-- Background Image (3.jpg) - Sangat tipis (hampir tidak kelihatan tapi ada) -->
         <Image Source="/SleepMode/IMG/3.jpg" 
                Stretch="UniformToFill" 
-               Opacity="0.03"
+               Opacity="0.10"
                IsHitTestVisible="False"/>
 
         <!-- Konten animasi ringan (Jam digital) -->

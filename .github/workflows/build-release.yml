@@ -19,41 +19,45 @@ jobs:
       with:
         dotnet-version: '9.0.x'
 
+    - name: 🛠️ Install WiX Toolset v4
+      run: |
+        dotnet tool install --global wix
+        # Tambahkan extension yang dibutuhkan (opsional, tapi bagus untuk UI)
+        wix extension add WixToolset.UI.wixext --global
+
     - name: 📦 Restore Dependencies
       run: dotnet restore ZeroMix.csproj
 
     - name: 🔨 Publish Application (Release Mode)
-      run: dotnet publish ZeroMix.csproj -c Release -r win-x64 --self-contained true -o publish
+      run: dotnet publish ZeroMix.csproj -c Release -r win-x64 --self-contained true -o publish/win-x64
       # Catatan: Karena di .csproj ada target "Obfuscate" setelah build, 
       # Obfuscar akan otomatis jalan saat proses ini.
 
-    - name: 🛡️ Verify Obfuscation (Protected Folder)
+    - name: 🏗️ Build All Installers (EXE, MSI, MSIX)
       shell: pwsh
       run: |
-        if (Test-Path "Protected") {
-          echo "✓ Folder Protected ditemukan. Obfuscation Berhasil!"
-        } else {
-          echo "⚠️ Folder Protected TIDAK ditemukan. Mengecek bin/Release..."
-          # Jika target Obfuscate naruh di bin/Release, kita sesuaikan.
-        }
+        # Menggunakan Makefile yang sudah kita update
+        # Pastikan PATH untuk WiX dan SignTool sudah benar
+        make all VERSION=${{ github.ref_name }}
+      continue-on-error: true # Biarkan lanjut jika salah satu gagal (untuk testing)
 
-    - name: 🏗️ Build Inno Setup Installer
-      shell: pwsh
-      run: |
-        # Inno Setup Compiler (ISCC.exe) sudah ada di runner windows-latest
-        & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" "Exe\Setup.iss"
-
-    - name: 📤 Upload Artifact
+    - name: 📤 Upload All Artifacts
       uses: actions/upload-artifact@v4
       with:
-        name: ZeroMix-Installer
-        path: Exe/ZeroMix-Setup-*.exe
+        name: ZeroMix-Packages-v${{ github.ref_name }}
+        path: |
+          Exe/*.exe
+          Exe/*.msi
+          Exe/*.msix
 
     - name: 🌟 Create GitHub Release
       if: startsWith(github.ref, 'refs/tags/')
       uses: softprops/action-gh-release@v2
       with:
-        files: Exe/ZeroMix-Setup-*.exe
-        body: "Automated Release for ZeroMix v${{ github.ref_name }}"
+        files: |
+          Exe/*.exe
+          Exe/*.msi
+          Exe/*.msix
+        body: "Automated Release for ZeroMix v${{ github.ref_name }}\n\nFormat tersedia: Standard EXE, MSI (Corporate), MSIX (Modern)."
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
