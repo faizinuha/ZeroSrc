@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs">
+  <Package Name="ZeroMix" 
+           Manufacturer="Frieren" 
+           Version="4.8.0" 
+           UpgradeCode="12345678-1234-1234-1234-123456789012"
+           Language="1033">
+    
+    <MajorUpgrade DowngradeErrorMessage="Versi yang lebih baru sudah terinstal." />
+    
+    <MediaTemplate EmbedCab="yes" />
+
+    <Icon Id="ZeroMixIcon" SourceFile="zeromix.ico"/>
+    <Property Id="ARPPRODUCTICON" Value="ZeroMixIcon" />
+
+    <Feature Id="MainFeature" Title="ZeroMix Core" Level="1">
+      <ComponentGroupRef Id="AppComponents" />
+      <ComponentRef Id="DesktopShortcut" />
+    </Feature>
+
+    <StandardDirectory Id="ProgramFiles64Folder">
+      <Directory Id="INSTALLFOLDER" Name="ZeroMix" />
+    </StandardDirectory>
+
+    <Directory Id="DesktopFolder" Name="Desktop" />
+
+    <ComponentGroup Id="AppComponents" Directory="INSTALLFOLDER">
+      <Component Id="MainExecutable" Guid="*">
+        <File Id="ZeroMixEXE" Source="..\publish\win-x64\ZeroMix.exe" KeyPath="yes" />
+      </Component>
+      <!-- WiX v4 otomatis bisa harvest folder, tapi ini contoh komponen manual utama -->
+    </ComponentGroup>
+
+    <Component Id="DesktopShortcut" Directory="DesktopFolder" Guid="*">
+      <Shortcut Id="DesktopShortcutLink" 
+                Name="ZeroMix" 
+                Description="Smart Desktop Launcher" 
+                Target="[#ZeroMixEXE]" 
+                WorkingDirectory="INSTALLFOLDER"
+                Icon="ZeroMixIcon" />
+      <RegistryValue Root="HKCU" Key="Software\Frieren\ZeroMix" Name="installed" Type="integer" Value="1" KeyPath="yes" />
+    </Component>
+  </Package>
+</Wix>

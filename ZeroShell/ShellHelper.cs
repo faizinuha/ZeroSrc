@@ -122,6 +122,42 @@ namespace ZeroMix.ZeroShell
             }, IntPtr.Zero);
         }
 
+        [DllImport("gdi32.dll", CharSet = CharSet.Auto)]
+        static extern IntPtr CreateFont(int nHeight, int nWidth, int nEscapement, int nOrientation, int fnWeight, uint fdwItalic, uint fdwUnderline, uint fdwStrikeOut, uint fdwCharSet, uint fdwOutputPrecision, uint fdwClipPrecision, uint fdwQuality, uint fdwPitchAndFamily, string lpszFace);
+
+        [DllImport("user32.dll")]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        static extern bool EnumChildWindows(IntPtr hwndParent, EnumWindowsProc lpEnumFunc, IntPtr lParam);
+
+        private static IntPtr _customFontPtr = IntPtr.Zero;
+
+        public static void InjectCustomFont(IntPtr hwnd)
+        {
+            if (_customFontPtr == IntPtr.Zero)
+            {
+                // FW_NORMAL = 400
+                // DEFAULT_CHARSET = 1
+                // CLEARTYPE_QUALITY = 5
+                _customFontPtr = CreateFont(16, 0, 0, 0, 400, 0, 0, 0, 1, 0, 0, 5, 0, "JetBrains Mono");
+            }
+
+            if (_customFontPtr != IntPtr.Zero)
+            {
+                // 0x0030 = WM_SETFONT, 1 = Redraw
+                const uint WM_SETFONT = 0x0030;
+                
+                // Set font to parent window
+                SendMessage(hwnd, WM_SETFONT, _customFontPtr, new IntPtr(1));
+
+                // Enum children and set font
+                EnumChildWindows(hwnd, (childHwnd, lParam) =>
+                {
+                    SendMessage(childHwnd, WM_SETFONT, _customFontPtr, new IntPtr(1));
+                    return true;
+                }, IntPtr.Zero);
+            }
+        }
+
         public static void ApplyExplorerTransparency()
         {
             var targetPids = new HashSet<uint>();
@@ -139,6 +175,7 @@ namespace ZeroMix.ZeroShell
                     string cls = className.ToString();
                     if (cls == "CabinetWClass" || cls == "ExplorerWClass") {
                         ApplyCrystalBlur(hWnd);
+                        InjectCustomFont(hWnd);
                     }
                 }
                 return true;
@@ -148,10 +185,12 @@ namespace ZeroMix.ZeroShell
         private static void ApplyCrystalBlur(IntPtr hwnd)
         {
             var accent = new AccentPolicy();
-            // State 3 (BlurBehind) is usually better for Win10 fonts
+            // Windows 12 Style: Transparent center, blurred borders
             accent.AccentState = AccentState.ACCENT_ENABLE_BLURBEHIND;
-            // Very light white tint (0x22 alpha)
-            accent.GradientColor = (0x22 << 24) | (0xFFFFFF & 0xFFFFFF); 
+            // Draw left, top, right, bottom borders with blur (0x20 | 0x40 | 0x80 | 0x100)
+            accent.AccentFlags = 0x20 | 0x40 | 0x80 | 0x100;
+            // Very light white tint for the border (0x10 alpha to keep it subtle)
+            accent.GradientColor = (0x10 << 24) | (0xFFFFFF & 0xFFFFFF); 
 
             var accentStructSize = Marshal.SizeOf(accent);
             var accentPtr = Marshal.AllocHGlobal(accentStructSize);

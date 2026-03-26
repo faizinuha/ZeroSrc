@@ -2,86 +2,74 @@
 ; ==============================================================================
 
 [Setup]
-; --- PENTING: AppId Unik (Dibuat Baru) ---
+; --- App Identity ---
 AppId={{ZeroMix-v2-ZeroMix-identifier}}
 AppName=ZeroMix
-
-; Set AppVersion for display, and MetadataVersion for file properties (must be numeric)
-#define AppVersionStr "4.8.0"
-#define AppVersionNumeric "4.8.0.0"
-
-AppVersion={#AppVersionStr}
-VersionInfoVersion={#AppVersionNumeric}
+#define AppVersion "4.8.0"
+AppVersion={#AppVersion}
+VersionInfoVersion={#AppVersion}.0
 VersionInfoCompany=Frieren
 VersionInfoDescription=ZeroMix - Smart Desktop Launcher & System Utilities
-VersionInfoTextVersion={#AppVersionStr}
-VersionInfoProductVersion={#AppVersionNumeric}
-AppVerName=ZeroMix v{#AppVersionStr}
+VersionInfoProductVersion={#AppVersion}.0
+AppVerName=ZeroMix v{#AppVersion}
 AppPublisher=ZeroMix Team
 AppPublisherURL=https://zeromix.vercel.app
 AppCopyright=Copyright (c) 2025 - All Rights Reserved
 
-; Installation Configuration
-DefaultDirName={pf}\ZeroMix
+; --- Installation Path ---
+DefaultDirName={autopf}\ZeroMix
 DefaultGroupName=ZeroMix
 AllowNoIcons=yes
 OutputDir=.
-OutputBaseFilename=ZeroMix-Setup-v{#AppVersionStr}
-Compression=lzma2
+OutputBaseFilename=ZeroMix-Setup-v{#AppVersion}
+Compression=lzma2/ultra64
 SolidCompression=yes
 DisableProgramGroupPage=no
 UninstallDisplayIcon={app}\zeromix.ico
 
-; UI Configuration
+; --- Appearance & Security ---
 WizardStyle=modern
 UninstallStyle=modern
-; Pastikan file .ico dan .bmp ada di folder yang sama dengan script .iss
 SetupIconFile=zeromix.ico
-; WizardImageFile=zeromix.bmp 
-; WizardSmallImageFile=zeromix.bmp
 WizardResizable=yes
 PrivilegesRequired=admin
-
-; Auto-close & Performance
-CloseApplications=yes
-; Filter ini akan menutup 'ZeroMix.exe' yang sedang berjalan
-CloseApplicationsFilter=ZeroMix.exe
-RestartIfNeededByRun=yes
 ArchitecturesInstallIn64BitMode=x64
 ArchitecturesAllowed=x64
 MinVersion=10.0.19041
 
+; --- Performance ---
+CloseApplications=yes
+CloseApplicationsFilter=ZeroMix.exe
+RestartIfNeededByRun=yes
+
 [Languages]
+Name: "indonesian"; MessagesFile: "compiler:Languages\Indonesian.isl"
 Name: "english"; MessagesFile: "compiler:Default.isl"
-Name: "indonesian"; MessagesFile: "Languages\Indonesian.isl"
 Name: "japanese"; MessagesFile: "Languages\Japanese.isl"
-Name: "chinese"; MessagesFile: "Languages\Chinese.isl"
 
 [Dirs]
-; Memberikan akses tulis ke folder aplikasi agar config.json bisa disimpan/diupdate oleh aplikasi (User biasa)
 Name: "{app}"; Permissions: users-modify
+Name: "{userappdata}\ZeroMix"; Permissions: users-modify
 
 [Files]
-; Main application (Menggunakan folder Protected hasil Obfuscar)
-Source: "..\publish\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
-; Icon
+; Main Core - Mengambil dari folder publish hasil build dotnet
+Source: "..\publish\win-x64\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+
+; Assets & Resources
 Source: "zeromix.ico"; DestDir: "{app}"; Flags: ignoreversion
-; Resources
 Source: "..\Resource\*"; DestDir: "{app}\Resource"; Flags: ignoreversion recursesubdirs createallsubdirs
-Source: "..\Plugins\zeromix.weather\assets\*"; DestDir: "{app}\Plugins\zeromix.weather\assets"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "..\Plugins\**"; DestDir: "{app}\Plugins"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "..\FFMPEG\ffmpeg.exe"; DestDir: "{app}\FFMPEG"; Flags: ignoreversion skipifsilent
 
-; Docs
+; Documentation
 Source: "Privacy.txt"; DestDir: "{app}"; Flags: ignoreversion
-Source: "../LICENSE.txt"; DestDir: "{app}"; Flags: ignoreversion
-Source: "../Readme.md"; DestDir: "{app}"; Flags: ignoreversion
-
-; Aktifkan ini jika ffmpeg.exe sudah ada di folder FFMPEG
-Source: "../FFMPEG/ffmpeg.exe"; DestDir: "{app}\FFMPEG"; Flags: ignoreversion
+Source: "..\LICENSE.txt"; DestDir: "{app}"; Flags: ignoreversion
+Source: "..\Readme.md"; DestDir: "{app}"; Flags: ignoreversion
 
 [Icons]
-Name: "{group}\ZeroMix"; Filename: "{app}\ZeroMix.exe"; IconFilename: "{app}\zeromix.ico"; WorkingDir: "{app}"
-Name: "{commondesktop}\ZeroMix"; Filename: "{app}\ZeroMix.exe"; IconFilename: "{app}\zeromix.ico"; WorkingDir: "{app}"; Tasks: desktopicon; Flags: createonlyiffileexists
-Name: "{group}\Uninstall ZeroMix"; Filename: "{uninstallexe}"; Flags: runminimized
+Name: "{group}\ZeroMix"; Filename: "{app}\ZeroMix.exe"; IconFilename: "{app}\zeromix.ico"
+Name: "{commondesktop}\ZeroMix"; Filename: "{app}\ZeroMix.exe"; IconFilename: "{app}\zeromix.ico"; Tasks: desktopicon
+Name: "{group}\Uninstall ZeroMix"; Filename: "{uninstallexe}"
 Name: "{userstartup}\ZeroMix"; Filename: "{app}\ZeroMix.exe"; WorkingDir: "{app}"; Tasks: startup
 
 [Registry]
@@ -91,161 +79,89 @@ Root: HKCR; Subkey: "Directory\Background\shell\ZeroMix"; ValueType: string; Val
 Root: HKCR; Subkey: "Directory\Background\shell\ZeroMix\command"; ValueType: string; ValueData: """{app}\ZeroMix.exe"""
 
 [Tasks]
-Name: "desktopicon"; Description: "Buat &desktop shortcut"; GroupDescription: "Shortcut:"; Flags: unchecked
-Name: "startup"; Description: "Jalankan ZeroMix saat Windows &startup (Mungkin bikin booting lama)"; GroupDescription: "Startup:"; Flags: unchecked
+Name: "desktopicon"; Description: "Buat shortcut di Desktop"; GroupDescription: "Shortcut:"; Flags: checkedonce
+Name: "startup"; Description: "Jalankan otomatis saat Windows Startup"; GroupDescription: "Startup:"; Flags: unchecked
 
 [Run]
-; Add to PATH
-Filename: "cmd.exe"; Parameters: "/c setx PATH ""%PATH%;{app}\bin"""; Flags: runhidden
-; Npm install
-Filename: "cmd.exe"; Parameters: "/c cd /d ""{app}\bin"" && npm install --production 2>nul"; Flags: runhidden skipifsilent
-; Jalankan Aplikasi
-Filename: "{app}\ZeroMix.exe"; Description: "&Jalankan ZeroMix sekarang"; Flags: nowait postinstall skipifsilent; Tasks: ; Check: not CurTaskExists('autostart')
+; Jalankan Aplikasi setelah install
+Filename: "{app}\ZeroMix.exe"; Description: "{cm:LaunchProgram}"; Flags: nowait postinstall skipifsilent
 
 [Messages]
-WelcomeLabel1=Selamat datang di ZeroMix Professional v4.8.0
-WelcomeLabel2=Update ini mencakup "ZeroShell" Terminal System dan Fitur Real-time Translate.%n%n⚠️ Disarankan untuk menutup semua aplikasi lain sebelum melanjutkan agar update berjalan lancar.
+indonesian.WelcomeLabel1=Selamat datang di ZeroMix Professional v{#AppVersion}
+indonesian.WelcomeLabel2=Siap untuk mengubah tampilan desktop Kakak jadi lebih estetik dan pintar?%n%nPastikan untuk menutup aplikasi lain yang sedang berjalan.
 
-[CustomMessages]
-LaunchProgram=&Jalankan ZeroMix sekarang
-
-; ==============================================================================
-; LOGIKA KODE (DIPERBAIKI)
-; ==============================================================================
 [Code]
+// --- CEK DEPENDENCY: .NET 9 & WEBVIEW2 ---
+
+function IsDotNet9Installed(): Boolean;
 var
-  WasRunning: Boolean;
-
-// FIX 1: Definisi FindWindow yang Benar (Harus 2 parameter: ClassName, WindowName)
-// Menggunakan PChar agar kompatibel dengan string null-terminated Windows
-function FindWindow(lpClassName, lpWindowName: String): HWND;
-external 'FindWindowW@user32.dll stdcall';
-
-// Helper untuk cek task
-function CurTaskExists(const TaskName: String): Boolean;
+  Success: Boolean;
+  InstallRoot: String;
 begin
-  Result := WizardIsTaskSelected(TaskName);
+  // Cek instalasi .NET 9 Desktop Runtime (x64)
+  Success := RegQueryStringValue(HKLM, 'SOFTWARE\dotnet\Setup\InstalledVersions\x64\sharedhost', 'Version', InstallRoot);
+  Result := Success and (Pos('9.', InstallRoot) = 1);
 end;
 
-// Setup CLI Tools
-procedure RegisterCliTools();
+function IsWebView2Installed(): Boolean;
+var
+  Version: String;
 begin
-  // Logika registrasi CLI tambahan jika diperlukan
+  // Cek Runtime WebView2 (Penting untuk dashboard UI)
+  Result := RegQueryStringValue(HKLM, 'SOFTWARE\WOW6432Node\Microsoft\EdgeUpdate\Clients\{F3017226-D3D0-42A4-8967-40F7072445B3}', 'pv', Version) or
+            RegQueryStringValue(HKCU, 'SOFTWARE\Microsoft\EdgeUpdate\Clients\{F3017226-D3D0-42A4-8967-40F7072445B3}', 'pv', Version);
 end;
 
-procedure UnregisterCliTools();
-begin
-  try
-    RegDeleteValue(HKEY_LOCAL_MACHINE, 
-      'SYSTEM\CurrentControlSet\Control\Session Manager\Environment', 
-      'ZEROMIX_HOME');
-  except
-  end;
-end;
-
-// --- FUNGSI SAAT INSTALASI DIMULAI ---
 function InitializeSetup(): Boolean;
 var
-  Wnd: HWND;
-  UninstallKey: String;
+  ErrorCode: Integer;
 begin
-  // --- DIAGNOSTIC CHECK ---
-  // This checks if an old version is already installed.
-  UninstallKey := 'Software\Microsoft\Windows\CurrentVersion\Uninstall\' + '{ZeroMix-v2-Frieren-identifier}_is1';
-  if RegKeyExists(HKLM, UninstallKey) or RegKeyExists(HKCU, UninstallKey) then
-  begin
-    MsgBox('Installer mendeteksi bahwa ZeroMix sudah terinstal. Proses uninstall dari versi lama akan berjalan terlebih dahulu. Ini adalah bagian normal dari proses upgrade. Klik OK untuk melanjutkan.', mbInformation, MB_OK);
-  end;
-  // --- END DIAGNOSTIC ---
-
   Result := True;
-  WasRunning := False;
   
- 
-  Wnd := FindWindow('', 'ZeroMix');
-  
-  if Wnd <> 0 then
+  if not IsDotNet9Installed() then
   begin
-    WasRunning := True;
-    // Kita beri info, tapi biarkan 'CloseApplications' di [Setup] yang menangani penutupan task secara otomatis
-    MsgBox('ZeroMix terdeteksi sedang berjalan. Installer akan menutupnya secara otomatis untuk melanjutkan update.', mbInformation, MB_OK);
+    if MsgBox('ZeroMix membutuhkan .NET 9.0 Desktop Runtime. Apakah Kakak ingin mendownloadnya sekarang?', mbConfirmation, MB_YESNO) = IDYES then
+    begin
+      ShellExec('open', 'https://dotnet.microsoft.com/en-us/download/dotnet/9.0', '', '', SW_SHOWNORMAL, ewNoWait, ErrorCode);
+    end;
+    Result := False;
+    Exit;
   end;
-end;
 
-// --- FUNGSI SAAT UNINSTALL DIMULAI ---
-function InitializeUninstall(): Boolean;
-var
-  ResultCode: Integer;
-begin
-  // Konfirmasi Uninstall
-  if MsgBox('Apakah Anda yakin ingin menghapus ZeroMix dan semua komponennya?', mbConfirmation, MB_YESNO) = IDYES then
+  if not IsWebView2Installed() then
   begin
-    // Matikan proses jika masih berjalan
-    Exec('taskkill.exe', '/IM ZeroMix.exe /F', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
-    Result := True;
-  end
-  else
-  begin
+    if MsgBox('ZeroMix membutuhkan WebView2 Runtime untuk fitur tampilan UI. Download sekarang?', mbConfirmation, MB_YESNO) = IDYES then
+    begin
+      ShellExec('open', 'https://developer.microsoft.com/en-us/microsoft-edge/webview2/', '', '', SW_SHOWNORMAL, ewNoWait, ErrorCode);
+    end;
     Result := False;
   end;
 end;
 
-// --- STEP CHANGE INSTALLER ---
 procedure CurStepChanged(CurStep: TSetupStep);
 var
   ErrorCode: Integer;
-  LangCode: String;
-  LangFileName: String;
 begin
   if CurStep = ssPostInstall then
   begin
-    // Determine language code based on installer selection
-    if ActiveLanguage = 'indonesian' then LangCode := 'id-ID'
-    else if ActiveLanguage = 'japanese' then LangCode := 'ja-JP'
-    else if ActiveLanguage = 'chinese' then LangCode := 'zh-CN'
-    else LangCode := 'en-US';
-
-    // Write to config file
-    LangFileName := ExpandConstant('{app}\language.ini');
-    SaveStringToFile(LangFileName, LangCode, False);
+    // Simpan bahasa yang dipilih ke file config sederhana
+    SaveStringToFile(ExpandConstant('{app}\language.txt'), ActiveLanguage, False);
   end;
-
+  
   if CurStep = ssDone then
   begin
-    RegisterCliTools();
+    // Buka halaman terima kasih
+    ShellExec('open', 'https://zeromix.vercel.app/thanks', '', '', SW_SHOWNORMAL, ewNoWait, ErrorCode);
+  end;
+end;
+
+procedure CurUninstallStepChanged(CurStep: TUninstallStep);
+begin
+  if CurStep = usPostUninstall then
+  begin
+    if MsgBox('Apakah Kakak juga ingin menghapus folder pengaturan (config) di AppData?', mbConfirmation, MB_YESNO) = IDYES then
     begin
-      ShellExec('open', 'https://zeromix.vercel.app/ThanksYou.html', '', '', SW_SHOWNORMAL, ewNoWait, ErrorCode);
+      DelTree(ExpandConstant('{userappdata}\ZeroMix'), True, True, True);
     end;
   end;
-end;
-
-// --- STEP CHANGE UNINSTALLER (SMOOTH FLOW) ---
-procedure CurUninstallStepChanged(CurStep: TUninstallStep);
-var
-  ErrorCode: Integer;
-  AppDataPath: String;
-begin
-  case CurStep of
-    usUninstall:
-      begin
-        // Sembunyi: Unregister CLI di background
-        UnregisterCliTools();
-      end;
-      
-    usPostUninstall:
-      begin
-        // Step Terakhir: Tanya Data & Kasih Feedback link
-        if MsgBox('Uninstall Selesai!' + #13#13 +
-                  'Apakah Kakak ingin menghapus semua data pengaturan/config juga?' + #13 + 
-                  '(Pilih "Tidak" jika Kakak berencana install ulang nanti)', 
-                  mbConfirmation, MB_YESNO) = IDYES then
-        begin
-          AppDataPath := ExpandConstant('{userappdata}\ZeroMix');
-          if DirExists(AppDataPath) then DelTree(AppDataPath, True, True, True);
-        end;
-
-        // Buka Feedback secara otomatis (Opsional tapi bagus untuk data)
-        ShellExec('open', 'https://zeromix.vercel.app/Feedback.html', '', '', SW_SHOWNORMAL, ewNoWait, ErrorCode);
-      end;
-  end;
-end;
+end;
