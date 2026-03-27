@@ -96,7 +96,12 @@ namespace ZeroMix
         private DispatcherTimer? _taskbarWatcher;
         private Plugins.PluginEngine? _pluginEngine;
         private RecordingManager? _recordingManager;
+        private DispatcherTimer? _gameDetectTimer;
+        private IntPtr _detectedGameHandle = IntPtr.Zero;
+        private RecordingBorderWindow? _recordingBorder;
+        private System.Windows.Rect _selectedCaptureRect = System.Windows.Rect.Empty;
         private GlobalHotkeyManager? _hotkeyManager;
+        private string _selectedRecordingMode = "FullScreen";
         private bool _isRecordingActive = false;
         private DispatcherTimer? _recordDurationTimer;
         private Key _currentRecordHotkey = Key.F9;
@@ -109,7 +114,6 @@ namespace ZeroMix
 
         private string[]? _startupArgs;
         private Virtual_Assisten.VirtualAssistantWindow? _assistantWindow;
-        private string _selectedRecordingMode = "FullScreen";
         private System.Collections.ObjectModel.ObservableCollection<RecordingHistoryItem> _recordingHistory = new();
         private Window? _zeroShellWindow;
         private bool _isSidebarCollapsed = false;
@@ -200,6 +204,8 @@ namespace ZeroMix
             MoonSharp.Interpreter.UserData.RegisterType<Plugins.ZeroMixLuaApi>();
             
             InitializeComponent();
+            InitializeRecorder();
+            StartGameDetection();
             InitializeTrayIcon();
             // Initialize SleepMode
             _sleepManager = new SleepManager();
@@ -806,20 +812,38 @@ namespace ZeroMix
 
                 // Update UI Visuals
                 var modes = new[] { ModeFullScreen, ModeApp, ModeArea, ModeWindow };
-                foreach (var m in modes)
+                var canvases = new[] { CanvasFullScreen, CanvasApp, CanvasArea, CanvasWindow };
+                
+                for (int i = 0; i < modes.Length; i++)
                 {
+                    var m = modes[i];
+                    var c = canvases[i];
+                    
                     if (m == null) continue;
                     if (m == border)
                     {
                         m.BorderBrush = (System.Windows.Media.SolidColorBrush)FindResource("NeonBlueBrush");
                         m.BorderThickness = new Thickness(2);
                         m.Background = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(20, 25, 34));
+                        if (c != null) c.Opacity = 0.3;
                     }
                     else
                     {
                         m.BorderBrush = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(26, 32, 48));
                         m.BorderThickness = new Thickness(1);
                         m.Background = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(17, 22, 32));
+                        if (c != null) c.Opacity = 0.1;
+                    }
+                }
+
+                // Handle specific mode setups
+                if (_selectedRecordingMode == "Area")
+                {
+                    var selector = new AreaSelectorWindow();
+                    if (selector.ShowDialog() == true && !selector.IsCancelled)
+                    {
+                        _selectedCaptureRect = selector.SelectedRect;
+                        StatusLabel.Text = $"Area Selected: {(int)_selectedCaptureRect.Width}x{(int)_selectedCaptureRect.Height}";
                     }
                 }
             }
@@ -1036,6 +1060,26 @@ namespace ZeroMix
             _recordingManager = new RecordingManager(ffmpegPath);
         }
 
+        private void StartGameDetection()
+        {
+            _gameDetectTimer = new DispatcherTimer();
+            _gameDetectTimer.Interval = TimeSpan.FromSeconds(2);
+            _gameDetectTimer.Tick += (s, e) => {
+                if (GameDetector.IsGameRunning(out string name, out IntPtr handle))
+                {
+                    _detectedGameHandle = handle;
+                    GameDetectText.Text = $"GAME DETECTED: {name.ToUpper()}";
+                    GameDetectBadge.Visibility = Visibility.Visible;
+                }
+                else
+                {
+                    _detectedGameHandle = IntPtr.Zero;
+                    GameDetectBadge.Visibility = Visibility.Collapsed;
+                }
+            };
+            _gameDetectTimer.Start();
+        }
+
         private async void ZeroRecordBtn_Click(object sender, RoutedEventArgs e)
         {
             if (_recordingManager == null) return;
@@ -1071,11 +1115,28 @@ namespace ZeroMix
                     return;
                 }
 
+                IntPtr? hCapture = null;
+                System.Windows.Rect? rCapture = null;
+
+                if (_selectedRecordingMode == "Application")
+                {
+                    hCapture = _detectedGameHandle;
+                }
+                else if (_selectedRecordingMode == "Area")
+                {
+                    rCapture = _selectedCaptureRect;
+                }
+                else if (_selectedRecordingMode == "Window")
+                {
+                    // Fallback to active window if nothing specific picked
+                    hCapture = _detectedGameHandle != IntPtr.Zero ? _detectedGameHandle : IntPtr.Zero;
+                }
+
                 bool started = await Task.Run(() => 
                 {
                     try 
                     {
-                        _recordingManager.StartRecording($"ZeroRecord_{timestamp}.mp4", fps, mic, speaker);
+                        _recordingManager.StartRecording($"ZeroRecord_{timestamp}.mp4", fps, mic, speaker, hCapture, rCapture);
                         return true;
                     }
                     catch (Exception ex)
@@ -1087,6 +1148,22 @@ namespace ZeroMix
 
                 if (started)
                 {
+                    // Show Recording Border for marked area
+                    if (_selectedRecordingMode == "Area" && rCapture != null)
+                    {
+                        _recordingBorder = new RecordingBorderWindow(rCapture.Value);
+                        _recordingBorder.Show();
+                    }
+                    else if (_selectedRecordingMode == "Window" && hCapture.HasValue && hCapture.Value != IntPtr.Zero)
+                    {
+                        if (ScreenStudioRecorder.GetWindowRect(hCapture.Value, out var rect))
+                        {
+                            var r = new System.Windows.Rect(rect.Left, rect.Top, rect.Right - rect.Left, rect.Bottom - rect.Top);
+                            _recordingBorder = new RecordingBorderWindow(r);
+                            _recordingBorder.Show();
+                        }
+                    }
+
                     // Apply Cinematic Zoom setting
                     if (_recordingManager.Recorder != null)
                     {
@@ -1127,6 +1204,10 @@ namespace ZeroMix
 
                 _isRecordingActive = false;
                 _recordDurationTimer?.Stop();
+                
+                _recordingBorder?.Close();
+                _recordingBorder = null;
+
                 UpdateRecordUI(false);
                 if (RecordDurationText != null) RecordDurationText.Visibility = Visibility.Collapsed;
                 

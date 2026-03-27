@@ -1,0 +1,19 @@
+<Window x:Class="ZeroMix.Recorder.RecordingBorderWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Recording Border"
+        WindowStyle="None"
+        AllowsTransparency="True"
+        Background="Transparent"
+        Topmost="True"
+        ShowInTaskbar="False"
+        IsHitTestVisible="False">
+    <Border x:Name="VisualBorder" 
+            BorderBrush="#FF0000" 
+            BorderThickness="2" 
+            Opacity="0.8">
+        <Border.Effect>
+            <BlurEffect Radius="2"/>
+        </Border.Effect>
+    </Border>
+</Window>

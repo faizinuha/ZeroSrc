@@ -27,7 +27,7 @@ namespace ZeroMix.Recorder
 
         public string GetDuration() => _recorder?.Duration ?? "00:00";
 
-        public void StartRecording(string outputFileName, int framerate = 30, string micDevice = "No Audio", string speakerDevice = "No Audio")
+        public void StartRecording(string outputFileName, int framerate = 30, string micDevice = "No Audio", string speakerDevice = "No Audio", IntPtr? captureHandle = null, System.Windows.Rect? captureRect = null)
         {
             if (_recorder == null || _recorder.IsRecording) return;
 
@@ -42,7 +42,7 @@ namespace ZeroMix.Recorder
             string outputPath = Path.Combine(zeroRecordDir, outputFileName);
             Console.WriteLine($"[RecordingManager] Starting recording to: {outputPath}");
 
-            _recorder.StartRecording(outputPath, micDevice, speakerDevice);
+            _recorder.StartRecording(outputPath, micDevice, speakerDevice, captureHandle, captureRect);
         }
 
         public void StopRecording()

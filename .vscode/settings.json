@@ -1,6 +1,6 @@
 {
-  "livePreview.defaultPreviewPath": "/Web/Changelog.html",
   "github-actions.workflows.pinned.workflows": [
-    ".github/workflows/build-release.yml"
+    ".github/workflows/build-release.yml",
+    ".github/workflows/jekyll-gh-pages.yml"
   ]
 }
