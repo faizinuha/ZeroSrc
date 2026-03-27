@@ -2,6 +2,9 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.Threading;
+using System.Runtime.InteropServices;
+using System.Windows;
+using System.Drawing;
 
 namespace ZeroMix.Recorder
 {
@@ -24,6 +27,8 @@ namespace ZeroMix.Recorder
         private bool _isRecording = false;
         private Thread? _recordingThread;
         private Stopwatch _recordingTimer = new();
+        private IntPtr? _captureHandle;
+        private System.Windows.Rect? _captureRect;
         public bool IsZoomEnabled { get; set; } = true;
 
         public bool IsRecording => _isRecording;
@@ -82,13 +87,16 @@ namespace ZeroMix.Recorder
                 Console.WriteLine("[ScreenStudioRecorder] CRITICAL: No capture system initialized!");
         }
 
-        public void StartRecording(string outputPath, string micDevice = "No Audio", string speakerDevice = "No Audio")
+        public void StartRecording(string outputPath, string micDevice = "No Audio", string speakerDevice = "No Audio", IntPtr? captureHandle = null, System.Windows.Rect? captureRect = null)
         {
             if (_isRecording)
             {
                 Console.WriteLine($"[ScreenStudioRecorder] Start blocked: Already recording");
                 return;
             }
+
+            _captureHandle = captureHandle;
+            _captureRect = captureRect;
 
             if (!IsInitialized)
             {
@@ -173,7 +181,21 @@ namespace ZeroMix.Recorder
 
                 if (_compositor != null && _camera != null && _cursorTracker != null)
                 {
-                    _compositor.Compose(rawFrame, _camera.X, _camera.Y, _camera.Zoom, _cursorTracker.X, _cursorTracker.Y, _cursorTracker.IsLeftClick);
+                    System.Drawing.RectangleF? crop = null;
+                    if (_captureRect.HasValue)
+                    {
+                        var r = _captureRect.Value;
+                        crop = new System.Drawing.RectangleF((float)r.Left, (float)r.Top, (float)r.Width, (float)r.Height);
+                    }
+                    else if (_captureHandle.HasValue && _captureHandle.Value != IntPtr.Zero)
+                    {
+                        if (GetWindowRect(_captureHandle.Value, out RECT_WIN rect))
+                        {
+                            crop = new System.Drawing.RectangleF(rect.Left, rect.Top, rect.Right - rect.Left, rect.Bottom - rect.Top);
+                        }
+                    }
+
+                    _compositor.Compose(rawFrame, _camera.X, _camera.Y, _camera.Zoom, _cursorTracker.X, _cursorTracker.Y, _cursorTracker.IsLeftClick, crop);
                     _encoder?.QueueFrame(_compositor.OutputTexture);
                 }
 
@@ -184,6 +206,18 @@ namespace ZeroMix.Recorder
 
                 frameIndex++;
             }
+        }
+
+        [DllImport("user32.dll")]
+        public static extern bool GetWindowRect(IntPtr hWnd, out RECT_WIN lpRect);
+
+        [StructLayout(LayoutKind.Sequential)]
+        public struct RECT_WIN
+        {
+            public int Left;
+            public int Top;
+            public int Right;
+            public int Bottom;
         }
 
         public void StopRecording()

@@ -1,0 +1,30 @@
+<Window x:Class="ZeroMix.Recorder.AreaSelectorWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Select Recording Area"
+        WindowStyle="None"
+        AllowsTransparency="True"
+        Background="Transparent"
+        Topmost="True"
+        WindowState="Maximized"
+        Cursor="Cross"
+        MouseDown="Window_MouseDown"
+        MouseMove="Window_MouseMove"
+        MouseUp="Window_MouseUp"
+        KeyDown="Window_KeyDown">
+    <Grid>
+        <Canvas x:Name="SelectionCanvas" Background="#44000000">
+            <Rectangle x:Name="SelectionBox" Stroke="#00D2FF" StrokeThickness="2" Fill="#2200D2FF" Visibility="Collapsed"/>
+            
+            <!-- Hint Text -->
+            <StackPanel Canvas.Left="20" Canvas.Top="20">
+                <TextBlock Text="DRAG TO SELECT AREA" Foreground="White" FontSize="32" FontWeight="Bold" Opacity="0.8">
+                    <TextBlock.Effect>
+                        <DropShadowEffect BlurRadius="4" ShadowDepth="2" Color="Black"/>
+                    </TextBlock.Effect>
+                </TextBlock>
+                <TextBlock Text="Press ESC to Cancel" Foreground="#AAAAAA" FontSize="18" Margin="0,5,0,0"/>
+            </StackPanel>
+        </Canvas>
+    </Grid>
+</Window>

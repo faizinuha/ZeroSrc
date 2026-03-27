@@ -4,6 +4,8 @@ using Vortice.Direct3D11;
 using Vortice.Direct2D1;
 using Vortice.DXGI;
 using Vortice.Mathematics;
+using Vortice;
+using System.Drawing;
 
 namespace ZeroMix.Recorder
 {
@@ -69,7 +71,7 @@ namespace ZeroMix.Recorder
             catch { IsInitialized = false; }
         }
 
-        public void Compose(ID3D11Texture2D inputTexture, float camX, float camY, float zoom, float cursorX, float cursorY, bool isClick)
+        public void Compose(ID3D11Texture2D inputTexture, float camX, float camY, float zoom, float cursorX, float cursorY, bool isClick, System.Drawing.RectangleF? crop = null)
         {
             if (!IsInitialized) return;
 
@@ -111,20 +113,32 @@ namespace ZeroMix.Recorder
                         _d2dContext.Clear(new Color4(0, 0, 0, 1.0f));
 
                         // Transform: Zoom & Pan
+                        // Jika ada crop, kita sesuaikan koordinatnya
+                        float offsetX = crop.HasValue ? -crop.Value.Left : 0;
+                        float offsetY = crop.HasValue ? -crop.Value.Top : 0;
+
                         var center = new Vector2(camX, camY);
                         var screenCenter = new Vector2(_width / 2f, _height / 2f);
-                        var transform = Matrix3x2.CreateTranslation(-center.X, -center.Y) *
+                        var transform = Matrix3x2.CreateTranslation(-center.X + offsetX, -center.Y + offsetY) *
                                        Matrix3x2.CreateScale(zoom, zoom) *
                                        Matrix3x2.CreateTranslation(screenCenter.X, screenCenter.Y);
 
                         _d2dContext.Transform = transform;
-                        
-                        // Gunakan UnitMode.Pixels biar mapping 1:1
                         _d2dContext.UnitMode = UnitMode.Pixels;
                         
                         if (_inputBitmapCached != null)
                         {
-                            _d2dContext.DrawBitmap(_inputBitmapCached, 1.0f, InterpolationMode.Linear);
+                            if (crop.HasValue)
+                            {
+                                // Draw only the cropped area to fill the output size
+                                var c = crop.Value;
+                                var destRect = new System.Drawing.RectangleF(0, 0, _width, _height);
+                                _d2dContext.DrawBitmap(_inputBitmapCached, destRect, 1.0f, InterpolationMode.Linear, c, System.Numerics.Matrix4x4.Identity);
+                            }
+                            else
+                            {
+                                _d2dContext.DrawBitmap(_inputBitmapCached, 1.0f, InterpolationMode.Linear);
+                            }
                         }
                         
                         // DRAW NATIVE-LOOKING CURSOR
