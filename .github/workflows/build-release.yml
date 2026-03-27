@@ -21,9 +21,8 @@ jobs:
 
     - name: 🛠️ Install WiX Toolset v4
       run: |
-        dotnet tool install --global wix
-        # Tambahkan extension yang dibutuhkan (opsional, tapi bagus untuk UI)
-        wix extension add WixToolset.UI.wixext --global
+        dotnet tool install --global wix || dotnet tool update --global wix
+        dotnet wix extension add WixToolset.UI.wixext --global
 
     - name: 📦 Restore Dependencies
       run: dotnet restore ZeroMix.csproj
