@@ -9,7 +9,7 @@
     <UseWindowsForms>true</UseWindowsForms>
     <ApplicationIcon>zeromix.ico</ApplicationIcon>
     <EnableWindowsTargeting>true</EnableWindowsTargeting>
-    <Version>4.8.0</Version>
+    <Version>5.0.0</Version>
     
     <!-- Optimasi Ukuran & Portabilitas (Self-Contained & Kompresi) -->
     <PublishSingleFile>true</PublishSingleFile>
