@@ -1,4 +1,4 @@
-# ZeroMix Release Notes v6.0.0
+# ZeroMix Release Notes v5.5.0 (Official Major Update)
  
  ## 🌟 Major Highlights: Modern Deployment & CLI Ecosystem
  Transisi besar-besaran pada cara pengiriman aplikasi, membuat ZeroMix semakin mudah dijangkau dan dipasang.
@@ -17,7 +17,7 @@
  
  ---
  
- # ZeroMix Release Notes v5.1.0
+ # ZeroMix Release Notes v5.0.0
 
 ## 🌟 Major Highlights: Aurora Glass UI Redesign
 Transformasi total estetika aplikasi ke arah yang lebih premium, modern, dan futuristik.
