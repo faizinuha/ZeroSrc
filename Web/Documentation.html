@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Dokumentasi Lengkap ZeroMix - Pelajari cara instalasi, konfigurasi, dan penggunaan fitur canggih ZeroMix.">
+    <title>ZeroMix – Dokumentasi Lengkap</title>
+    <link rel="icon" href="./zeromix-high-resolution-logo-transparent.png">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        .doc-container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+        .doc-section {
+            margin-bottom: 60px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 30px;
+            border-radius: 15px;
+        }
+        .doc-section h2 {
+            color: var(--primary-accent);
+            border-bottom: 2px solid var(--primary-accent);
+            padding-bottom: 10px;
+            margin-bottom: 25px;
+        }
+        .code-block {
+            background: #1e1e1e;
+            color: #dcdcdc;
+            padding: 15px;
+            border-radius: 10px;
+            font-family: 'Consolas', 'Monaco', monospace;
+            margin: 15px 0;
+            position: relative;
+            border: 1px solid #333;
+        }
+        .copy-btn {
+            position: absolute;
+            right: 10px;
+            top: 10px;
+            background: rgba(255,255,255,0.1);
+            border: none;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        .copy-btn:hover { background: var(--primary-accent); }
+        .method-card {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        .card {
+            background: rgba(255,255,255,0.05);
+            padding: 20px;
+            border-radius: 12px;
+            border-left: 4px solid var(--primary-accent);
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+      <div class="nav-container">
+        <a href="index.html" class="nav-logo">ZeroMix</a>
+        <button class="menu-toggle" aria-label="Toggle menu">
+          <i class="fas fa-bars"></i>
+        </button>
+        <ul class="nav-menu">
+          <li class="nav-item">
+            <a href="documentation.html" data-translate="Documentation">Documentation</a>
+          </li>
+          <li class="nav-item">
+            <a href="Module.html" data-translate="Module">Module</a>
+          </li>
+          <li class="nav-item">
+            <a href="Changelog.html" data-translate="Changelog">Changelog</a>
+          </li>
+          <li class="nav-item">
+            <a href="About.html" data-translate="Tentang">Tentang</a>
+          </li>
+          <li class="nav-item">
+            <a href="Support.html" data-translate="Support">Support</a>
+          </li>
+          <li class="nav-item language-switcher">
+            <button class="lang-btn active" data-lang="id">🇮🇩 ID</button>
+            <button class="lang-btn" data-lang="en">🇺🇸 EN</button>
+            <button class="lang-btn" data-lang="ja">🇯🇵 JP</button>
+          </li>
+        </ul>
+      </div>
+    </nav>
+
+    <header>
+        <div class="header-content">
+            <h1 data-translate="Dokumentasi ZeroMix">Dokumentasi ZeroMix</h1>
+            <p>Panduan Lengkap Penggunaan, Instalasi, dan Pengembangan</p>
+        </div>
+    </header>
+
+    <div class="doc-container">
+        <!-- Pengenalan -->
+        <section class="doc-section reveal">
+            <h2><i class="fas fa-info-circle"></i> Apa itu ZeroMix?</h2>
+            <p>ZeroMix adalah suite utilitas Windows berperforma tinggi yang dirancang untuk mempercantik dan mempercepat alur kerja Anda. Menggabungkan sistem monitoring real-time, translator otomatis, dan peluncur aplikasi cerdas.</p>
+            <div class="method-card">
+                <div class="card">
+                    <h4>Cepat & Ringan</h4>
+                    <p>Dibangun dengan .NET 9.0 untuk responsivitas maksimal tanpa membebani sistem.</p>
+                </div>
+                <div class="card">
+                    <h4>Customizable</h4>
+                    <p>Sesuaikan hotkey, tema, dan perilaku aplikasi sesuai kebutuhan Anda.</p>
+                </div>
+                <div class="card">
+                    <h4>Open Source</h4>
+                    <p>Kode transparan dan dapat dikembangkan oleh komunitas melalui sistem Plugin Lua.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Cara Instalasi -->
+        <section class="doc-section reveal">
+            <h2><i class="fas fa-download"></i> Panduan Instalasi (Multi-Method)</h2>
+            <p>Pilih metode instalasi yang paling sesuai dengan kebutuhan Anda:</p>
+
+            <h3>1. Metode CLI (PowerShell One-Liner)</h3>
+            <p>Metode tercepat untuk teknisi dan power user. Cukup buka PowerShell dan jalankan perintah:</p>
+            <div class="code-block">
+                <code>iwr -useb bit.ly/ZeroMix | iex</code>
+                <button class="copy-btn" onclick="copyCode('iwr -useb bit.ly/ZeroMix | iex')">Copy</button>
+            </div>
+
+            <h3>2. Installer Standar (.EXE / .MSI)</h3>
+            <ul>
+                <li>Unduh file terbaru dari <a href="https://github.com/faizinuha/ZeroMix/releases" target="_blank">GitHub Release</a>.</li>
+                <li>Pilih <strong>.exe</strong> untuk instalasi biasa atau <strong>.msi</strong> untuk deployment massal.</li>
+                <li>Ikuti wizard instalasi hingga selesai.</li>
+            </ul>
+
+            <h3>3. Versi Portable (.ZIP)</h3>
+            <p>Cocok untuk penggunaan di USB atau tanpa hak akses Administrator.</p>
+            <ul>
+                <li>Ekstrak isi ZIP ke folder manapun.</li>
+                <li>Jalankan <code>ZeroMix.exe</code> untuk memulai.</li>
+            </ul>
+        </section>
+
+        <!-- Pengoperasian -->
+        <section class="doc-section reveal">
+            <h2><i class="fas fa-keyboard"></i> Cara Penggunaan & Shortcut</h2>
+            <div class="method-card">
+                <div class="card">
+                    <h4>Alt + Space</h4>
+                    <p>Buka Search Overlay (Aplikasi, File, dan Web).</p>
+                </div>
+                <div class="card">
+                    <h4>Alt + S</h4>
+                    <p>Aktifkan Fake Sleep Mode (Always-On Display).</p>
+                </div>
+                <div class="card">
+                    <h4>Ctrl + Space</h4>
+                    <p>Akses cepat ke Dashboard & System Monitor.</p>
+                </div>
+            </div>
+            <p style="margin-top:20px;">Anda dapat mengubah shortcut ini melalui menu <strong>Settings</strong> di Dashboard ZeroMix.</p>
+        </section>
+
+        <!-- Desain & Arsitektur -->
+        <section class="doc-section reveal">
+            <h2><i class="fas fa-project-diagram"></i> Desain & Arsitektur</h2>
+            <p>ZeroMix dikembangkan dengan filosofi <em>"Modern Glassmorphism"</em>.</p>
+            <ul>
+                <li><strong>UI Engine:</strong> WPF dengan dukungan DWM Blur-behind untuk efek kaca transparan.</li>
+                <li><strong>Logic Core:</strong> Async-based C# processing untuk memastikan UI tidak pernah lag.</li>
+                <li><strong>Plugin System:</strong> Integrasi MoonSharp (Lua) yang memungkinkan script eksternal berinteraksi dengan API inti ZeroMix.</li>
+            </ul>
+        </section>
+    </div>
+
+    <footer>
+        <p>&copy; 2025-2026 ZeroMix Project – Dibuat dengan ❤️ oleh Faizinuha</p>
+    </footer>
+
+    <script src="translations.js"></script>
+    <script src="auto-translator.js"></script>
+    <script src="script.js"></script>
+    <script>
+        function copyCode(text) {
+            navigator.clipboard.writeText(text);
+            alert("Perintah disalin!");
+        }
+    </script>
+</body>
+</html>

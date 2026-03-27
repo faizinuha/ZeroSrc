@@ -1,4 +1,23 @@
-# ZeroMix Release Notes v5.1.0
+# ZeroMix Release Notes v6.0.0
+ 
+ ## 🌟 Major Highlights: Modern Deployment & CLI Ecosystem
+ Transisi besar-besaran pada cara pengiriman aplikasi, membuat ZeroMix semakin mudah dijangkau dan dipasang.
+ 
+ ### [NEW: CLI One-Liner Installer]
+ - **PowerShell Deployment**: Sekarang ZeroMix bisa dipasang cukup dengan satu perintah: `iwr -useb bit.ly/ZeroMix | iex`. 
+ - **Retro-Modern UI**: Script installer baru dengan desain ala terminal tahun 1990-an namun dengan performa modern.
+ - **Smart Auto-Update Connection**: Terintegrasi langsung dengan GitHub API untuk mengambil aset installer terbaru secara otomatis.
+ 
+ ### [Deployment Overhaul]
+ - **Multi-Format Format**: Dukungan penuh untuk tiga format installer standar industri:
+   - **EXE (Inno Setup)**: Untuk instalasi standar desktop.
+   - **MSI (WiX Toolset v4)**: Untuk lingkungan korporat/bisnis.
+   - **MSIX (Windows Package)**: Format modern Windows 10/11 untuk manajemen aplikasi yang lebih bersih.
+   - **Portable (ZIP)**: Versi tanpa instalasi untuk mobilitas tinggi.
+ 
+ ---
+ 
+ # ZeroMix Release Notes v5.1.0
 
 ## 🌟 Major Highlights: Aurora Glass UI Redesign
 Transformasi total estetika aplikasi ke arah yang lebih premium, modern, dan futuristik.
