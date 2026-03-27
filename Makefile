@@ -75,7 +75,7 @@ installer:
 msi:
 	@echo "[MSI] Building MSI with WiX..."
 	@# Script ini berasumsi 'wix' ada di PATH (WiX Toolset v4)
-	-wix build "$(EXE_DIR)\ZeroMix.wxs" -o "$(EXE_DIR)\ZeroMix-v$(VERSION).msi"
+	-dotnet wix build "$(EXE_DIR)\ZeroMix.wxs" -o "$(EXE_DIR)\ZeroMix-v$(VERSION).msi"
 
 msix:
 	@echo "[MSIX] Creating MSIX Package..."
