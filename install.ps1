@@ -3,7 +3,7 @@
 # Cara pakai: iwr -useb bit.ly/download-zeromix | iex
 
 # Konfigurasi Repository
-$repo = "faizinuha/ZeroSrc"
+$repo = "faizinuha/ZeroMix"
 $tagUri = "https://api.github.com/repos/$repo/releases/latest"
 
 Clear-Host
