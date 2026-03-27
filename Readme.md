@@ -46,22 +46,6 @@ ZeroMix is packed with features that keep your system fast and your desktop stun
       <video src="https://github.com/user-attachments/assets/0a5c1928-32b8-4b32-a391-aefdb5b3d2f5" width="1000"  autoplay muted loop></video>
     </div>
 
-## 🧩 Lua Plugin System
-
-Empower your ZeroMix experience by creating your own modules. No C# knowledge required!
-
-1.  **Open Extensions**: Click the "Buat Plugin" button in the dashboard.
-2.  **Scaffold**: Choose Private or Public. ZeroMix creates the folder automatically.
-3.  **Code**: Open `script.lua` in Notepad and start coding!
-4.  **BOM!**: Your plugin is instantly loaded into the system.
-
-```lua
-function OnLoad()
-    ZeroMix.Log("Hello from my first plugin!")
-    ZeroMix.Notify("ZeroMix", "Plugin Loaded Successfully!")
-end
-```
-
 ---
 
 ## 🌍 Nexus Translator Core v2.0
@@ -78,48 +62,32 @@ The world's most stable real-time translator for Windows, now integrated nativel
 
 ## 📥 Quick Installation
 
-Ready to upgrade your desktop? Follow these simple steps:
+Upgrade your Windows experience with your preferred installation method:
 
-1.  **Download**: Grab the latest `.exe` from the [Official Releases](https://github.com/faizinuha/ZeroMix/releases).
-2.  **Install**: Run the setup. ZeroMix will guide you through the process.
-3.  **Launch**: Find the ⚡ icon in your system tray.
-4.  **Startup**: ZeroMix will ask to run on startup via a terminal prompt on your first run.
+### 1. ⚡ One-Liner (CLI Method)
+The fastest way to install ZeroMix. Open **PowerShell** and run:
+```powershell
+iwr -useb bit.ly/ZeroMix | iex
+```
 
-> [!TIP] > **No Admin? No Problem.** ZeroMix is designed to run with user-level permissions, making it safe and easy to use on any machine.
+### 2. 📦 Standard Installers
+Recommended for most users. Grab them from the [Official Releases](https://github.com/faizinuha/ZeroMix/releases):
+- **Standard EXE**: Full setup with Inno Setup.
+- **MSI Installer**: Enterprise-ready installer (built with WiX v4).
+- **MSIX Package**: Modern Windows 10/11 app format with clean uninstalls.
+
+### 3. 🚀 Portable Version
+No installation required. Just download the **ZIP** file, extract, and run `ZeroMix.exe`. Perfectly suited for USB drives or restricted environments.
+
+---
+
+### Getting Started
+1. **Launch**: Find the ⚡ icon in your system tray or search for "ZeroMix" in the Start Menu.
+2. **Startup**: ZeroMix will prompt to enable "Run on Startup" during the first launch.
+3. **No Admin?**: ZeroMix is designed to run with user-level permissions. Admin is only needed during initial `.exe` installation for Start Menu shortcuts.
 
 ---
 
-## 🌙 Fake Sleep Mode (Always-On Display)
-
-Transform your PC into a smartphone-like experience with a customizable Always-On Display overlay.
-
-### Multi-Trigger System
-You can **enable multiple triggers at once** — for example, Idle + Shortcut simultaneously:
-
-- **🖱️ Manual**: Instantly activate from the settings panel.
-- **⏱️ Idle Detection**: Auto-activates after a configurable idle period (default: 60s) using Win32 `GetLastInputInfo`.
-- **⌨️ Global Shortcut (`Alt + S`)**: Trigger sleep mode from anywhere, even when minimized to tray.
-
-### Visual Customization
-- **Digital Clock** with pulsing anti-burn-in animation
-- **Pixel Character** with subtle jump animation
-- **Brightness Slider** (20% – 100% opacity)
-- **Neo-Glow Effect** (optional decorative glow)
-- **Anti Burn-in**: Elements drift randomly every 10 seconds
-
-### Smart Features
-- **Auto-Disable on Low Battery**: Automatically turns off if battery drops below 20% (laptop only)
-- **Ultra-Low CPU Mode**: Disables all animations for extreme power saving
-- **Configurable Exit**: Choose which inputs wake the screen (mouse move, click, or keyboard)
-- **Input Protection**: 500ms delay prevents accidental wake-up on activation
-
-### How to Use
-1. Click **"Sleep Mode Settings"** on the Dashboard
-2. Check the trigger modes you want (can select multiple!)
-3. Customize visuals and exit behavior
-4. Click **"Start Sleep Mode"** to apply & activate
-
----
 
 ## ⌨️ Keyboard Shortcuts
 
@@ -153,11 +121,6 @@ ZeroMix is an open-source project, and we love our contributors!
 - **Have an idea?** Start a [Discussion](https://github.com/faizinuha/ZeroMix/discussions).
 - **Want to code?** Check our [Contributing Guide](CONTRIBUTING.md).
 
-### Contributors
-
-<a href="https://github.com/faizinuha/ZeroMix/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=faizinuha/ZeroMix" />
-</a>
 
 ---
 
