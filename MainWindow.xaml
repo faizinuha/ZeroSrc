@@ -191,8 +191,8 @@
 
             <!-- Hide ScrollBars Global -->
             <Style TargetType="ScrollViewer">
-                <Setter Property="VerticalScrollBarVisibility" Value="Collapsed"/>
-                <Setter Property="HorizontalScrollBarVisibility" Value="Collapsed"/>
+                <Setter Property="VerticalScrollBarVisibility" Value="Hidden"/>
+                <Setter Property="HorizontalScrollBarVisibility" Value="Hidden"/>
                 <Setter Property="Template">
                     <Setter.Value>
                         <ControlTemplate TargetType="ScrollViewer">

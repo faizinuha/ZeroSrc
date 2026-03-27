@@ -24,10 +24,10 @@ CERT_FILE    := $(EXE_DIR)\ZeroMixCert.pfx
 # Credentials (Avoid hardcoding real secrets in production envs)
 CERT_PASS    := ZeroMixPass
 
-# Tools
+# Tools (Priority: PATH, then fallback)
 DOTNET       := dotnet
-ISCC         := "C:\Program Files (x86)\Inno Setup 6\iscc.exe"
-SIGN_TOOL    := $(TOOLS_DIR)\osslsigncode.exe
+ISCC         := iscc
+SIGN_TOOL    := $(PROJECT_ROOT)\Exe\bin\osslsigncode.exe
 
 # Targets
 .PHONY: all clean build installer msi msix sign help

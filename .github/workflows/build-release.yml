@@ -3,12 +3,12 @@ name: 🚀 Build & Release ZeroMix
 on:
   push:
     tags:
-      - 'v*' # Trigger saat push tag versi (misal v4.8.0)
-  workflow_dispatch: # Memungkinkan jalankan manual dari web GitHub
+      - 'v*'
+  workflow_dispatch:
 
 jobs:
   build:
-    runs-on: windows-latest # Pakai Windows karena butuh Inno Setup & .NET Desktop
+    runs-on: windows-latest
 
     steps:
     - name: 📥 Checkout Code
@@ -19,31 +19,24 @@ jobs:
       with:
         dotnet-version: '9.0.x'
 
-    - name: 🛠️ Install WiX Toolset v4
-      run: |
-        dotnet tool install --global wix || dotnet tool update --global wix
-        dotnet wix extension add WixToolset.UI.wixext --global
-
-    - name: 📦 Restore Dependencies
-      run: dotnet restore ZeroMix.csproj
-
-    - name: 🔨 Publish Application (Release Mode)
-      run: dotnet publish ZeroMix.csproj -c Release -r win-x64 --self-contained true -o publish/win-x64
-      # Catatan: Karena di .csproj ada target "Obfuscate" setelah build, 
-      # Obfuscar akan otomatis jalan saat proses ini.
-
-    - name: 🏗️ Build All Installers (EXE, MSI, MSIX)
+    - name: 🛠️ Setup Build Tools (Make & WiX)
       shell: pwsh
       run: |
-        # Menggunakan Makefile yang sudah kita update
-        # Pastikan PATH untuk WiX dan SignTool sudah benar
-        make all VERSION=${{ github.ref_name }}
-      continue-on-error: true # Biarkan lanjut jika salah satu gagal (untuk testing)
+        choco install make
+        dotnet tool install --global wix || dotnet tool update --global wix
 
-    - name: 📤 Upload All Artifacts
+    - name: 📦 Restore & Publish
+      shell: pwsh
+      run: |
+        dotnet restore ZeroMix.csproj
+        # Build using Makefile (it handles publish, installer, and msi)
+        make all VERSION=${{ github.ref_name }}
+      continue-on-error: true
+
+    - name: 📤 Upload Artifacts
       uses: actions/upload-artifact@v4
       with:
-        name: ZeroMix-Packages-v${{ github.ref_name }}
+        name: ZeroMix-v${{ github.ref_name }}
         path: |
           Exe/*.exe
           Exe/*.msi
