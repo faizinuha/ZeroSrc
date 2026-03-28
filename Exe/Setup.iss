@@ -1,11 +1,11 @@
-; ZeroMix Installer Script (Professional v4.8.0)
+; ZeroMix Installer Script (Professional v5.0.0)
 ; ==============================================================================
 
 [Setup]
 ; --- App Identity ---
 AppId={{ZeroMix-v2-ZeroMix-identifier}}
 AppName=ZeroMix
-#define AppVersion "4.8.0"
+#define AppVersion "5.0.0"
 AppVersion={#AppVersion}
 VersionInfoVersion={#AppVersion}.0
 VersionInfoCompany=Frieren
@@ -56,7 +56,7 @@ Name: "{userappdata}\ZeroMix"; Permissions: users-modify
 Source: "..\publish\win-x64\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 
 ; Assets & Resources
-Source: "zeromix.ico"; DestDir: "{app}"; Flags: ignoreversion
+Source: "zeromFweix.ico"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\Resource\*"; DestDir: "{app}\Resource"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "..\Plugins\**"; DestDir: "{app}\Plugins"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "..\FFMPEG\ffmpeg.exe"; DestDir: "{app}\FFMPEG"; Flags: ignoreversion skipifsilent
@@ -164,4 +164,4 @@ begin
       DelTree(ExpandConstant('{userappdata}\ZeroMix'), True, True, True);
     end;
   end;
-end;
+end;
