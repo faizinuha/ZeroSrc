@@ -63,6 +63,7 @@
     <Resource Include="zeromix.ico" />
     <Resource Include="assets\**" />
     <Resource Include="SleepMode\IMG\**" />
+    <Resource Include="ZeroShell\asci\*" />
   </ItemGroup>
 
 
