@@ -371,7 +371,7 @@
                                 <RowDefinition Height="*"/>
                             </Grid.RowDefinitions>
                             <TextBlock Grid.Row="0"
-                                       Text="What's New (v4.8.0)"
+                                       Text="What's New (v5.0.0)"
                                        FontSize="28"
                                        FontWeight="Bold"
                                        Foreground="White"
