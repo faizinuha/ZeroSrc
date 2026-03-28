@@ -56,7 +56,7 @@ Name: "{userappdata}\ZeroMix"; Permissions: users-modify
 Source: "..\publish\win-x64\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 
 ; Assets & Resources
-Source: "zeromFweix.ico"; DestDir: "{app}"; Flags: ignoreversion
+Source: "zerommix.ico"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\Resource\*"; DestDir: "{app}\Resource"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "..\Plugins\**"; DestDir: "{app}\Plugins"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "..\FFMPEG\ffmpeg.exe"; DestDir: "{app}\FFMPEG"; Flags: ignoreversion skipifsilent

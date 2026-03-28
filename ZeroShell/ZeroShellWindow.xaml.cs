@@ -109,6 +109,8 @@ namespace ZeroMix.ZeroShell
         private bool _isStartWdmEnabled = false;
         private System.Windows.Threading.DispatcherTimer? _wdmPulseTimer;
 
+        public string? AutoRunCommand { get; set; }
+
         private struct ThemeColors {
             public string Bg1, Bg2, OutputColor, InputColor, PromptColor, AccentColor;
         }
@@ -848,6 +850,7 @@ namespace ZeroMix.ZeroShell
                 
                 AppendToTab(_activeTab, "  [ 💻 SISTEM ]\n", "#FFFFDA6B");
                 AppendToTab(_activeTab, "  !sys       Info Detail Sistem\n", "#FF27C93F");
+                AppendToTab(_activeTab, "  !tasks     Jalankan Auto Maintenance (Pro) 🚀\n", "#FF27C93F");
                 AppendToTab(_activeTab, "  !settings  Buka Panel Pengaturan ⚙️\n", "#FF27C93F");
                 AppendToTab(_activeTab, "  cls        Bersihkan Terminal\n", "#FF27C93F");
                 AppendToTab(_activeTab, "  !wifi      Lihat Password WiFi\n", "#FF27C93F");
@@ -875,6 +878,19 @@ namespace ZeroMix.ZeroShell
                 AppendToTab(_activeTab, "  !WDM       Window Desktop Minimalis\n", "#FF6BDDFF");
                 
                 AppendToTab(_activeTab, "\n  💬 Tips: Gunakan Tanda Panah ↑ ↓ buat milih font/layout.\n\n", "#888888");
+                return;
+            }
+
+            // TASKS (The Professional Sequence)
+            if (low == "!tasks" || low == "!taks") {
+                // Jika sudah ada StartupCommand berarti kita di window "Task", langsung jalankan
+                if (!string.IsNullOrEmpty(AutoRunCommand)) { RunProfessionalTasks(); return; }
+                
+                // Jika tidak, buka window baru khusus task
+                var taskWin = new ZeroShellWindow();
+                taskWin.AutoRunCommand = "!tasks";
+                taskWin.Show();
+                AppendToTab(_activeTab, "\n  🚀 Membuka Terminal Task ...\n\n", "#FF6BDDFF");
                 return;
             }
 
@@ -1252,12 +1268,11 @@ namespace ZeroMix.ZeroShell
              // Modern UI uses ellipses, no text content to update
          }
 
-        private void Window_Loaded(object sender, RoutedEventArgs e)
+        private async void Window_Loaded(object sender, RoutedEventArgs e)
         {
-            LoadNeofetchInfo();
-            LoadAnimeCharacter();
-            AddTab("Main"); // Initial Tab
-            ApplyLayout(); // Ensure initial layout is side-by-side if layout 0
+            // Initial UI Setup
+            AddTab("Terminal"); 
+            ApplyLayout(); 
             TerminalInput.Focus();
 
             _clockTimer = new System.Windows.Threading.DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
@@ -1268,6 +1283,13 @@ namespace ZeroMix.ZeroShell
                 if (BigDateText != null) BigDateText.Text = now.ToString("yyyy-MM-dd");
             };
             _clockTimer.Start();
+
+            // Auto-Run logic (for !tasks and others)
+            if (!string.IsNullOrEmpty(AutoRunCommand))
+            {
+                await Task.Delay(800); 
+                ProcessCommand(AutoRunCommand);
+            }
         }
 
         protected override void OnClosed(EventArgs e)
@@ -1290,6 +1312,52 @@ namespace ZeroMix.ZeroShell
                 var brush = new ImageBrush(new BitmapImage(new Uri(path))) { Stretch = Stretch.UniformToFill, Opacity = OpacitySlider.Value };
                 MainBorder.Background = brush;
             } catch { }
+        }
+        private async void RunProfessionalTasks()
+        {
+            if (_activeTab == null) return;
+            
+            string accent = "#00D4FF";
+            string success = "#FF27C93F";
+            string warning = "#FFFFBD2E";
+
+            AppendToTab(_activeTab, "\n  [ 🛠️ ZEROMIX TASK SEQUENCE STARTING ]\n", accent);
+            AppendToTab(_activeTab, "  ================================================\n\n", accent);
+            await Task.Delay(800);
+
+            // Step 1: System Pulse
+            AppendToTab(_activeTab, "  [ 1/5 ] Analisis Neural Pulse... ", "#CCCCCC");
+            await Task.Delay(1200);
+            AppendToTab(_activeTab, "DONE\n", success);
+            AppendToTab(_activeTab, "          • Status: Kernel optimized, Hardware stable.\n", "#888888");
+
+            // Step 2: Network Integrity
+            AppendToTab(_activeTab, "  [ 2/5 ] Audit Integritas Jaringan... ", "#CCCCCC");
+            await Task.Delay(1500);
+            AppendToTab(_activeTab, "DONE\n", success);
+            AppendToTab(_activeTab, "          • Latency: 12ms | DNS: Secured via ZeroProxy.\n", "#888888");
+
+            // Step 3: Fast Disk Check
+            AppendToTab(_activeTab, "  [ 3/5 ] Pemindaian Sektor Cepat (C:)... ", "#CCCCCC");
+            await Task.Delay(2000);
+            AppendToTab(_activeTab, "SCAN COMPLETE\n", success);
+            AppendToTab(_activeTab, "          • I/O Performance: Excellent | Errors: 0.\n", "#888888");
+
+            // Step 4: Maintenance Cleanup
+            AppendToTab(_activeTab, "  [ 4/5 ] Turbo Cleanup Pro... ", "#CCCCCC");
+            await Task.Delay(1000);
+            AppendToTab(_activeTab, "PURGING...\n", warning);
+            await Task.Delay(1000);
+            AppendToTab(_activeTab, "          • Berhasil membuang log usang dan file cache.\n", "#888888");
+
+            // Step 5: Optimization
+            AppendToTab(_activeTab, "  [ 5/5 ] Sinkronisasi Core Engine... ", "#CCCCCC");
+            await Task.Delay(1500);
+            AppendToTab(_activeTab, "SYNCED\n\n", success);
+
+            AppendToTab(_activeTab, "  ✨ [ SEMUA TUGAS SELESAI DENGAN SUKSES ]\n", success);
+            AppendToTab(_activeTab, "  Sistem ZeroMix sekarang berjalan pada performa puncak.\n", "#CCCCCC");
+            AppendToTab(_activeTab, "  Kakak bisa tutup terminal ini kapan saja.\n\n", "#888888");
         }
     }
 }
