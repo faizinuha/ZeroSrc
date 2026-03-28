@@ -43,7 +43,7 @@ CloseApplicationsFilter=ZeroMix.exe
 RestartIfNeededByRun=yes
 
 [Languages]
-Name: "indonesian"; MessagesFile: "compiler:Languages\Indonesian.isl"
+Name: "indonesian"; MessagesFile: "Languages\Indonesian.isl"
 Name: "english"; MessagesFile: "compiler:Default.isl"
 Name: "japanese"; MessagesFile: "Languages\Japanese.isl"
 
@@ -56,7 +56,7 @@ Name: "{userappdata}\ZeroMix"; Permissions: users-modify
 Source: "..\publish\win-x64\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 
 ; Assets & Resources
-Source: "zerommix.ico"; DestDir: "{app}"; Flags: ignoreversion
+Source: "zeromix.ico"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\Resource\*"; DestDir: "{app}\Resource"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "..\Plugins\**"; DestDir: "{app}\Plugins"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "..\FFMPEG\ffmpeg.exe"; DestDir: "{app}\FFMPEG"; Flags: ignoreversion skipifsilent
