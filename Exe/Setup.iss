@@ -103,15 +103,6 @@ begin
   Result := Success and (Pos('9.', InstallRoot) = 1);
 end;
 
-function IsWebView2Installed(): Boolean;
-var
-  Version: String;
-begin
-  // Cek Runtime WebView2 (Penting untuk dashboard UI)
-  Result := RegQueryStringValue(HKLM, 'SOFTWARE\WOW6432Node\Microsoft\EdgeUpdate\Clients\{F3017226-D3D0-42A4-8967-40F7072445B3}', 'pv', Version) or
-            RegQueryStringValue(HKCU, 'SOFTWARE\Microsoft\EdgeUpdate\Clients\{F3017226-D3D0-42A4-8967-40F7072445B3}', 'pv', Version);
-end;
-
 function InitializeSetup(): Boolean;
 var
   ErrorCode: Integer;
@@ -126,15 +117,6 @@ begin
     end;
     Result := False;
     Exit;
-  end;
-
-  if not IsWebView2Installed() then
-  begin
-    if MsgBox('ZeroMix membutuhkan WebView2 Runtime untuk fitur tampilan UI. Download sekarang?', mbConfirmation, MB_YESNO) = IDYES then
-    begin
-      ShellExec('open', 'https://developer.microsoft.com/en-us/microsoft-edge/webview2/', '', '', SW_SHOWNORMAL, ewNoWait, ErrorCode);
-    end;
-    Result := False;
   end;
 end;
 
