@@ -1,13 +1,13 @@
 # ZeroMix Makefile
 # Professional Build Script for Windows
-# Prerequisites: Dotnet SDK, Inno Setup 6, osslsigncode
+# Prerequisites: Dotnet SDK, Inno Setup 6
 
 # -----------------------------------------------------------------------------
 # CONFIGURATION
 # -----------------------------------------------------------------------------
 
 # Versioning
-VERSION ?= 2.2.3
+VERSION ?= 5.0.0
 
 # Directories
 PROJECT_ROOT := .
@@ -19,24 +19,19 @@ TOOLS_DIR    := $(EXE_DIR)\bin
 # Files
 PROJECT_FILE := $(PROJECT_ROOT)\ZeroMix.csproj
 SETUP_SCRIPT := $(EXE_DIR)\Setup.iss
-CERT_FILE    := $(EXE_DIR)\ZeroMixCert.pfx
 
-# Credentials (Avoid hardcoding real secrets in production envs)
-CERT_PASS    := ZeroMixPass
-
-# Tools (Priority: PATH, then fallback)
+# Tools
 DOTNET       := dotnet
 ISCC         := iscc
-SIGN_TOOL    := $(PROJECT_ROOT)\Exe\bin\osslsigncode.exe
 
 # Targets
-.PHONY: all clean build installer msi msix sign help
+.PHONY: all clean build installer help
 
-# Default target: Build everything (EXE, MSI, MSIX)
-all: clean build installer msi msix sign
+# Default target: Build EXE
+all: clean build installer
 	@echo "========================================="
-	@echo " ALL BUILD SUCCESSFUL: ZeroMix v$(VERSION)"
-	@echo " Format Available: EXE, MSI, MSIX"
+	@echo " BUILD SUCCESSFUL: ZeroMix v$(VERSION)"
+	@echo " Format Available: Standard EXE"
 	@echo "========================================="
 
 help:
@@ -45,11 +40,8 @@ help:
 	@echo "Targets:"
 	@echo "  build      : Restore and publish the WPF application"
 	@echo "  installer  : Compile the Inno Setup installer (EXE)"
-	@echo "  msi        : Build MSI Installer (Requires WiX v4)"
-	@echo "  msix       : Build MSIX Modern Package (Windows 10/11)"
-	@echo "  sign       : Sign all resulting packages"
 	@echo "  clean      : Remove build artifacts"
-	@echo "  all        : Run full pipeline for all formats"
+	@echo "  all        : Run full pipeline for EXE"
 
 # -----------------------------------------------------------------------------
 # TASKS
@@ -60,8 +52,6 @@ clean:
 	@if exist "$(PUBLISH_DIR)" rmdir /S /Q "$(PUBLISH_DIR)"
 	@if exist "$(BUILD_DIR)" rmdir /S /Q "$(BUILD_DIR)"
 	@if exist "$(EXE_DIR)\ZeroMix-Setup-*.exe" del /Q "$(EXE_DIR)\ZeroMix-Setup-*.exe"
-	@if exist "$(EXE_DIR)\ZeroMix-*.msi" del /Q "$(EXE_DIR)\ZeroMix-*.msi"
-	@if exist "$(EXE_DIR)\ZeroMix-*.msix" del /Q "$(EXE_DIR)\ZeroMix-*.msix"
 
 build:
 	@echo "[BUILD] Publishing Application v$(VERSION)..."
@@ -69,31 +59,4 @@ build:
 
 installer:
 	@echo "[INSTALLER] Compiling Inno Setup Script..."
-	@if not exist $(ISCC) (echo "Error: ISCC not found!" & exit 1)
 	@$(ISCC) "/DAppVersion=$(VERSION)" "$(EXE_DIR)\Setup.iss"
-
-msi:
-	@echo "[MSI] Building MSI with WiX..."
-	@# Script ini berasumsi 'wix' ada di PATH (WiX Toolset v4)
-	-dotnet wix build "$(EXE_DIR)\ZeroMix.wxs" -o "$(EXE_DIR)\ZeroMix-v$(VERSION).msi"
-
-msix:
-	@echo "[MSIX] Creating MSIX Package..."
-	@# Kita copy file publish ke folder sementara untuk dipadatkan jadi MSIX
-	@if not exist "$(BUILD_DIR)\msix" mkdir "$(BUILD_DIR)\msix"
-	@xcopy /E /Y "$(PUBLISH_DIR)\win-x64\*" "$(BUILD_DIR)\msix\" >nul
-	@copy /Y "$(EXE_DIR)\Package.appxmanifest" "$(BUILD_DIR)\msix\AppxManifest.xml" >nul
-	@copy /Y "$(EXE_DIR)\zeromix.ico" "$(BUILD_DIR)\msix\zeromix.ico" >nul
-	@# Menggunakan MakeAppx (biasanya di Windows SDK)
-	-makeappx pack /d "$(BUILD_DIR)\msix" /p "$(EXE_DIR)\ZeroMix-v$(VERSION).msix"
-
-sign:
-	@echo "[SIGN] Signing all installers..."
-	@# Sign EXE
-	@if exist "$(EXE_DIR)\ZeroMix-Setup-v$(VERSION).exe" $(SIGN_TOOL) sign -pkcs12 "$(CERT_FILE)" -pass "$(CERT_PASS)" -n "ZeroMix" -in "$(EXE_DIR)\ZeroMix-Setup-v$(VERSION).exe" -out "$(EXE_DIR)\ZeroMix-Setup-v$(VERSION)-signed.exe"
-	@# Sign MSI
-	@if exist "$(EXE_DIR)\ZeroMix-v$(VERSION).msi" $(SIGN_TOOL) sign -pkcs12 "$(CERT_FILE)" -pass "$(CERT_PASS)" -n "ZeroMix" -in "$(EXE_DIR)\ZeroMix-v$(VERSION).msi" -out "$(EXE_DIR)\ZeroMix-v$(VERSION)-signed.msi"
-	@# Sign MSIX (PENTING!)
-	@if exist "$(EXE_DIR)\ZeroMix-v$(VERSION).msix" $(SIGN_TOOL) sign -pkcs12 "$(CERT_FILE)" -pass "$(CERT_PASS)" -n "ZeroMix" -in "$(EXE_DIR)\ZeroMix-v$(VERSION).msix" -out "$(EXE_DIR)\ZeroMix-v$(VERSION)-signed.msix"
-	@echo "Signing complete. Moving files..."
-	@-move /Y "$(EXE_DIR)\*-signed.*" "$(EXE_DIR)\"
