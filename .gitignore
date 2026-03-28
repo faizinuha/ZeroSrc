@@ -7,7 +7,7 @@ Exstenions/
 # File sertifikat (jangan dimasukkan ke repositori publik)
 Exe/ZeroMixCert.pfx
 *.exe
-
+ZeroMixCert.pfx
 Exe/ZeroMix-Setup-*.exe
 # DLL spesifik yang tidak perlu dilacak
 Exe\libcrypto-3-x64.dll

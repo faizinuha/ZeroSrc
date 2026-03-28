@@ -89,18 +89,40 @@ function Task-Sign {
     
     if (-not (Test-Path $Unsigned)) { throw "Installer not found: $Unsigned" }
     
-    if (-not (Test-Path $SignTool)) { throw "Signing tool not found: $SignTool" }
-    
-    # osslsigncode arguments
-    $Args = "sign -pkcs12 `"$CertFile`" -pass `"$CertPass`" -n `"ZeroMix`" -i `"https://zeromix.pages.dev`" -t `"http://timestamp.digicert.com`" -in `"$Unsigned`" -out `"$Signed`""
-    
-    $Proc = Start-Process $SignTool -ArgumentList $Args -NoNewWindow -PassThru -Wait
-    if ($Proc.ExitCode -ne 0) { throw "Signing failed." }
-    
-    # Replace unsigned with signed
-    Remove-Item $Unsigned -Force
-    Rename-Item $Signed (Split-Path $Unsigned -Leaf)
-    Log-Success "Signature applied successfully."
+    if (-not (Test-Path $SignTool)) { 
+        Log-Error "Signing tool not found at $SignTool. Skipping signature."
+        return
+    }
+
+    if (-not (Test-Path $CertFile)) {
+        Log-Error "Certificate PFX file not found. Skipping signature."
+        return
+    }
+
+    try {
+        # Validasi Cert secara programmatic (Membutuhkan .NET)
+        $CertType = [System.Security.Cryptography.X509Certificates.X509Certificate2]::GetCertContentType($CertFile)
+        if ($CertType -ne "Pkcs12") {
+            Log-Error "Sertifikat ($CertFile) bukan file PFX/PKCS12 yang valid (Tipe: $CertType)."
+            Log-Info "Signing memerlukan Private Key. Installer akan tetap dibuat namun Tanpa Tanda Tangan Digital."
+            return
+        }
+        
+        # osslsigncode arguments
+        $Args = "sign -pkcs12 `"$CertFile`" -pass `"$CertPass`" -n `"ZeroMix`" -i `"https://zeromix.pages.dev`" -t `"http://timestamp.digicert.com`" -in `"$Unsigned`" -out `"$Signed`""
+        
+        $Proc = Start-Process $SignTool -ArgumentList $Args -NoNewWindow -PassThru -Wait
+        if ($Proc.ExitCode -eq 0) {
+            # Ganti file asli dengan yang sudah di-sign
+            Remove-Item $Unsigned -Force
+            Rename-Item $Signed (Split-Path $Unsigned -Leaf)
+            Log-Success "Signature applied successfully."
+        } else {
+            Log-Error "Signing gagal (Exit Code: $($Proc.ExitCode)). Installer tetap Unsigned."
+        }
+    } catch {
+        Log-Error "Gagal mendeteksi informasi sertifikat: $($_.Exception.Message)"
+    }
 }
 
 # --- EXECUTION FLOW ---
