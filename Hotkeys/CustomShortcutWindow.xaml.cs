@@ -81,8 +81,8 @@ namespace ZeroMix.Hotkeys
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
-            // Efek blur dihilangkan jika menyebabkan masalah, namun jika ingin dicoba:
-            // EnableBlur();
+            // Mengaktifkan efek glassmorphism agar seragam dengan MainWindow
+            EnableBlur();
         }
 
         private void Window_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)

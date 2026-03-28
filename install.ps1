@@ -1,87 +1,131 @@
-# install.ps1 untuk ZeroMix - Retro-Cyber Edition (FIXED)
+# install.ps1 untuk ZeroMix - Premium Cyber Edition v9.8
 # Cara pakai: iwr -useb bit.ly/ZeroMix | iex
 
 # Konfigurasi Repository
 $repo = "faizinuha/ZeroMix"
 $tagUri = "https://api.github.com/repos/$repo/releases/latest"
+$listUri = "https://api.github.com/repos/$repo/releases"
 
-$Host.UI.RawUI.WindowTitle = "ZeroMix Installer v9.0 - Cyber Deployment"
+$Host.UI.RawUI.WindowTitle = "ZeroMix Professional Deployment | Connecting to Aurora Cloud..."
 
 # --- UI Helper ---
 function Write-Banner {
-    Write-Host " #################################################################" -ForegroundColor Cyan
-    Write-Host " #                                                               #" -ForegroundColor Cyan
-    Write-Host " #   _____   ______   _____    ____    __  __   ___  __   __     #" -ForegroundColor Cyan
-    Write-Host " #  |__  /  |  ____| |  __ \  / __ \  |  \/  | |_ _| \ \ / /     #" -ForegroundColor Cyan
-    Write-Host " #    / /   | |__    | |__) || |  | | | \  / |  | |   \ V /      #" -ForegroundColor Cyan
-    Write-Host " #   / /_   |  __|   |  _  / | |  | | | |\/| |  | |    > <       #" -ForegroundColor Cyan
-    Write-Host " #  /____|  |______| |_| \_\  \____/  |_|  |_| |___|  /_/ \_\     #" -ForegroundColor Cyan
-    Write-Host " #                                                               #" -ForegroundColor Cyan
-    Write-Host " #################################################################" -ForegroundColor Cyan
+    Write-Host "`n  ╔═══════════════════════════════════════════════════════════════════╗" -ForegroundColor Gray
+    Write-Host "  ║  " -NoNewline -ForegroundColor Gray
+    Write-Host "███████╗███████╗██████╗  ██████╗ ███╗   ███╗██╗██╗  ██╗" -NoNewline -ForegroundColor Magenta
+    Write-Host "  ║  " -ForegroundColor Gray
+    Write-Host "  ║  " -NoNewline -ForegroundColor Gray
+    Write-Host "╚══███╔╝██╔════╝██╔══██╗██╔═══██╗████╗ ████║██║╚██╗██╔╝" -NoNewline -ForegroundColor Magenta
+    Write-Host "  ║  " -ForegroundColor Gray
+    Write-Host "  ║  " -NoNewline -ForegroundColor Gray
+    Write-Host "    ███╔╝ █████╗  ██████╔╝██║   ██║██╔████╔██║██║ ╚███╔╝ " -NoNewline -ForegroundColor Cyan
+    Write-Host "   ║  " -ForegroundColor Gray
+    Write-Host "  ║  " -NoNewline -ForegroundColor Gray
+    Write-Host "   ███╔╝  ██╔══╝  ██╔══██╗██║   ██║██║╚██╔╝██║██║ ██╔██╗ " -NoNewline -ForegroundColor Cyan
+    Write-Host "   ║  " -ForegroundColor Gray
+    Write-Host "  ║  " -NoNewline -ForegroundColor Gray
+    Write-Host "   ███████╗███████╗██║  ██║╚██████╔╝██║ ╚═╝ ██║██║██╔╝ ██╗" -NoNewline -ForegroundColor White
+    Write-Host "  ║  " -ForegroundColor Gray
+    Write-Host "  ║  " -NoNewline -ForegroundColor Gray
+    Write-Host "   ╚══════╝╚══════╝╚═╝  ╚═╝ ╚═════╝ ╚═╝     ╚═╝╚═╝╚═╝  ╚═╝" -NoNewline -ForegroundColor White
+    Write-Host "  ║  " -ForegroundColor Gray
+    Write-Host "  ╚═══════════════════════════════════════════════════════════════════╝" -ForegroundColor Gray
+    Write-Host "         - [ AURORA GLASS CORE SYSTEM | BUILT BY FAIZINUHA ] -`n" -ForegroundColor DarkGray
+}
+
+function Show-Status($msg, $type = "info") {
+    $color = "White"
+    $icon = "·"
+    switch ($type) {
+        "info"    { $color = "Cyan"; $icon = "⚡" }
+        "success" { $color = "Green"; $icon = "✔️" }
+        "warn"    { $color = "Yellow"; $icon = "⚠️" }
+        "error"   { $color = "Red"; $icon = "❌" }
+        "process" { $color = "Magenta"; $icon = "🛰️" }
+        "cloud"   { $color = "White"; $icon = "📦" }
+    }
+    Write-Host "  $icon " -NoNewline -ForegroundColor $color
+    Write-Host "$msg" -ForegroundColor White
+}
+
+# --- Asset Finder Logic ---
+function Find-BestAsset($releaseData) {
+    if (-not $releaseData -or -not $releaseData.assets) { return $null }
+    $asset = $releaseData.assets | Where-Object { $_.name -like "*-Setup-*.exe" } | Select-Object -First 1
+    if (-not $asset) {
+        $asset = $releaseData.assets | Where-Object { $_.name -like "*.exe" -and $_.name -notlike "*Portable*" } | Select-Object -First 1
+    }
+    if (-not $asset) {
+        $asset = $releaseData.assets | Where-Object { $_.name -like "*Portable*.exe" -or $_.name -like "*.exe" } | Select-Object -First 1
+    }
+    return $asset
 }
 
 # --- Main Script ---
 try {
     Clear-Host
     Write-Banner
-    Write-Host "`n [SYSTEM] INITIALIZING INSTALLATION SEQUENCE..." -ForegroundColor Gray
+    Show-Status "INITIALIZING SMART DEPLOYMENT SEQUENCE..." "process"
     
-    # Check connect
-    Write-Host " [CONNECT] Estabilishing secure connection to GitHub..." -ForegroundColor White
-    $latest = Invoke-RestMethod -Uri $tagUri -ErrorAction Stop
-    $version = $latest.tag_name
-    
-    # Asset detection
-    $asset = $latest.assets | Where-Object { $_.name -like "*-Setup-*.exe" -or ($_.name -like "*.exe" -and $_.name -notlike "*Portable*") } | Select-Object -First 1
-    if (-not $asset) { throw "Unable to locate binary asset (installer) in the latest release." }
+    # 1. Attempt to Get Latest Release
+    Show-Status "Pinging Aurora Cloud for the most recent ZeroMix Core..." "cloud"
+    $latest = Invoke-RestMethod -Uri $tagUri -ErrorAction SilentlyContinue
+    $asset = Find-BestAsset($latest)
+    $releaseInfo = $latest
 
+    # 2. Smart Fallback: If latest is empty/fails, check the history list
+    if (-not $asset) {
+        Show-Status "No release assets found in 'latest'. Initiating Deep History Scan..." "warn"
+        $history = Invoke-RestMethod -Uri $listUri -ErrorAction Stop
+        foreach ($rel in $history) {
+            $asset = Find-BestAsset($rel)
+            if ($asset) {
+                $releaseInfo = $rel
+                Show-Status "Synchronized with repository history. Found version: $($rel.tag_name)." "success"
+                break
+            }
+        }
+    }
+
+    if (-not $asset) { throw "CRITICAL: No valid ZeroMix binary (*.exe) detected in entire GitHub Galaxy." }
+
+    $version = $releaseInfo.tag_name
     $downloadUrl = $asset.browser_download_url
     $fileName = $asset.name
     $tempPath = Join-Path $env:TEMP "$fileName"
 
-    Write-Host " [DETECTED] Version $version confirmed." -ForegroundColor Green
+    Show-Status "Targeting release $version | Asset: $fileName" "info"
     
-    # REAL DOWNLOAD START
-    Write-Host " [TRANSFER] Pulling data from GitHub Cloud... Please wait." -ForegroundColor Yellow
-    # Biarkan PowerShell menunjukkan progres download aslinya di bagian atas
+    # DOWNLOAD START
+    Show-Status "Opening secure data port. Transferring binary packets..." "process"
     $ProgressPreference = 'Continue' 
     Invoke-WebRequest -Uri $downloadUrl -OutFile $tempPath -UseBasicParsing
 
-    Write-Host " [SUCCESS] Binary data verified and saved to temp storage." -ForegroundColor Green
-    Write-Host " [EXECUTE] Triggering system integration engine..." -ForegroundColor White
-    Write-Host " >> Note: If a window pops up, please allow it to proceed." -ForegroundColor Yellow
+    Show-Status "Data transfer complete. Integrity check: PASSED." "success"
+    Show-Status "Integrating ZeroMix with local Windows core..." "info"
 
-    # Running installer - Pakai /SILENT (tampil GUI progres dikit) agar tidak dikira nge-stuck
-    # /VERYSILENT benar-benar tidak terlihat apapun, sering bikin user bingung.
-    $process = Start-Process -FilePath $tempPath -ArgumentList "/SILENT /SUPPRESSMSGBOXES /NOREBOOT" -Wait -PassThru
-    
-    if ($process.ExitCode -eq 0) {
-        Write-Host "`n =================================================================" -ForegroundColor Green
-        Write-Host "  [FINISH] ZEROMIX v$version SUCCESSFULLY DEPLOYED!" -ForegroundColor Green
-        Write-Host "  Everything is ready. Enjoy your enhanced Windows, Kak!         " -ForegroundColor White
-        Write-Host " =================================================================`n" -ForegroundColor Green
+    # Execution Mode
+    if ($fileName -like "*Portable*") {
+        Show-Status "Mode: Portable Execution Block." "process"
+        Start-Process -FilePath $tempPath
     } else {
-        Write-Host "`n [WARNING] Installation exited with code: $($process.ExitCode)" -ForegroundColor Yellow
+        Show-Status "Mode: Standard Deployment Installation." "process"
+        $process = Start-Process -FilePath $tempPath -ArgumentList "/SILENT /SUPPRESSMSGBOXES /NOREBOOT" -Wait -PassThru
     }
+    
+    Write-Host "`n  ╔═══════════════════════════════════════════════════════════════════╗" -ForegroundColor Green
+    Write-Host "  ║                                                                   ║" -ForegroundColor Green
+    Write-Host "  ║     ZEROMIX v$($version.PadRight(10)) SUCCESSFULLY DEPLOYED!           ║" -ForegroundColor White
+    Write-Host "  ║     Enjoy your enhanced desktop experience, Kak.                ║" -ForegroundColor Gray
+    Write-Host "  ║                                                                   ║" -ForegroundColor Green
+    Write-Host "  ╚═══════════════════════════════════════════════════════════════════╝`n" -ForegroundColor Green
 }
 catch {
-    Write-Host "`n [FATAL ERROR] System Failure Detected!" -ForegroundColor Red
-    Write-Host " Details: $($_.Exception.Message)" -ForegroundColor Red
-    Write-Host " Please check your uplink/connection and try again.`n" -ForegroundColor Red
+    Show-Status "FATAL SYSTEM FAILURE: $($_.Exception.Message)" "error"
+    Write-Host "  >> Check your uplink and try the emergency deployment again.`n" -ForegroundColor Gray
 }
 finally {
-    if (Test-Path $tempPath) {
+    if ($null -ne $tempPath -and (Test-Path $tempPath)) {
         try { Remove-Item $tempPath -Force -ErrorAction SilentlyContinue } catch {}
     }
-}
-
-# Trap logic for Ctrl+C
-trap {
-    Write-Host "`n`n [CANCEL] Are you sure you want to stop the magic? (Y/N)" -ForegroundColor Cyan
-    $ans = Read-Host
-    if ($ans -eq "y" -or $ans -eq "Y") {
-        Write-Host " [DISCONNECT] Installation aborted. Goodbye.`n" -ForegroundColor Gray
-        exit
-    }
-    continue
 }
