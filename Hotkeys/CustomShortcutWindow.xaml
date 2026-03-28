@@ -14,31 +14,30 @@
     Loaded="Window_Loaded">
 
     <Window.Resources>
-        <!-- Modern Dark Theme with Glassmorphism -->
-        <Color x:Key="BgDark">#1A1A2E</Color>
-        <Color x:Key="BgGradientStart">#1A1A2E</Color>
-        <Color x:Key="BgGradientEnd">#16213E</Color>
-        <Color x:Key="Accent">#00C9FF</Color>
-        <Color x:Key="AccentSecondary">#92FE9D</Color>
-        <Color x:Key="Success">#2ECC71</Color>
-        <Color x:Key="Danger">#E74C3C</Color>
-        <Color x:Key="TextPrimary">#E8E8E8</Color>
-        <Color x:Key="TextSecondary">#A0A0A0</Color>
-        <Color x:Key="GlassPanel">#1AFFFFFF</Color>
-        <Color x:Key="CardBg">#252A3F</Color>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="../Plugins/Styles.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
 
-        <!-- Brushes -->
-        <LinearGradientBrush x:Key="BgGradientBrush" StartPoint="0,0" EndPoint="1,1">
-            <GradientStop Color="{StaticResource BgGradientStart}" Offset="0"/>
-            <GradientStop Color="{StaticResource BgGradientEnd}" Offset="1"/>
-        </LinearGradientBrush>
-        <SolidColorBrush x:Key="AccentBrush" Color="{StaticResource Accent}" />
-        <SolidColorBrush x:Key="SuccessBrush" Color="{StaticResource Success}" />
-        <SolidColorBrush x:Key="DangerBrush" Color="{StaticResource Danger}" />
-        <SolidColorBrush x:Key="TextPrimaryBrush" Color="{StaticResource TextPrimary}" />
-        <SolidColorBrush x:Key="TextSecondaryBrush" Color="{StaticResource TextSecondary}" />
-        <SolidColorBrush x:Key="GlassBrush" Color="{StaticResource GlassPanel}" />
-        <SolidColorBrush x:Key="CardBgBrush" Color="{StaticResource CardBg}" />
+            <!-- Modern Dark Theme with Glassmorphism (Overriding for Local Context) -->
+            <Color x:Key="BgDark">#121212</Color>
+            <Color x:Key="BgGradientStart">#121212</Color>
+            <Color x:Key="BgGradientEnd">#0A0A0A</Color>
+            <Color x:Key="Accent">#00BFA5</Color>
+            <Color x:Key="AccentSecondary">#004D40</Color>
+            <Color x:Key="CardBg">#1C1C1C</Color>
+            <Color x:Key="GlassPanel">#CC181818</Color>
+
+            <!-- Brushes -->
+            <LinearGradientBrush x:Key="BgGradientBrush" StartPoint="0,0" EndPoint="1,1">
+                <GradientStop Color="{StaticResource BgGradientStart}" Offset="0"/>
+                <GradientStop Color="{StaticResource BgGradientEnd}" Offset="1"/>
+            </LinearGradientBrush>
+            <SolidColorBrush x:Key="AccentBrush" Color="{StaticResource Accent}" />
+            <SolidColorBrush x:Key="GlassBrush" Color="{StaticResource GlassPanel}" />
+            <SolidColorBrush x:Key="CardBgBrush" Color="{StaticResource CardBg}" />
+            <SolidColorBrush x:Key="TextPrimaryBrush" Color="White" />
+            <SolidColorBrush x:Key="TextSecondaryBrush" Color="#7A8494" />
 
         <!-- Base Font -->
         <Style TargetType="Control">
@@ -278,6 +277,7 @@
             </Setter>
         </Style>
 
+        </ResourceDictionary>
     </Window.Resources>
 
 
@@ -302,8 +302,8 @@
                 <Grid Grid.Row="0">
                     <Grid.Background>
                         <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
-                            <GradientStop Color="#1F2937" Offset="0"/>
-                            <GradientStop Color="#252A3F" Offset="1"/>
+                            <GradientStop Color="#121212" Offset="0"/>
+                            <GradientStop Color="#181818" Offset="1"/>
                         </LinearGradientBrush>
                     </Grid.Background>
                     <Grid.ColumnDefinitions>
@@ -478,7 +478,7 @@
 
                             <!-- List Header -->
                             <Border Grid.Row="0" 
-                                    Background="#1F2937" 
+                                    Background="#121212" 
                                     Padding="16,12"
                                     CornerRadius="10,10,0,0">
                                 <TextBlock Text="📋 Your Shortcuts" 

@@ -9,11 +9,14 @@
  - **Smart Auto-Update Connection**: Terintegrasi langsung dengan GitHub API untuk mengambil aset installer terbaru secara otomatis.
  
  ### [Deployment Overhaul]
- - **Multi-Format Format**: Dukungan penuh untuk tiga format installer standar industri:
-   - **EXE (Inno Setup)**: Untuk instalasi standar desktop.
-   - **MSI (WiX Toolset v4)**: Untuk lingkungan korporat/bisnis.
-   - **MSIX (Windows Package)**: Format modern Windows 10/11 untuk manajemen aplikasi yang lebih bersih.
-   - **Portable (ZIP)**: Versi tanpa instalasi untuk mobilitas tinggi.
+ - **Optimized Formats**: Berfokus pada kemudahan akses dan performa tertinggi.
+   - **EXE (Inno Setup)**: Standar emas untuk instalasi desktop yang aman dan cepat.
+   - **Portable (ZIP)**: Versi tanpa instalasi untuk fleksibilitas maksimal.
+
+ ### [NEW: Professional Screen Recorder]
+ - **Dynamic Area Selection**: Pilih area rekam secara visual dengan fitur *Drag-to-Select* yang presisi.
+ - **Real-Time Recording Border**: Indikator garis tepi merah yang muncul otomatis untuk menandai area yang sedang direkam.
+ - **Window Mode Detection**: Secara cerdas menyesuaikan area rekam dengan jendela aplikasi yang sedang aktif.
  
  ---
  
