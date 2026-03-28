@@ -19,17 +19,16 @@ jobs:
       with:
         dotnet-version: '9.0.x'
 
-    - name: 🛠️ Setup Build Tools (Make & WiX)
-      shell: pwsh
-      run: |
-        choco install make
-        dotnet tool install --global wix || dotnet tool update --global wix
+    # - name: 🛠️ Setup Build Tools (Make)
+    #   shell: pwsh
+    #   run: |
+    #     choco install make
 
     - name: 📦 Restore & Publish
       shell: pwsh
       run: |
         dotnet restore ZeroMix.csproj
-        # Build using Makefile (it handles publish, installer, and msi)
+        # Build using Makefile (it handles publish and EXE installer)
         make all VERSION=${{ github.ref_name }}
       continue-on-error: true
 
@@ -37,10 +36,7 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: ZeroMix-v${{ github.ref_name }}
-        path: |
-          Exe/*.exe
-          Exe/*.msi
-          Exe/*.msix
+        path: Exe/*.exe
 
     - name: 🌟 Create GitHub Release
       if: startsWith(github.ref, 'refs/tags/')
@@ -48,8 +44,6 @@ jobs:
       with:
         files: |
           Exe/*.exe
-          Exe/*.msi
-          Exe/*.msix
-        body: "Automated Release for ZeroMix v${{ github.ref_name }}\n\nFormat tersedia: Standard EXE, MSI (Corporate), MSIX (Modern)."
+        body: "Automated Release for ZeroMix v${{ github.ref_name }}\n\nFormat tersedia: Standard EXE Setup."
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
