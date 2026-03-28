@@ -162,102 +162,62 @@
                     </Grid>
 
                     <!-- SLIDE 1: System Monitoring -->
-                    <Grid x:Name="Slide1"
-                          Style="{StaticResource SlideContentStyle}"
-                          Visibility="Collapsed">
+                    <Grid x:Name="Slide1" Style="{StaticResource SlideContentStyle}" Visibility="Collapsed">
                         <Grid VerticalAlignment="Center">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
-                            <StackPanel Grid.Column="0"
-                                        Margin="0,0,40,0">
-                                <TextBlock Text="📊"
-                                           FontSize="64"
-                                           Margin="0,0,0,20"/>
-                                <TextBlock Text="System Monitoring"
-                                           FontSize="28"
-                                           FontWeight="Bold"
-                                           Foreground="#0A84FF"
-                                           Margin="0,0,0,15"/>
-                                <TextBlock Text="Pantau performa PC Anda secara real-time langsung dari dashboard. Cek penggunaan CPU, RAM, dan Disk dengan tampilan yang estetik dan minimalis."
-                                           Foreground="#BBB"
-                                           FontSize="15"
-                                           TextWrapping="Wrap"
-                                           LineHeight="24"/>
+                            <StackPanel Grid.Column="0" Margin="0,0,40,0">
+                                <TextBlock Text="⚡" FontSize="64" Margin="0,0,0,20"/>
+                                <TextBlock Text="Neural Pulse Monitoring" FontSize="26" FontWeight="Black" Foreground="#00D4FF" Margin="0,0,0,15"/>
+                                <TextBlock Text="Pantau kesehatan PC Kakak secara real-time dengan akurasi tinggi. Dilengkapi fitur Turbo Cleanup untuk membersihkan file sampah (%temp%) lewat diagnosa mendalam." 
+                                           Foreground="#BBB" FontSize="15" TextWrapping="Wrap" LineHeight="24"/>
                             </StackPanel>
-                            <Border Grid.Column="1"
-                                    Background="#1A1A1A"
-                                    CornerRadius="12"
-                                    BorderBrush="#333"
-                                    BorderThickness="1"
-                                    Height="250">
-                                <Grid>
-                                    <TextBlock Text="Real-time Performance Metrics"
-                                               Foreground="#444"
-                                               VerticalAlignment="Center"
-                                               HorizontalAlignment="Center"/>
-                                    <StackPanel VerticalAlignment="Bottom"
-                                                Margin="20">
-                                        <Border Height="4"
-                                                Background="#333"
-                                                CornerRadius="2">
-                                            <Border Width="150"
-                                                    Background="#0A84FF"
-                                                    HorizontalAlignment="Left"
-                                                    CornerRadius="2"/>
-                                        </Border>
-                                        <TextBlock Text="CPU Usage: 42%"
-                                                   Foreground="#666"
-                                                   FontSize="10"
-                                                   Margin="0,5,0,0"/>
-                                    </StackPanel>
-                                </Grid>
+                            <Border Grid.Column="1" Background="#1100D4FF" CornerRadius="16" BorderBrush="#2200D4FF" BorderThickness="1" Height="250" Padding="20">
+                                <StackPanel VerticalAlignment="Center">
+                                    <TextBlock Text="HARDWARE DIAGNOSTIC" Foreground="#00D4FF" FontSize="10" FontWeight="Bold" Margin="0,0,0,20"/>
+                                    <Grid Margin="0,10">
+                                        <TextBlock Text="CPU" Foreground="#88FFFFFF" FontSize="11"/>
+                                        <TextBlock Text="12.4% / Stable" Foreground="White" FontSize="11" HorizontalAlignment="Right"/>
+                                        <ProgressBar Height="4" Value="12.4" Maximum="100" VerticalAlignment="Bottom" Margin="0,18,0,0" Foreground="#00D4FF" Background="#22FFFFFF" BorderThickness="0"/>
+                                    </Grid>
+                                    <Grid Margin="0,10">
+                                        <TextBlock Text="RAM" Foreground="#88FFFFFF" FontSize="11"/>
+                                        <TextBlock Text="4.2 GB / Optimal" Foreground="White" FontSize="11" HorizontalAlignment="Right"/>
+                                        <ProgressBar Height="4" Value="35" Maximum="100" VerticalAlignment="Bottom" Margin="0,18,0,0" Foreground="#00D4FF" Background="#22FFFFFF" BorderThickness="0"/>
+                                    </Grid>
+                                    <Button Content="RUN TURBO CLEANUP" Margin="0,20,0,0" Padding="0,8" Background="#1A00D4FF" Foreground="#00D4FF" FontWeight="Bold" FontSize="10" BorderBrush="#3300D4FF">
+                                        <Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="8"/></Style></Button.Resources>
+                                    </Button>
+                                </StackPanel>
                             </Border>
                         </Grid>
                     </Grid>
 
                     <!-- SLIDE 2: Transparent Taskbar -->
-                    <Grid x:Name="Slide2"
-                          Style="{StaticResource SlideContentStyle}"
-                          Visibility="Collapsed">
+                    <Grid x:Name="Slide2" Style="{StaticResource SlideContentStyle}" Visibility="Collapsed">
                         <Grid VerticalAlignment="Center">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
-                            <StackPanel Grid.Column="0"
-                                        Margin="0,0,40,0">
-                                <TextBlock Text="🪄"
-                                           FontSize="64"
-                                           Margin="0,0,0,20"/>
-                                <TextBlock Text="Ghost Taskbar"
-                                           FontSize="28"
-                                           FontWeight="Bold"
-                                           Foreground="#30D158"
-                                           Margin="0,0,0,15"/>
-                                <TextBlock Text="Ubah taskbar Windows Anda menjadi sepenuhnya transparan. Memberikan kesan desktop yang jauh lebih bersih dan modern tanpa gangguan visual."
-                                           Foreground="#BBB"
-                                           FontSize="15"
-                                           TextWrapping="Wrap"
-                                           LineHeight="24"/>
+                            <StackPanel Grid.Column="0" Margin="0,0,40,0">
+                                <TextBlock Text="💎" FontSize="64" Margin="0,0,0,20"/>
+                                <TextBlock Text="Ghost Taskbar" FontSize="26" FontWeight="Black" Foreground="#27C93F" Margin="0,0,0,15"/>
+                                <TextBlock Text="Ubah taskbar Windows Kakak menjadi sepenuhnya transparan atau Crystal Glass. Memberikan kesan desktop yang bersih, modern, dan sangat estetis."
+                                           Foreground="#BBB" FontSize="15" TextWrapping="Wrap" LineHeight="24"/>
                             </StackPanel>
-                            <Border Grid.Column="1"
-                                    Background="#1A1A1A"
-                                    CornerRadius="12"
-                                    BorderBrush="#333"
-                                    BorderThickness="1"
-                                    Height="250">
+                            <Border Grid.Column="1" Background="#11FFFFFF" CornerRadius="16" BorderBrush="#22FFFFFF" BorderThickness="1" Height="250">
                                 <Grid>
-                                    <Rectangle Height="40"
-                                               Fill="#222"
-                                               VerticalAlignment="Bottom"
-                                               Margin="20"
-                                               Opacity="0.5"/>
-                                    <TextBlock Text="Seamless Window Experience"
-                                               Foreground="#444"
-                                               VerticalAlignment="Center"
-                                               HorizontalAlignment="Center"/>
+                                    <Border Background="#1AFFFFFF" Height="40" VerticalAlignment="Bottom" Margin="20" CornerRadius="8" BorderBrush="#33FFFFFF" BorderThickness="1">
+                                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                            <Ellipse Width="8" Height="8" Fill="White" Margin="5" Opacity="0.5"/>
+                                            <Ellipse Width="8" Height="8" Fill="White" Margin="5" Opacity="0.5"/>
+                                            <Ellipse Width="8" Height="8" Fill="White" Margin="5" Opacity="0.5"/>
+                                        </StackPanel>
+                                    </Border>
+                                    <TextBlock Text="CRYSTAL GLASS EFFECT" Foreground="#44FFFFFF" FontSize="10" VerticalAlignment="Center" HorizontalAlignment="Center"/>
                                 </Grid>
                             </Border>
                         </Grid>
@@ -313,49 +273,26 @@
                     </Grid>
 
                     <!-- SLIDE 4: Quick Search -->
-                    <Grid x:Name="Slide4"
-                          Style="{StaticResource SlideContentStyle}"
-                          Visibility="Collapsed">
+                    <Grid x:Name="Slide4" Style="{StaticResource SlideContentStyle}" Visibility="Collapsed">
                         <Grid VerticalAlignment="Center">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
-                            <StackPanel Grid.Column="0"
-                                        Margin="0,0,40,0">
-                                <TextBlock Text="🔍"
-                                           FontSize="64"
-                                           Margin="0,0,0,20"/>
-                                <TextBlock Text="Unified Search"
-                                           FontSize="28"
-                                           FontWeight="Bold"
-                                           Foreground="#5E5CE6"
-                                           Margin="0,0,0,15"/>
-                                <TextBlock Text="Cari aplikasi, file, hitung kalkulator, atau cari di web hanya dengan satu shortcut. Cepat, cerdas, dan langsung tersedia di mana saja."
-                                           Foreground="#BBB"
-                                           FontSize="15"
-                                           TextWrapping="Wrap"
-                                           LineHeight="24"/>
+                            <StackPanel Grid.Column="0" Margin="0,0,40,0">
+                                <TextBlock Text="🔍" FontSize="64" Margin="0,0,0,20"/>
+                                <TextBlock Text="Unified Search Engine" FontSize="26" FontWeight="Black" Foreground="#5E5CE6" Margin="0,0,0,15"/>
+                                <TextBlock Text="Cari aplikasi, file, hitung kalkulator, atau tanya Google hanya dengan satu shortcut. Cepat, cerdas, dan langsung tersedia di mana saja tanpa delay."
+                                           Foreground="#BBB" FontSize="15" TextWrapping="Wrap" LineHeight="24"/>
                             </StackPanel>
-                            <Border Grid.Column="1"
-                                    Background="#1A1A1A"
-                                    CornerRadius="12"
-                                    BorderBrush="#333"
-                                    BorderThickness="1"
-                                    Height="250">
-                                <StackPanel VerticalAlignment="Center"
-                                            HorizontalAlignment="Center">
-                                    <Border Background="#222"
-                                            CornerRadius="20"
-                                            Padding="15,8"
-                                            Width="200">
-                                        <TextBlock Text="Type anything..."
-                                                   Foreground="#666"/>
+                            <Border Grid.Column="1" Background="#11FFFFFF" CornerRadius="16" BorderBrush="#335E5CE6" BorderThickness="1" Height="250">
+                                <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+                                    <Border Background="#222" CornerRadius="12" Padding="15,10" Width="250" BorderBrush="#44FFFFFF" BorderThickness="1">
+                                        <TextBlock Text="Search files, apps, or '2+2'..." Foreground="#55FFFFFF" FontSize="12"/>
                                     </Border>
-                                    <TextBlock Text="Smart Result Engine"
-                                               Foreground="#444"
-                                               Margin="0,15,0,0"
-                                               HorizontalAlignment="Center"/>
+                                    <Border Background="#1A5E5CE6" CornerRadius="8" Margin="0,15,0,0" Padding="10" Width="250">
+                                        <TextBlock Text="Result: 4.0 (Math Engine)" Foreground="#5E5CE6" FontSize="11" FontWeight="Bold"/>
+                                    </Border>
                                 </StackPanel>
                             </Border>
                         </Grid>
@@ -430,45 +367,27 @@
                         </Grid>
                     </Grid>
 
-                    <!-- SLIDE 6: New Features (ZeroShell Pixel & Persistence) -->
-                    <Grid x:Name="Slide6"
-                          Style="{StaticResource SlideContentStyle}"
-                          Visibility="Collapsed">
+                    <!-- SLIDE 6: ZeroShell Features -->
+                    <Grid x:Name="Slide6" Style="{StaticResource SlideContentStyle}" Visibility="Collapsed">
                         <Grid VerticalAlignment="Center">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
-                            <StackPanel Grid.Column="0"
-                                        Margin="0,0,40,0">
-                                <TextBlock Text="👾"
-                                           FontSize="64"
-                                           Margin="0,0,0,20"/>
-                                <TextBlock Text="ZeroShell Pixel"
-                                           FontSize="28"
-                                           FontWeight="Bold"
-                                           Foreground="#00BFA5"
-                                           Margin="0,0,0,15"/>
-                                <TextBlock Text="Nikmati estetika pixel retro yang kini lebih 'kotak' dan konsisten. Dilengkapi sistem penyimpanan (persistence) agar tema pilihan Anda tetap aktif saat restart."
-                                           Foreground="#BBB"
-                                           FontSize="15"
-                                           TextWrapping="Wrap"
-                                           LineHeight="24"/>
+                            <StackPanel Grid.Column="0" Margin="0,0,40,0">
+                                <TextBlock Text="👾" FontSize="64" Margin="0,0,0,20"/>
+                                <TextBlock Text="ZeroShell Console" FontSize="26" FontWeight="Black" Foreground="#00BFA5" Margin="0,0,0,15"/>
+                                <TextBlock Text="Terminal bertenaga GPU untuk power user. Dengan fitur !tasks profesional yang bisa menjalankan urutan perintah otomatis dengan animasi yang keren."
+                                           Foreground="#BBB" FontSize="15" TextWrapping="Wrap" LineHeight="24"/>
                             </StackPanel>
-                            <Border Grid.Column="1"
-                                    Background="#1A1A1A"
-                                    CornerRadius="0"
-                                    BorderBrush="#00BFA5"
-                                    BorderThickness="4"
-                                    Height="250">
-                                <Grid>
-                                    <TextBlock Text="Pixel Perfection"
-                                               Foreground="#00BFA5"
-                                               FontFamily="Courier New"
-                                               FontWeight="Bold"
-                                               VerticalAlignment="Center"
-                                               HorizontalAlignment="Center"/>
-                                </Grid>
+                            <Border Grid.Column="1" Background="#F5080E14" CornerRadius="16" BorderBrush="#3300BFA5" BorderThickness="1" Height="250" Padding="15">
+                                <StackPanel>
+                                    <TextBlock Text="ZEROMIX TERMINAL v1.0" Foreground="#00BFA5" FontSize="9" FontFamily="Consolas" Margin="0,0,0,15"/>
+                                    <TextBlock Text="❯ !tasks --run" Foreground="#FF27C93F" FontSize="11" FontFamily="Consolas"/>
+                                    <TextBlock Text="[EXEC] Diagnostic Pulse Active..." Foreground="White" FontSize="11" FontFamily="Consolas" Opacity="0.7" Margin="0,5,0,0"/>
+                                    <TextBlock Text="[INFO] Status: All systems clear." Foreground="White" FontSize="11" FontFamily="Consolas" Opacity="0.5" Margin="0,5,0,0"/>
+                                    <Border Height="2" Background="#00BFA5" Width="50" HorizontalAlignment="Left" Margin="0,20,0,0"/>
+                                </StackPanel>
                             </Border>
                         </Grid>
                     </Grid>

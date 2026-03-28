@@ -464,14 +464,23 @@ namespace ZeroMix
 
         private void InitializePerformanceCounters()
         {
-            _cpuCounter = new PerformanceCounter("Processor", "% Processor Time", "_Total");
-            _ramCounter = new PerformanceCounter("Memory", "Available MBytes");
-            _diskCounter = new PerformanceCounter("PhysicalDisk", "% Disk Time", "_Total");
-            _systemDrive = new DriveInfo("C");
+            try {
+                _cpuCounter = new PerformanceCounter("Processor", "% Processor Time", "_Total");
+                _ramCounter = new PerformanceCounter("Memory", "Available MBytes");
+                _diskCounter = new PerformanceCounter("PhysicalDisk", "% Disk Time", "_Total");
+                _systemDrive = new DriveInfo("C");
 
-            _performanceTimer = new DispatcherTimer();
-            _performanceTimer.Interval = TimeSpan.FromSeconds(2);
-            _performanceTimer.Tick += PerformanceTimer_Tick;
+                _performanceTimer = new DispatcherTimer();
+                _performanceTimer.Interval = TimeSpan.FromSeconds(1); // Set ke 1 detik agar lebih responsif
+                _performanceTimer.Tick += PerformanceTimer_Tick;
+                
+                // Panggil sekali untuk pemanasan data
+                _cpuCounter.NextValue();
+            } catch {
+                // Fallback jika PerformanceCounter tidak tersedia
+                _performanceTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(2) };
+                _performanceTimer.Tick += PerformanceTimer_Tick;
+            }
         }
 
         private void PerformanceTimer_Tick(object? sender, EventArgs e)
@@ -1311,17 +1320,18 @@ namespace ZeroMix
         private async void ClearCacheButton_Click(object sender, RoutedEventArgs e)
         {
             ClearCacheButton.IsEnabled = false;
-            CacheStatusText.Text = "Menganalisis file sampah...";
+            CacheStatusText.Text = "🛡️ Menganalisis sistem & file sampah...";
             
-            // Show the monitoring panel if hidden to see status
             MonitoringPanel.Visibility = Visibility.Visible;
 
             await Task.Run(async () =>
             {
+                // Daftar folder sampah yang lebih lengkap
                 string[] tempPaths = { 
                     Path.GetTempPath(), 
                     Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Windows), "Temp"),
-                    Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Temp")
+                    Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Temp"),
+                    Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Windows), "Prefetch") // Tambahan: Prefetch
                 };
 
                 int deletedCount = 0;
@@ -1330,40 +1340,44 @@ namespace ZeroMix
 
                 foreach (var path in tempPaths)
                 {
+                    if (!Directory.Exists(path)) continue;
                     var directory = new DirectoryInfo(path);
-                    if (!directory.Exists) continue;
 
-                    // Update UI status
-                    this.Dispatcher.Invoke(() => CacheStatusText.Text = $"Cleaning: {path}");
+                    this.Dispatcher.Invoke(() => CacheStatusText.Text = $"⚡ Memproses: {path}");
 
-                    foreach (var file in directory.GetFiles())
-                    {
-                        try
+                    // Hapus File
+                    try {
+                        foreach (var file in directory.GetFiles())
                         {
-                            totalSize += file.Length;
-                            file.Delete();
-                            deletedCount++;
+                            try {
+                                totalSize += file.Length;
+                                file.Delete();
+                                deletedCount++;
+                            } catch { 
+                                // Dilewati otomatis jika sedang dipakai (In Use)
+                                skippedCount++; 
+                            }
                         }
-                        catch { skippedCount++; }
-                    }
+                    } catch { }
 
-                    foreach (var dir in directory.GetDirectories())
-                    {
-                        try
+                    // Hapus Sub-folder
+                    try {
+                        foreach (var dir in directory.GetDirectories())
                         {
-                            dir.Delete(true);
-                            deletedCount++;
+                            try {
+                                dir.Delete(true);
+                                deletedCount++;
+                            } catch { skippedCount++; }
                         }
-                        catch { skippedCount++; }
-                    }
+                    } catch { }
                     
-                    await Task.Delay(10); // Prevent total UI freeze
+                    await Task.Delay(50); 
                 }
 
                 this.Dispatcher.Invoke(() => {
-                    CacheStatusText.Text = $"Purge Complete! Cleared {deletedCount} items ({totalSize / (1024 * 1024)} MB). Skipped {skippedCount} files in use.";
+                    double sizeInMb = totalSize / (1024.0 * 1024.0);
+                    CacheStatusText.Text = $"✨ Pembersihan Selesai! Berhasil membuang {deletedCount} item ({sizeInMb:F2} MB). {skippedCount} file dilewati (sedang digunakan).";
                     ClearCacheButton.IsEnabled = true;
-                    // Trigger a process refresh
                     RefreshProcessList();
                 });
             });
