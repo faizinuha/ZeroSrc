@@ -174,26 +174,6 @@ High-performance technologies for a smooth experience.
    .\build\build.ps1 -Target Installer
    ```
 
-### Struktur Proyek
-```
-ZeroMix/
-├── Hotkeys/           # Sistem hotkey global
-├── Plugins/           # Plugin engine dan built-in plugins
-├── Search/            # Search overlay
-├── SleepMode/         # Fake sleep mode
-├── Virtual_Assisten/  # AI assistant dengan Live2D
-├── Wallpapers/        # Video wallpaper
-├── ZeroMix.recorder/  # Screen recording GPU-accelerated
-├── ZeroShell/         # Terminal emulator
-├── Widgets/           # Desktop widgets (clock, dll.)
-├── Transparan/        # Taskbar transparency
-├── Resource/          # Assets (images, videos)
-├── Web/               # Web UI assets
-├── build/             # Build scripts PowerShell
-├── Exe/               # Installer config (Inno Setup)
-└── ZeroMix.csproj     # Project file .NET 9.0
-```
-
 ---
 
 ## 🤝 Community & Contribution
