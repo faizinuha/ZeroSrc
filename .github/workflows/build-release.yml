@@ -28,7 +28,9 @@ jobs:
       shell: pwsh
       run: |
         if ("${{ github.event.inputs.version }}" -ne "") {
-          $tag = "v${{ github.event.inputs.version }}"
+          # Remove any leading 'v's from input version
+          $inputVersion = "${{ github.event.inputs.version }}" -replace '^v+', ''
+          $tag = "v$inputVersion"
         } elseif ($env:GITHUB_REF -like 'refs/tags/*') {
           $tag = $env:GITHUB_REF -replace '^refs/tags/', ''
         } else {
