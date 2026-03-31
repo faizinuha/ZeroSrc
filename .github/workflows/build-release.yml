@@ -51,6 +51,10 @@ jobs:
     - name: 🔨 Build ZeroMix
       shell: pwsh
       run: |
+        # First restore packages
+        dotnet restore ZeroMix.csproj
+        
+        # Build in Release mode
         dotnet build ZeroMix.csproj `
           -c Release `
           -p:Version=${{ steps.version.outputs.version }} `
@@ -65,6 +69,12 @@ jobs:
           -o ./bin/Release/publish `
           -p:Version=${{ steps.version.outputs.version }}
         Write-Host "✅ Publish completed"
+        
+        # Copy published files to Exe directory for release
+        if (Test-Path "./bin/Release/publish/ZeroMix.exe") {
+          Copy-Item "./bin/Release/publish/ZeroMix.exe" "./Exe/ZeroMix-${{ steps.version.outputs.tag }}.exe"
+          Write-Host "✅ Executable copied"
+        }
 
     - name: 📋 Generate Changelog
       id: changelog
@@ -110,10 +120,9 @@ jobs:
           echo "- Bug fixes and improvements" >> /tmp/changelog.md
         fi
         
+        echo "CHANGELOG<<EOF" >> $GITHUB_ENV
         cat /tmp/changelog.md >> $GITHUB_ENV
-        echo 'CHANGELOG<<EOF' >> $GITHUB_ENV
-        cat /tmp/changelog.md >> $GITHUB_ENV
-        echo 'EOF' >> $GITHUB_ENV
+        echo "EOF" >> $GITHUB_ENV
 
     - name: 📤 Upload Build Artifacts
       uses: actions/upload-artifact@v4
@@ -121,6 +130,7 @@ jobs:
         name: ZeroMix-build-${{ steps.version.outputs.tag }}
         path: bin/Release/publish/
         retention-days: 30
+      continue-on-error: true
 
     - name: 📦 Create GitHub Release with Notes
       uses: softprops/action-gh-release@v2
@@ -142,21 +152,6 @@ jobs:
           
           ---
           
-          ## 📥 Installation
-          
-          ### Windows Setup (Recommended)
-          ```powershell
-          # Download and run the installer
-          .\ZeroMix-v${{ steps.version.outputs.tag }}-Setup.exe
-          ```
-          
-          ### Portable Version
-          ```powershell
-          # Extract and run directly
-          ZeroMix-v${{ steps.version.outputs.tag }}-Portable.zip
-          ZeroMix.exe
-          ```
-          
           ## 🖥️ System Requirements
           
           - **Windows:** 10/11 (64-bit)
@@ -173,12 +168,13 @@ jobs:
           
           ---
           
-          **⭐ If you like ZeroMix, please consider giving us a star!**
+          ⭐ If you like ZeroMix, please consider giving us a star!
           
-        files: |
-          Exe/*.exe
+        draft: false
+        prerelease: false
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      continue-on-error: true
 
     - name: ✅ Build & Release Complete
       run: |
