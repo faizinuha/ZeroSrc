@@ -36,7 +36,8 @@
     <PackageReference Include="Obfuscar" Version="2.2.39" PrivateAssets="all" GeneratePathProperty="true" />
   </ItemGroup>
 
-  <Target Name="Obfuscate" AfterTargets="AfterBuild" Condition="'$(Configuration)' == 'Release'">
+  <!-- Obfuscate hanya di Windows environment untuk Release build -->
+  <Target Name="Obfuscate" AfterTargets="AfterBuild" Condition="'$(Configuration)' == 'Release' AND '$(OS)' == 'Windows_NT'">
     <PropertyGroup>
       <ObfuscarConfig>$(ProjectDir)obfuscar.xml</ObfuscarConfig>
       <!-- Gunakan path dari package yang di-restore -->
