@@ -1,3 +1,16 @@
+## [v5.0.1] - 2026-03-31
+
+### ✨ Features
+
+### 🐛 Bug Fixes
+
+### 🔧 Changes
+
+### 📊 Commit Summary
+- Total commits: **1**
+- Range: v5.0.0.2..HEAD
+- Generated: Tue Mar 31 11:37:27 UTC 2026
+
 # ZeroMix - Changelog
 
 All notable changes to this project will be documented in this file.
