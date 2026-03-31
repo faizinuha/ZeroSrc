@@ -58,11 +58,20 @@ jobs:
           
           # Check commit message untuk determine version bump
           if [[ $COMMIT_MSG =~ ^fix: ]]; then
-            NEW_VERSION="$MAJOR.$MINOR.$((PATCH+1)).0"
+            if [ "$BUILD" -ne 0 ]; then
+              NEW_BUILD=$((BUILD+1))
+              NEW_VERSION="$MAJOR.$MINOR.$PATCH.$NEW_BUILD"
+            else
+              NEW_VERSION="$MAJOR.$MINOR.$((PATCH+1))"
+            fi
             BUMP_TYPE="patch"
             echo "🔧 PATCH bump detected from 'fix:' commit"
           elif [[ $COMMIT_MSG =~ ^feat: ]]; then
-            NEW_VERSION="$MAJOR.$((MINOR+1)).0.0"
+            if [ "$BUILD" -ne 0 ]; then
+              NEW_VERSION="$MAJOR.$((MINOR+1)).0.0"
+            else
+              NEW_VERSION="$MAJOR.$((MINOR+1)).0"
+            fi
             BUMP_TYPE="minor"
             echo "✨ MINOR bump detected from 'feat:' commit"
           elif [[ $COMMIT_MSG == *"BREAKING CHANGE"* ]]; then
