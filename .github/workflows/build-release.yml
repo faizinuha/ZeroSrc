@@ -78,11 +78,16 @@ jobs:
     - name: 📦 Publish Release Build
       shell: pwsh
       run: |
+        # Create publish directory structure expected by Inno Setup
+        if (-not (Test-Path "./publish/win-x64")) {
+          New-Item -ItemType Directory -Path "./publish/win-x64" -Force | Out-Null
+        }
+        
         dotnet publish ZeroMix.csproj `
           -c Release `
-          -o ./bin/Release/publish `
+          -o ./publish/win-x64 `
           -p:Version=${{ steps.version.outputs.version }}
-        Write-Host "✅ Publish completed"
+        Write-Host "✅ Publish completed to ./publish/win-x64"
         
         # Create Exe directory if not exists
         if (-not (Test-Path "./Exe")) {
@@ -90,14 +95,14 @@ jobs:
         }
         
         # Copy published files to Exe directory for release
-        if (Test-Path "./bin/Release/publish/ZeroMix.exe") {
-          Copy-Item "./bin/Release/publish/ZeroMix.exe" "./Exe/ZeroMix-${{ steps.version.outputs.tag }}.exe"
+        if (Test-Path "./publish/win-x64/ZeroMix.exe") {
+          Copy-Item "./publish/win-x64/ZeroMix.exe" "./Exe/ZeroMix-${{ steps.version.outputs.tag }}.exe"
           Write-Host "✅ Executable copied to Exe folder"
         }
         
         # Also copy to root for easier access
-        if (Test-Path "./bin/Release/publish/ZeroMix.exe") {
-          Copy-Item "./bin/Release/publish/ZeroMix.exe" "./ZeroMix-${{ steps.version.outputs.tag }}.exe"
+        if (Test-Path "./publish/win-x64/ZeroMix.exe") {
+          Copy-Item "./publish/win-x64/ZeroMix.exe" "./ZeroMix-${{ steps.version.outputs.tag }}.exe"
           Write-Host "✅ Executable copied to root"
         }
 
