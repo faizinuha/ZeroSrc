@@ -1,0 +1,113 @@
+name: 📌 Auto Tag & Release
+
+on:
+  push:
+    branches:
+      - ProyekTil
+    paths-ignore:
+      - 'README.md'
+      - 'CHANGELOG.md'
+      - '.gitignore'
+
+permissions:
+  contents: write
+  packages: write
+
+jobs:
+  auto-tag:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: 📥 Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: 🔧 Setup Git Config
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action Bot"
+
+      - name: 📌 Determine & Create Version Tag
+        id: tag
+        run: |
+          # Get commit message
+          COMMIT_MSG=$(git log -1 --pretty=%B)
+          echo "📄 Commit message: $COMMIT_MSG"
+          
+          # Get latest tag
+          LAST_TAG=$(git tag -l 'v*' --sort=-version:refname | head -1)
+          
+          # Default version jika tidak ada tag
+          if [ -z "$LAST_TAG" ]; then
+            LAST_TAG="v0.0.0"
+          fi
+          
+          echo "📍 Last tag: $LAST_TAG"
+          
+          # Extract version numbers
+          LAST_VERSION=${LAST_TAG:1}  # Remove 'v' prefix
+          IFS='.' read -r MAJOR MINOR PATCH <<< "$LAST_VERSION"
+          
+          # Check commit message untuk determine version bump
+          if [[ $COMMIT_MSG =~ ^fix: ]]; then
+            NEW_VERSION="$MAJOR.$MINOR.$((PATCH+1))"
+            BUMP_TYPE="patch"
+            echo "🔧 PATCH bump detected from 'fix:' commit"
+          elif [[ $COMMIT_MSG =~ ^feat: ]]; then
+            NEW_VERSION="$MAJOR.$((MINOR+1)).0"
+            BUMP_TYPE="minor"
+            echo "✨ MINOR bump detected from 'feat:' commit"
+          elif [[ $COMMIT_MSG == *"BREAKING CHANGE"* ]]; then
+            NEW_VERSION="$((MAJOR+1)).0.0"
+            BUMP_TYPE="major"
+            echo "💥 MAJOR bump detected from 'BREAKING CHANGE' commit"
+          else
+            echo "⏭️  No version bump needed (commit message doesn't start with fix:/feat:)"
+            echo "skip_tag=true" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+          
+          # Output version info
+          echo "version=$NEW_VERSION" >> $GITHUB_OUTPUT
+          echo "tag=v$NEW_VERSION" >> $GITHUB_OUTPUT
+          echo "bump_type=$BUMP_TYPE" >> $GITHUB_OUTPUT
+          echo "skip_tag=false" >> $GITHUB_OUTPUT
+          echo "✅ New version: v$NEW_VERSION"
+
+      - name: 🏷️  Push Tag to Repository
+        if: steps.tag.outputs.skip_tag == 'false'
+        run: |
+          TAG="${{ steps.tag.outputs.tag }}"
+          
+          # Create annotated tag with commit message
+          COMMIT_MSG=$(git log -1 --pretty=%B)
+          git tag -a "$TAG" -m "Release $TAG: $COMMIT_MSG"
+          
+          # Push tag ke repository
+          git push origin "$TAG"
+          
+          echo "✅ Tag '$TAG' created and pushed!"
+
+      - name: 📢 Create Release Notes
+        if: steps.tag.outputs.skip_tag == 'false'
+        run: |
+          TAG="${{ steps.tag.outputs.tag }}"
+          PREV_TAG=$(git tag -l 'v*' --sort=-version:refname | head -2 | tail -1)
+          
+          if [ -z "$PREV_TAG" ]; then
+            COMMIT_RANGE="--all"
+          else
+            COMMIT_RANGE="$PREV_TAG..$TAG"
+          fi
+          
+          echo "Release tag: $TAG"
+          echo "Previous tag: $PREV_TAG"
+          
+      - name: ✅ Trigger Build & Release
+        if: steps.tag.outputs.skip_tag == 'false'
+        run: |
+          echo "🚀 Tag created successfully!"
+          echo "⏳ GitHub Actions will automatically trigger build-release.yml workflow"
+          echo "   Watch progress: https://github.com/${{ github.repository }}/actions"
