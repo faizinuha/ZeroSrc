@@ -21,6 +21,15 @@ namespace ZeroMix.Recorder
         {
             _ffmpegPath = ffmpegPath;
             
+            // Validate FFmpeg path exists
+            if (!File.Exists(ffmpegPath))
+            {
+                Console.WriteLine($"[RecordingManager] ERROR: FFmpeg not found at: {ffmpegPath}");
+                throw new FileNotFoundException($"FFmpeg executable not found at: {ffmpegPath}");
+            }
+            
+            Console.WriteLine($"[RecordingManager] FFmpeg found: {ffmpegPath}");
+            
             // Initialize the GPU-first recorder
             _recorder = new ScreenStudioRecorder(ffmpegPath, 30);
         }
@@ -29,26 +38,51 @@ namespace ZeroMix.Recorder
 
         public void StartRecording(string outputFileName, int framerate = 30, string micDevice = "No Audio", string speakerDevice = "No Audio", IntPtr? captureHandle = null, System.Windows.Rect? captureRect = null)
         {
-            if (_recorder == null || _recorder.IsRecording) return;
-
-            string myVideos = Environment.GetFolderPath(Environment.SpecialFolder.MyVideos);
-            string zeroRecordDir = Path.Combine(myVideos, "ZeroRecord");
-            
-            if (!Directory.Exists(zeroRecordDir))
+            if (_recorder == null || _recorder.IsRecording)
             {
-                Directory.CreateDirectory(zeroRecordDir);
+                Console.WriteLine($"[RecordingManager] Recording blocked: Recorder null={_recorder == null} or already recording={_recorder?.IsRecording ?? false}");
+                return;
             }
 
-            string outputPath = Path.Combine(zeroRecordDir, outputFileName);
-            Console.WriteLine($"[RecordingManager] Starting recording to: {outputPath}");
+            try
+            {
+                string myVideos = Environment.GetFolderPath(Environment.SpecialFolder.MyVideos);
+                string zeroRecordDir = Path.Combine(myVideos, "ZeroRecord");
+                
+                if (!Directory.Exists(zeroRecordDir))
+                {
+                    Directory.CreateDirectory(zeroRecordDir);
+                }
 
-            _recorder.StartRecording(outputPath, micDevice, speakerDevice, captureHandle, captureRect);
+                string outputPath = Path.Combine(zeroRecordDir, outputFileName);
+                Console.WriteLine($"[RecordingManager] Starting recording to: {outputPath}");
+
+                _recorder.StartRecording(outputPath, micDevice, speakerDevice, captureHandle, captureRect);
+            }
+            catch (InvalidOperationException ex)
+            {
+                Console.WriteLine($"[RecordingManager] INVALID STATE ERROR: {ex.Message}");
+                throw;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[RecordingManager] ERROR starting recording: {ex.GetType().Name} - {ex.Message}");
+                throw;
+            }
         }
 
         public void StopRecording()
         {
             if (_recorder == null || !_recorder.IsRecording) return;
-            _recorder.StopRecording();
+            
+            try
+            {
+                _recorder.StopRecording();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[RecordingManager] ERROR stopping recording: {ex.GetType().Name} - {ex.Message}");
+            }
         }
     }
 }
