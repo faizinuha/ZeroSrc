@@ -87,7 +87,7 @@ jobs:
           Write-Host "✅ Executable copied to root"
         }
 
-    - name: � Build MSI Installer (Inno Setup)
+    - name: 🧩 Build MSI Installer (Inno Setup)
       shell: pwsh
       run: |
         # Download Inno Setup if not installed
@@ -119,8 +119,10 @@ jobs:
         } else {
           Write-Host "⚠️  Inno Setup not available, skipping MSI build"
         }
-      continue-on-error: true
+
+    - name: 📝 Generate Changelog
       id: changelog
+      continue-on-error: true
       shell: bash
       run: |
         TAG="${{ steps.version.outputs.tag }}"
