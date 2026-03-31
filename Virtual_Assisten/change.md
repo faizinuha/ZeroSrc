@@ -1,4 +1,4 @@
-# ZeroMix Release Notes v5.5.0 (The Professionalization Update)
+# ZeroMix Release Notes  (The Professionalization Update)
 
 ## 🌟 Major Highlights: High-Fidelity UX & Cyber Automation
 
@@ -32,7 +32,7 @@ Peningkatan besar pada kualitas antarmuka, akurasi diagnostik, dan otomatisasi t
 
 ---
 
-# ZeroMix Release Notes v5.0.0 (Official Major Update)
+# ZeroMix Release Notes (Official Major Update)
 
 ## 🌟 Major Highlights: Modern Deployment & CLI Ecosystem
 

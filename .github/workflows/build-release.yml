@@ -87,7 +87,39 @@ jobs:
           Write-Host "✅ Executable copied to root"
         }
 
-    - name: 📋 Generate Changelog
+    - name: � Build MSI Installer (Inno Setup)
+      shell: pwsh
+      run: |
+        # Download Inno Setup if not installed
+        Write-Host "📥 Checking Inno Setup..."
+        $InnoSetupPath = "C:\Program Files (x86)\Inno Setup 6\ISCC.exe"
+        
+        if (-not (Test-Path $InnoSetupPath)) {
+          Write-Host "ℹ️  Inno Setup not found, attempting to install via Chocolatey..."
+          choco install innosetup -y
+        }
+        
+        # Build MSI
+        Write-Host "🏗️  Building MSI installer..."
+        $InnoSetupPath = "C:\Program Files (x86)\Inno Setup 6\ISCC.exe"
+        
+        if (Test-Path $InnoSetupPath) {
+          & $InnoSetupPath /F"ZeroMix-${{ steps.version.outputs.tag }}-Setup" "./Exe/Setup.iss"
+          
+          if ($LASTEXITCODE -eq 0) {
+            Write-Host "✅ MSI installer created successfully"
+            
+            # Verify MSI was created
+            if (Test-Path "./Exe/ZeroMix-${{ steps.version.outputs.tag }}-Setup.exe") {
+              Write-Host "✅ MSI file ready: ZeroMix-${{ steps.version.outputs.tag }}-Setup.exe"
+            }
+          } else {
+            Write-Host "⚠️  MSI build failed with exit code: $LASTEXITCODE"
+          }
+        } else {
+          Write-Host "⚠️  Inno Setup not available, skipping MSI build"
+        }
+      continue-on-error: true
       id: changelog
       shell: bash
       run: |
@@ -135,7 +167,7 @@ jobs:
         cat /tmp/changelog.md >> $GITHUB_ENV
         echo "EOF" >> $GITHUB_ENV
 
-    - name:  Create GitHub Release with Assets
+    - name: 📦 Create GitHub Release with Assets
       uses: softprops/action-gh-release@v2
       if: startsWith(github.ref, 'refs/tags/')
       with:
@@ -144,6 +176,7 @@ jobs:
         files: |
           ZeroMix-${{ steps.version.outputs.tag }}.exe
           Exe/ZeroMix-${{ steps.version.outputs.tag }}.exe
+          Exe/ZeroMix-${{ steps.version.outputs.tag }}-Setup.exe
         body: |
           # 🎉 ZeroMix Release ${{ steps.version.outputs.tag }}
           
@@ -158,9 +191,21 @@ jobs:
           
           ---
           
-          ## 📥 Downloads
+          ## 📥 Download Options
           
-          **Executable:** Download from Assets section below ⬇️
+          Choose your preferred installation method:
+          
+          ### 🔹 **Portable** (Recommended for testing)
+          - Download: `ZeroMix-${{ steps.version.outputs.tag }}.exe`
+          - Just run, no installation needed
+          
+          ### 🔹 **Installer** (Recommended for regular use)
+          - Download: `ZeroMix-${{ steps.version.outputs.tag }}-Setup.exe`
+          - Professional MSI installer
+          - Adds to Start Menu, Add/Remove Programs
+          - One-click uninstall support
+          
+          All files available in **Assets** section below ⬇️
           
           ---
           
