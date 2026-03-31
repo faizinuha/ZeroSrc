@@ -4,20 +4,17 @@
 
 ---
 
-## 🚀 Create Release (2 cara)
+## 🚀 Create Release
 
-### Option 1: Interactive Script (Recommended)
 ```bash
-./RELEASE.sh          # Linux/Mac
-# or
-RELEASE.bat           # Windows
-```
-
-### Option 2: Manual Git
-```bash
+# Create annotated tag
 git tag -a v1.0.0 -m "Release message"
+
+# Push to GitHub (triggers workflows)
 git push origin v1.0.0
 ```
+
+Done! GitHub Actions handles the rest automatically. ✅
 
 ---
 
@@ -48,14 +45,13 @@ docs: update README                # → Changes section
 
 ```
 .github/workflows/
-├── build-release.yml               (Build & release)
-├── update-changelog.yml            (Update CHANGELOG)
-├── auto-generate-changelog.yml     (Daily auto)
-└── static.yml                      (Deploy static)
+├── build-release.yml               Build & release
+├── update-changelog.yml            Update CHANGELOG  
+├── auto-generate-changelog.yml     Daily auto
+└── static.yml                      Deploy static
 
-RELEASE.sh                           (Linux/Mac helper)
-RELEASE.bat                          (Windows helper)
-auto-changelog.sh                    (Manual test script)
+CHANGELOG.md                         Version history
+RELEASES_GUIDE.md                    This guide
 ```
 
 ---
