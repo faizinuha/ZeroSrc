@@ -1,14 +1,9 @@
-name: 📄 Generate Release Notes
+name: 📄 Generate Release Notes (DISABLED - Using build-release.yml instead)
 
 on:
-  push:
-    tags:
-      - 'v*'
   workflow_dispatch:
-    inputs:
-      tag:
-        description: 'Release tag (e.g., v1.0.0)'
-        required: false
+    # This workflow is kept for reference but not used
+    # The build-release.yml handles everything
 
 jobs:
   generate-release-notes:
@@ -94,11 +89,9 @@ jobs:
           echo "" >> /tmp/changelog.md
         fi
         
-        # Output to file for multiline
+        echo "CHANGELOG<<EOF" >> $GITHUB_ENV
         cat /tmp/changelog.md >> $GITHUB_ENV
-        echo 'CHANGELOG<<EOF' >> $GITHUB_ENV
-        cat /tmp/changelog.md >> $GITHUB_ENV
-        echo 'EOF' >> $GITHUB_ENV
+        echo "EOF" >> $GITHUB_ENV
 
     - name: 🌟 Create or Update Release
       uses: softprops/action-gh-release@v2
@@ -111,7 +104,6 @@ jobs:
           ## 📊 Release Summary
           
           **Version:** `${{ steps.version.outputs.version }}`  
-          **Date:** `${{ env.RELEASE_DATE }}`  
           **Branch:** `ProyekTil`  
           **Status:** ✅ Stable Release  
           
