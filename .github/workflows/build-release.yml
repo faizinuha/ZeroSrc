@@ -106,6 +106,45 @@ jobs:
           Write-Host "✅ Executable copied to root"
         }
 
+    - name: 📥 Download FFMPEG
+      shell: pwsh
+      run: |
+        # Create FFMPEG directory
+        if (-not (Test-Path "./FFMPEG")) {
+          New-Item -ItemType Directory -Path "./FFMPEG" -Force | Out-Null
+        }
+        
+        # Download latest FFMPEG static build for Windows
+        Write-Host "📥 Downloading FFMPEG..."
+        $ffmpegUrl = "https://www.gyan.dev/ffmpeg/builds/ffmpeg-release-essentials.zip"
+        $zipPath = "./ffmpeg-temp.zip"
+        
+        try {
+          Invoke-WebRequest -Uri $ffmpegUrl -OutFile $zipPath
+          Write-Host "✅ FFMPEG downloaded"
+          
+          # Extract ffmpeg.exe from zip
+          Expand-Archive -Path $zipPath -DestinationPath "./ffmpeg-temp" -Force
+          
+          # Find ffmpeg.exe in extracted files
+          $ffmpegExe = Get-ChildItem -Path "./ffmpeg-temp" -Recurse -Filter "ffmpeg.exe" | Select-Object -First 1
+          
+          if ($ffmpegExe) {
+            Copy-Item $ffmpegExe.FullName "./FFMPEG/ffmpeg.exe"
+            Write-Host "✅ FFMPEG extracted to ./FFMPEG/ffmpeg.exe"
+          } else {
+            Write-Host "⚠️  FFMPEG.exe not found in downloaded archive"
+          }
+          
+          # Cleanup
+          Remove-Item $zipPath -Force -ErrorAction SilentlyContinue
+          Remove-Item "./ffmpeg-temp" -Recurse -Force -ErrorAction SilentlyContinue
+          
+        } catch {
+          Write-Host "⚠️  Failed to download FFMPEG: $($_.Exception.Message)"
+          Write-Host "ℹ️  MSI build will fail, but portable EXE will still work"
+        }
+
     - name: 🧩 Build MSI Installer (Inno Setup)
       shell: pwsh
       run: |
