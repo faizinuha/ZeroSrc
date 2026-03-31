@@ -36,18 +36,18 @@ jobs:
           COMMIT_MSG=$(git log -1 --pretty=%B)
           echo "📄 Commit message: $COMMIT_MSG"
           
-          # Get latest tag
-          LAST_TAG=$(git tag -l 'v*' --sort=-version:refname | head -1)
+          # Get latest valid semver tag (skip bare 'v' tag etc)
+          LAST_TAG=$(git tag -l 'v[0-9]*' --sort=-version:refname | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | head -1)
           
-          # Default version jika tidak ada tag
+          # Default version jika tidak ada tag semver
           if [ -z "$LAST_TAG" ]; then
             LAST_TAG="v0.0.0"
           fi
           
-          echo "📍 Last tag: $LAST_TAG"
+          echo "📍 Last version tag: $LAST_TAG"
           
           # Extract version numbers
-          LAST_VERSION=${LAST_TAG:1}  # Remove 'v' prefix
+          LAST_VERSION=${LAST_TAG#v}  # Remove 'v' prefix
           IFS='.' read -r MAJOR MINOR PATCH <<< "$LAST_VERSION"
           
           # Check commit message untuk determine version bump
@@ -80,14 +80,20 @@ jobs:
         if: steps.tag.outputs.skip_tag == 'false'
         run: |
           TAG="${{ steps.tag.outputs.tag }}"
-          
+
+          # If tag already exists, skip to avoid 128 error
+          if git rev-parse -q --verify "refs/tags/$TAG" >/dev/null; then
+            echo "⚠️ Tag '$TAG' already exists, skipping creation."
+            exit 0
+          fi
+
           # Create annotated tag with commit message
           COMMIT_MSG=$(git log -1 --pretty=%B)
           git tag -a "$TAG" -m "Release $TAG: $COMMIT_MSG"
-          
+
           # Push tag ke repository
           git push origin "$TAG"
-          
+
           echo "✅ Tag '$TAG' created and pushed!"
 
       - name: 📢 Create Release Notes
