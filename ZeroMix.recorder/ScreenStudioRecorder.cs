@@ -146,65 +146,90 @@ namespace ZeroMix.Recorder
             var masterClock = Stopwatch.StartNew();
             long frameIndex = 0;
 
-            while (_isRecording)
+            try
             {
-                long currentTicks = masterClock.ElapsedTicks;
-                long expectedFrame = (long)(currentTicks / ticksPerFrame);
-
-                // Tunggu sampai waktu frame berikutnya
-                while (frameIndex > expectedFrame && _isRecording)
+                while (_isRecording)
                 {
-                    Thread.Sleep(1);
-                    currentTicks = masterClock.ElapsedTicks;
-                    expectedFrame = (long)(currentTicks / ticksPerFrame);
-                }
-
-                if (!_isRecording) break;
-
-                _cursorTracker?.Update();
-                if (_camera != null && _cursorTracker != null)
-                {
-                    _camera.Update(_cursorTracker, IsZoomEnabled);
-                }
-
-                Vortice.Direct3D11.ID3D11Texture2D? rawFrame = null;
-                if (_dxgiCapturer != null && _dxgiCapturer.IsInitialized)
-                    rawFrame = _dxgiCapturer.CaptureFrame();
-                else if (_gdiCapturer != null && _gdiCapturer.IsInitialized)
-                    rawFrame = _gdiCapturer.CaptureFrame();
-
-                if (rawFrame == null)
-                {
-                    frameIndex++;
-                    continue;
-                }
-
-                if (_compositor != null && _camera != null && _cursorTracker != null)
-                {
-                    System.Drawing.RectangleF? crop = null;
-                    if (_captureRect.HasValue)
+                    try
                     {
-                        var r = _captureRect.Value;
-                        crop = new System.Drawing.RectangleF((float)r.Left, (float)r.Top, (float)r.Width, (float)r.Height);
-                    }
-                    else if (_captureHandle.HasValue && _captureHandle.Value != IntPtr.Zero)
-                    {
-                        if (GetWindowRect(_captureHandle.Value, out RECT_WIN rect))
+                        long currentTicks = masterClock.ElapsedTicks;
+                        long expectedFrame = (long)(currentTicks / ticksPerFrame);
+
+                        // Tunggu sampai waktu frame berikutnya
+                        while (frameIndex > expectedFrame && _isRecording)
                         {
-                            crop = new System.Drawing.RectangleF(rect.Left, rect.Top, rect.Right - rect.Left, rect.Bottom - rect.Top);
+                            Thread.Sleep(1);
+                            currentTicks = masterClock.ElapsedTicks;
+                            expectedFrame = (long)(currentTicks / ticksPerFrame);
                         }
+
+                        if (!_isRecording) break;
+
+                        // Check if encoder is still alive
+                        if (_encoder == null || !_encoder.IsEncoderAlive)
+                        {
+                            Console.WriteLine("[ScreenStudioRecorder] ERROR: Encoder died! Stopping recording...");
+                            _isRecording = false;
+                            break;
+                        }
+
+                        _cursorTracker?.Update();
+                        if (_camera != null && _cursorTracker != null)
+                        {
+                            _camera.Update(_cursorTracker, IsZoomEnabled);
+                        }
+
+                        Vortice.Direct3D11.ID3D11Texture2D? rawFrame = null;
+                        if (_dxgiCapturer != null && _dxgiCapturer.IsInitialized)
+                            rawFrame = _dxgiCapturer.CaptureFrame();
+                        else if (_gdiCapturer != null && _gdiCapturer.IsInitialized)
+                            rawFrame = _gdiCapturer.CaptureFrame();
+
+                        if (rawFrame == null)
+                        {
+                            frameIndex++;
+                            continue;
+                        }
+
+                        if (_compositor != null && _camera != null && _cursorTracker != null)
+                        {
+                            System.Drawing.RectangleF? crop = null;
+                            if (_captureRect.HasValue)
+                            {
+                                var r = _captureRect.Value;
+                                crop = new System.Drawing.RectangleF((float)r.Left, (float)r.Top, (float)r.Width, (float)r.Height);
+                            }
+                            else if (_captureHandle.HasValue && _captureHandle.Value != IntPtr.Zero)
+                            {
+                                if (GetWindowRect(_captureHandle.Value, out RECT_WIN rect))
+                                {
+                                    crop = new System.Drawing.RectangleF(rect.Left, rect.Top, rect.Right - rect.Left, rect.Bottom - rect.Top);
+                                }
+                            }
+
+                            _compositor.Compose(rawFrame, _camera.X, _camera.Y, _camera.Zoom, _cursorTracker.X, _cursorTracker.Y, _cursorTracker.IsLeftClick, crop);
+                            _encoder?.QueueFrame(_compositor.OutputTexture);
+                        }
+
+                        if (frameIndex % 100 == 0 && frameIndex > 0)
+                        {
+                            Console.WriteLine($"[ScreenStudioRecorder] Loop: Processed {frameIndex} frames...");
+                        }
+
+                        frameIndex++;
                     }
-
-                    _compositor.Compose(rawFrame, _camera.X, _camera.Y, _camera.Zoom, _cursorTracker.X, _cursorTracker.Y, _cursorTracker.IsLeftClick, crop);
-                    _encoder?.QueueFrame(_compositor.OutputTexture);
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"[ScreenStudioRecorder] ERROR in recording loop iteration: {ex.GetType().Name} - {ex.Message}");
+                        // Continue processing instead of crashing
+                        Thread.Sleep(10);
+                    }
                 }
-
-                if (frameIndex % 100 == 0 && frameIndex > 0)
-                {
-                    Console.WriteLine($"[ScreenStudioRecorder] Loop: Processed {frameIndex} frames...");
-                }
-
-                frameIndex++;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[ScreenStudioRecorder] FATAL ERROR in RecordingLoop: {ex.GetType().Name} - {ex.Message}");
+                _isRecording = false;
             }
         }
 
@@ -231,26 +256,44 @@ namespace ZeroMix.Recorder
                 
                 Console.WriteLine($"[ScreenStudioRecorder] Stopping recording...");
                 
-                // Give recording thread time to process remaining frames
-                if (!_recordingThread?.Join(TimeSpan.FromSeconds(5)) ?? false)
+                // Give recording thread time to gracefully exit
+                try
                 {
-                    Console.WriteLine("[ScreenStudioRecorder] WARNING: Recording thread didn't exit in time.");
+                    if (_recordingThread != null && !_recordingThread.Join(TimeSpan.FromSeconds(5)))
+                    {
+                        Console.WriteLine("[ScreenStudioRecorder] WARNING: Recording thread didn't exit in time.");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"[ScreenStudioRecorder] Error waiting for recording thread: {ex.Message}");
                 }
                 
-                // Flush encoder - ensure all frames are finalized
-                if (_encoder != null)
+                // Stop and dispose encoder safely
+                try
                 {
-                    _encoder.Stop();
-                    _encoder.Dispose();
-                    Console.WriteLine($"[ScreenStudioRecorder] Encoder stopped. Frames written: {_encoder.FramesWritten}");
+                    if (_encoder != null)
+                    {
+                        Console.WriteLine("[ScreenStudioRecorder] Stopping encoder...");
+                        _encoder.Stop();
+                        _encoder.Dispose();
+                        Console.WriteLine($"[ScreenStudioRecorder] Encoder stopped. Frames written: {_encoder.FramesWritten}");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"[ScreenStudioRecorder] Error disposing encoder: {ex.Message}");
+                }
+                finally
+                {
+                    _encoder = null;
                 }
                 
-                _encoder = null;
                 Console.WriteLine("[ScreenStudioRecorder] Recording fully stopped.");
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"[ScreenStudioRecorder] ERROR during StopRecording: {ex.Message}");
+                Console.WriteLine($"[ScreenStudioRecorder] ERROR during StopRecording: {ex.GetType().Name} - {ex.Message}");
             }
         }
 
