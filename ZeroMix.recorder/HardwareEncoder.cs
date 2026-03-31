@@ -32,12 +32,14 @@ namespace ZeroMix.Recorder
         private ConcurrentQueue<byte[]> _frameQueue = new();
         private bool _isRunning = false;
         private long _framesWritten = 0;
+        private bool _encoderDead = false;
         
         // Pre-allocated buffer pool
         private ConcurrentBag<byte[]> _bufferPool = new();
 
         public bool IsInitialized { get; private set; }
         public long FramesWritten => _framesWritten;
+        public bool IsEncoderAlive => !_encoderDead && _ffmpegProcess != null && !_ffmpegProcess.HasExited;
 
         public HardwareEncoder(string ffmpegPath, ID3D11Device device, ID3D11DeviceContext context, int width, int height, int framerate = 30)
         {
@@ -330,9 +332,17 @@ namespace ZeroMix.Recorder
 
         public void QueueFrame(ID3D11Texture2D texture)
         {
-            if (!IsInitialized || _stagingTexture == null || !_isRunning) return;
+            if (!IsInitialized || _stagingTexture == null || !_isRunning || _encoderDead) return;
 
-            if (_frameQueue.Count > 10) return;
+            // Check if encoder is still alive before queueing
+            if (_ffmpegProcess == null || _ffmpegProcess.HasExited)
+            {
+                Console.WriteLine($"[HardwareEncoder] ERROR: FFmpeg process is dead (Exit code: {_ffmpegProcess?.ExitCode})");
+                _encoderDead = true;
+                return;
+            }
+
+            if (_frameQueue.Count > 15) return; // Limit queue size to prevent memory bloat
 
             try
             {
@@ -359,7 +369,7 @@ namespace ZeroMix.Recorder
                         // Health check log every 100 frames
                         if (Interlocked.Read(ref _framesWritten) % 100 == 0 && Interlocked.Read(ref _framesWritten) > 0)
                         {
-                            Console.WriteLine($"[HardwareEncoder] Info: Written {Interlocked.Read(ref _framesWritten)} frames so far...");
+                            Console.WriteLine($"[HardwareEncoder] Info: Written {Interlocked.Read(ref _framesWritten)} frames so far... Queue: {_frameQueue.Count}");
                         }
                     }
                     finally
@@ -368,53 +378,110 @@ namespace ZeroMix.Recorder
                     }
                 }
             }
-            catch { }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[HardwareEncoder] ERROR in QueueFrame: {ex.GetType().Name} - {ex.Message}");
+            }
         }
 
         private void EncoderLoop()
         {
-            while (_isRunning || !_frameQueue.IsEmpty)
+            int consecutiveErrors = 0;
+            const int MAX_CONSECUTIVE_ERRORS = 3;
+
+            try
             {
-                if (_frameQueue.TryDequeue(out byte[]? frame))
+                while (_isRunning || !_frameQueue.IsEmpty)
                 {
-                    try
+                    if (_frameQueue.TryDequeue(out byte[]? frame))
                     {
-                        // Validate FFmpeg process is still alive
-                        if (_ffmpegProcess == null || _ffmpegProcess.HasExited)
+                        try
                         {
-                            Console.WriteLine($"[HardwareEncoder] ERROR: FFmpeg process died! Exit code: {_ffmpegProcess?.ExitCode}");
+                            // Validate FFmpeg process is still alive
+                            if (_ffmpegProcess == null || _ffmpegProcess.HasExited)
+                            {
+                                Console.WriteLine($"[HardwareEncoder] ERROR: FFmpeg process died! Exit code: {_ffmpegProcess?.ExitCode}");
+                                _encoderDead = true;
+                                break;
+                            }
+
+                            var inputStream = _ffmpegProcess.StandardInput.BaseStream;
+                            if (!inputStream.CanWrite)
+                            {
+                                Console.WriteLine("[HardwareEncoder] ERROR: Cannot write to FFmpeg stdin!");
+                                _encoderDead = true;
+                                break;
+                            }
+
+                            inputStream.Write(frame, 0, frame.Length);
+                            inputStream.Flush();
+                            Interlocked.Increment(ref _framesWritten);
+                            _bufferPool.Add(frame);
+                            consecutiveErrors = 0; // Reset error counter on success
+                        }
+                        catch (ObjectDisposedException ex)
+                        {
+                            Console.WriteLine($"[HardwareEncoder] Stream disposed: {ex.Message}");
+                            _encoderDead = true;
                             break;
                         }
-
-                        var inputStream = _ffmpegProcess.StandardInput.BaseStream;
-                        if (!inputStream.CanWrite)
+                        catch (IOException ex)
                         {
-                            Console.WriteLine("[HardwareEncoder] ERROR: Cannot write to FFmpeg stdin!");
-                            break;
+                            consecutiveErrors++;
+                            Console.WriteLine($"[HardwareEncoder] EncoderLoop IO Error ({consecutiveErrors}/{MAX_CONSECUTIVE_ERRORS}): {ex.Message}");
+                            
+                            if (consecutiveErrors >= MAX_CONSECUTIVE_ERRORS)
+                            {
+                                Console.WriteLine("[HardwareEncoder] Too many IO errors, stopping encoding...");
+                                _encoderDead = true;
+                                break;
+                            }
+                            Thread.Sleep(10);
                         }
-
-                        inputStream.Write(frame, 0, frame.Length);
-                        inputStream.Flush();
-                        Interlocked.Increment(ref _framesWritten);
-                        _bufferPool.Add(frame);
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine($"[HardwareEncoder] EncoderLoop ERROR: {ex.GetType().Name} - {ex.Message}");
+                            consecutiveErrors++;
+                            
+                            if (consecutiveErrors >= MAX_CONSECUTIVE_ERRORS)
+                            {
+                                Console.WriteLine("[HardwareEncoder] Too many errors, stopping encoding...");
+                                _encoderDead = true;
+                                break;
+                            }
+                            Thread.Sleep(10);
+                        }
                     }
-                    catch (Exception ex)
+                    else
                     {
-                        Console.WriteLine($"[HardwareEncoder] EncoderLoop FATAL ERROR: {ex.Message}");
-                        break;
+                        Thread.Sleep(1);
                     }
                 }
-                else
-                {
-                    Thread.Sleep(1);
-                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[HardwareEncoder] FATAL ERROR in EncoderLoop: {ex.GetType().Name} - {ex.Message}");
+                _encoderDead = true;
             }
         }
 
         public void Stop()
         {
             _isRunning = false;
-            _encoderThread?.Join(TimeSpan.FromSeconds(5));
+            Console.WriteLine("[HardwareEncoder] Stopping encoder...");
+            
+            try
+            {
+                // Wait for encoder thread to finish processing queue
+                if (_encoderThread != null && !_encoderThread.Join(TimeSpan.FromSeconds(5)))
+                {
+                    Console.WriteLine("[HardwareEncoder] WARNING: Encoder thread didn't exit in time.");
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[HardwareEncoder] Error waiting for encoder thread: {ex.Message}");
+            }
             
             try
             {
@@ -422,8 +489,8 @@ namespace ZeroMix.Recorder
                 {
                     try
                     {
-                        _ffmpegProcess.StandardInput.BaseStream.Flush();
-                        _ffmpegProcess.StandardInput.Close();
+                        // Close stdin to signal EOF
+                        _ffmpegProcess.StandardInput?.Close();
                         Console.WriteLine("[HardwareEncoder] Sent EOF to FFmpeg stdin.");
                     }
                     catch (Exception ex)
@@ -435,12 +502,19 @@ namespace ZeroMix.Recorder
                     if (!_ffmpegProcess.WaitForExit(5000))
                     {
                         Console.WriteLine("[HardwareEncoder] WARNING: FFmpeg didn't exit in time, killing process.");
-                        _ffmpegProcess.Kill();
-                        _ffmpegProcess.WaitForExit(2000);
+                        try
+                        {
+                            _ffmpegProcess.Kill();
+                            _ffmpegProcess.WaitForExit(2000);
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine($"[HardwareEncoder] Error killing FFmpeg: {ex.Message}");
+                        }
                     }
                     else
                     {
-                        Console.WriteLine($"[HardwareEncoder] FFmpeg exited with code: {_ffmpegProcess.ExitCode}");
+                        Console.WriteLine($"[HardwareEncoder] FFmpeg exited gracefully with code: {_ffmpegProcess.ExitCode}");
                     }
                 }
             }
