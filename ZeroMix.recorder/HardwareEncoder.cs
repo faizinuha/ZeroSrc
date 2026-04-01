@@ -49,6 +49,12 @@ namespace ZeroMix.Recorder
             _height = height;
             _framerate = framerate;
             
+            // Quick FFmpeg validation
+            if (!File.Exists(ffmpegPath))
+            {
+                throw new FileNotFoundException($"FFmpeg not found at: {ffmpegPath}");
+            }
+            
             // Detect best encoder
             _encoder = DetectEncoder();
             
@@ -290,9 +296,21 @@ namespace ZeroMix.Recorder
                     // Give FFmpeg a moment to initialize and check for errors
                     Thread.Sleep(500);
                     
+                    // Add timeout check
+                    int timeoutMs = 5000; // 5 seconds
+                    int elapsed = 0;
+                    while (!_ffmpegProcess.HasExited && elapsed < timeoutMs)
+                    {
+                        Thread.Sleep(100);
+                        elapsed += 100;
+                        
+                        if (encoderInitialized)
+                            break;
+                    }
+                    
                     if (_ffmpegProcess.HasExited)
                     {
-                        Console.WriteLine($"[HardwareEncoder] ✗ FFmpeg exited immediately (exit code: {_ffmpegProcess.ExitCode})");
+                        Console.WriteLine($"[HardwareEncoder] ✗ FFmpeg exited during initialization (exit code: {_ffmpegProcess.ExitCode})");
                         
                         // If selected encoder failed, fallback to libx264
                         if (!encoderInitialized && _encoder != "libx264")
@@ -309,6 +327,14 @@ namespace ZeroMix.Recorder
                             Start(outputPath, micDevice, speakerDevice);
                             return;
                         }
+                        else
+                        {
+                            throw new InvalidOperationException($"FFmpeg initialization failed with exit code {_ffmpegProcess.ExitCode}");
+                        }
+                    }
+                    else if (!encoderInitialized)
+                    {
+                        Console.WriteLine("[HardwareEncoder] WARNING: Encoder may not be properly initialized, but process is running.");
                     }
                     else
                     {
