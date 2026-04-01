@@ -90,18 +90,18 @@ The world's most stable real-time translator for Windows, now integrated nativel
 ## 📥 Quick Installation
 
 Upgrade your Windows experience with your preferred installation method:
-
+<!-- 
 ### 1. ⚡ One-Liner (CLI Method)
 The fastest way to install ZeroMix. Open **PowerShell** and run:
 ```powershell
 iwr -useb bit.ly/ZeroMix | iex
-```
+``` -->
 
 ### 2. 📦 Standard Installers
 Recommended for most users. Grab them from the [Official Releases](https://github.com/faizinuha/ZeroMix/releases):
 - **Standard EXE**: Full setup with Inno Setup.
 - **MSI Installer**: Enterprise-ready installer (built with WiX v4).
-- **MSIX Package**: Modern Windows 10/11 app format with clean uninstalls.
+
 
 ### 3. 🚀 Portable Version
 No installation required. Just download the **ZIP** file, extract, and run `ZeroMix.exe`. Perfectly suited for USB drives or restricted environments.
