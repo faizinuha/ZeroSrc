@@ -199,6 +199,47 @@ jobs:
           Write-Host "⚠️  Inno Setup not available, skipping MSI build"
         }
 
+    - name: 🔐 Code Signing
+      shell: pwsh
+      run: |
+        Write-Host "🔐 Setting up code signing..."
+        
+        # Download osslsigncode if not available
+        $SignTool = "./osslsigncode.exe"
+        if (-not (Test-Path $SignTool)) {
+          Write-Host "📥 Downloading osslsigncode..."
+          Invoke-WebRequest -Uri "https://github.com/mtrojnar/osslsigncode/releases/download/2.8/osslsigncode-2.8-win64.zip" -OutFile "osslsigncode.zip"
+          Expand-Archive -Path "osslsigncode.zip" -DestinationPath "." -Force
+          Copy-Item "osslsigncode-2.8-win64/osslsigncode.exe" $SignTool
+          Remove-Item "osslsigncode.zip", "osslsigncode-2.8-win64" -Recurse -Force
+        }
+        
+        # Sign main executable
+        $ExePath = "./publish/win-x64/ZeroMix.exe"
+        if (Test-Path $ExePath) {
+          Write-Host "🔐 Signing main executable..."
+          & $SignTool sign -pkcs12 "./Exe/ZeroMixCert.pfx" -pass "ZeroMixPass" -n "ZeroMix" -i "https://zeromix.pages.dev" -t "http://timestamp.digicert.com" -in $ExePath -out "$ExePath.signed"
+          if ($LASTEXITCODE -eq 0) {
+            Move-Item "$ExePath.signed" $ExePath -Force
+            Write-Host "✅ Executable signed successfully"
+          } else {
+            Write-Host "⚠️  Failed to sign executable"
+          }
+        }
+        
+        # Sign installer
+        $InstallerPath = "./Exe/ZeroMix-${{ steps.version.outputs.tag }}-Setup.exe"
+        if (Test-Path $InstallerPath) {
+          Write-Host "🔐 Signing installer..."
+          & $SignTool sign -pkcs12 "./Exe/ZeroMixCert.pfx" -pass "ZeroMixPass" -n "ZeroMix" -i "https://zeromix.pages.dev" -t "http://timestamp.digicert.com" -in $InstallerPath -out "$InstallerPath.signed"
+          if ($LASTEXITCODE -eq 0) {
+            Move-Item "$InstallerPath.signed" $InstallerPath -Force
+            Write-Host "✅ Installer signed successfully"
+          } else {
+            Write-Host "⚠️  Failed to sign installer"
+          }
+        }
+
     - name: 📝 Generate Changelog
       id: changelog
       continue-on-error: true

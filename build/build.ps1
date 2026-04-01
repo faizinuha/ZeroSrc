@@ -30,7 +30,7 @@ param (
     [string]$Target = "All",
 
     [Parameter(Position=1)]
-    [string]$Version = "5.0.0"
+    [string]$Version = "5.0.3"
 )
 
 $ErrorActionPreference = "Stop"
@@ -104,45 +104,71 @@ function Task-Installer {
 }
 
 function Task-Sign {
-    Log-Info "Signing Installer..."
+    Log-Info "Signing Application and Installer..."
+    
+    # Sign the main executable first
+    $ExePath = Join-Path $PublishDir "win-x64\ZeroMix.exe"
+    if (Test-Path $ExePath) {
+        Log-Info "Signing main executable..."
+        Sign-File $ExePath
+    }
+    
+    # Sign the installer
     $Unsigned = Join-Path $ExeDir "ZeroMix-Setup-v$Version.exe"
     $Signed   = Join-Path $ExeDir "ZeroMix-Setup-v$Version-signed.exe"
     
-    if (-not (Test-Path $Unsigned)) { throw "Installer not found: $Unsigned" }
+    if (-not (Test-Path $Unsigned)) { 
+        Log-Error "Installer not found: $Unsigned"
+        return
+    }
+    
+    Log-Info "Signing installer..."
+    Sign-File $Unsigned
+    
+    # Rename if signed successfully
+    if (Test-Path $Signed) {
+        Remove-Item $Unsigned -Force
+        Rename-Item $Signed (Split-Path $Unsigned -Leaf)
+        Log-Success "Installer signature applied successfully."
+    }
+}
+
+function Sign-File {
+    param([string]$FilePath)
     
     if (-not (Test-Path $SignTool)) { 
-        Log-Error "Signing tool not found at $SignTool. Skipping signature."
+        Log-Error "Signing tool not found at $SignTool. Skipping signature for $FilePath."
         return
     }
 
     if (-not (Test-Path $CertFile)) {
-        Log-Error "Certificate PFX file not found. Skipping signature."
+        Log-Error "Certificate PFX file not found. Skipping signature for $FilePath."
         return
     }
 
     try {
-        # Validasi Cert secara programmatic (Membutuhkan .NET)
+        # Validasi Cert
         $CertType = [System.Security.Cryptography.X509Certificates.X509Certificate2]::GetCertContentType($CertFile)
         if ($CertType -ne "Pkcs12") {
             Log-Error "Sertifikat ($CertFile) bukan file PFX/PKCS12 yang valid (Tipe: $CertType)."
-            Log-Info "Signing memerlukan Private Key. Installer akan tetap dibuat namun Tanpa Tanda Tangan Digital."
             return
         }
         
         # osslsigncode arguments
-        $Args = "sign -pkcs12 `"$CertFile`" -pass `"$CertPass`" -n `"ZeroMix`" -i `"https://zeromix.pages.dev`" -t `"http://timestamp.digicert.com`" -in `"$Unsigned`" -out `"$Signed`""
+        $SignedPath = $FilePath -replace '\.exe$', '-signed.exe'
+        $Args = "sign -pkcs12 `"$CertFile`" -pass `"$CertPass`" -n `"ZeroMix`" -i `"https://zeromix.pages.dev`" -t `"http://timestamp.digicert.com`" -in `"$FilePath`" -out `"$SignedPath`""
         
         $Proc = Start-Process $SignTool -ArgumentList $Args -NoNewWindow -PassThru -Wait
         if ($Proc.ExitCode -eq 0) {
             # Ganti file asli dengan yang sudah di-sign
-            Remove-Item $Unsigned -Force
-            Rename-Item $Signed (Split-Path $Unsigned -Leaf)
-            Log-Success "Signature applied successfully."
+            Remove-Item $FilePath -Force
+            Rename-Item $SignedPath $FilePath
+            Log-Success "Signature applied to $(Split-Path $FilePath -Leaf)"
         } else {
-            Log-Error "Signing gagal (Exit Code: $($Proc.ExitCode)). Installer tetap Unsigned."
+            Log-Error "Signing failed for $(Split-Path $FilePath -Leaf) (Exit Code: $($Proc.ExitCode))"
         }
     } catch {
-        Log-Error "Gagal mendeteksi informasi sertifikat: $($_.Exception.Message)"
+        Log-Error "Failed to sign $(Split-Path $FilePath -Leaf): $($_.Exception.Message)"
     }
 }
 
