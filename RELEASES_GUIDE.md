@@ -160,6 +160,14 @@ What's Changed
 - **CHANGELOG:** [CHANGELOG.md](CHANGELOG.md)
 
 ---
+# 1. Simpan semua perubahan kodenya dulu
+git add .
+git commit -m "feat: Menambah fitur perekaman area"
+git push
+
+# 2. SEKARANG BIKIN TAG RILISNYA LALU PUSH (Ini yang memicu Build Release!)
+git tag v5.1.0
+git push origin v5.1.0
 
 ## 💡 Best Practices
 
