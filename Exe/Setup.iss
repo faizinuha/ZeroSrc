@@ -63,6 +63,7 @@ Source: "..\Resource\*"; DestDir: "{app}\Resource"; Flags: ignoreversion recurse
 Source: "..\Plugins\**"; DestDir: "{app}\Plugins"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "..\Virtual_Assisten\*"; DestDir: "{app}\Virtual_Assisten"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "..\FFMPEG\ffmpeg.exe"; DestDir: "{app}\FFMPEG"; Flags: ignoreversion
+Source: "..\zeromix-update.bat"; DestDir: "{app}"; Flags: ignoreversion
 
 ; Documentation
 Source: "Privacy.txt"; DestDir: "{app}"; Flags: ignoreversion
@@ -136,7 +137,7 @@ begin
   if CurStep = ssDone then
   begin
     // Buka halaman terima kasih
-    ShellExec('open', 'https://zeromix.vercel.app/thanks', '', '', SW_SHOWNORMAL, ewNoWait, ErrorCode);
+    ShellExec('open', 'https://zeromix.vercel.app/ThanksYou.html', '', '', SW_SHOWNORMAL, ewNoWait, ErrorCode);
   end;
 end;
 

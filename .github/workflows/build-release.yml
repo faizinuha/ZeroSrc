@@ -110,6 +110,12 @@ jobs:
           Write-Host "✅ Plugins folder copied"
         }
         
+        # Copy update script
+        if (Test-Path "./zeromix-update.bat") {
+          Copy-Item "./zeromix-update.bat" "./publish/win-x64/zeromix-update.bat" -Force
+          Write-Host "✅ Update script copied"
+        }
+        
         # Create Exe directory if not exists
         if (-not (Test-Path "./Exe")) {
           New-Item -ItemType Directory -Path "./Exe" | Out-Null
