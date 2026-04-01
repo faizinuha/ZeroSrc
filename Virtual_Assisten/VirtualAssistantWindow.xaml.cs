@@ -60,6 +60,8 @@ namespace ZeroMix.Virtual_Assisten
             this.MouseLeftButtonDown += OnMouseLeftButtonDown;
             this.MouseLeftButtonUp += OnMouseLeftButtonUp;
             this.MouseMove += OnMouseMove;
+            this.Deactivated += OnWindowDeactivated;
+            this.Activated += OnWindowActivated;
             
             _hideChatTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(5) };
             _hideChatTimer.Tick += (s, e) => HideChatBubble();
@@ -82,8 +84,21 @@ namespace ZeroMix.Virtual_Assisten
             try
             {
                 var userDataFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "ZeroMix", "WebView2_VA");
-                var env = await CoreWebView2Environment.CreateAsync(null, userDataFolder);
+                
+                // Optimasi: Tambahkan browser arguments untuk performa
+                var options = new CoreWebView2EnvironmentOptions();
+                options.AdditionalBrowserArguments = "--disable-features=AudioServiceOutOfProcess,MediaRouter --disable-gpu-vsync --disable-background-timer-throttling --disable-extensions --disable-plugins --disable-default-apps";
+                
+                var env = await CoreWebView2Environment.CreateAsync(null, userDataFolder, options);
                 await WebView.EnsureCoreWebView2Async(env);
+                
+                // Optimasi: Konfigurasi settings untuk performa
+                WebView.CoreWebView2.Settings.AreDefaultScriptDialogsEnabled = false;
+                WebView.CoreWebView2.Settings.IsStatusBarEnabled = false;
+                WebView.CoreWebView2.Settings.IsZoomControlEnabled = false;
+                WebView.CoreWebView2.Settings.AreDevToolsEnabled = false; // Disable dev tools in production
+                WebView.CoreWebView2.Settings.IsGeneralAutofillEnabled = false;
+                WebView.CoreWebView2.Settings.IsPasswordAutosaveEnabled = false;
                 
                 WebView.CoreWebView2.MemoryUsageTargetLevel = CoreWebView2MemoryUsageTargetLevel.Low;
                 WebView.CoreWebView2.PermissionRequested += (s, args) => {
@@ -231,5 +246,21 @@ namespace ZeroMix.Virtual_Assisten
         private void OnMouseLeftButtonUp(object sender, MouseButtonEventArgs e) { _isDragging = false; ReleaseMouseCapture(); }
         private void OnMouseMove(object sender, System.Windows.Input.MouseEventArgs e) { if (_isDragging) { var pos = e.GetPosition(this); this.Left += pos.X - _dragOffset.X; this.Top += pos.Y - _dragOffset.Y; } }
         protected override void OnClosed(EventArgs e) { _eyeTrackingTimer?.Stop(); _autoTalkTimer?.Stop(); _visionTimer?.Stop(); _hideChatTimer?.Stop(); WebView?.Dispose(); base.OnClosed(e); App.OptimizeMemory(); }
+
+        private async void OnWindowDeactivated(object sender, EventArgs e)
+        {
+            if (WebView?.CoreWebView2 != null)
+            {
+                await WebView.CoreWebView2.TrySuspendAsync();
+            }
+        }
+
+        private void OnWindowActivated(object sender, EventArgs e)
+        {
+            if (WebView?.CoreWebView2 != null)
+            {
+                WebView.CoreWebView2.Resume();
+            }
+        }
     }
 }
