@@ -5,7 +5,7 @@
 ; --- App Identity ---
 AppId={{ZeroMix-v2-ZeroMix-identifier}}
 AppName=ZeroMix
-#define AppVersion "5.0.3"
+#define AppVersion "5.1.1"
 AppVersion={#AppVersion}
 VersionInfoVersion={#AppVersion}.0
 VersionInfoCompany=Frieren
@@ -63,6 +63,7 @@ Source: "..\Plugins\**"; DestDir: "{app}\Plugins"; Flags: ignoreversion recurses
 Source: "..\Virtual_Assisten\*"; DestDir: "{app}\Virtual_Assisten"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "..\FFMPEG\ffmpeg.exe"; DestDir: "{app}\FFMPEG"; Flags: ignoreversion
 Source: "..\zeromix-update.bat"; DestDir: "{app}"; Flags: ignoreversion
+Source: "MicrosoftEdgeWebview2Setup.exe"; DestDir: "{tmp}"; Flags: deleteafterinstall
 
 ; Documentation
 Source: "Privacy.txt"; DestDir: "{app}"; Flags: ignoreversion
@@ -88,6 +89,7 @@ Name: "startup"; Description: "Jalankan otomatis saat Windows Startup"; GroupDes
 [Run]
 ; Jalankan Aplikasi setelah install
 Filename: "{app}\ZeroMix.exe"; Description: "{cm:LaunchProgram}"; Flags: nowait postinstall skipifsilent
+Filename: "{tmp}\MicrosoftEdgeWebview2Setup.exe"; Parameters: "/silent /install"; StatusMsg: "Installing WebView2 Runtime..."; Flags: runhidden
 
 [Messages]
 indonesian.WelcomeLabel1=Selamat datang di ZeroMix Professional v{#AppVersion}
@@ -106,18 +108,6 @@ begin
   Result := Success and (Pos('9.', InstallRoot) = 1);
 end;
 
-function IsWebView2Installed(): Boolean;
-var
-  Success: Boolean;
-  Version: String;
-begin
-  // Cek WebView2 Runtime via registry (system-wide)
-  Success := RegQueryStringValue(HKLM, 'SOFTWARE\WOW6432Node\Microsoft\EdgeUpdate\Clients\{F3017226-FE2A-4295-8BEF-56B317BF7F50}', 'pv', Version);
-  if not Success then
-    // Fallback: cek per-user installation
-    Success := RegQueryStringValue(HKCU, 'SOFTWARE\Microsoft\EdgeUpdate\Clients\{F3017226-FE2A-4295-8BEF-56B317BF7F50}', 'pv', Version);
-  Result := Success and (Version <> '') and (Version <> '0.0.0.0');
-end;
 
 function InitializeSetup(): Boolean;
 var
@@ -136,16 +126,6 @@ begin
     Exit;
   end;
 
-  // Cek WebView2 Runtime (dibutuhkan untuk UI rendering)
-  if not IsWebView2Installed() then
-  begin
-    if MsgBox('ZeroMix membutuhkan Microsoft Edge WebView2 Runtime.' + #13#10 + 'Komponen ini diperlukan untuk tampilan UI.' + #13#10 + #13#10 + 'Apakah Kakak ingin mendownloadnya sekarang?', mbConfirmation, MB_YESNO) = IDYES then
-    begin
-      ShellExec('open', 'https://developer.microsoft.com/en-us/microsoft-edge/webview2/#download-section', '', '', SW_SHOWNORMAL, ewNoWait, ErrorCode);
-    end;
-    Result := False;
-    Exit;
-  end;
 end;
 
 procedure CurStepChanged(CurStep: TSetupStep);

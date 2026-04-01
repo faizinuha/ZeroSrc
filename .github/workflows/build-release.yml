@@ -2,8 +2,8 @@ name: 🚀 Build & Release ZeroMix
 
 on:
   push:
-    tags:
-      - 'v*'
+    branches:
+      - ProyekTil
   workflow_dispatch:
     inputs:
       version:
@@ -11,418 +11,103 @@ on:
         required: false
 
 jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    outputs:
+      tag: ${{ steps.version.outputs.tag }}
+      version: ${{ steps.version.outputs.version }}
+      skip: ${{ steps.version.outputs.skip }}
+    steps:
+      - name: 📥 Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: 📌 Determine & Create Version Tag
+        id: version
+        run: |
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+            INPUT_VER="${{ github.event.inputs.version }}"
+            INPUT_VER=${INPUT_VER#v}
+            TAG="v$INPUT_VER"
+            echo "tag=$TAG" >> $GITHUB_OUTPUT
+            echo "version=$INPUT_VER" >> $GITHUB_OUTPUT
+            echo "skip=false" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          COMMIT_MSG=$(git log -1 --pretty=%B)
+          echo "📄 Commit message: $COMMIT_MSG"
+          
+          LAST_TAG=$(git tag -l 'v[0-9]*' --sort=-version:refname | grep -E '^v[0-9]+(\.[0-9]+){2,3}$' | head -1)
+          if [ -z "$LAST_TAG" ]; then LAST_TAG="v0.0.0.0"; fi
+          echo "📍 Last version tag: $LAST_TAG"
+          
+          LAST_VERSION=${LAST_TAG#v}
+          IFS='.' read -r MAJOR MINOR PATCH BUILD <<< "$LAST_VERSION"
+          if [ -z "$MAJOR" ]; then MAJOR=0; fi
+          if [ -z "$MINOR" ]; then MINOR=0; fi
+          if [ -z "$PATCH" ]; then PATCH=0; fi
+          if [ -z "$BUILD" ]; then BUILD=0; fi
+          
+          if [[ $COMMIT_MSG =~ ^fix: ]]; then
+            if [ "$BUILD" -ne 0 ]; then
+              NEW_VERSION="$MAJOR.$MINOR.$PATCH.$((BUILD+1))"
+            else
+              NEW_VERSION="$MAJOR.$MINOR.$((PATCH+1))"
+            fi
+            BUMP=true
+          elif [[ $COMMIT_MSG =~ ^feat: ]]; then
+            if [ "$BUILD" -ne 0 ]; then
+              NEW_VERSION="$MAJOR.$((MINOR+1)).0.0"
+            else
+              NEW_VERSION="$MAJOR.$((MINOR+1)).0"
+            fi
+            BUMP=true
+          elif [[ $COMMIT_MSG == *"BREAKING CHANGE"* ]]; then
+            NEW_VERSION="$((MAJOR+1)).0.0.0"
+            BUMP=true
+          else
+            echo "⏭️  No version bump needed"
+            echo "skip=true" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+          
+          TAG="v$NEW_VERSION"
+          echo "✅ New version: $TAG"
+          
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action Bot"
+          git tag -a "$TAG" -m "Release $TAG: $COMMIT_MSG"
+          git push origin "$TAG"
+          
+          echo "tag=$TAG" >> $GITHUB_OUTPUT
+          echo "version=$NEW_VERSION" >> $GITHUB_OUTPUT
+          echo "skip=false" >> $GITHUB_OUTPUT
+
   build-and-release:
+    needs: prepare
+    if: needs.prepare.outputs.skip != 'true'
     runs-on: windows-latest
-    permissions:
-      contents: write
-      packages: write
 
     steps:
     - name: 📥 Checkout Code
       uses: actions/checkout@v4
-      with:
-        fetch-depth: 0
-
-    - name: 🔖 Determine Version
-      id: version
-      shell: pwsh
-      run: |
-        if ("${{ github.event.inputs.version }}" -ne "") {
-          # Remove any leading 'v's from input version
-          $inputVersion = "${{ github.event.inputs.version }}" -replace '^v+', ''
-          $tag = "v$inputVersion"
-        } elseif ($env:GITHUB_REF -like 'refs/tags/*') {
-          $tag = $env:GITHUB_REF -replace '^refs/tags/', ''
-        } else {
-          Write-Error "Invalid GitHub ref for versioning: $env:GITHUB_REF. this workflow only supports tag-based invocation or explicit version input."
-          exit 1
-        }
-
-        # Ensure tag starts with 'v' and remove any extra 'v's
-        $tag = $tag -replace '^v+', 'v'
-
-        if (-not ($tag -match '^v[0-9]+(\.[0-9]+){2,3}$')) {
-          Write-Error "Derived tag '$tag' is not a valid semantic version tag (vMAJOR.MINOR.PATCH or vMAJOR.MINOR.PATCH.BUILD)."
-          exit 1
-        }
-
-        $version = $tag -replace '^v', ''
-        echo "tag=$tag" >> $env:GITHUB_OUTPUT
-        echo "version=$version" >> $env:GITHUB_OUTPUT
-        Write-Host "Building version: $version"
 
     - name: ⚙️ Setup .NET
       uses: actions/setup-dotnet@v4
       with:
         dotnet-version: '9.0.x'
 
-    - name: 📦 Restore NuGet Packages
-      shell: pwsh
-      run: |
-        dotnet restore ZeroMix.csproj
-        Write-Host "✅ Packages restored"
+    - name: 📦 Install dependencies
+      run: dotnet restore ZeroMix.csproj
 
-    - name: 🔨 Build ZeroMix
-      shell: pwsh
-      run: |
-        # First restore packages
-        dotnet restore ZeroMix.csproj
-        
-        # Build in Release mode
-        dotnet build ZeroMix.csproj `
-          -c Release `
-          -p:Version=${{ steps.version.outputs.version }} `
-          -p:InformationalVersion=${{ steps.version.outputs.tag }}
-        Write-Host "✅ Build completed"
+    - name: 🔨 Build
+      run: dotnet publish ZeroMix.csproj -c Release -o dist/ -p:Version=${{ needs.prepare.outputs.version }}
 
-    - name: 📦 Publish Release Build
-      shell: pwsh
-      run: |
-        # Create publish directory structure expected by Inno Setup
-        if (-not (Test-Path "./publish/win-x64")) {
-          New-Item -ItemType Directory -Path "./publish/win-x64" -Force | Out-Null
-        }
-        
-        dotnet publish ZeroMix.csproj `
-          -c Release `
-          -o ./publish/win-x64 `
-          -p:Version=${{ steps.version.outputs.version }}
-        Write-Host "✅ Publish completed to ./publish/win-x64"
-        
-        # Copy additional assets required by the application
-        Write-Host "📋 Copying additional assets..."
-        
-        # Copy Virtual_Assisten folder (Live2D models and assets)
-        if (Test-Path "./Virtual_Assisten") {
-          Copy-Item "./Virtual_Assisten" "./publish/win-x64/Virtual_Assisten" -Recurse -Force
-          Write-Host "✅ Virtual_Assisten copied"
-        }
-        
-        # Copy Resource folder if not already included
-        if (Test-Path "./Resource") {
-          Copy-Item "./Resource" "./publish/win-x64/Resource" -Recurse -Force
-          Write-Host "✅ Resource folder copied"
-        }
-        
-        # Copy Plugins folder if not already included
-        if (Test-Path "./Plugins") {
-          Copy-Item "./Plugins" "./publish/win-x64/Plugins" -Recurse -Force
-          Write-Host "✅ Plugins folder copied"
-        }
-        
-        # Copy update script
-        if (Test-Path "./zeromix-update.bat") {
-          Copy-Item "./zeromix-update.bat" "./publish/win-x64/zeromix-update.bat" -Force
-          Write-Host "✅ Update script copied"
-        }
-        
-        # Create Exe directory if not exists
-        if (-not (Test-Path "./Exe")) {
-          New-Item -ItemType Directory -Path "./Exe" | Out-Null
-        }
-        
-        # Copy published files to Exe directory for release
-        if (Test-Path "./publish/win-x64/ZeroMix.exe") {
-          Copy-Item "./publish/win-x64/ZeroMix.exe" "./Exe/ZeroMix-${{ steps.version.outputs.tag }}.exe"
-          Write-Host "✅ Executable copied to Exe folder"
-        }
-        
-        # Also copy to root for easier access
-        if (Test-Path "./publish/win-x64/ZeroMix.exe") {
-          Copy-Item "./publish/win-x64/ZeroMix.exe" "./ZeroMix-${{ steps.version.outputs.tag }}.exe"
-          Write-Host "✅ Executable copied to root"
-        }
-
-    - name: 📥 Download FFMPEG
-      shell: pwsh
-      run: |
-        # Create FFMPEG directory
-        if (-not (Test-Path "./FFMPEG")) {
-          New-Item -ItemType Directory -Path "./FFMPEG" -Force | Out-Null
-        }
-        
-        # Download latest FFMPEG static build for Windows
-        Write-Host "📥 Downloading FFMPEG..."
-        $ffmpegUrl = "https://www.gyan.dev/ffmpeg/builds/ffmpeg-release-essentials.zip"
-        $zipPath = "./ffmpeg-temp.zip"
-        
-        try {
-          Invoke-WebRequest -Uri $ffmpegUrl -OutFile $zipPath
-          Write-Host "✅ FFMPEG downloaded"
-          
-          # Extract ffmpeg.exe from zip
-          Expand-Archive -Path $zipPath -DestinationPath "./ffmpeg-temp" -Force
-          
-          # Find ffmpeg.exe in extracted files
-          $ffmpegExe = Get-ChildItem -Path "./ffmpeg-temp" -Recurse -Filter "ffmpeg.exe" | Select-Object -First 1
-          
-          if ($ffmpegExe) {
-            Copy-Item $ffmpegExe.FullName "./FFMPEG/ffmpeg.exe"
-            Write-Host "✅ FFMPEG extracted to ./FFMPEG/ffmpeg.exe"
-          } else {
-            Write-Host "⚠️  FFMPEG.exe not found in downloaded archive"
-          }
-          
-          # Cleanup
-          Remove-Item $zipPath -Force -ErrorAction SilentlyContinue
-          Remove-Item "./ffmpeg-temp" -Recurse -Force -ErrorAction SilentlyContinue
-          
-        } catch {
-          Write-Host "⚠️  Failed to download FFMPEG: $($_.Exception.Message)"
-          Write-Host "ℹ️  MSI build will fail, but portable EXE will still work"
-        }
-
-    - name: 🔐 Code Signing (Pre-Installer)
-      shell: pwsh
-      run: |
-        Write-Host "🔐 Setting up code signing..."
-        
-        # Download osslsigncode if not available
-        $SignTool = "./osslsigncode.exe"
-        if (-not (Test-Path $SignTool)) {
-          Write-Host "📥 Downloading osslsigncode..."
-          $downloaded = $false
-          $urls = @(
-            "https://github.com/mtrojnar/osslsigncode/releases/download/2.9/osslsigncode-2.9-win64.zip",
-            "https://github.com/mtrojnar/osslsigncode/releases/download/2.8/osslsigncode-2.8-win64.zip",
-            "https://github.com/mtrojnar/osslsigncode/releases/download/2.7/osslsigncode-2.7-win64.zip"
-          )
-
-          foreach ($url in $urls) {
-            try {
-              Write-Host "📥 Attempting: $url"
-              Invoke-WebRequest -Uri $url -OutFile "osslsigncode.zip" -TimeoutSec 30 -ErrorAction Stop
-              Write-Host "✅ Download successful"
-              $downloaded = $true
-              break
-            } catch {
-              Write-Host "⚠️  Failed: $($_.Exception.Message)"
-            }
-          }
-
-          if (-not $downloaded) {
-            Write-Host "⚠️  Failed to download osslsigncode. Skipping code signing."
-          } else {
-            Expand-Archive -Path "osslsigncode.zip" -DestinationPath "." -Force
-            $extractedDir = Get-ChildItem -Directory -Name | Where-Object { $_ -like "osslsigncode-*" } | Select-Object -First 1
-            if ($extractedDir) {
-              Copy-Item "$extractedDir/osslsigncode.exe" $SignTool -Force
-              Remove-Item $extractedDir -Recurse -Force
-            }
-            Remove-Item "osslsigncode.zip" -Force
-          }
-        }
-
-        if (-not (Test-Path $SignTool)) {
-          Write-Host "⚠️  osslsigncode not available. Skipping code signing."
-          exit 0
-        }
-        
-        $CertPass = "${{ secrets.CERT_PASSWORD }}"
-        if (-not $CertPass) {
-          Write-Host "⚠️  CERT_PASSWORD secret not set. Skipping code signing."
-          exit 0
-        }
-        
-        # Sign main executable BEFORE Inno Setup bundles it
-        $ExePath = "./publish/win-x64/ZeroMix.exe"
-        if (Test-Path $ExePath) {
-          Write-Host "🔐 Signing main executable..."
-          & $SignTool sign -pkcs12 "./Exe/ZeroMixCert.pfx" -pass $CertPass -n "ZeroMix" -i "https://zeromix.pages.dev" -t "http://timestamp.digicert.com" -in $ExePath -out "$ExePath.signed"
-          if ($LASTEXITCODE -eq 0) {
-            Move-Item "$ExePath.signed" $ExePath -Force
-            Write-Host "✅ Main executable signed successfully"
-          } else {
-            Write-Host "⚠️  Failed to sign main executable"
-          }
-        }
-
-    - name: 🧩 Build Installer (Inno Setup)
-      shell: pwsh
-      run: |
-        # Download Inno Setup if not installed
-        Write-Host "📥 Checking Inno Setup..."
-        $InnoSetupPath = "C:\Program Files (x86)\Inno Setup 6\ISCC.exe"
-        
-        if (-not (Test-Path $InnoSetupPath)) {
-          Write-Host "ℹ️  Inno Setup not found, attempting to install via Chocolatey..."
-          choco install innosetup -y
-        }
-        
-        # Build EXE Installer (Inno Setup, NOT MSI)
-        Write-Host "🏗️  Building EXE installer..."
-        $InnoSetupPath = "C:\Program Files (x86)\Inno Setup 6\ISCC.exe"
-        
-        if (Test-Path $InnoSetupPath) {
-          # Pass version to Inno Setup so it overrides the hardcoded default
-          & $InnoSetupPath /DAppVersion=${{ steps.version.outputs.version }} /F"ZeroMix-${{ steps.version.outputs.tag }}-Setup" "./Exe/Setup.iss"
-          
-          if ($LASTEXITCODE -eq 0) {
-            Write-Host "✅ Installer created successfully"
-            
-            if (Test-Path "./Exe/ZeroMix-${{ steps.version.outputs.tag }}-Setup.exe") {
-              Write-Host "✅ Installer ready: ZeroMix-${{ steps.version.outputs.tag }}-Setup.exe"
-            }
-          } else {
-            Write-Host "⚠️  Installer build failed with exit code: $LASTEXITCODE"
-          }
-        } else {
-          Write-Host "⚠️  Inno Setup not available, skipping installer build"
-        }
-
-    - name: 🔐 Sign Installer
-      shell: pwsh
-      run: |
-        $SignTool = "./osslsigncode.exe"
-        $CertPass = "${{ secrets.CERT_PASSWORD }}"
-        
-        if (-not (Test-Path $SignTool) -or -not $CertPass) {
-          Write-Host "⚠️  Signing tool or cert password not available. Skipping installer signing."
-          exit 0
-        }
-        
-        # Sign the installer (main exe was already signed pre-bundling)
-        $InstallerPath = "./Exe/ZeroMix-${{ steps.version.outputs.tag }}-Setup.exe"
-        if (Test-Path $InstallerPath) {
-          Write-Host "🔐 Signing installer..."
-          & $SignTool sign -pkcs12 "./Exe/ZeroMixCert.pfx" -pass $CertPass -n "ZeroMix" -i "https://zeromix.pages.dev" -t "http://timestamp.digicert.com" -in $InstallerPath -out "$InstallerPath.signed"
-          if ($LASTEXITCODE -eq 0) {
-            Move-Item "$InstallerPath.signed" $InstallerPath -Force
-            Write-Host "✅ Installer signed successfully"
-          } else {
-            Write-Host "⚠️  Failed to sign installer"
-          }
-        }
-
-    - name: 📝 Generate Changelog
-      id: changelog
-      continue-on-error: true
-      shell: bash
-      run: |
-        TAG="${{ steps.version.outputs.tag }}"
-        PREV_TAG=$(git tag -l 'v*' --sort=-version:refname 2>/dev/null | head -2 | tail -1)
-        
-        if [ -z "$PREV_TAG" ]; then
-          COMMIT_RANGE="--all"
-        else
-          COMMIT_RANGE="$PREV_TAG..$TAG"
-        fi
-        
-        > /tmp/changelog.md
-        
-        # Features
-        FEATURES=$(git log $COMMIT_RANGE --oneline --grep="feat" --grep="feature" --all-match --pretty=format:"- %s" 2>/dev/null | sort | uniq | head -20)
-        if [ -n "$FEATURES" ]; then
-          echo "### ✨ Features" >> /tmp/changelog.md
-          echo "$FEATURES" >> /tmp/changelog.md
-          echo "" >> /tmp/changelog.md
-        fi
-        
-        # Bug Fixes
-        FIXES=$(git log $COMMIT_RANGE --oneline --grep="fix\|bug" --all-match --pretty=format:"- %s" 2>/dev/null | sort | uniq | head -20)
-        if [ -n "$FIXES" ]; then
-          echo "### 🐛 Bug Fixes" >> /tmp/changelog.md
-          echo "$FIXES" >> /tmp/changelog.md
-          echo "" >> /tmp/changelog.md
-        fi
-        
-        # Improvements
-        IMPROVEMENTS=$(git log $COMMIT_RANGE --oneline --grep="improve\|refactor\|perf" --all-match --pretty=format:"- %s" 2>/dev/null | sort | uniq | head -10)
-        if [ -n "$IMPROVEMENTS" ]; then
-          echo "### 🚀 Improvements" >> /tmp/changelog.md
-          echo "$IMPROVEMENTS" >> /tmp/changelog.md
-          echo "" >> /tmp/changelog.md
-        fi
-        
-        if [ ! -s /tmp/changelog.md ]; then
-          echo "### 📝 Updates" >> /tmp/changelog.md
-          echo "- Bug fixes and improvements" >> /tmp/changelog.md
-        fi
-        
-        echo "CHANGELOG<<EOF" >> $GITHUB_ENV
-        cat /tmp/changelog.md >> $GITHUB_ENV
-        echo "EOF" >> $GITHUB_ENV
-
-    - name: 💾 Upload Artifacts (Action Run)
+    - name: 📦 Upload Artifact
       uses: actions/upload-artifact@v4
       with:
-        name: ZeroMix-Build-${{ steps.version.outputs.tag }}
-        path: |
-          ZeroMix-${{ steps.version.outputs.tag }}.exe
-          Exe/ZeroMix-${{ steps.version.outputs.tag }}.exe
-          Exe/ZeroMix-${{ steps.version.outputs.tag }}-Setup.exe
+        name: app-build
+        path: dist/
 
-    - name: 📦 Create GitHub Release with Assets
-      uses: softprops/action-gh-release@v2
-      if: startsWith(github.ref, 'refs/tags/') || github.event_name == 'workflow_dispatch'
-      with:
-        tag_name: ${{ steps.version.outputs.tag }}
-        name: "🎉 ZeroMix ${{ steps.version.outputs.tag }}"
-        files: |
-          ZeroMix-${{ steps.version.outputs.tag }}.exe
-          Exe/ZeroMix-${{ steps.version.outputs.tag }}.exe
-          Exe/ZeroMix-${{ steps.version.outputs.tag }}-Setup.exe
-        body: |
-          # 🎉 ZeroMix Release ${{ steps.version.outputs.tag }}
-          
-          **Version:** v${{ steps.version.outputs.version }}  
-          **Status:** ✅ Production Release  
-          
-          ---
-          
-          ## 📋 What's Changed
-          
-          ${{ env.CHANGELOG }}
-          
-          ---
-          
-          ## 📥 Download Options
-          
-          Choose your preferred installation method:
-          
-          ### 🔹 **Portable** (Recommended for testing)
-          - Download: `ZeroMix-${{ steps.version.outputs.tag }}.exe`
-          - Just run, no installation needed
-          
-          ### 🔹 **Installer** (Recommended for regular use)
-          - Download: `ZeroMix-${{ steps.version.outputs.tag }}-Setup.exe`
-          - Professional EXE installer (Inno Setup)
-          - Adds to Start Menu, Add/Remove Programs
-          - One-click uninstall support
-          
-          All files available in **Assets** section below ⬇️
-          
-          ---
-          
-          ## 🖥️ System Requirements
-          
-          - **Windows:** 10/11 (64-bit)
-          - **.NET Runtime:** 9.0 or later
-          - **GPU:** DirectX 12 compatible
-          - **RAM:** 2GB minimum (4GB+ recommended)
-          
-          ## 🔗 Links
-          
-          - 📚 [Documentation](https://github.com/faizinuha/ZeroMix/wiki)
-          - 🐛 [Report Issues](https://github.com/faizinuha/ZeroMix/issues)
-          - 💬 [Discussions](https://github.com/faizinuha/ZeroMix/discussions)  
-          - 📖 [Full Changelog](https://github.com/faizinuha/ZeroMix/blob/ProyekTil/CHANGELOG.md)
-          
-          ---
-          
-          ⭐ If you like ZeroMix, please consider giving us a star!
-          
-        draft: false
-        prerelease: false
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-    - name: ✅ Build & Release Complete
-      run: |
-        Write-Host "=================================================="
-        Write-Host "✅ Build & Release Successful!"
-        Write-Host "=================================================="
-        Write-Host "Version: ${{ steps.version.outputs.tag }}"
-        Write-Host "GitHub Release: https://github.com/faizinuha/ZeroMix/releases/tag/${{ steps.version.outputs.tag }}"
-        Write-Host "=================================================="
 
