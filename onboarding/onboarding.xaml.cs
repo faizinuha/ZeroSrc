@@ -18,6 +18,7 @@ namespace ZeroMix.Onboarding
         private int _currentSlideIndex = 0;
         private const int TotalSlides = 7;
         private List<Grid> _slides = new List<Grid>();
+        private static readonly HttpClient _httpClient = new HttpClient();
 
         public OnboardingWindow()
         {
@@ -109,11 +110,11 @@ namespace ZeroMix.Onboarding
         {
             try
             {
-                using var client = new HttpClient();
-                client.DefaultRequestHeaders.UserAgent.ParseAdd("ZeroMix-App");
+                _httpClient.DefaultRequestHeaders.UserAgent.Clear();
+                _httpClient.DefaultRequestHeaders.UserAgent.ParseAdd("ZeroMix-App");
 
                 var url = "https://api.github.com/repos/faizinuha/ZeroMix/releases";
-                var response = await client.GetAsync(url);
+                var response = await _httpClient.GetAsync(url);
 
                 if (!response.IsSuccessStatusCode) return;
 

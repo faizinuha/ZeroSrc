@@ -54,7 +54,7 @@ jobs:
           if [ -z "$PATCH" ]; then PATCH=0; fi
           if [ -z "$BUILD" ]; then BUILD=0; fi
           
-          if [[ $COMMIT_MSG =~ ^fix: ]]; then
+          if [[ $COMMIT_MSG =~ ^fix: ]] || [[ $COMMIT_MSG =~ ^chore: ]]; then
             if [ "$BUILD" -ne 0 ]; then
               NEW_VERSION="$MAJOR.$MINOR.$PATCH.$((BUILD+1))"
             else

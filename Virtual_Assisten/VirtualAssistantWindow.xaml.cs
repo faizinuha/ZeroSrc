@@ -69,7 +69,7 @@ namespace ZeroMix.Virtual_Assisten
             _autoTalkTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(60) };
             _autoTalkTimer.Tick += (s, e) => ShowNextChatMessage();
 
-            _eyeTrackingTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(100) };
+            _eyeTrackingTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(200) };
             _eyeTrackingTimer.Tick += UpdateEyeTracking;
             _eyeTrackingTimer.Start();
 
@@ -164,10 +164,16 @@ namespace ZeroMix.Virtual_Assisten
             };
         }
 
+        private System.Windows.Point _lastMousePoint;
         private async void UpdateEyeTracking(object? sender, EventArgs e)
         {
             if (!_isWebViewInitialized || !this.IsVisible || _isScriptRunning) return;
             var point = System.Windows.Forms.Control.MousePosition;
+            
+            // Optimization: Only update if mouse moved enough (> 5 pixels)
+            if (Math.Abs(point.X - _lastMousePoint.X) < 5 && Math.Abs(point.Y - _lastMousePoint.Y) < 5) return;
+            _lastMousePoint = new System.Windows.Point(point.X, point.Y);
+
             double diffX = Math.Max(-1, Math.Min(1, (point.X - (this.Left + Width/2)) / 400.0));
             double diffY = Math.Max(-1, Math.Min(1, -(point.Y - (this.Top + Height/2 + 50)) / 400.0));
             _isScriptRunning = true;
