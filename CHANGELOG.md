@@ -8,7 +8,7 @@
 
 ### 📊 Commit Summary
 - Total commits: **1**
-- Range: v5.0.0.2..HEAD
+- Range: v5.0.3..HEAD
 - Generated: Tue Mar 31 11:37:27 UTC 2026
 
 # ZeroMix - Changelog
