@@ -144,11 +144,11 @@
             app.ticker.maxFPS = 30;
           });
 
-          // Auto-Motion every 4 seconds (longer interval saves CPU)
+          // Auto-Motion every 5-10 seconds (random interval for natural feel)
           if (autoMotionTimer) clearInterval(autoMotionTimer);
           autoMotionTimer = setInterval(() => {
-            if (isModelLoaded) playSpecialMotion();
-          }, 4000);
+            if (isModelLoaded) playIdleMotion();
+          }, 5000 + Math.random() * 5000); // 5-10 seconds
 
           console.log("[Live2D] Initialized");
         } catch (error) {
@@ -171,10 +171,15 @@
         if (model) {
           app.stage.removeChild(model);
           model.destroy();
+          model = null; // Ensure complete cleanup
         }
 
+        // Clear any cached resources for this path
+        const cacheBuster = '?t=' + Date.now();
+        const cacheBustedPath = path + cacheBuster;
+
         try {
-          model = await PIXI.live2d.Live2DModel.from(path, {
+          model = await PIXI.live2d.Live2DModel.from(cacheBustedPath, {
             autoInteract: true,
             autoUpdate: true,
           });
@@ -280,11 +285,11 @@
         }
 
         if (!isMotionPlaying) {
-          playSpecialMotion();
+          playIdleMotion();
         }
       }
 
-      async function playSpecialMotion() {
+      async function playIdleMotion() {
         if (!model || !model.internalModel || isMotionPlaying) return;
 
         try {

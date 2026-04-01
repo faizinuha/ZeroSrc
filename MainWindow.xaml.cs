@@ -1768,9 +1768,46 @@ end";
                                 MessageBoxButton.YesNo, 
                                 MessageBoxImage.Information);
 
-                            if (result == MessageBoxResult.Yes)
+                        if (result == MessageBoxResult.Yes)
                             {
-                                Process.Start(new ProcessStartInfo(downloadUrl) { UseShellExecute = true });
+                                // Jalankan updater script di terminal
+                                string updaterScript = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "zeromix-update.bat");
+                                
+                                if (System.IO.File.Exists(updaterScript))
+                                {
+                                    var processInfo = new ProcessStartInfo
+                                    {
+                                        FileName = "cmd.exe",
+                                        Arguments = $"/c \"{updaterScript}\"",
+                                        UseShellExecute = true,
+                                        CreateNoWindow = false,
+                                        WindowStyle = ProcessWindowStyle.Normal
+                                    };
+                                    
+                                    try
+                                    {
+                                        Process.Start(processInfo);
+                                        System.Windows.MessageBox.Show(
+                                            "Updater dimulai! Proses update akan berjalan di terminal.\n\n" +
+                                            "ZeroMix akan restart otomatis setelah instalasi selesai.",
+                                            "Update Started",
+                                            MessageBoxButton.OK,
+                                            MessageBoxImage.Information);
+                                    }
+                                    catch (Exception ex)
+                                    {
+                                        System.Windows.MessageBox.Show(
+                                            $"Gagal menjalankan updater: {ex.Message}\n\nCoba download manual dari GitHub.",
+                                            "Update Error",
+                                            MessageBoxButton.OK,
+                                            MessageBoxImage.Error);
+                                    }
+                                }
+                                else
+                                {
+                                    // Fallback ke download manual
+                                    Process.Start(new ProcessStartInfo(downloadUrl) { UseShellExecute = true });
+                                }
                             }
                         }
                         else
