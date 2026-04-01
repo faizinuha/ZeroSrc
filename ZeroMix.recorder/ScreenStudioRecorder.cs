@@ -145,6 +145,8 @@ namespace ZeroMix.Recorder
             double ticksPerFrame = Stopwatch.Frequency / (double)_framerate;
             var masterClock = Stopwatch.StartNew();
             long frameIndex = 0;
+            int consecutiveErrors = 0;
+            const int maxConsecutiveErrors = 10;
 
             try
             {
@@ -188,8 +190,17 @@ namespace ZeroMix.Recorder
                         if (rawFrame == null)
                         {
                             frameIndex++;
+                            consecutiveErrors++;
+                            if (consecutiveErrors >= maxConsecutiveErrors)
+                            {
+                                Console.WriteLine($"[ScreenStudioRecorder] Too many consecutive frame capture failures ({consecutiveErrors}), stopping recording.");
+                                _isRecording = false;
+                                break;
+                            }
                             continue;
                         }
+
+                        consecutiveErrors = 0; // Reset error count on success
 
                         if (_compositor != null && _camera != null && _cursorTracker != null)
                         {
@@ -221,6 +232,13 @@ namespace ZeroMix.Recorder
                     catch (Exception ex)
                     {
                         Console.WriteLine($"[ScreenStudioRecorder] ERROR in recording loop iteration: {ex.GetType().Name} - {ex.Message}");
+                        consecutiveErrors++;
+                        if (consecutiveErrors >= maxConsecutiveErrors)
+                        {
+                            Console.WriteLine($"[ScreenStudioRecorder] Too many consecutive errors ({consecutiveErrors}), stopping recording.");
+                            _isRecording = false;
+                            break;
+                        }
                         // Continue processing instead of crashing
                         Thread.Sleep(10);
                     }

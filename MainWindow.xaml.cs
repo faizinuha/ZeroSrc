@@ -1151,8 +1151,19 @@ namespace ZeroMix
                     catch (Exception ex)
                     {
                         Console.WriteLine($"[ZeroRecord] Start Error: {ex.Message}");
+                        Dispatcher.Invoke(() => {
+                            System.Windows.MessageBox.Show($"Failed to start recording:\n{ex.Message}", "Recording Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                        });
                         return false;
                     }
+                }).ContinueWith(task => {
+                    // Timeout protection - if task takes too long, assume failure
+                    if (!task.Wait(TimeSpan.FromSeconds(10)))
+                    {
+                        Console.WriteLine("[ZeroRecord] Recording start timed out!");
+                        return false;
+                    }
+                    return task.Result;
                 });
 
                 if (started)
