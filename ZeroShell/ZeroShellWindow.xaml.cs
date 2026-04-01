@@ -358,7 +358,7 @@ namespace ZeroMix.ZeroShell
             // Arch Linux Style Info
             string ownerLine = $" Owner      : {Environment.UserName}@{Environment.MachineName.ToLower()}";
             string osLine    = $" OS         : ZeroMix {Environment.OSVersion.VersionString}";
-            string modelLine = $" Model      : ZeroStation v5.0.0";
+            string modelLine = $" Model      : ZeroStation v5.0.3";
             string cpuLine   = $" Processor  : {GetSimpleCPU()}";
             string gpuLine   = $" Graphics   : Generic High Performance GPU";
             string memLine   = $" Memory     : {GetSimpleRAM()}";

@@ -1,11 +1,11 @@
-; ZeroMix Installer Script (Professional v5.0.0)
+; ZeroMix Installer Script (Professional v5.0.3)
 ; ==============================================================================
 
 [Setup]
 ; --- App Identity ---
 AppId={{ZeroMix-v2-ZeroMix-identifier}}
 AppName=ZeroMix
-#define AppVersion "5.0.0"
+#define AppVersion "5.0.3"
 AppVersion={#AppVersion}
 VersionInfoVersion={#AppVersion}.0
 VersionInfoCompany=Frieren
