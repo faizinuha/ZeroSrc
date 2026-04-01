@@ -214,10 +214,22 @@ jobs:
         $SignTool = "./osslsigncode.exe"
         if (-not (Test-Path $SignTool)) {
           Write-Host "📥 Downloading osslsigncode..."
-          Invoke-WebRequest -Uri "https://github.com/mtrojnar/osslsigncode/releases/download/2.8/osslsigncode-2.8-win64.zip" -OutFile "osslsigncode.zip"
+          # Try latest version first, fallback to known working version
+          try {
+            Invoke-WebRequest -Uri "https://github.com/mtrojnar/osslsigncode/releases/latest/download/osslsigncode-2.9-win64.zip" -OutFile "osslsigncode.zip"
+          } catch {
+            Write-Host "⚠️  Latest version failed, trying 2.8..."
+            Invoke-WebRequest -Uri "https://github.com/mtrojnar/osslsigncode/releases/download/2.8/osslsigncode-2.8-win64.zip" -OutFile "osslsigncode.zip"
+          }
           Expand-Archive -Path "osslsigncode.zip" -DestinationPath "." -Force
-          Copy-Item "osslsigncode-2.8-win64/osslsigncode.exe" $SignTool
-          Remove-Item "osslsigncode.zip", "osslsigncode-2.8-win64" -Recurse -Force
+          
+          # Find the correct directory name
+          $extractedDir = Get-ChildItem -Directory -Name | Where-Object { $_ -like "osslsigncode-*" } | Select-Object -First 1
+          if ($extractedDir) {
+            Copy-Item "$extractedDir/osslsigncode.exe" $SignTool
+            Remove-Item $extractedDir -Recurse -Force
+          }
+          Remove-Item "osslsigncode.zip" -Force
         }
         
         # Sign main executable
