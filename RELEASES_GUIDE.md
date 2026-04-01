@@ -1,6 +1,6 @@
 # 📖 Release Management Guide
 
-**Complete automated release pipeline with Conventional Commits & MSI installer.**
+**Complete automated release pipeline with Conventional Commits & signed installer.**
 
 ---
 
@@ -67,14 +67,16 @@ ZeroMix-v1.0.0.exe
 - No installation needed
 - Good for testing
 
-### 3. **MSI Installer**
+### 3. **EXE Installer** (Inno Setup)
 ```
 ZeroMix-v1.0.0-Setup.exe
 ```
-- Professional installer
+- Professional installer (Inno Setup)
+- Signed with code certificate
 - Adds to Start Menu
 - Add/Remove Programs support
 - Easy uninstall
+- Checks .NET 9 & WebView2 dependencies
 
 ---
 
@@ -90,26 +92,30 @@ When you push a tag:
    ├─ Checkout code
    ├─ Setup .NET 9.0
    ├─ Build for Release
-   └─ Publish executable
+   ├─ Publish executable
+   └─ Download FFMPEG
 
-3. Generate Installer
-   ├─ Create MSI using Inno Setup
-   ├─ Copy exe files to release folder
-   └─ Package for distribution
+3. Code Signing (Pre-Installer)
+   ├─ Download osslsigncode
+   ├─ Sign main ZeroMix.exe
+   └─ Uses CERT_PASSWORD secret
 
-4. Generate Changelog
+4. Generate Installer
+   ├─ Create EXE installer using Inno Setup
+   ├─ Bundles the SIGNED exe inside
+   ├─ Version passed via /DAppVersion=
+   └─ Sign the installer itself
+
+5. Generate Changelog
    ├─ Parse your commits
    ├─ Categorize (feat/fix/refactor)
-   └─ Create summary**
+   └─ Create summary
 
-5. Create GitHub Release
+6. Create GitHub Release
    ├─ Release page created
    ├─ Summary added
-   ├─ Both EXE and MSI attached
+   ├─ Both EXE and Installer attached
    └─ Ready for download!
-
-6. (Next Day) Daily Auto-Update
-   └─ Prepare CHANGELOG for next release
 ```
 
 ---
@@ -139,7 +145,8 @@ What's Changed
 
 🖥️ System Requirements
 - Windows 10/11 (64-bit)
-- .NET 9.0 Runtime
+- .NET 9.0 Desktop Runtime
+- WebView2 Runtime
 - DirectX 12 compatible GPU
 - 2GB RAM minimum
 ```
@@ -182,10 +189,15 @@ What's Changed
 2. Check tag format: `v1.0.0` (not `1.0.0`)
 3. Ensure commits between last tag and now
 
-**MSI didn't build?**
-1. Normal - MSI build can fail on some servers
-2. Portable EXE still available
-3. Try again - often works second time
+**Installer didn't build?**
+1. Check Inno Setup step in Actions log
+2. Portable EXE still available as fallback
+3. Verify Setup.iss paths are correct
+
+**Code signing skipped?**
+1. Set `CERT_PASSWORD` secret in repo Settings → Secrets → Actions
+2. Check if `ZeroMixCert.pfx` exists in `Exe/` folder
+3. osslsigncode download may have failed — check logs
 
 ---
 

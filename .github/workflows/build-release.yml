@@ -172,40 +172,7 @@ jobs:
           Write-Host "ℹ️  MSI build will fail, but portable EXE will still work"
         }
 
-    - name: 🧩 Build MSI Installer (Inno Setup)
-      shell: pwsh
-      run: |
-        # Download Inno Setup if not installed
-        Write-Host "📥 Checking Inno Setup..."
-        $InnoSetupPath = "C:\Program Files (x86)\Inno Setup 6\ISCC.exe"
-        
-        if (-not (Test-Path $InnoSetupPath)) {
-          Write-Host "ℹ️  Inno Setup not found, attempting to install via Chocolatey..."
-          choco install innosetup -y
-        }
-        
-        # Build MSI
-        Write-Host "🏗️  Building MSI installer..."
-        $InnoSetupPath = "C:\Program Files (x86)\Inno Setup 6\ISCC.exe"
-        
-        if (Test-Path $InnoSetupPath) {
-          & $InnoSetupPath /F"ZeroMix-${{ steps.version.outputs.tag }}-Setup" "./Exe/Setup.iss"
-          
-          if ($LASTEXITCODE -eq 0) {
-            Write-Host "✅ MSI installer created successfully"
-            
-            # Verify MSI was created
-            if (Test-Path "./Exe/ZeroMix-${{ steps.version.outputs.tag }}-Setup.exe") {
-              Write-Host "✅ MSI file ready: ZeroMix-${{ steps.version.outputs.tag }}-Setup.exe"
-            }
-          } else {
-            Write-Host "⚠️  MSI build failed with exit code: $LASTEXITCODE"
-          }
-        } else {
-          Write-Host "⚠️  Inno Setup not available, skipping MSI build"
-        }
-
-    - name: 🔐 Code Signing
+    - name: 🔐 Code Signing (Pre-Installer)
       shell: pwsh
       run: |
         Write-Host "🔐 Setting up code signing..."
@@ -218,9 +185,7 @@ jobs:
           $urls = @(
             "https://github.com/mtrojnar/osslsigncode/releases/download/2.9/osslsigncode-2.9-win64.zip",
             "https://github.com/mtrojnar/osslsigncode/releases/download/2.8/osslsigncode-2.8-win64.zip",
-            "https://github.com/mtrojnar/osslsigncode/releases/download/2.7/osslsigncode-2.7-win64.zip",
-            "https://github.com/mtrojnar/osslsigncode/releases/download/2.6/osslsigncode-2.6-win64.zip",
-            "https://github.com/mtrojnar/osslsigncode/releases/download/2.5/osslsigncode-2.5-win64.zip"
+            "https://github.com/mtrojnar/osslsigncode/releases/download/2.7/osslsigncode-2.7-win64.zip"
           )
 
           foreach ($url in $urls) {
@@ -239,8 +204,6 @@ jobs:
             Write-Host "⚠️  Failed to download osslsigncode. Skipping code signing."
           } else {
             Expand-Archive -Path "osslsigncode.zip" -DestinationPath "." -Force
-
-            # Find the correct directory name
             $extractedDir = Get-ChildItem -Directory -Name | Where-Object { $_ -like "osslsigncode-*" } | Select-Object -First 1
             if ($extractedDir) {
               Copy-Item "$extractedDir/osslsigncode.exe" $SignTool -Force
@@ -251,28 +214,78 @@ jobs:
         }
 
         if (-not (Test-Path $SignTool)) {
-          Write-Host "⚠️  osslsigncode executable not available. Skipping code signing steps."
+          Write-Host "⚠️  osslsigncode not available. Skipping code signing."
           exit 0
         }
         
-        # Sign main executable
+        $CertPass = "${{ secrets.CERT_PASSWORD }}"
+        if (-not $CertPass) {
+          Write-Host "⚠️  CERT_PASSWORD secret not set. Skipping code signing."
+          exit 0
+        }
+        
+        # Sign main executable BEFORE Inno Setup bundles it
         $ExePath = "./publish/win-x64/ZeroMix.exe"
         if (Test-Path $ExePath) {
           Write-Host "🔐 Signing main executable..."
-          & $SignTool sign -pkcs12 "./Exe/ZeroMixCert.pfx" -pass "ZeroMixPass" -n "ZeroMix" -i "https://zeromix.pages.dev" -t "http://timestamp.digicert.com" -in $ExePath -out "$ExePath.signed"
+          & $SignTool sign -pkcs12 "./Exe/ZeroMixCert.pfx" -pass $CertPass -n "ZeroMix" -i "https://zeromix.pages.dev" -t "http://timestamp.digicert.com" -in $ExePath -out "$ExePath.signed"
           if ($LASTEXITCODE -eq 0) {
             Move-Item "$ExePath.signed" $ExePath -Force
-            Write-Host "✅ Executable signed successfully"
+            Write-Host "✅ Main executable signed successfully"
           } else {
-            Write-Host "⚠️  Failed to sign executable"
+            Write-Host "⚠️  Failed to sign main executable"
           }
         }
+
+    - name: 🧩 Build Installer (Inno Setup)
+      shell: pwsh
+      run: |
+        # Download Inno Setup if not installed
+        Write-Host "📥 Checking Inno Setup..."
+        $InnoSetupPath = "C:\Program Files (x86)\Inno Setup 6\ISCC.exe"
         
-        # Sign installer
+        if (-not (Test-Path $InnoSetupPath)) {
+          Write-Host "ℹ️  Inno Setup not found, attempting to install via Chocolatey..."
+          choco install innosetup -y
+        }
+        
+        # Build EXE Installer (Inno Setup, NOT MSI)
+        Write-Host "🏗️  Building EXE installer..."
+        $InnoSetupPath = "C:\Program Files (x86)\Inno Setup 6\ISCC.exe"
+        
+        if (Test-Path $InnoSetupPath) {
+          # Pass version to Inno Setup so it overrides the hardcoded default
+          & $InnoSetupPath /DAppVersion=${{ steps.version.outputs.version }} /F"ZeroMix-${{ steps.version.outputs.tag }}-Setup" "./Exe/Setup.iss"
+          
+          if ($LASTEXITCODE -eq 0) {
+            Write-Host "✅ Installer created successfully"
+            
+            if (Test-Path "./Exe/ZeroMix-${{ steps.version.outputs.tag }}-Setup.exe") {
+              Write-Host "✅ Installer ready: ZeroMix-${{ steps.version.outputs.tag }}-Setup.exe"
+            }
+          } else {
+            Write-Host "⚠️  Installer build failed with exit code: $LASTEXITCODE"
+          }
+        } else {
+          Write-Host "⚠️  Inno Setup not available, skipping installer build"
+        }
+
+    - name: 🔐 Sign Installer
+      shell: pwsh
+      run: |
+        $SignTool = "./osslsigncode.exe"
+        $CertPass = "${{ secrets.CERT_PASSWORD }}"
+        
+        if (-not (Test-Path $SignTool) -or -not $CertPass) {
+          Write-Host "⚠️  Signing tool or cert password not available. Skipping installer signing."
+          exit 0
+        }
+        
+        # Sign the installer (main exe was already signed pre-bundling)
         $InstallerPath = "./Exe/ZeroMix-${{ steps.version.outputs.tag }}-Setup.exe"
         if (Test-Path $InstallerPath) {
           Write-Host "🔐 Signing installer..."
-          & $SignTool sign -pkcs12 "./Exe/ZeroMixCert.pfx" -pass "ZeroMixPass" -n "ZeroMix" -i "https://zeromix.pages.dev" -t "http://timestamp.digicert.com" -in $InstallerPath -out "$InstallerPath.signed"
+          & $SignTool sign -pkcs12 "./Exe/ZeroMixCert.pfx" -pass $CertPass -n "ZeroMix" -i "https://zeromix.pages.dev" -t "http://timestamp.digicert.com" -in $InstallerPath -out "$InstallerPath.signed"
           if ($LASTEXITCODE -eq 0) {
             Move-Item "$InstallerPath.signed" $InstallerPath -Force
             Write-Host "✅ Installer signed successfully"
@@ -364,7 +377,7 @@ jobs:
           
           ### 🔹 **Installer** (Recommended for regular use)
           - Download: `ZeroMix-${{ steps.version.outputs.tag }}-Setup.exe`
-          - Professional MSI installer
+          - Professional EXE installer (Inno Setup)
           - Adds to Start Menu, Add/Remove Programs
           - One-click uninstall support
           
@@ -394,7 +407,6 @@ jobs:
         prerelease: false
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      continue-on-error: true
 
     - name: ✅ Build & Release Complete
       run: |
