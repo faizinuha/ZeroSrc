@@ -24,8 +24,6 @@ OutputDir=.
 OutputBaseFilename=ZeroMix-Setup-v{#AppVersion}
 Compression=lzma2/ultra64
 SolidCompression=yes
-DiskSpanning=yes
-DiskSliceSize=2100000000
 DisableProgramGroupPage=no
 UninstallDisplayIcon={app}\zeromix.ico
 
@@ -48,9 +46,10 @@ RestartIfNeededByRun=yes
 Name: "indonesian"; MessagesFile: "Languages\Indonesian.isl"
 Name: "english"; MessagesFile: "compiler:Default.isl"
 Name: "japanese"; MessagesFile: "Languages\Japanese.isl"
+Name: "chinese"; MessagesFile: "Languages\Chinese.isl"
 
 [Dirs]
-Name: "{app}"; Permissions: users-modify
+Name: "{app}"
 Name: "{userappdata}\ZeroMix"; Permissions: users-modify
 
 [Files]
@@ -107,17 +106,42 @@ begin
   Result := Success and (Pos('9.', InstallRoot) = 1);
 end;
 
+function IsWebView2Installed(): Boolean;
+var
+  Success: Boolean;
+  Version: String;
+begin
+  // Cek WebView2 Runtime via registry (system-wide)
+  Success := RegQueryStringValue(HKLM, 'SOFTWARE\WOW6432Node\Microsoft\EdgeUpdate\Clients\{F3017226-FE2A-4295-8BEF-56B317BF7F50}', 'pv', Version);
+  if not Success then
+    // Fallback: cek per-user installation
+    Success := RegQueryStringValue(HKCU, 'SOFTWARE\Microsoft\EdgeUpdate\Clients\{F3017226-FE2A-4295-8BEF-56B317BF7F50}', 'pv', Version);
+  Result := Success and (Version <> '') and (Version <> '0.0.0.0');
+end;
+
 function InitializeSetup(): Boolean;
 var
   ErrorCode: Integer;
 begin
   Result := True;
   
+  // Cek .NET 9 Desktop Runtime
   if not IsDotNet9Installed() then
   begin
-    if MsgBox('ZeroMix membutuhkan .NET 9.0 Desktop Runtime. Apakah Kakak ingin mendownloadnya sekarang?', mbConfirmation, MB_YESNO) = IDYES then
+    if MsgBox('ZeroMix membutuhkan .NET 9.0 Desktop Runtime.' + #13#10 + #13#10 + 'Apakah Kakak ingin mendownloadnya sekarang?', mbConfirmation, MB_YESNO) = IDYES then
     begin
       ShellExec('open', 'https://dotnet.microsoft.com/en-us/download/dotnet/9.0', '', '', SW_SHOWNORMAL, ewNoWait, ErrorCode);
+    end;
+    Result := False;
+    Exit;
+  end;
+
+  // Cek WebView2 Runtime (dibutuhkan untuk UI rendering)
+  if not IsWebView2Installed() then
+  begin
+    if MsgBox('ZeroMix membutuhkan Microsoft Edge WebView2 Runtime.' + #13#10 + 'Komponen ini diperlukan untuk tampilan UI.' + #13#10 + #13#10 + 'Apakah Kakak ingin mendownloadnya sekarang?', mbConfirmation, MB_YESNO) = IDYES then
+    begin
+      ShellExec('open', 'https://developer.microsoft.com/en-us/microsoft-edge/webview2/#download-section', '', '', SW_SHOWNORMAL, ewNoWait, ErrorCode);
     end;
     Result := False;
     Exit;

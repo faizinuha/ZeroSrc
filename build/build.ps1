@@ -44,7 +44,13 @@ $ToolsDir    = Join-Path $ExeDir "bin"
 $ProjectFile = Join-Path $ProjectRoot "ZeroMix.csproj"
 $SetupScript = Join-Path $ExeDir "Setup.iss"
 $CertFile    = Join-Path $ExeDir "ZeroMixCert.pfx"
-$CertPass    = "ZeroMixPass" # Use Env Var in production!
+
+# Certificate password from environment variable (NEVER hardcode!)
+$CertPass = $env:ZEROMIX_CERT_PASS
+if (-not $CertPass) {
+    Log-Info "WARNING: ZEROMIX_CERT_PASS env var not set. Code signing will be skipped."
+    Log-Info "Set it with: `$env:ZEROMIX_CERT_PASS = 'YourPassword'"
+}
 
 # Tools
 $Iscc        = "${env:ProgramFiles(x86)}\Inno Setup 6\iscc.exe"
@@ -69,27 +75,29 @@ function Task-Clean {
 function Task-Build {
     Log-Info "Publishing Application v$Version..."
     $OutDir = Join-Path $PublishDir "win-x64"
-    $Proc = Start-Process "dotnet" -ArgumentList "publish `"$ProjectFile`" -c Release -r win-x64 -p:PublishSingleFile=false -p:PublishReadyToRun=true --self-contained -o `"$OutDir`"" -NoNewWindow -PassThru -Wait
+    # Note: PublishSingleFile and SelfContained are controlled by ZeroMix.csproj
+    # Do NOT override them here to avoid conflicts with CI builds
+    $Proc = Start-Process "dotnet" -ArgumentList "publish `"$ProjectFile`" -c Release -r win-x64 -p:PublishReadyToRun=true -p:Version=$Version -o `"$OutDir`"" -NoNewWindow -PassThru -Wait
     if ($Proc.ExitCode -ne 0) { throw "Dotnet publish failed." }
     
-    # Copy additional assets
+    # Copy additional assets (using $ProjectRoot for CWD-independence)
     Log-Info "Copying additional assets..."
     
-    # Copy Virtual_Assisten folder
-    if (Test-Path "..\Virtual_Assisten") {
-        Copy-Item "..\Virtual_Assisten" "$OutDir\Virtual_Assisten" -Recurse -Force
+    $VaDir = Join-Path $ProjectRoot "Virtual_Assisten"
+    if (Test-Path $VaDir) {
+        Copy-Item $VaDir "$OutDir\Virtual_Assisten" -Recurse -Force
         Log-Info "Virtual_Assisten copied"
     }
     
-    # Copy Resource folder if needed
-    if (Test-Path "..\Resource") {
-        Copy-Item "..\Resource" "$OutDir\Resource" -Recurse -Force
+    $ResDir = Join-Path $ProjectRoot "Resource"
+    if (Test-Path $ResDir) {
+        Copy-Item $ResDir "$OutDir\Resource" -Recurse -Force
         Log-Info "Resource folder copied"
     }
     
-    # Copy Plugins folder if needed
-    if (Test-Path "..\Plugins") {
-        Copy-Item "..\Plugins" "$OutDir\Plugins" -Recurse -Force
+    $PlugDir = Join-Path $ProjectRoot "Plugins"
+    if (Test-Path $PlugDir) {
+        Copy-Item $PlugDir "$OutDir\Plugins" -Recurse -Force
         Log-Info "Plugins folder copied"
     }
 }
@@ -136,6 +144,11 @@ function Task-Sign {
 function Sign-File {
     param([string]$FilePath)
     
+    if (-not $CertPass) {
+        Log-Error "ZEROMIX_CERT_PASS not set. Skipping signature for $(Split-Path $FilePath -Leaf)."
+        return
+    }
+
     if (-not (Test-Path $SignTool)) { 
         Log-Error "Signing tool not found at $SignTool. Skipping signature for $FilePath."
         return
@@ -185,8 +198,9 @@ try {
         "All" {
             Task-Clean
             Task-Build
-            Task-Installer
-            Task-Sign
+            Task-Sign       # Sign main exe BEFORE Inno Setup bundles it
+            Task-Installer  # Inno Setup now bundles the signed exe
+            Task-Sign       # Sign the installer itself
         }
     }
     

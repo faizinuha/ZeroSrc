@@ -1,69 +1,131 @@
 @echo off
-REM ZeroMix Auto Updater Script
-REM This script downloads the latest installer and runs it silently
+REM ══════════════════════════════════════════════════════════════════
+REM  ZeroMix Auto Updater v2.0
+REM  Dipanggil dari MainWindow > About > Check Update > Yes
+REM  Menggunakan PowerShell untuk JSON parsing yang robust
+REM ══════════════════════════════════════════════════════════════════
 
-echo ========================================
-echo ZeroMix Auto Updater
-echo ========================================
+title ZeroMix Updater
+color 0B
+
+echo.
+echo  ╔══════════════════════════════════════════════════════════╗
+echo  ║           ZeroMix Auto Updater v2.0                     ║
+echo  ╠══════════════════════════════════════════════════════════╣
+echo  ║  Repository : github.com/faizinuha/ZeroMix              ║
+echo  ║  Method     : GitHub Releases API (HTTPS)               ║
+echo  ╚══════════════════════════════════════════════════════════╝
 echo.
 
-set "REPO_OWNER=faizinuha"
-set "REPO_NAME=ZeroMix"
-set "API_URL=https://api.github.com/repos/%REPO_OWNER%/%REPO_NAME%/releases/latest"
+set "REPO=faizinuha/ZeroMix"
+set "API_URL=https://api.github.com/repos/%REPO%/releases/latest"
 set "DOWNLOAD_DIR=%TEMP%\ZeroMix_Update"
-set "USER_AGENT=ZeroMix-Updater/1.0"
+set "PS_SCRIPT=%DOWNLOAD_DIR%\update_worker.ps1"
 
-echo [1/4] Checking for updates...
-echo.
+REM ── Step 1: Prepare ──
+echo  [1/5] Preparing workspace...
 
-REM Create download directory
 if not exist "%DOWNLOAD_DIR%" mkdir "%DOWNLOAD_DIR%"
 
-REM Get latest release info using curl (assuming it's available)
-curl -s -H "User-Agent: %USER_AGENT%" "%API_URL%" > "%DOWNLOAD_DIR%\release.json"
-
-REM Parse JSON for download URL (simple parsing)
-for /f "tokens=*" %%i in ('findstr /c:"browser_download_url" "%DOWNLOAD_DIR%\release.json"') do (
-    set "line=%%i"
-    goto :parse_url
-)
-
-:parse_url
-REM Extract URL from JSON (basic parsing)
-set "download_url=%line:*"browser_download_url": "=%"
-set "download_url=%download_url:"=%"
-set "download_url=%download_url:",=%"
-
-echo [2/4] Downloading latest installer...
-echo URL: %download_url%
+REM ── Step 2: Fetch release info using PowerShell for proper JSON parsing ──
+echo  [2/5] Fetching latest release from GitHub...
 echo.
 
-REM Download the installer
-curl -L -o "%DOWNLOAD_DIR%\ZeroMix_Installer.exe" "%download_url%"
+REM Create a PowerShell worker script for robust JSON parsing & download
+(
+echo $ErrorActionPreference = 'Stop'
+echo $ProgressPreference = 'Continue'
+echo.
+echo try {
+echo     # Fetch release data
+echo     $headers = @{ 'User-Agent' = 'ZeroMix-Updater/2.0' }
+echo     $release = Invoke-RestMethod -Uri '%API_URL%' -Headers $headers -TimeoutSec 30
+echo.
+echo     $version = $release.tag_name
+echo     Write-Host "  Version found: $version" -ForegroundColor Cyan
+echo.
+echo     # Find best installer asset (Setup ^> Standard EXE ^> Portable)
+echo     $asset = $release.assets ^| Where-Object { $_.name -like '*Setup*.exe' } ^| Select-Object -First 1
+echo     if (-not $asset) {
+echo         $asset = $release.assets ^| Where-Object { $_.name -like '*.exe' -and $_.name -notlike '*Portable*' } ^| Select-Object -First 1
+echo     }
+echo     if (-not $asset) {
+echo         $asset = $release.assets ^| Where-Object { $_.name -like '*.exe' } ^| Select-Object -First 1
+echo     }
+echo.
+echo     if (-not $asset) {
+echo         Write-Host '  ERROR: No installer found in release!' -ForegroundColor Red
+echo         exit 1
+echo     }
+echo.
+echo     $downloadUrl = $asset.browser_download_url
+echo     $fileName = $asset.name
+echo     $outPath = Join-Path '%DOWNLOAD_DIR%' $fileName
+echo.
+echo     Write-Host "  File: $fileName" -ForegroundColor White
+echo     Write-Host "  URL:  $downloadUrl" -ForegroundColor DarkGray
+echo     Write-Host "  Size: $([math]::Round($asset.size / 1MB, 2)) MB" -ForegroundColor Yellow
+echo     Write-Host ""
+echo.
+echo     # Download with progress
+echo     Write-Host '  [3/5] Downloading installer...' -ForegroundColor Cyan
+echo     Invoke-WebRequest -Uri $downloadUrl -OutFile $outPath -UseBasicParsing
+echo.
+echo     if (-not (Test-Path $outPath)) {
+echo         Write-Host '  ERROR: Download failed!' -ForegroundColor Red
+echo         exit 1
+echo     }
+echo.
+echo     $actualSize = (Get-Item $outPath).Length
+echo     Write-Host "  Download complete: $([math]::Round($actualSize / 1MB, 2)) MB" -ForegroundColor Green
+echo     Write-Host ""
+echo.
+echo     # SHA256 hash for transparency
+echo     Write-Host '  [4/5] Computing SHA256 hash...' -ForegroundColor Cyan
+echo     $hash = (Get-FileHash $outPath -Algorithm SHA256).Hash
+echo     Write-Host "  SHA256: $hash" -ForegroundColor DarkGreen
+echo     Write-Host ""
+echo.
+echo     # Run installer (Inno Setup uses /SILENT, NOT /S)
+echo     Write-Host '  [5/5] Launching installer...' -ForegroundColor Cyan
+echo     Write-Host '  The installer window will appear shortly.' -ForegroundColor White
+echo     Write-Host ""
+echo.
+echo     if ($fileName -like '*Portable*') {
+echo         Start-Process -FilePath $outPath
+echo     } else {
+echo         # Standard mode - user controls the installer UI
+echo         $proc = Start-Process -FilePath $outPath -Wait -PassThru
+echo         if ($proc.ExitCode -eq 0) {
+echo             Write-Host '  Installation completed successfully!' -ForegroundColor Green
+echo         } else {
+echo             Write-Host "  Installer exited with code: $($proc.ExitCode)" -ForegroundColor Yellow
+echo         }
+echo     }
+echo.
+echo     Write-Host ""
+echo     Write-Host '  ╔════════════════════════════════════════════╗' -ForegroundColor Green
+echo     Write-Host '  ║  ZeroMix update complete!                  ║' -ForegroundColor Green
+echo     Write-Host '  ║  Please restart ZeroMix to apply changes.  ║' -ForegroundColor Green
+echo     Write-Host '  ╚════════════════════════════════════════════╝' -ForegroundColor Green
+echo.
+echo } catch {
+echo     Write-Host ""
+echo     Write-Host "  ERROR: $($_.Exception.Message)" -ForegroundColor Red
+echo     Write-Host "  Try downloading manually from:" -ForegroundColor Yellow
+echo     Write-Host "  https://github.com/%REPO%/releases/latest" -ForegroundColor Cyan
+echo     exit 1
+echo }
+) > "%PS_SCRIPT%"
 
-if not exist "%DOWNLOAD_DIR%\ZeroMix_Installer.exe" (
-    echo ERROR: Failed to download installer!
-    pause
-    exit /b 1
-)
+REM Execute the PowerShell worker
+powershell -NoProfile -ExecutionPolicy Bypass -File "%PS_SCRIPT%"
 
-echo [3/4] Download complete. File size:
-dir "%DOWNLOAD_DIR%\ZeroMix_Installer.exe" | findstr "ZeroMix_Installer.exe"
+REM ── Cleanup ──
+echo.
+echo  Cleaning up temporary files...
+if exist "%PS_SCRIPT%" del /Q "%PS_SCRIPT%" 2>nul
 
 echo.
-echo [4/4] Installing update...
-echo.
-
-REM Run installer silently
-start "" "%DOWNLOAD_DIR%\ZeroMix_Installer.exe" /S
-
-echo Update installation started!
-echo ZeroMix will restart automatically after installation.
-echo.
-
-REM Wait a bit then clean up
-timeout /t 5 /nobreak > nul
-rmdir /s /q "%DOWNLOAD_DIR%"
-
-echo Cleanup complete.
-pause
+echo  Press any key to close this window...
+pause >nul
