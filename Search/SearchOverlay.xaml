@@ -195,6 +195,31 @@
                         <TextBlock x:Name="DateText" Text="Mon, 01 Jan" Foreground="#666666" FontSize="10" HorizontalAlignment="Right"/>
                     </StackPanel>
                     
+                    <!-- Ask AI Mode Toggle -->
+                    <ToggleButton x:Name="AskAiToggle" Click="AskAiToggle_Click"
+                                 Width="34" Height="32" Background="Transparent" BorderThickness="0" Cursor="Hand" ToolTip="Ask AI Mode" Margin="0,0,4,0">
+                        <ToggleButton.Template>
+                            <ControlTemplate TargetType="ToggleButton">
+                                <Border x:Name="border" Background="{TemplateBinding Background}" CornerRadius="6">
+                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                        <TextBlock Text="&#xE99A;" FontFamily="Segoe MDL2 Assets" FontSize="18" 
+                                                   Foreground="{StaticResource TextSecondary}" x:Name="Icon" VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                </Border>
+                                <ControlTemplate.Triggers>
+                                    <Trigger Property="IsChecked" Value="True">
+                                        <Setter TargetName="Icon" Property="Foreground" Value="{StaticResource AccentColor}"/>
+                                        <Setter TargetName="Icon" Property="Text" Value="&#xF4AF;"/> <!-- Bot Icon -->
+                                        <Setter TargetName="border" Property="Background" Value="#1A007AFF"/>
+                                    </Trigger>
+                                    <Trigger Property="IsMouseOver" Value="True">
+                                        <Setter TargetName="border" Property="Background" Value="#252525"/>
+                                    </Trigger>
+                                </ControlTemplate.Triggers>
+                            </ControlTemplate>
+                        </ToggleButton.Template>
+                    </ToggleButton>
+
                     <!-- Settings Button -->
                     <Button x:Name="CustomShortcutButton" Click="CustomShortcutButton_Click"
                             Width="32" Height="32" Background="Transparent" BorderThickness="0" Cursor="Hand" ToolTip="Shortcuts Settings">

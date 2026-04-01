@@ -15,6 +15,8 @@ using System.Windows.Media.Animation;
 using System.Windows.Media.Imaging;
 using System.Windows.Threading;
 using ZeroMix.Hotkeys;
+using ZeroMix.Virtual_Assisten;
+using System.Text.RegularExpressions;
 
 namespace ZeroMix.Search
 {
@@ -264,6 +266,8 @@ namespace ZeroMix.Search
         private bool _isSelectingSuggestion = false;
         private bool _isLoadingSuggestions = false;
         private CancellationTokenSource? _searchCts;
+        private bool _isAiMode = false;
+        private AiVisionService? _aiService;
 
         // Icon Cache for performance
         private static readonly Dictionary<string, System.Windows.Media.ImageSource> _iconCache = new();
@@ -290,6 +294,24 @@ namespace ZeroMix.Search
 
             // Lazy load suggestions on background thread
             Task.Run(() => LoadAllSuggestionsAsync());
+
+            _aiService = new AiVisionService(ApiKeys.OPENAI_API_KEY);
+        }
+
+        private void AskAiToggle_Click(object sender, RoutedEventArgs e)
+        {
+            _isAiMode = AskAiToggle.IsChecked ?? false;
+            if (_isAiMode)
+            {
+                SearchBox.Placeholder = "Ask AI: 'Find photos of...' or 'Buy cheap...'";
+                SuggestionList.Visibility = Visibility.Collapsed;
+                ShowNotification("AI Control Mode Active ✨", NotificationType.Info);
+            }
+            else
+            {
+                SearchBox.Placeholder = "Type to search...";
+                SearchBox_TextChanged(SearchBox, null);
+            }
         }
 
         #region Window Blur Effect
@@ -1059,6 +1081,7 @@ namespace ZeroMix.Search
                     var list = SuggestionList;
                     if (list.Visibility == Visibility.Visible && list.SelectedItem is SuggestionItem item) HandleSuggestionSelection(item);
                     else if (list.Visibility == Visibility.Visible && list.HasItems) HandleSuggestionSelection(list.Items[0] as SuggestionItem);
+                    else if (_isAiMode) ProcessAiQuery(query);
                     else ExecuteCommand(query);
                 }
             }
@@ -1496,6 +1519,52 @@ namespace ZeroMix.Search
         internal void BeginFadeOutAndCloseByMain()
         {
             BeginFadeOutAndClose();
+        }
+
+        private async void ProcessAiQuery(string query)
+        {
+            if (string.IsNullOrWhiteSpace(query)) return;
+
+            string queryLower = query.ToLower();
+            
+            // 1. Intent Detection: Image Search
+            if (queryLower.Contains("foto") || queryLower.Contains("gambar") || queryLower.Contains("image"))
+            {
+                string searchSubject = Regex.Replace(queryLower, "(carikan|cari|foto|gambar|image|tentang|saya)", "").Trim();
+                if (!string.IsNullOrEmpty(searchSubject))
+                {
+                    ShowNotification($"Searching images for: {searchSubject}...");
+                    Process.Start(new ProcessStartInfo($"https://www.google.com/search?tbm=isch&q={Uri.EscapeDataString(searchSubject)}") { UseShellExecute = true });
+                    BeginFadeOutAndClose();
+                    return;
+                }
+            }
+
+            // 2. Intent Detection: Shopping / Marketplace
+            if (queryLower.Contains("beli") || queryLower.Contains("shopee") || queryLower.Contains("tokopedia") || queryLower.Contains("produk") || queryLower.Contains("harga"))
+            {
+                string item = Regex.Replace(queryLower, "(beli|carikan|cari|shopee|tokopedia|produk|harga|murah|dong)", "").Trim();
+                if (!string.IsNullOrEmpty(item))
+                {
+                    ShowNotification($"Searching marketplace for: {item}...");
+                    // Open Shopee as default or based on keyword
+                    string url = queryLower.Contains("tokopedia") 
+                        ? $"https://www.tokopedia.com/search?st=product&q={Uri.EscapeDataString(item)}"
+                        : $"https://shopee.co.id/search?keyword={Uri.EscapeDataString(item)}";
+                    
+                    Process.Start(new ProcessStartInfo(url) { UseShellExecute = true });
+                    BeginFadeOutAndClose();
+                    return;
+                }
+            }
+
+            // 3. General AI Response
+            if (_aiService != null)
+            {
+                ShowNotification("Thinking...", NotificationType.Info);
+                string response = await _aiService.AskAiAsync(query, "Frieren"); // Default to Frieren for search
+                ShowNotification(response, NotificationType.Info);
+            }
         }
     }
 }

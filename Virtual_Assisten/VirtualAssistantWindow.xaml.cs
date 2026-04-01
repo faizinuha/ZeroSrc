@@ -195,6 +195,10 @@ namespace ZeroMix.Virtual_Assisten
             string aiComment = await _visionService.AnalyzeAppsAsync(_visionService.GetActiveWindowTitle(), _currentCharacter);
             ChatText.Text = aiComment;
             ChatBubble.Visibility = Visibility.Visible;
+            
+            // Speak the observation!
+            await WebView.ExecuteScriptAsync($"speakText('{aiComment.Replace("'", "\\'")}', '{_currentLang}');");
+
             _hideChatTimer?.Stop(); _hideChatTimer?.Start();
         }
 
@@ -236,6 +240,10 @@ namespace ZeroMix.Virtual_Assisten
 
             ChatText.Text = aiResponse;
             ChatBubble.Visibility = Visibility.Visible;
+            
+            // Speak the response!
+            await WebView.ExecuteScriptAsync($"speakText('{aiResponse.Replace("'", "\\'")}', '{_currentLang}');");
+
             _hideChatTimer?.Stop();
             _hideChatTimer?.Start();
             App.OptimizeMemory();

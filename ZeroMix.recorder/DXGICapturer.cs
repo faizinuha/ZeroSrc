@@ -109,11 +109,12 @@ namespace ZeroMix.Recorder
                                     IsInitialized = true;
                                     output.Dispose();
                                     adapter.Dispose();
+                                    dxgiFactory.Dispose();
                                     return; // Berhasil!
                                 }
                                 catch (Exception ex)
                                 {
-                                    Console.WriteLine($"[DXGICapturer] DuplicateOutput failed: {ex.Message}");
+                                    Console.WriteLine($"[DXGICapturer] DuplicateOutput failed on this output: {ex.Message}");
                                     // Try next output
                                 }
                             }
