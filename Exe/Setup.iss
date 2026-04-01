@@ -24,6 +24,8 @@ OutputDir=.
 OutputBaseFilename=ZeroMix-Setup-v{#AppVersion}
 Compression=lzma2/ultra64
 SolidCompression=yes
+DiskSpanning=yes
+DiskSliceSize=2100000000
 DisableProgramGroupPage=no
 UninstallDisplayIcon={app}\zeromix.ico
 
@@ -59,6 +61,7 @@ Source: "..\publish\win-x64\*"; DestDir: "{app}"; Flags: ignoreversion recursesu
 Source: "zeromix.ico"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\Resource\*"; DestDir: "{app}\Resource"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "..\Plugins\**"; DestDir: "{app}\Plugins"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "..\Virtual_Assisten\*"; DestDir: "{app}\Virtual_Assisten"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "..\FFMPEG\ffmpeg.exe"; DestDir: "{app}\FFMPEG"; Flags: ignoreversion
 
 ; Documentation

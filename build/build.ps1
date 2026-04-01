@@ -71,6 +71,27 @@ function Task-Build {
     $OutDir = Join-Path $PublishDir "win-x64"
     $Proc = Start-Process "dotnet" -ArgumentList "publish `"$ProjectFile`" -c Release -r win-x64 -p:PublishSingleFile=false -p:PublishReadyToRun=true --self-contained -o `"$OutDir`"" -NoNewWindow -PassThru -Wait
     if ($Proc.ExitCode -ne 0) { throw "Dotnet publish failed." }
+    
+    # Copy additional assets
+    Log-Info "Copying additional assets..."
+    
+    # Copy Virtual_Assisten folder
+    if (Test-Path "..\Virtual_Assisten") {
+        Copy-Item "..\Virtual_Assisten" "$OutDir\Virtual_Assisten" -Recurse -Force
+        Log-Info "Virtual_Assisten copied"
+    }
+    
+    # Copy Resource folder if needed
+    if (Test-Path "..\Resource") {
+        Copy-Item "..\Resource" "$OutDir\Resource" -Recurse -Force
+        Log-Info "Resource folder copied"
+    }
+    
+    # Copy Plugins folder if needed
+    if (Test-Path "..\Plugins") {
+        Copy-Item "..\Plugins" "$OutDir\Plugins" -Recurse -Force
+        Log-Info "Plugins folder copied"
+    }
 }
 
 function Task-Installer {

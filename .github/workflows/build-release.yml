@@ -89,6 +89,27 @@ jobs:
           -p:Version=${{ steps.version.outputs.version }}
         Write-Host "✅ Publish completed to ./publish/win-x64"
         
+        # Copy additional assets required by the application
+        Write-Host "📋 Copying additional assets..."
+        
+        # Copy Virtual_Assisten folder (Live2D models and assets)
+        if (Test-Path "./Virtual_Assisten") {
+          Copy-Item "./Virtual_Assisten" "./publish/win-x64/Virtual_Assisten" -Recurse -Force
+          Write-Host "✅ Virtual_Assisten copied"
+        }
+        
+        # Copy Resource folder if not already included
+        if (Test-Path "./Resource") {
+          Copy-Item "./Resource" "./publish/win-x64/Resource" -Recurse -Force
+          Write-Host "✅ Resource folder copied"
+        }
+        
+        # Copy Plugins folder if not already included
+        if (Test-Path "./Plugins") {
+          Copy-Item "./Plugins" "./publish/win-x64/Plugins" -Recurse -Force
+          Write-Host "✅ Plugins folder copied"
+        }
+        
         # Create Exe directory if not exists
         if (-not (Test-Path "./Exe")) {
           New-Item -ItemType Directory -Path "./Exe" | Out-Null
