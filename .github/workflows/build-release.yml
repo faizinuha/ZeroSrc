@@ -1,5 +1,8 @@
 name: 🚀 Build & Release ZeroMix
 
+permissions:
+  contents: read
+
 on:
   push:
     branches:
@@ -13,6 +16,8 @@ on:
 jobs:
   prepare:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     outputs:
       tag: ${{ steps.version.outputs.tag }}
       version: ${{ steps.version.outputs.version }}
