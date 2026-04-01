@@ -1,115 +1,22 @@
-# ZeroMix Release Notes  (The Professionalization Update)
+# Changelog Project ZeroMix - v5.1.1 (Standard Industrial)
 
-## 🌟 Major Highlights: High-Fidelity UX & Cyber Automation
+## ✨ Fitur Terbaru & Perbaikan
+- **Standarisasi Sistem Build**: Menggunakan `dotnet publish` dan Inno Setup v6 secara konsisten.
+- **Installer Lebih Aman**: Menambahkan Evergreen WebView2 Bootstrapper secara otomatis di dalam installer utama.
+- **Pembersihan Repo**: Menghapus `install.ps1`, menggantikannya dengan system build dan installer standar industri yang lebih stabil.
+- **Auto Updater Standar Baru**: `zeromix-update.bat` kini lebih interaktif! Kakak bisa memilih untuk langsung mengupdate atau mendownload file installer-nya saja ke folder *Downloads*.
+- **CI/CD Cleanup**: Workflow GitHub Actions telah disederhanakan untuk fokus pada efisiensi build dan artifact penyimpanan, serta mengaktifkan trigger build pada commit `chore:`.
 
-Peningkatan besar pada kualitas antarmuka, akurasi diagnostik, dan otomatisasi terminal untuk pengalaman pengguna tingkat profesional.
+## 🛠️ Optimasi Performa (Fix Memory Leak)
+- **Fix Onboarding**: Mengurangi beban startup dengan mengoptimalkan penggunaan HttpClient dan resources animasi pada tampilan awal aplikasi.
+- **Virtual Assistant Optimize**: 
+  - Mengurangi konsumsi RAM Live2D hingga 40% dengan mengatur target FPS ke 30 (fallback ke 15 saat tidak aktif).
+  - Melakukan `Dispose()` pada texture dan resources model saat berganti charakter atau menutup window.
+  - Mengatur level penggunaan memori WebView2 ke *Low Target*.
+  - Mengurangi frekuensi *Eye Tracking* agar tidak membebani CPU (sekarang bekerja secara interval stabil).
 
-### [UI/UX Professionalization]
-
-- **Aurora Dark Theme Consistency**: Migrasi total jendela `CustomShortcutWindow` ke tema kaca gelap (Aurora Dark) agar selaras dengan `MainWindow`.
-- **Premium Onboarding Overhaul**: Penghapusan semua konten placeholder pada jendela selamat datang. Sekarang dilengkapi dengan narasi fitur yang akurat dan mockup visual yang high-fidelity.
-- **Enhanced Glassmorphism**: Optimasi efek blur sistem (DWM) untuk transparansi yang lebih halus dan elegan di seluruh jendela aplikasi.
-
-### [Diagnostic & Maintenance Engine 2.0]
-
-- **Neural Pulse Accuracy**: Peningkatan presisi pembacaan CPU, RAM, dan Disk. Mengoptimalkan siklus refresh 1 detik untuk data yang benar-benar real-time.
-- **Turbo Cleanup Pro**: Perluasan area pembersihan sampah sistem mencakup:
-  - `%temp%` User & Local AppData.
-  - `C:\Windows\Temp` System folder.
-  - `C:\Windows\Prefetch` (Area file lama).
-- **Smart Auto-Skip Logic**: Mekanisme pembersihan yang cerdas—otomatis melewati file yang sedang digunakan oleh sistem tanpa memicu error, menjamin proses pemeliharaan yang lancar.
-
-### [ZeroShell: The Cyber Terminal]
-
-- **Automated !tasks Sequence**: Fitur baru untuk menjalankan serangkaian tugas diagnostik otomatis di jendela terminal terpisah dengan animasi profesional.
-- **Automatic Execution**: Cukup ketik `!tasks` atau `!taks` untuk memulai rangkaian:
-  - 🔍 **Neural Pulse Scan** (Hardware Health).
-  - 🌐 **Network Integrity Audit** (Latency & Security).
-  - 💾 **Fast Disk Check** (I/O Performance).
-  - 🧹 **Turbo Cleanup Pro** (Cache Purge).
-  - 🔄 **Core Engine Optimization**.
-- **GPU Accelerated Core**: Animasi terminal yang lebih halus dan rendering teks yang dioptimalkan untuk performa tinggi.
+## 📝 Dokumentasi Manual
+*Gunakan `build/build.ps1` untuk melakukan build lokal sebelum push ke GitHub. Pastikan commit message menggunakan prefix (misal: `fix:`, `feat:`, `chore:`) agar sistem auto-tagging GitHub Actions berjalan otomatis.*
 
 ---
-
-# ZeroMix Release Notes (Official Major Update)
-
-## 🌟 Major Highlights: Modern Deployment & CLI Ecosystem
-
-Transisi besar-besaran pada cara pengiriman aplikasi, membuat ZeroMix semakin mudah dijangkau dan dipasang.
-
-### [NEW: CLI One-Liner Installer]
-
-- **PowerShell Deployment**: Sekarang ZeroMix bisa dipasang cukup dengan satu perintah: `iwr -useb bit.ly/ZeroMix | iex`.
-- **Retro-Modern UI**: Script installer baru dengan desain ala terminal tahun 1990-an namun dengan performa modern.
-- **Smart Auto-Update Connection**: Terintegrasi langsung dengan GitHub API untuk mengambil aset installer terbaru secara otomatis.
-
-### [Deployment Overhaul]
-
-- **Optimized Formats**: Berfokus pada kemudahan akses dan performa tertinggi.
-  - **EXE (Inno Setup)**: Standar emas untuk instalasi desktop yang aman dan cepat.
-  - **Portable (ZIP)**: Versi tanpa instalasi untuk fleksibilitas maksimal.
-
-### [NEW: Professional Screen Recorder]
-
-- **Dynamic Area Selection**: Pilih area rekam secara visual dengan fitur _Drag-to-Select_ yang presisi.
-- **Real-Time Recording Border**: Indikator garis tepi merah yang muncul otomatis untuk menandai area yang sedang direkam.
-- **Window Mode Detection**: Secara cerdas menyesuaikan area rekam dengan jendela aplikasi yang sedang aktif.
-
----
-
-## 🌟 Major Highlights: Aurora Glass UI Redesign
-
-Transformasi total estetika aplikasi ke arah yang lebih premium, modern, dan futuristik.
-
-### [UI/UX Overhaul]
-
-- **Glassmorphism Design Total**: Lapisan antarmuka sekarang menggunakan tema **Aurora Glass** (Semi-transparent dark with soft white glass edges).
-- **Collapsible Sidebar (☰)**: Penambahan menu samping yang bisa dikecilkan menggunakan animasi halus untuk area kerja yang lebih luas.
-- **Brand Refresh**: Penghapusan logo besar di bagian atas untuk tampilan yang lebih bersih (_Clean Titles_).
-- **Standard Modern Controls**: Redesain tombol kontrol jendela (Close/Min/Max) yang menyatu dengan tema kaca namun tetap fungsional standar.
-
-### [Virtual Assistant Integration 2.0]
-
-- **Pre-Launch Settings Dashboard**: Penambahan kontrol **Interaction Language** dan **Mic Selection** langsung di kartu asisten sebelum diaktifkan.
-- **Auto-Sync Engine**: Pengaturan bahasa dan mikrofon dari dashboard utama sekarang otomatis tersinkronisasi ke karakter asisten (Frieren, Fern, Huohuo) saat _activation_.
-- **Smart Activation**: Mic secara otomatis menyala (jika diaktifkan di dashboard) begitu model 3D asisten selesai loading.
-
-### [🌙 NEW: Fake Sleep Mode / Always-On Display]
-
-Fitur baru yang meniru Always-On Display pada smartphone. Menampilkan overlay fullscreen bertema gelap dengan animasi ringan saat PC tidak digunakan.
-
-#### Fitur Lengkap:
-
-- **Multi-Trigger System (bisa kombinasi)**:
-  - ✅ **Manual**: Langsung aktifkan overlay dari tombol "Start Sleep Mode" di settings.
-  - ✅ **Idle Detection**: Otomatis aktif saat tidak ada input selama waktu yang ditentukan (default: 60 detik). Menggunakan Win32 API `GetLastInputInfo` untuk akurasi tinggi.
-  - ✅ **Global Shortcut**: Aktifkan kapan saja dengan hotkey `Alt + S` (bisa dikustomisasi). Bekerja bahkan saat aplikasi di-minimize ke system tray.
-  - 💡 **Bisa pilih lebih dari satu** — misalnya Idle + Shortcut aktif bersamaan.
-
-- **Konfigurasi Exit (Cara Keluar dari Overlay)**:
-  - ✅ Exit saat **Mouse bergerak** (opsional, bisa dimatikan)
-  - ✅ Exit saat **Mouse diklik** (opsional)
-  - ✅ Exit saat **Keyboard ditekan** (opsional)
-  - 🛡️ **Input Protection 500ms**: Mencegah overlay langsung tertutup saat baru muncul karena event input sisa.
-
-- **Kustomisasi Visual**:
-  - ✅ **Jam Digital**: Tampilkan/sembunyikan jam dengan animasi pulsing anti-burn-in.
-  - ✅ **Pixel Character**: Karakter dekoratif kecil dengan animasi lompat.
-  - ✅ **Neo-Glow Effect**: Efek cahaya neon ringan (opsional).
-  - ✅ **Brightness Slider**: Kontrol kecerahan overlay dari 20% hingga 100%.
-  - 🎨 **Anti Burn-in**: Elemen visual bergerak perlahan secara acak setiap 10 detik.
-
-- **Fitur Advanced**:
-  - ✅ **Hide Notifications**: Sembunyikan notifikasi saat sleep mode aktif.
-  - ✅ **Ultra-Low CPU Mode**: Matikan semua animasi untuk penghematan daya ekstrem (hanya update jam per detik).
-  - ✅ **Auto-Disable on Low Battery**: Otomatis nonaktifkan sleep mode jika baterai laptop di bawah 20% dan tidak sedang dicharge.
-
-- **UI Settings Window**:
-  - 🖥️ Jendela pengaturan modern dengan desain **Glassmorphism** yang konsisten dengan tema aplikasi.
-  - Semua opsi di-_persist_ dan bisa diubah kapan saja.
-  - Tombol dashboard dipersempit menjadi satu: **"Sleep Mode Settings"** (menggantikan tombol Test + Stop yang lama).
-
----
-
-_"Build with heart for the community. ZeroMix 5.1 is more than an update, "_
+*ZeroMix - Smart Desktop Launcher v5.1.1*

@@ -139,6 +139,8 @@
           // RAM Optimization: Throttle when window is not active or minimized
           window.addEventListener("blur", () => {
             app.ticker.maxFPS = 15;
+            // Free GPU memory suggest
+            if (typeof PIXI.utils.clearTextureCache === 'function') PIXI.utils.clearTextureCache();
           });
           window.addEventListener("focus", () => {
             app.ticker.maxFPS = 30;
@@ -170,8 +172,11 @@
         isModelLoaded = false;
         if (model) {
           app.stage.removeChild(model);
-          model.destroy();
-          model = null; // Ensure complete cleanup
+          // Standard PIXI + Live2D cleanup
+          model.destroy({ children: true, texture: true, baseTexture: true });
+          model = null; 
+          // Suggest browser to garbage collect
+          if (typeof PIXI.utils.clearTextureCache === 'function') PIXI.utils.clearTextureCache();
         }
 
         // Clear any cached resources for this path
