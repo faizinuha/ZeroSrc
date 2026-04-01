@@ -1558,12 +1558,12 @@ namespace ZeroMix.Search
                 }
             }
 
-            // 3. General AI Response
             if (_aiService != null)
             {
                 ShowNotification("Thinking...", NotificationType.Info);
                 string response = await _aiService.AskAiAsync(query, "Frieren"); // Default to Frieren for search
                 ShowNotification(response, NotificationType.Info);
+                App.OptimizeMemory();
             }
         }
     }
