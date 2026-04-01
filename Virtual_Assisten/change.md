@@ -1,22 +1,26 @@
-# Changelog Project ZeroMix - v5.1.1 (Standard Industrial)
+# Changelog Project ZeroMix - v5.1.2 (Standard Industrial)
 
-## ✨ Fitur Terbaru & Perbaikan
-- **Standarisasi Sistem Build**: Menggunakan `dotnet publish` dan Inno Setup v6 secara konsisten.
-- **Installer Lebih Aman**: Menambahkan Evergreen WebView2 Bootstrapper secara otomatis di dalam installer utama.
-- **Pembersihan Repo**: Menghapus `install.ps1`, menggantikannya dengan system build dan installer standar industri yang lebih stabil.
-- **Auto Updater Standar Baru**: `zeromix-update.bat` kini lebih interaktif! Kakak bisa memilih untuk langsung mengupdate atau mendownload file installer-nya saja ke folder *Downloads*.
-- **CI/CD Cleanup**: Workflow GitHub Actions telah disederhanakan untuk fokus pada efisiensi build dan artifact penyimpanan, serta mengaktifkan trigger build pada commit `chore:`.
+## ✨ AI Control & Search Assistant
+- **Ask AI Mode Overlay**: Menambahkan tombol "Ask AI" di Search Box. Kini Kakak bisa bertanya apa saja ke asisten langsung dari tampilan pencarian.
+- **Smart Intent Detection**: 
+  - `carikan foto [nama]` -> Otomatis membuka hasil pencarian gambar.
+  - `beli barang` / `shopee` -> Langsung mengarahkan ke marketplace favorit (Shopee/Tokopedia).
+- **Fallback to AI**: Pertanyaan umum akan otomatis dijawab oleh AI Frieren dengan gaya bicaranya yang khas.
 
-## 🛠️ Optimasi Performa (Fix Memory Leak)
-- **Fix Onboarding**: Mengurangi beban startup dengan mengoptimalkan penggunaan HttpClient dan resources animasi pada tampilan awal aplikasi.
-- **Virtual Assistant Optimize**: 
-  - Mengurangi konsumsi RAM Live2D hingga 40% dengan mengatur target FPS ke 30 (fallback ke 15 saat tidak aktif).
-  - Melakukan `Dispose()` pada texture dan resources model saat berganti charakter atau menutup window.
-  - Mengatur level penggunaan memori WebView2 ke *Low Target*.
-  - Mengurangi frekuensi *Eye Tracking* agar tidak membebani CPU (sekarang bekerja secara interval stabil).
+## 🎙️ Virtual Assistant Upgrade
+- **Text-to-Speech (TTS)**: Asisten tidak lagi membisu! Sekarang Frieren/Fern/HuoHuo bisa bicara langsung menjawab pertanyaan Kakak.
+- **Lip-Sync Animation**: Gerakan mulut karakter kini sinkron (lip-sync) dengan suara yang dihasilkan agar terasa lebih hidup.
+- **Memory Optimization**: Memperkenalkan pembersihan cache yang lebih agresif pada engine Live2D untuk mencegah lonjakan RAM (fix memory leak) saat karakter aktif dalam waktu lama.
 
-## 📝 Dokumentasi Manual
-*Gunakan `build/build.ps1` untuk melakukan build lokal sebelum push ke GitHub. Pastikan commit message menggunakan prefix (misal: `fix:`, `feat:`, `chore:`) agar sistem auto-tagging GitHub Actions berjalan otomatis.*
+## 📹 Recorder Engine Stability
+- **Fix Force Close**: Memperbaiki issue crash saat tombol rekam diklik pada beberapa tipe GPU.
+- **Hardware Encoder Fallback**: Sistem sekarang lebih cerdas dalam mendeteksi encoder GPU (NVENC/QSV/AMF). Jika gagal, sistem otomatis beralih ke CPU tanpa membuat aplikasi hang.
+- **DXGI Resource Management**: Memastikan pengambilan gambar layar (Screen Capture) tidak membebani driver video Windows.
+
+## 🛠️ Dashboard & System Health
+- **Optimasi System Health**: Proses scanning sistem jauh lebih ringan dan tidak menyebabkan UI lag.
+- **Fix Temp Cleanup**: Pembersihan folder `%temp%` kini lebih stabil dan mencakup lebih banyak folder sampah sistem.
+- **Version Stamp**: Update internal sistem ke versi **v5.1.2**.
 
 ---
-*ZeroMix - Smart Desktop Launcher v5.1.1*
+*ZeroMix - Smart Desktop Launcher v5.1.2*

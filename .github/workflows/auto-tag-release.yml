@@ -95,12 +95,27 @@ jobs:
         if: steps.tag.outputs.skip_tag == 'false'
         run: |
           TAG="${{ steps.tag.outputs.tag }}"
+          NEW_VERSION="${{ steps.tag.outputs.version }}"
 
-          # If tag already exists, skip to avoid 128 error
-          if git rev-parse -q --verify "refs/tags/$TAG" >/dev/null; then
-            echo "⚠️ Tag '$TAG' already exists, skipping creation."
-            exit 0
-          fi
+          # Loop to find the next available tag if it already exists
+          while git rev-parse -q --verify "refs/tags/$TAG" >/dev/null; do
+             echo "⚠️ Tag '$TAG' already exists. Incrementing..."
+             
+             # Split version into parts
+             IFS='.' read -r M_MAJOR M_MINOR M_PATCH M_BUILD <<< "$NEW_VERSION"
+             
+             # Increment the last segment (PATCH or BUILD)
+             if [ ! -z "$M_BUILD" ] && [ "$M_BUILD" -ne 0 ]; then
+                M_BUILD=$((M_BUILD+1))
+                NEW_VERSION="$M_MAJOR.$M_MINOR.$M_PATCH.$M_BUILD"
+             else
+                M_PATCH=$((M_PATCH+1))
+                NEW_VERSION="$M_MAJOR.$M_MINOR.$M_PATCH"
+             fi
+             TAG="v$NEW_VERSION"
+          done
+
+          echo "🚀 Final unique tag determined: $TAG"
 
           # Create annotated tag with commit message
           COMMIT_MSG=$(git log -1 --pretty=%B)
@@ -110,11 +125,13 @@ jobs:
           git push origin "$TAG"
 
           echo "✅ Tag '$TAG' created and pushed!"
+          echo "tag=$TAG" >> $GITHUB_OUTPUT # Re-export final tag for subsequent steps
+        id: final_tag
 
       - name: 📢 Create Release Notes
         if: steps.tag.outputs.skip_tag == 'false'
         run: |
-          TAG="${{ steps.tag.outputs.tag }}"
+          TAG="${{ steps.final_tag.outputs.tag }}"
           PREV_TAG=$(git tag -l 'v*' --sort=-version:refname | head -2 | tail -1)
           
           if [ -z "$PREV_TAG" ]; then
