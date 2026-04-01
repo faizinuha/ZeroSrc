@@ -214,22 +214,45 @@ jobs:
         $SignTool = "./osslsigncode.exe"
         if (-not (Test-Path $SignTool)) {
           Write-Host "📥 Downloading osslsigncode..."
-          # Try latest version first, fallback to known working version
-          try {
-            Invoke-WebRequest -Uri "https://github.com/mtrojnar/osslsigncode/releases/latest/download/osslsigncode-2.9-win64.zip" -OutFile "osslsigncode.zip"
-          } catch {
-            Write-Host "⚠️  Latest version failed, trying 2.8..."
-            Invoke-WebRequest -Uri "https://github.com/mtrojnar/osslsigncode/releases/download/2.8/osslsigncode-2.8-win64.zip" -OutFile "osslsigncode.zip"
+          $downloaded = $false
+          $urls = @(
+            "https://github.com/mtrojnar/osslsigncode/releases/download/2.9/osslsigncode-2.9-win64.zip",
+            "https://github.com/mtrojnar/osslsigncode/releases/download/2.8/osslsigncode-2.8-win64.zip",
+            "https://github.com/mtrojnar/osslsigncode/releases/download/2.7/osslsigncode-2.7-win64.zip",
+            "https://github.com/mtrojnar/osslsigncode/releases/download/2.6/osslsigncode-2.6-win64.zip",
+            "https://github.com/mtrojnar/osslsigncode/releases/download/2.5/osslsigncode-2.5-win64.zip"
+          )
+
+          foreach ($url in $urls) {
+            try {
+              Write-Host "📥 Attempting: $url"
+              Invoke-WebRequest -Uri $url -OutFile "osslsigncode.zip" -TimeoutSec 30 -ErrorAction Stop
+              Write-Host "✅ Download successful"
+              $downloaded = $true
+              break
+            } catch {
+              Write-Host "⚠️  Failed: $($_.Exception.Message)"
+            }
           }
-          Expand-Archive -Path "osslsigncode.zip" -DestinationPath "." -Force
-          
-          # Find the correct directory name
-          $extractedDir = Get-ChildItem -Directory -Name | Where-Object { $_ -like "osslsigncode-*" } | Select-Object -First 1
-          if ($extractedDir) {
-            Copy-Item "$extractedDir/osslsigncode.exe" $SignTool
-            Remove-Item $extractedDir -Recurse -Force
+
+          if (-not $downloaded) {
+            Write-Host "⚠️  Failed to download osslsigncode. Skipping code signing."
+          } else {
+            Expand-Archive -Path "osslsigncode.zip" -DestinationPath "." -Force
+
+            # Find the correct directory name
+            $extractedDir = Get-ChildItem -Directory -Name | Where-Object { $_ -like "osslsigncode-*" } | Select-Object -First 1
+            if ($extractedDir) {
+              Copy-Item "$extractedDir/osslsigncode.exe" $SignTool -Force
+              Remove-Item $extractedDir -Recurse -Force
+            }
+            Remove-Item "osslsigncode.zip" -Force
           }
-          Remove-Item "osslsigncode.zip" -Force
+        }
+
+        if (-not (Test-Path $SignTool)) {
+          Write-Host "⚠️  osslsigncode executable not available. Skipping code signing steps."
+          exit 0
         }
         
         # Sign main executable
