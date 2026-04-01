@@ -1,3 +1,23 @@
+## [v5.0.3] - 2026-04-01
+
+### ✨ Features
+- af35367: feat: implement comprehensive code signing for ZeroMix
+- 099ce02: feat: implement industry-standard update process and fix VirtualAssistant issues
+- 010869c: feat: optimize WebView2 performance in VirtualAssistant
+
+### 🐛 Bug Fixes
+- 7b8edee: fix: robust osslsigncode download and graceful signing fallback
+- eab15b3: fix: update osslsigncode download URL and add fallback
+- b88133e: fix: prevent recording hangs and crashes in installed applications
+- dd9fbee: fix: include zeromix-update.bat in installer and build
+- 6272d82: fix: include Virtual_Assisten assets in build and installer
+
+### 🔧 Changes
+
+### 📊 Commit Summary
+- Total commits: **10**
+- Date range: v5.0.2 to HEAD
+
 ## [v5.0.3] - 2026-03-31
 
 ### ✨ Features
