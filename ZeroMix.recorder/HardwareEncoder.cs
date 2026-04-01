@@ -322,9 +322,24 @@ namespace ZeroMix.Recorder
                             }
                             Console.WriteLine("[HardwareEncoder] Falling back to libx264 (CPU encoding)...");
                             
-                            // Retry with libx264
+                            // Retry with libx264 - but PREVENT INFINITE RECURSION
                             _encoder = "libx264";
-                            Start(outputPath, micDevice, speakerDevice);
+                            
+                            // Re-init arguments for libx264
+                            string fallbackEncoderArgs = "-c:v libx264 -preset ultrafast -crf 23 -threads 4";
+                            string fallbackArgs = $"-f rawvideo -pixel_format bgra -video_size {_width}x{_height} " +
+                                                $"-framerate {_framerate} -i - " +
+                                                $"{audioInputs.Trim()} " +
+                                                $"{fallbackEncoderArgs} -pix_fmt yuv420p -r {_framerate} {mapArgs} {audioCodecArgs.Trim()} -y \"{_outputPath}\"";
+                            
+                            psi.Arguments = fallbackArgs;
+                            _ffmpegProcess = Process.Start(psi);
+                            
+                            if (_ffmpegProcess == null) 
+                                throw new InvalidOperationException("Failed to start FFmpeg with fallback encoder.");
+                            
+                            _ffmpegProcess.BeginErrorReadLine();
+                            _ffmpegProcess.BeginOutputReadLine();
                             return;
                         }
                         else

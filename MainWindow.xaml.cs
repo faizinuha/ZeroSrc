@@ -43,7 +43,7 @@ namespace ZeroMix
     
     public partial class MainWindow : Window
     {
-        private const string CURRENT_VERSION = "2.5.0";
+        private const string CURRENT_VERSION = "5.1.1";
         
         // Windows API for Taskbar transparency
         [DllImport("user32.dll", SetLastError = true)]
@@ -513,11 +513,14 @@ namespace ZeroMix
                             }
                         } catch { _cachedTotalRAM = 8192; } // Default 8GB jika gagal
                     });
-                    _cachedTotalRAM = 8192; // Temporary default
+                if (_cachedTotalRAM <= 0)
+                {
+                    // Fallback jika task belum selesai
+                    _cachedTotalRAM = 8192; 
                 }
 
                 float usedRam = _cachedTotalRAM - (int)availableRam;
-                float ramPercent = (usedRam / _cachedTotalRAM) * 100;
+                float ramPercent = Math.Clamp((usedRam / _cachedTotalRAM) * 100, 0, 100);
 
                 RamPercentText.Text = $"{ramPercent:F1} %";
                 RamProgressBar.Value = ramPercent;
@@ -1152,7 +1155,7 @@ namespace ZeroMix
                     {
                         Console.WriteLine($"[ZeroRecord] Start Error: {ex.Message}");
                         Dispatcher.Invoke(() => {
-                            System.Windows.MessageBox.Show($"Failed to start recording:\n{ex.Message}", "Recording Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                            System.Windows.MessageBox.Show($"[FATAL CRASH] Gagal memulai perekaman:\n{ex.Message}\n\nPastikan FFMPEG sudah terinstall di folder ZeroMix dan GPU Driver update.", "Recording Error", MessageBoxButton.OK, MessageBoxImage.Error);
                         });
                         return false;
                     }
@@ -1335,14 +1338,16 @@ namespace ZeroMix
             
             MonitoringPanel.Visibility = Visibility.Visible;
 
-            await Task.Run(async () =>
+            await Task.Run(() =>
             {
                 // Daftar folder sampah yang lebih lengkap
                 string[] tempPaths = { 
                     Path.GetTempPath(), 
                     Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Windows), "Temp"),
                     Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Temp"),
-                    Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Windows), "Prefetch") // Tambahan: Prefetch
+                    Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Windows), "Prefetch"),
+                    Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Microsoft\\Windows\\Explorer"), // Thumbnail cache
+                    Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Package Cache")
                 };
 
                 int deletedCount = 0;
@@ -1354,20 +1359,17 @@ namespace ZeroMix
                     if (!Directory.Exists(path)) continue;
                     var directory = new DirectoryInfo(path);
 
-                    this.Dispatcher.Invoke(() => CacheStatusText.Text = $"⚡ Memproses: {path}");
+                    this.Dispatcher.Invoke(() => StatusLabel.Text = $"⚡ Cleaning: {path}");
 
-                    // Hapus File
+                    // Hapus File (Tanpa Delay buatan agar cepat)
                     try {
-                        foreach (var file in directory.GetFiles())
+                        foreach (var file in directory.GetFiles("*", SearchOption.TopDirectoryOnly))
                         {
                             try {
                                 totalSize += file.Length;
                                 file.Delete();
                                 deletedCount++;
-                            } catch { 
-                                // Dilewati otomatis jika sedang dipakai (In Use)
-                                skippedCount++; 
-                            }
+                            } catch { skippedCount++; }
                         }
                     } catch { }
 
@@ -1381,15 +1383,15 @@ namespace ZeroMix
                             } catch { skippedCount++; }
                         }
                     } catch { }
-                    
-                    await Task.Delay(50); 
                 }
 
                 this.Dispatcher.Invoke(() => {
                     double sizeInMb = totalSize / (1024.0 * 1024.0);
-                    CacheStatusText.Text = $"✨ Pembersihan Selesai! Berhasil membuang {deletedCount} item ({sizeInMb:F2} MB). {skippedCount} file dilewati (sedang digunakan).";
+                    CacheStatusText.Text = $"✨ Selesai! {deletedCount} item dibuang ({sizeInMb:F2} MB). {skippedCount} file in-use.";
+                    StatusLabel.Text = "Optimization Complete";
                     ClearCacheButton.IsEnabled = true;
-                    RefreshProcessList();
+                    // Refresh stats
+                    UpdateDashboard();
                 });
             });
         }

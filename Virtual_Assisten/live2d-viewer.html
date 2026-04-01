@@ -425,6 +425,66 @@
         };
       }
 
+      // SPEECH SYNTHESIS (TTS)
+      let synthesis = window.speechSynthesis;
+      let mouthOpenTimer = null;
+
+      function speakText(text, lang = 'id-ID') {
+        if (!synthesis) return;
+        
+        // Stop any current speech
+        synthesis.cancel();
+        
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = lang;
+        utterance.rate = 1.0;
+        utterance.pitch = 1.1; // Slightly higher for anime vibe
+
+        utterance.onstart = () => {
+             startLipSync();
+             if (window.chrome && window.chrome.webview) {
+                 window.chrome.webview.postMessage({ type: "speech_start" });
+             }
+        };
+
+        utterance.onend = () => {
+            stopLipSync();
+            if (window.chrome && window.chrome.webview) {
+                 window.chrome.webview.postMessage({ type: "speech_finished" });
+             }
+        };
+
+        synthesis.speak(utterance);
+      }
+
+      function startLipSync() {
+          if (mouthOpenTimer) clearInterval(mouthOpenTimer);
+          mouthOpenTimer = setInterval(() => {
+              if (isModelLoaded && model && model.internalModel) {
+                  const coreModel = model.internalModel.coreModel;
+                  const index = coreModel.getParameterIndex("ParamMouthOpenY");
+                  if (index >= 0) {
+                      // Simple random mouth movement
+                      const val = Math.random() * 0.8;
+                      coreModel.setParameterValueByIndex(index, val);
+                  }
+              }
+          }, 100);
+      }
+
+      function stopLipSync() {
+          if (mouthOpenTimer) {
+              clearInterval(mouthOpenTimer);
+              mouthOpenTimer = null;
+          }
+          // Close mouth
+          if (isModelLoaded && model && model.internalModel) {
+              const coreModel = model.internalModel.coreModel;
+              const index = coreModel.getParameterIndex("ParamMouthOpenY");
+              if (index >= 0) coreModel.setParameterValueByIndex(index, 0);
+          }
+      }
+
       function startSpeech(lang = 'id-ID') {
         if (recognition) {
           recognition.lang = lang;
