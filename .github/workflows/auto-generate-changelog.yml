@@ -3,8 +3,8 @@ name: 📝 Auto-Generate CHANGELOG
 # Daily workflow - membaca latest release dan lanjut dari sana
 on:
   schedule:
-    # Setiap hari jam 02:00 UTC (9:00 WIB)
-    - cron: '0 2 * * *'
+    # Setiap hari jam 00:00 UTC (6:00 WIB)
+    - cron: '0 0 * * *'
   
   # Manual trigger untuk testing
   workflow_dispatch:
