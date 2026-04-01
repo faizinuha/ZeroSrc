@@ -343,9 +343,18 @@ jobs:
         cat /tmp/changelog.md >> $GITHUB_ENV
         echo "EOF" >> $GITHUB_ENV
 
+    - name: 💾 Upload Artifacts (Action Run)
+      uses: actions/upload-artifact@v4
+      with:
+        name: ZeroMix-Build-${{ steps.version.outputs.tag }}
+        path: |
+          ZeroMix-${{ steps.version.outputs.tag }}.exe
+          Exe/ZeroMix-${{ steps.version.outputs.tag }}.exe
+          Exe/ZeroMix-${{ steps.version.outputs.tag }}-Setup.exe
+
     - name: 📦 Create GitHub Release with Assets
       uses: softprops/action-gh-release@v2
-      if: startsWith(github.ref, 'refs/tags/')
+      if: startsWith(github.ref, 'refs/tags/') || github.event_name == 'workflow_dispatch'
       with:
         tag_name: ${{ steps.version.outputs.tag }}
         name: "🎉 ZeroMix ${{ steps.version.outputs.tag }}"
