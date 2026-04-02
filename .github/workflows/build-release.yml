@@ -46,9 +46,13 @@ jobs:
         dotnet-version: '9.0.x'
 
     - name: 📦 Restore & Publish
+      shell: pwsh
       run: |
+        Write-Host "⏳ Restoring dependencies..."
         dotnet restore ZeroMix.csproj
+        Write-Host "⏳ Publishing application..."
         dotnet publish ZeroMix.csproj -c Release -o publish/win-x64 -p:Version=${{ steps.version.outputs.version }} --self-contained true -r win-x64
+        Write-Host "✅ Publish complete"
 
     - name: 🎬 Download FFMPEG
       shell: pwsh
@@ -70,7 +74,7 @@ jobs:
         path: Exe/Setup.iss
         options: /DAppVersion=${{ steps.version.outputs.version }}
 
-    - name: � Sign Executable withu osslsigncode
+    - name: 🔐 Sign Executable with osslsigncode
       shell: pwsh
       run: |
         $VER = "${{ steps.version.outputs.version }}"
@@ -78,15 +82,47 @@ jobs:
         
         if (Test-Path $setupExe) {
           Write-Host "✅ Setup executable found: $setupExe"
-          Write-Host "📝 File size: $((Get-Item $setupExe).Length / 1MB) MB"
+          Write-Host "📝 File size: $([math]::Round((Get-Item $setupExe).Length / 1MB, 1)) MB"
           
           # Install osslsigncode via chocolatey
           Write-Host "⏳ Installing osslsigncode..."
           choco install osslsigncode -y
           
-          # Note: Actual signing requires certificate in GitHub Secrets
-          # For now, we prepare the executable for signing
-          Write-Host "✅ Executable ready for signing"
+          # Check if certificate is available in secrets
+          if ([string]::IsNullOrEmpty("${{ secrets.CERT_BASE64 }}")) {
+            Write-Host "⚠️  Certificate not found in secrets"
+            Write-Host "📝 To enable signing, add CERT_BASE64 and CERT_PASSWORD to GitHub Secrets"
+            Write-Host "✅ Executable is ready for manual signing"
+            exit 0
+          }
+          
+          # Decode certificate from base64
+          Write-Host "🔐 Decoding certificate..."
+          $certBase64 = "${{ secrets.CERT_BASE64 }}"
+          $certBytes = [Convert]::FromBase64String($certBase64)
+          $certPath = "./cert.pfx"
+          [IO.File]::WriteAllBytes($certPath, $certBytes)
+          
+          # Sign the executable
+          $signedPath = "Exe/ZeroMix-Setup-v$VER-signed.exe"
+          Write-Host "⏳ Signing executable..."
+          osslsigncode sign -pkcs12 $certPath -pass "${{ secrets.CERT_PASSWORD }}" `
+            -n "ZeroMix" -i "https://zeromix.vercel.app" `
+            -t "http://timestamp.comodoca.com/authenticode" `
+            -in $setupExe -out $signedPath
+          
+          if (Test-Path $signedPath) {
+            Write-Host "✅ Signed successfully"
+            Remove-Item $setupExe -Force
+            Rename-Item $signedPath $setupExe -Force
+            Write-Host "✅ Replaced original with signed version"
+          } else {
+            Write-Host "❌ Signing failed"
+            exit 1
+          }
+          
+          # Cleanup
+          Remove-Item $certPath -Force
         } else {
           Write-Host "❌ Setup executable not found at $setupExe"
           Write-Host "📂 Contents of Exe folder:"
@@ -116,7 +152,7 @@ jobs:
         if (Test-Path $setupSrc) {
           Move-Item $setupSrc $setupDst -Force
           Write-Host "✅ Setup executable ready: $setupDst"
-          Write-Host "📝 File size: $((Get-Item $setupDst).Length / 1MB) MB"
+          Write-Host "📝 File size: $([math]::Round((Get-Item $setupDst).Length / 1MB, 1)) MB"
         } else {
           Write-Host "❌ Setup not found at $setupSrc"
           exit 1
