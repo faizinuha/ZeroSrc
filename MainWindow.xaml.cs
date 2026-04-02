@@ -513,6 +513,8 @@ namespace ZeroMix
                             }
                         } catch { _cachedTotalRAM = 8192; } // Default 8GB jika gagal
                     });
+                }
+                
                 if (_cachedTotalRAM <= 0)
                 {
                     // Fallback jika task belum selesai
@@ -538,7 +540,8 @@ namespace ZeroMix
                 }
 
                 // Update tray icon tooltip
-                _notifyIcon!.Text = $"CPU: {cpuUsage:F1}% | RAM: {ramPercent:F1}% | Disk: {(float)(DiskProgressBar.Value):F1}%";
+                string trayTip = $"CPU: {cpuUsage:F1}% | RAM: {ramPercent:F1}% | Disk: {(float)(DiskProgressBar.Value):F1}%";
+                _notifyIcon!.Text = trayTip.Length > 63 ? trayTip.Substring(0, 63) : trayTip;
             }
             catch (Exception ex)
             {
