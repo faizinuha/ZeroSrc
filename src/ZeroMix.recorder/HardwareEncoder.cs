@@ -27,6 +27,7 @@ namespace ZeroMix.Recorder
 
         private ID3D11Texture2D? _stagingTexture;
         private ID3D11DeviceContext _context;
+        private readonly object _contextLock;
         
         private Thread? _encoderThread;
         private ConcurrentQueue<byte[]> _frameQueue = new();
@@ -41,10 +42,11 @@ namespace ZeroMix.Recorder
         public long FramesWritten => _framesWritten;
         public bool IsEncoderAlive => !_encoderDead && _ffmpegProcess != null && !_ffmpegProcess.HasExited;
 
-        public HardwareEncoder(string ffmpegPath, ID3D11Device device, ID3D11DeviceContext context, int width, int height, int framerate = 30)
+        public HardwareEncoder(string ffmpegPath, ID3D11Device device, ID3D11DeviceContext context, int width, int height, int framerate = 30, object? contextLock = null)
         {
             _ffmpegPath = ffmpegPath;
             _context = context;
+            _contextLock = contextLock ?? new object();
             _width = width;
             _height = height;
             _framerate = framerate;
@@ -387,7 +389,7 @@ namespace ZeroMix.Recorder
 
             try
             {
-                lock (_context)
+                lock (_contextLock)
                 {
                     _context.CopyResource(_stagingTexture, texture);
                     var mapped = _context.Map(_stagingTexture, 0, MapMode.Read, Vortice.Direct3D11.MapFlags.None);

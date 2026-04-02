@@ -29,6 +29,9 @@ namespace ZeroMix.Recorder
         private Stopwatch _recordingTimer = new();
         private IntPtr? _captureHandle;
         private System.Windows.Rect? _captureRect;
+        
+        // Shared lock: D3D11 immediate context is NOT thread-safe
+        internal readonly object _d3dContextLock = new object();
         public bool IsZoomEnabled { get; set; } = true;
 
         public bool IsRecording => _isRecording;
@@ -122,7 +125,7 @@ namespace ZeroMix.Recorder
                 Console.WriteLine($"[ScreenStudioRecorder] Launching Encoder: {width}x{height} -> {outputPath}");
                 Console.WriteLine($"[ScreenStudioRecorder] Using {(IsUsingGDI ? "GDI" : "DXGI")} capture mode");
                 
-                _encoder = new HardwareEncoder(_ffmpegPath, device, context, width, height, _framerate);
+                _encoder = new HardwareEncoder(_ffmpegPath, device, context, width, height, _framerate, _d3dContextLock);
                 _encoder.Start(outputPath, micDevice, speakerDevice);
             }
             catch (Exception ex)
@@ -182,10 +185,13 @@ namespace ZeroMix.Recorder
                         }
 
                         Vortice.Direct3D11.ID3D11Texture2D? rawFrame = null;
-                        if (_dxgiCapturer != null && _dxgiCapturer.IsInitialized)
-                            rawFrame = _dxgiCapturer.CaptureFrame();
-                        else if (_gdiCapturer != null && _gdiCapturer.IsInitialized)
-                            rawFrame = _gdiCapturer.CaptureFrame();
+                        lock (_d3dContextLock)
+                        {
+                            if (_dxgiCapturer != null && _dxgiCapturer.IsInitialized)
+                                rawFrame = _dxgiCapturer.CaptureFrame();
+                            else if (_gdiCapturer != null && _gdiCapturer.IsInitialized)
+                                rawFrame = _gdiCapturer.CaptureFrame();
+                        }
 
                         if (rawFrame == null)
                         {
