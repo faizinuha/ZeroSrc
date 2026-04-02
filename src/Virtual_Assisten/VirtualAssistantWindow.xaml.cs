@@ -104,12 +104,9 @@ namespace ZeroMix.Virtual_Assisten
                     if (args.PermissionKind == CoreWebView2PermissionKind.Microphone) args.State = CoreWebView2PermissionState.Allow;
                 };
 
-                string baseDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Virtual_Assisten");
-                string? rootDir = Path.GetDirectoryName(baseDir);
-                if (rootDir != null)
-                {
-                    WebView.CoreWebView2.SetVirtualHostNameToFolderMapping("zeromix.vercel.app", rootDir, CoreWebView2HostResourceAccessKind.Allow);
-                }
+                // Map virtual host root to AppBase so paths like /Virtual_Assisten/... resolve correctly
+                string appBase = AppDomain.CurrentDomain.BaseDirectory;
+                WebView.CoreWebView2.SetVirtualHostNameToFolderMapping("zeromix.vercel.app", appBase, CoreWebView2HostResourceAccessKind.Allow);
                 
                 WebView.Source = new Uri("https://zeromix.vercel.app/Virtual_Assisten/live2d-viewer.html");
                 WebView.WebMessageReceived += OnWebMessageReceived;
@@ -148,7 +145,8 @@ namespace ZeroMix.Virtual_Assisten
             _currentCharacter = characterName;
             if (!_isWebViewInitialized) return;
             string modelPath = GetModelPath(characterName);
-            string webPath = modelPath.Replace(AppDomain.CurrentDomain.BaseDirectory, "https://zeromix.vercel.app/").Replace("\\", "/");
+            string appBase = AppDomain.CurrentDomain.BaseDirectory.TrimEnd('\\', '/');
+            string webPath = "https://zeromix.vercel.app/" + modelPath.Replace(appBase, "").TrimStart('\\', '/').Replace("\\", "/");
             await WebView.ExecuteScriptAsync($"if(typeof changeModel === 'function') changeModel('{Uri.EscapeUriString(webPath)}');");
         }
 

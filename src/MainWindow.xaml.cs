@@ -43,7 +43,7 @@ namespace ZeroMix
     
     public partial class MainWindow : Window
     {
-        private const string CURRENT_VERSION = "5.1.5";
+        private const string CURRENT_VERSION = "5.1.6";
         
         // Windows API for Taskbar transparency
         [DllImport("user32.dll", SetLastError = true)]
@@ -385,19 +385,29 @@ namespace ZeroMix
         {
             _notifyIcon = new NotifyIcon();
 
-            var iconUri = new Uri("../Assets/Icons/zeromix.ico", UriKind.RelativeOrAbsolute);
-            var iconStream = System.Windows.Application.GetResourceStream(iconUri)?.Stream;
-            if (iconStream != null)
+            // Load icon from file system directly (more reliable than resource stream)
+            try
             {
-                _notifyIcon.Icon = new System.Drawing.Icon(iconStream);
+                string iconPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Assets", "Icons", "zeromix.ico");
+                if (File.Exists(iconPath))
+                    _notifyIcon.Icon = new System.Drawing.Icon(iconPath);
+                else
+                {
+                    // Fallback: try resource stream
+                    var iconUri = new Uri("pack://application:,,,/Assets/Icons/zeromix.ico");
+                    var iconStream = System.Windows.Application.GetResourceStream(iconUri)?.Stream;
+                    if (iconStream != null)
+                        _notifyIcon.Icon = new System.Drawing.Icon(iconStream);
+                }
             }
+            catch { }
 
             _notifyIcon.Visible = true;
-            _notifyIcon.DoubleClick += (s, args) => ShowWindow();
+            _notifyIcon.DoubleClick += (s, args) => Dispatcher.Invoke(() => ShowWindow());
 
             var contextMenu = new ContextMenuStrip();
-            contextMenu.Items.Add("Show Dashboard", null, (s, args) => ShowWindow());
-            contextMenu.Items.Add("ZeroMix Studio (Editor)", null, (s, args) => OpenVideoEditor());
+            contextMenu.Items.Add("Show Dashboard", null, (s, args) => Dispatcher.Invoke(() => ShowWindow()));
+            contextMenu.Items.Add("ZeroMix Studio (Editor)", null, (s, args) => Dispatcher.Invoke(() => OpenVideoEditor()));
             contextMenu.Items.Add(new ToolStripSeparator());
             
             var shellItem = new ToolStripMenuItem("Enable ZeroShell");
@@ -1927,6 +1937,7 @@ end";
             {
                 Studio.StudioWindow studio = new Studio.StudioWindow();
                 studio.Show();
+                studio.Activate();
             }
             catch (Exception ex)
             {

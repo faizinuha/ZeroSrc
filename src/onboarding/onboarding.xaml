@@ -15,9 +15,6 @@
 
     <Window.Resources>
         <ResourceDictionary>
-            <ResourceDictionary.MergedDictionaries>
-                <ResourceDictionary Source="/Plugins/Styles.xaml"/>
-            </ResourceDictionary.MergedDictionaries>
 
             <!-- Fade Animation for Slides -->
             <Storyboard x:Key="FadeIn">

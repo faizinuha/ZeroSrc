@@ -98,7 +98,9 @@ namespace ZeroMix.Onboarding
         {
             try
             {
-                File.WriteAllText("config.json", "{\"IsFirstRun\": false}");
+                string configPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "ZeroMix", "config.json");
+                Directory.CreateDirectory(Path.GetDirectoryName(configPath)!);
+                File.WriteAllText(configPath, "{\"IsFirstRun\": false}");
             }
             catch { /* ignore */ }
 

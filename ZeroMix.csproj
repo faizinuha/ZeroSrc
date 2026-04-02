@@ -9,7 +9,7 @@
     <UseWindowsForms>true</UseWindowsForms>
     <ApplicationIcon>Assets\Icons\zeromix.ico</ApplicationIcon>
     <EnableWindowsTargeting>true</EnableWindowsTargeting>
-    <Version>5.1.5</Version>
+    <Version>5.1.6</Version>
     
     <!-- Optimasi Ukuran & Portabilitas (Self-Contained & Kompresi) -->
     <PublishSingleFile>true</PublishSingleFile>
@@ -72,6 +72,7 @@
     <Resource Include="Assets\Resources\Locales\**" />
     <Resource Include="src\SleepMode\IMG\**" />
     <Resource Include="src\ZeroShell\asci\*" />
+    <Resource Include="Tools\Plugins\Styles.xaml" />
   </ItemGroup>
 
 
@@ -105,27 +106,17 @@
     </Content>
   </ItemGroup>
 
-  <!-- Virtual Assistant assets: copy runtime files (models, textures, json) to output -->
+  <!-- Virtual Assistant assets: copy to output as Virtual_Assisten\... (strip src\ prefix) -->
+    
   <ItemGroup>
-    <Content Include="src\Virtual_Assisten\**\*.moc3">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="src\Virtual_Assisten\**\*.model3.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="src\Virtual_Assisten\**\*.physics3.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="src\Virtual_Assisten\**\*.vtube.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="src\Virtual_Assisten\**\*.png">
+   <Content Include="src\Virtual_Assisten\**\*.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="src\Virtual_Assisten\**\*.jpg">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="src\Virtual_Assisten\**\*" Exclude="**\*.cs;**\*.xaml;**\*.user;**\*.vspscc;**\*.dll;**\*.exe">
+    <Content Include="src\Virtual_Assisten\**\*" Exclude="**\*.cs;**\*.xaml;**\*.xaml.cs;**\*.user;**\*.vspscc;**\*.dll;**\*.exe">
+      <Link>Virtual_Assisten\%(RecursiveDir)%(Filename)%(Extension)</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>

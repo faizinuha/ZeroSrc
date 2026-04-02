@@ -8,16 +8,13 @@
     WindowStyle="None"
     AllowsTransparency="True"
     Background="Transparent"
-    Icon="/zeromix.ico"
+    Icon="../../Assets/Icons/zeromix.ico"
     MouseLeftButtonDown="Window_MouseLeftButtonDown"
     WindowStartupLocation="CenterScreen"
     Loaded="Window_Loaded">
 
     <Window.Resources>
         <ResourceDictionary>
-            <ResourceDictionary.MergedDictionaries>
-                <ResourceDictionary Source="../Plugins/Styles.xaml"/>
-            </ResourceDictionary.MergedDictionaries>
 
             <!-- Modern Dark Theme with Glassmorphism (Overriding for Local Context) -->
             <Color x:Key="BgDark">#121212</Color>
@@ -420,7 +417,8 @@
                                                   IsTextSearchEnabled="True" 
                                                   StaysOpenOnEdit="True" 
                                                   TextSearch.TextPath="Name" 
-                                                  SelectedValuePath="Path" 
+                                                  SelectedValuePath="Path"
+                                                  Text="Select or browse application..."
                                                   DropDownClosed="AppPathComboBox_DropDownClosed" />
                                         <Button Name="BrowseButton" 
                                                 Grid.Column="1" 
@@ -502,7 +500,7 @@
                                                         Binding="{Binding Hotkey}" 
                                                         Header="⌨️ Shortcut" />
                                     <DataGridTextColumn Width="*" 
-                                                        Binding="{Binding ApplicationPath}" 
+                                                        Binding="{Binding ApplicationName}" 
                                                         Header="📁 Application" />
                                 </DataGrid.Columns>
                             </DataGrid>

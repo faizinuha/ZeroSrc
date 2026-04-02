@@ -8,9 +8,6 @@
         ResizeMode="NoResize">
     <Window.Resources>
         <ResourceDictionary>
-            <ResourceDictionary.MergedDictionaries>
-                <ResourceDictionary Source="/Plugins/Styles.xaml"/>
-            </ResourceDictionary.MergedDictionaries>
             
             <!-- Map local names to global styles from Styles.xaml -->
             <SolidColorBrush x:Key="BgBrush" Color="{StaticResource DeepNavyColor}"/>

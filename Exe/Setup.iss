@@ -5,7 +5,7 @@
 ; --- App Identity ---
 AppId={{ZeroMix-v2-ZeroMix-identifier}}
 AppName=ZeroMix
-#define AppVersion "5.1.5"
+#define AppVersion "5.1.6"
 AppVersion={#AppVersion}
 VersionInfoVersion={#AppVersion}.0
 VersionInfoCompany=Frieren

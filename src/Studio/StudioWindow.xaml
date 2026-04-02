@@ -8,9 +8,6 @@
 
     <Window.Resources>
         <ResourceDictionary>
-            <ResourceDictionary.MergedDictionaries>
-                <ResourceDictionary Source="/Plugins/Styles.xaml"/>
-            </ResourceDictionary.MergedDictionaries>
             <SolidColorBrush x:Key="BgBrush" Color="#0B0E14"/>
             <SolidColorBrush x:Key="AccentBrush" Color="#00FFA3"/>
             <SolidColorBrush x:Key="BorderBrush" Color="#2D333F"/>

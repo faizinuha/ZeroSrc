@@ -5,13 +5,13 @@
 ### 1️⃣ Satu Command Saja
 
 ```bash
-.\Scripts\release-version.bat 5.1.5
+.\Scripts\release-version.bat 5.1.6
 ```
 
 **Done!** Otomatis:
 - ✅ Update versi di semua file
 - ✅ Commit & push ke GitHub
-- ✅ Create tag `v5.1.5`
+- ✅ Create tag `v5.1.6`
 - ✅ Trigger build & release workflow
 
 ---
@@ -21,8 +21,8 @@
 Buka: `https://github.com/[user]/[repo]/releases`
 
 Tunggu 5-10 menit, release baru akan muncul dengan:
-- `ZeroMix-v5.1.5-Setup.exe` (Installer)
-- `ZeroMix-v5.1.5-Portable.zip` (Portable)
+- `ZeroMix-v5.1.6-Setup.exe` (Installer)
+- `ZeroMix-v5.1.6-Portable.zip` (Portable)
 
 ---
 
@@ -39,7 +39,7 @@ Lihat workflow "🚀 Build & Release ZeroMix" sedang berjalan.
 Setiap versi punya release sendiri:
 
 ```
-v5.1.5 ← Latest
+v5.1.6 ← Latest
 v5.1.4
 v5.1.3
 v5.1.2
@@ -53,13 +53,13 @@ Tidak numpuk! Setiap tag = 1 release baru.
 
 ```powershell
 # Preview saja (tidak push)
-.\Scripts\release-version.ps1 -NewVersion 5.1.5 -SkipPush
+.\Scripts\release-version.ps1 -NewVersion 5.1.6 -SkipPush
 
 # Custom commit message
-.\Scripts\release-version.ps1 -NewVersion 5.1.5 -CommitMessage "feat: new features"
+.\Scripts\release-version.ps1 -NewVersion 5.1.6 -CommitMessage "feat: new features"
 
 # Build lokal dulu (test)
-.\build\build-sign-release.ps1 -Version 5.1.5 -SkipUpload
+.\build\build-sign-release.ps1 -Version 5.1.6 -SkipUpload
 ```
 
 ---

@@ -263,6 +263,11 @@ namespace ZeroMix.Hotkeys
     {
         public string Hotkey { get; set; } = "";
         public string ApplicationPath { get; set; } = "";
+        
+        // Untuk tampilan di tabel — nama file saja
+        public string ApplicationName => string.IsNullOrEmpty(ApplicationPath) 
+            ? "" 
+            : Path.GetFileNameWithoutExtension(ApplicationPath);
     }
 
     public class InstalledApplication
