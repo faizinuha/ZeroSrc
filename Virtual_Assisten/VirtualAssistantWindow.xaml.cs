@@ -45,7 +45,6 @@ namespace ZeroMix.Virtual_Assisten
             ["Huohuo"] = new List<string> { "M-maaf... aku Huohuo. 🦊" }
         };
         
-        private int _messageIndex = 0;
         private Random _random = new Random();
 
         public VirtualAssistantWindow()

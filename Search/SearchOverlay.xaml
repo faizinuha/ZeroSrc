@@ -67,7 +67,7 @@
                     <ControlTemplate TargetType="{x:Type TextBox}">
                         <Grid>
                             <ScrollViewer x:Name="PART_ContentHost" SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"/>
-                            <TextBlock x:Name="Placeholder" Text="Type to search..." 
+                            <TextBlock x:Name="Placeholder" Text="{Binding Tag, RelativeSource={RelativeSource TemplatedParent}}" 
                                        Margin="{TemplateBinding Padding}"
                                        Foreground="#555555"
                                        FontStyle="Normal"
@@ -184,6 +184,7 @@
 
                 <!-- Input -->
                 <TextBox x:Name="SearchBox" Grid.Column="1" Style="{StaticResource SearchBoxStyle}"
+                         Tag="Type to search..."
                          TextChanged="SearchBox_TextChanged" KeyDown="SearchBox_KeyDown"
                          AllowDrop="True" Drop="SearchBox_Drop" DragEnter="SearchBox_DragEnter" DragLeave="SearchBox_DragLeave"/>
                 

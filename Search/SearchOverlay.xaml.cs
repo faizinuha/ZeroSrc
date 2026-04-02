@@ -303,13 +303,13 @@ namespace ZeroMix.Search
             _isAiMode = AskAiToggle.IsChecked ?? false;
             if (_isAiMode)
             {
-                SearchBox.Placeholder = "Ask AI: 'Find photos of...' or 'Buy cheap...'";
+                SearchBox.Tag = "Ask AI: 'Find photos of...' or 'Buy cheap...'";
                 SuggestionList.Visibility = Visibility.Collapsed;
                 ShowNotification("AI Control Mode Active ✨", NotificationType.Info);
             }
             else
             {
-                SearchBox.Placeholder = "Type to search...";
+                SearchBox.Tag = "Type to search...";
                 SearchBox_TextChanged(SearchBox, null);
             }
         }
@@ -414,7 +414,7 @@ namespace ZeroMix.Search
             {
                 NotificationType.Error => System.Windows.Media.Brushes.Red,
                 NotificationType.Warning => System.Windows.Media.Brushes.Orange,
-                _ => System.Windows.Media.Brushes.Black
+                _ => System.Windows.Media.Brushes.White
             };
             _notificationText.Visibility = Visibility.Visible;
 
@@ -1524,44 +1524,44 @@ namespace ZeroMix.Search
         private async void ProcessAiQuery(string query)
         {
             if (string.IsNullOrWhiteSpace(query)) return;
-
             string queryLower = query.ToLower();
             
-            // 1. Intent Detection: Image Search
-            if (queryLower.Contains("foto") || queryLower.Contains("gambar") || queryLower.Contains("image"))
-            {
-                string searchSubject = Regex.Replace(queryLower, "(carikan|cari|foto|gambar|image|tentang|saya)", "").Trim();
-                if (!string.IsNullOrEmpty(searchSubject))
+            // Optimization: Run intent detection on background thread
+            var intent = await Task.Run(() => {
+                if (queryLower.Contains("foto") || queryLower.Contains("gambar") || queryLower.Contains("image"))
                 {
-                    ShowNotification($"Searching images for: {searchSubject}...");
-                    Process.Start(new ProcessStartInfo($"https://www.google.com/search?tbm=isch&q={Uri.EscapeDataString(searchSubject)}") { UseShellExecute = true });
-                    BeginFadeOutAndClose();
-                    return;
+                    string searchSubject = Regex.Replace(queryLower, "(carikan|cari|foto|gambar|image|tentang|saya)", "").Trim();
+                    return new { Type = "Image", Subject = searchSubject };
                 }
-            }
+                
+                if (queryLower.Contains("beli") || queryLower.Contains("shopee") || queryLower.Contains("tokopedia") || queryLower.Contains("produk") || queryLower.Contains("harga"))
+                {
+                    string item = Regex.Replace(queryLower, "(beli|carikan|cari|shopee|tokopedia|produk|harga|murah|dong)", "").Trim();
+                    return new { Type = "Shop", Subject = item };
+                }
+                return null;
+            });
 
-            // 2. Intent Detection: Shopping / Marketplace
-            if (queryLower.Contains("beli") || queryLower.Contains("shopee") || queryLower.Contains("tokopedia") || queryLower.Contains("produk") || queryLower.Contains("harga"))
+            if (intent != null && !string.IsNullOrEmpty(intent.Subject))
             {
-                string item = Regex.Replace(queryLower, "(beli|carikan|cari|shopee|tokopedia|produk|harga|murah|dong)", "").Trim();
-                if (!string.IsNullOrEmpty(item))
-                {
-                    ShowNotification($"Searching marketplace for: {item}...");
-                    // Open Shopee as default or based on keyword
+                if (intent.Type == "Image") {
+                    ShowNotification($"Searching images for: {intent.Subject}...");
+                    Process.Start(new ProcessStartInfo($"https://www.google.com/search?tbm=isch&q={Uri.EscapeDataString(intent.Subject)}") { UseShellExecute = true });
+                } else {
+                    ShowNotification($"Searching marketplace for: {intent.Subject}...");
                     string url = queryLower.Contains("tokopedia") 
-                        ? $"https://www.tokopedia.com/search?st=product&q={Uri.EscapeDataString(item)}"
-                        : $"https://shopee.co.id/search?keyword={Uri.EscapeDataString(item)}";
-                    
+                        ? $"https://www.tokopedia.com/search?st=product&q={Uri.EscapeDataString(intent.Subject)}"
+                        : $"https://shopee.co.id/search?keyword={Uri.EscapeDataString(intent.Subject)}";
                     Process.Start(new ProcessStartInfo(url) { UseShellExecute = true });
-                    BeginFadeOutAndClose();
-                    return;
                 }
+                BeginFadeOutAndClose();
+                return;
             }
 
             if (_aiService != null)
             {
                 ShowNotification("Thinking...", NotificationType.Info);
-                string response = await _aiService.AskAiAsync(query, "Frieren"); // Default to Frieren for search
+                string response = await _aiService.AskAiAsync(query, "Frieren"); 
                 ShowNotification(response, NotificationType.Info);
                 App.OptimizeMemory();
             }

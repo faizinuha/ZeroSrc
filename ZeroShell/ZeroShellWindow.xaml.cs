@@ -17,6 +17,7 @@ using System.Management;
 using System.Linq;
 using System.Text.Json;
 using Microsoft.Win32;
+using System.Text.RegularExpressions;
 
 namespace ZeroMix.ZeroShell
 {
@@ -34,6 +35,7 @@ namespace ZeroMix.ZeroShell
 
     public partial class ZeroShellWindow : Window
     {
+        private const string CURRENT_VERSION = "5.2.2";
         private List<TerminalTab> _tabs = new List<TerminalTab>();
         private TerminalTab? _activeTab;
 
@@ -107,7 +109,6 @@ namespace ZeroMix.ZeroShell
         // WDM State Persistence
         private bool _isExplorerWdmEnabled = false;
         private bool _isTaskbarWdmEnabled = false;
-        private bool _isStartWdmEnabled = false;
         private System.Windows.Threading.DispatcherTimer? _wdmPulseTimer;
 
         public string? AutoRunCommand { get; set; }
@@ -403,21 +404,23 @@ namespace ZeroMix.ZeroShell
         #region Terminal Process
         private Process StartShellProcess()
         {
-            // Determine shell (pwsh preferred for Oh My Posh)
+            // Determine shell (pwsh preferred for speed)
             string shellExe = "pwsh.exe";
-            bool isPwsh = true;
             try { 
                 Process.Start(new ProcessStartInfo(shellExe, "--version") { CreateNoWindow = true, UseShellExecute = false }).WaitForExit(500); 
-            } catch { shellExe = "powershell.exe"; isPwsh = false; }
+            } catch { shellExe = "powershell.exe"; }
 
-            // Oh My Posh Init Script
-            string ompInit = "oh-my-posh init pwsh --config \"$env:POSH_THEMES_PATH\\jandedobbeleer.omp.json\" | Invoke-Expression";
-            if (!isPwsh) ompInit = ""; // OMP works best on pwsh
+            // ZeroMix Native Prompt (Premium look using ANSI)
+            string customPrompt = "function prompt { " +
+                "  $p = $ExecutionContext.SessionState.Path.CurrentLocation; " +
+                "  $e = [char]27; " +
+                "  \"$e[36m┌── $e[33m$([Environment]::UserName)@$([Environment]::MachineName)$e[90m in $e[32m$p$e[0m`n$e[35m└─❯ $e[0m\" " +
+                "}";
 
             var proc = new Process();
             proc.StartInfo = new ProcessStartInfo {
                 FileName = shellExe,
-                Arguments = $"-NoLogo -NoProfile -ExecutionPolicy Bypass -NoExit -Command \"function prompt {{ '> ' }}; [Console]::OutputEncoding = [System.Text.Encoding]::UTF8; {ompInit}; clear\"",
+                Arguments = $"-NoLogo -NoProfile -ExecutionPolicy Bypass -NoExit -Command \"[Console]::OutputEncoding = [System.Text.Encoding]::UTF8; {customPrompt}; clear\"",
                 WorkingDirectory = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
                 UseShellExecute = false,
                 RedirectStandardInput = true,
@@ -448,12 +451,42 @@ namespace ZeroMix.ZeroShell
             }
         }
 
-        private void AppendToTab(TerminalTab tab, string text, string hex)
+        private void AppendToTab(TerminalTab tab, string text, string defaultHex)
         {
             if (tab.Output == null) return;
-            var run = new Run(text) { Foreground = new SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString(hex)) };
-            tab.Output.Inlines.Add(run);
-            if (tab.Output.Inlines.Count > 1200) tab.Output.Inlines.Remove(tab.Output.Inlines.FirstInline);
+
+            // Simple ANSI Parser for basic colors
+            var parts = Regex.Split(text, @"(\x1b\[[0-9;]*m)");
+            string currentHex = defaultHex;
+
+            foreach (var part in parts)
+            {
+                if (string.IsNullOrEmpty(part)) continue;
+
+                if (part.StartsWith("\x1b["))
+                {
+                    // Escape sequence - update currentHex
+                    if (part.Contains("31m")) currentHex = "#FF5555"; // Red
+                    else if (part.Contains("32m")) currentHex = "#50FA7B"; // Green
+                    else if (part.Contains("33m")) currentHex = "#F1FA8C"; // Yellow
+                    else if (part.Contains("34m")) currentHex = "#8BE9FD"; // Cyan (using lighter)
+                    else if (part.Contains("35m")) currentHex = "#FF79C6"; // Magenta
+                    else if (part.Contains("36m")) currentHex = "#8BE9FD"; // Cyan
+                    else if (part.Contains("90m")) currentHex = "#6272A4"; // Dark Gray
+                    else if (part.Contains("0m")) currentHex = defaultHex; // Reset
+                    continue;
+                }
+
+                var run = new Run(part) { 
+                    Foreground = new SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString(currentHex)) 
+                };
+                tab.Output.Inlines.Add(run);
+            }
+
+            if (tab.Output.Inlines.Count > 1500) 
+            {
+                for(int i=0; i<100; i++) tab.Output.Inlines.Remove(tab.Output.Inlines.FirstInline);
+            }
             tab.ScrollViewer?.ScrollToEnd();
         }
         #endregion
@@ -845,7 +878,7 @@ namespace ZeroMix.ZeroShell
             }
 
             // TASKS (The Professional Sequence)
-            if (low == "!tasks" || low == "!taks") {
+            if (low == "!tasks") {
                 // Jika sudah ada StartupCommand berarti kita di window "Task", langsung jalankan
                 if (!string.IsNullOrEmpty(AutoRunCommand)) { RunProfessionalTasks(); return; }
                 
@@ -944,9 +977,10 @@ namespace ZeroMix.ZeroShell
                             double ramUsage = ((totalRam - freeRam) / totalRam) * 100;
 
                             // GPU Info (Search for Load if available)
-                            string gpuName = "Generic GPU"; double gpuLoad = 0;
-                            using (var searcher = new ManagementObjectSearcher("SELECT Name FROM Win32_VideoController"))
-                                foreach (var obj in searcher.Get()) gpuName = obj["Name"]?.ToString() ?? "N/A";
+                            string gpuName = "Generic GPU";
+                            using (var gpuSearcher = new ManagementObjectSearcher("SELECT Name FROM Win32_VideoController")) {
+                                foreach (ManagementObject obj in gpuSearcher.Get()) { gpuName = obj["Name"]?.ToString() ?? "N/A"; }
+                            }
 
                             // Disk Info
                             var drive = DriveInfo.GetDrives().FirstOrDefault(d => d.IsReady && d.Name.Contains("C:"));
@@ -1015,7 +1049,8 @@ namespace ZeroMix.ZeroShell
                             p2.Start(); string output2 = p2.StandardOutput.ReadToEnd(); p2.WaitForExit();
                             foreach (var line in output2.Split('\n')) {
                                 if (line.Contains("Key Content")) {
-                                    string pw = line.Split(':')[1].Trim();
+                                    string? rawPw = line.Split(':')[1];
+                                    string pw = rawPw?.Trim() ?? "Unknown";
                                     Dispatcher.Invoke(() => AppendToTab(_activeTab, $"  ⠿ {p,-20} → {pw}\n", "#FF27C93F"));
                                 }
                             }
