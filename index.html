@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>❤️ Our Love Adventure ❤️</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400;700&family=Poppins:wght@300;400;600&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 50%, #fecfef 100%);
+            min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* Floating hearts animation */
+        .heart {
+            position: absolute;
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 20px;
+            animation: float 6s infinite linear;
+        }
+
+        @keyframes float {
+            0% { transform: translateY(100vh) rotate(0deg); opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { transform: translateY(-100px) rotate(360deg); opacity: 0; }
+        }
+
+        .container {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            position: relative;
+            z-index: 10;
+        }
+
+        .title {
+            font-family: 'Dancing Script', cursive;
+            font-size: clamp(2.5rem, 8vw, 5rem);
+            color: #fff;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            margin-bottom: 20px;
+            text-align: center;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .subtitle {
+            font-size: 1.2rem;
+            color: rgba(255,255,255,0.9);
+            text-align: center;
+            margin-bottom: 40px;
+            max-width: 500px;
+        }
+
+        .game-container {
+            background: rgba(255,255,255,0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 30px;
+            padding: 40px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+            text-align: center;
+            max-width: 500px;
+            width: 100%;
+            transform: translateY(0);
+            transition: all 0.5s ease;
+        }
+
+        .question {
+            font-family: 'Dancing Script', cursive;
+            font-size: clamp(1.5rem, 5vw, 2.5rem);
+            color: #e91e63;
+            margin-bottom: 40px;
+            min-height: 100px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .buttons {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 20px 40px;
+            font-size: 1.3rem;
+            font-weight: 600;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            min-width: 140px;
+            font-family: 'Poppins', sans-serif;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .btn-yes {
+            background: linear-gradient(45deg, #4CAF50, #45a049);
+            color: white;
+            box-shadow: 0 10px 20px rgba(76, 175, 80, 0.4);
+        }
+
+        .btn-no {
+            background: linear-gradient(45deg, #f44336, #da190b);
+            color: white;
+            box-shadow: 0 10px 20px rgba(244, 67, 54, 0.4);
+        }
+
+        .btn:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.3);
+        }
+
+        .btn:active {
+            transform: translateY(-2px);
+        }
+
+        .surprise {
+            display: none;
+            animation: bounceIn 0.8s ease;
+        }
+
+        @keyframes bounceIn {
+            0% { transform: scale(0.3); opacity: 0; }
+            50% { transform: scale(1.05); }
+            70% { transform: scale(0.9); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        .surprise.active {
+            display: block;
+        }
+
+        .surprise-title {
+            font-family: 'Dancing Script', cursive;
+            font-size: clamp(2rem, 6vw, 3.5rem);
+            background: linear-gradient(45deg, #ff6b6b, #ffd93d, #6bcf7f, #4facfe);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 20px;
+        }
+
+        .surprise-message {
+            font-size: 1.3rem;
+            color: #333;
+            line-height: 1.6;
+            margin-bottom: 30px;
+        }
+
+        .restart-btn {
+            background: linear-gradient(45deg, #9c27b0, #673ab7);
+            color: white;
+            padding: 15px 30px;
+            font-size: 1.1rem;
+            border-radius: 30px;
+        }
+
+        .hearts-explosion {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            pointer-events: none;
+            z-index: 1000;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: rgba(255,255,255,0.3);
+            border-radius: 10px;
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #ff6b6b, #ffd93d);
+            width: 0%;
+            transition: width 0.5s ease;
+            border-radius: 10px;
+        }
+
+        @media (max-width: 480px) {
+            .game-container {
+                padding: 30px 20px;
+                margin: 10px;
+            }
+            
+            .buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .btn {
+                width: 100%;
+                max-width: 250px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Floating hearts background -->
+    <div id="heartsContainer"></div>
+
+    <div class="container">
+        <h1 class="title">💕 Love Quest 💕</h1>
+        <p class="subtitle">Answer these questions honestly... Your love story awaits! ✨</p>
+
+        <div class="game-container" id="gameContainer">
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+            
+            <div class="question" id="question"></div>
+            
+            <div class="buttons" id="buttons">
+                <button class="btn btn-yes" onclick="selectAnswer(true)">✅ YES</button>
+                <button class="btn btn-no" onclick="selectAnswer(false)">❌ NO</button>
+            </div>
+        </div>
+
+        <div class="game-container surprise" id="surprise">
+            <h2 class="surprise-title" id="surpriseTitle"></h2>
+            <p class="surprise-message" id="surpriseMessage"></p>
+            <button class="btn restart-btn" onclick="restartGame()">🔄 Play Again</button>
+        </div>
+    </div>
+
+    <div class="hearts-explosion" id="heartsExplosion"></div>
+
+    <script>
+        const questions = [
+            "Do you smile when you think of me? 😊",
+            "Would you choose me again in every lifetime? ♾️",
+            "Does my voice make your heart skip a beat? 💓",
+            "Do you dream about our future together? 🌙",
+            "Am I your favorite notification? 📱",
+            "Would you travel across the world just to hug me? ✈️",
+            "Do you feel butterflies when we talk? 🦋",
+            "Am I the first person you want to tell good news to? 🏆",
+            "Would you fight the world to keep us together? ⚔️",
+            "Do you believe our love is forever? 💍"
+        ];
+
+        const surprises = {
+            allYes: {
+                title: "🎉 PERFECT LOVE! 🎉",
+                message: "You're my soulmate in every universe! Every YES proves our love is unbreakable. I love you more than words can say! 💖✨"
+            },
+            mostlyYes: {
+                title: "💖 TRUE LOVE! 💖",
+                message: "Your heart speaks louder than words! We're building something beautiful together. Can't wait to hold you close! 🥰💕"
+            },
+            mixed: {
+                title: "💕 GROWING LOVE! 💕",
+                message: "Every relationship has its journey. I love you today and every day after. Let's make more memories! 🌟💑"
+            },
+            mostlyNo: {
+                title: "💝 HONEST LOVE! 💝",
+                message: "Thank you for being real with me. Love grows through honesty. You're still my favorite person! 😘💫"
+            }
+        };
+
+        let currentQuestion = 0;
+        let yesCount = 0;
+        let totalQuestions = questions.length;
+
+        function createFloatingHearts() {
+            const heartsContainer = document.getElementById('heartsContainer');
+            const hearts = ['💖', '💕', '💗', '💓', '💞', '💝', '✨'];
+            
+            setInterval(() => {
+                const heart = document.createElement('div');
+                heart.className = 'heart';
+                heart.innerHTML = hearts[Math.floor(Math.random() * hearts.length)];
+                heart.style.left = Math.random() * 100 + '%';
+                heart.style.animationDuration = (Math.random() * 3 + 4) + 's';
+                heart.style.fontSize = (Math.random() * 10 + 15) + 'px';
+                heartsContainer.appendChild(heart);
+                
+                setTimeout(() => heart.remove(), 7000);
+            }, 300);
+        }
+
+        function startGame() {
+            currentQuestion = 0;
+            yesCount = 0;
+            document.getElementById('gameContainer').style.display = 'block';
+            document.getElementById('surprise').classList.remove('active');
+            nextQuestion();
+            createFloatingHearts();
+        }
+
+        function nextQuestion() {
+            if (currentQuestion < totalQuestions) {
+                document.getElementById('question').textContent = questions[currentQuestion];
+                updateProgress();
+            } else {
+                showSurprise();
+            }
+        }
+
+        function updateProgress() {
+            const progress = ((currentQuestion) / totalQuestions) * 100;
+            document.getElementById('progressFill').style.width = progress + '%';
+        }
+
+        function selectAnswer(isYes) {
+            if (isYes) {
+                yesCount++;
+                createHeartExplosion();
+            }
+            
+            currentQuestion++;
+            
+            setTimeout(() => {
+                nextQuestion();
+            }, 800);
+        }
+
+        function showSurprise() {
+            const percentage = (yesCount / totalQuestions) * 100;
+            let surprise;
+            
+            if (percentage === 100) {
+                surprise = surprises.allYes;
+            } else if (percentage >= 70) {
+                surprise = surprises.mostlyYes;
+            } else if (percentage >= 40) {
+                surprise = surprises.mixed;
+            } else {
+                surprise = surprises.mostlyNo;
+            }
+            
+            document.getElementById('gameContainer').style.display = 'none';
+            document.getElementById('surpriseTitle').textContent = surprise.title;
+            document.getElementById('surpriseMessage').textContent = surprise.message;
+            document.getElementById('surprise').classList.add('active');
+            
+            createMassiveHeartExplosion();
+        }
+
+        function createHeartExplosion() {
+            const container = document.getElementById('heartsExplosion');
+            for (let i = 0; i < 15; i++) {
+                setTimeout(() => {
+                    const heart = document.createElement('div');
+                    heart.innerHTML = '💖';
+                    heart.style.position = 'fixed';
+                    heart.style.left = '50%';
+                    heart.style.top = '50%';
+                    heart.style.fontSize = '30px';
+                    heart.style.pointerEvents = 'none';
+                    heart.style.zIndex = '1001';
+                    container.appendChild(heart);
+                    
+                    const angle = (Math.PI * 2 * i) / 15;
+                    const velocity = 150 + Math.random() * 100;
+                    const vx = Math.cos(angle) * velocity;
+                    const vy = Math.sin(angle) * velocity;
+                    
+                    let x = 0, y = 0;
+                    const animate = () => {
+                        x += vx * 0.02;
+                        y += vy * 0.02 + 0.5;
+                        heart.style.transform = `translate(${x}px, ${y}px) rotate(${Math.random()*360}deg)`;
+                        heart.style.opacity = 1 - (y / 300);
+                        
+                        if (y < 300) {
+                            requestAnimationFrame(animate);
+                        } else {
+                            heart.remove();
+                        }
+                    };
+                    animate();
+                }, i * 50);
+            }
+        }
+
+        function createMassiveHeartExplosion() {
+            const container = document.getElementById('heartsExplosion');
+            for (let i = 0; i < 50; i++) {
+                setTimeout(() => {
+                    const heart = document.createElement('div');
+                    heart.innerHTML = ['💖', '💕', '💗', '✨'][Math.floor(Math.random()*4)];
+                    heart.style.position = 'fixed';
+                    heart.style.left = Math.random() * 100 + '%';
+                    heart.style.top = Math.random() * 100 + '%';
+                    heart.style.fontSize = (20 + Math.random() * 30) + 'px';
+                    heart.style.pointerEvents = 'none';
+                    heart.style.zIndex = '1001';
+                    container.appendChild(heart);
+                    
+                    const vx = (Math.random() - 0.5) * 400;
+                    const vy = (Math.random() - 0.5) * 400;
+                    
+                    let x = 0, y = 0;
+                    const animate = () => {
+                        x += vx * 0.02;
+                        y += vy * 0.02 + 0.8;
+                        heart.style.transform = `translate(${x}px, ${y}px) rotate(${Math.random()*720}deg)`;
+                        heart.style.opacity = Math.max(0, 1 - (y / 400));
+                        
+                        if (y < 400) {
+                            requestAnimationFrame(animate);
+                        } else {
+                            heart.remove();
+                        }
+                    };
+                    animate();
+                }, i * 30);
+            }
+        }
+
+        function restartGame() {
+            document.getElementById('surprise').classList.remove('active');
+            setTimeout(startGame, 500);
+        }
+
+        // Start the game when page loads
+        window.addEventListener('load', startGame);
+    </script>
+</body>
+</html>

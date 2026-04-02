@@ -1,214 +1,284 @@
-# 📖 Release Management Guide
+# 🚀 ZeroMix Release Guide
 
-**Complete automated release pipeline with Conventional Commits & signed installer.**
+Panduan lengkap untuk merilis versi baru ZeroMix ke GitHub Releases.
 
----
+## 📋 Quick Start
 
-## 🚀 Create Release (Super Simple!)
+### Cara Paling Mudah (Otomatis)
 
 ```bash
-git add .;
-git commit -m "feat: Professionalize project structure and bump version to 5.1.3";
-git push;
-
+# Dari root project
+.\Scripts\release-version.bat 5.1.5
 ```
 
-**That's it!** ✅ No more manual steps needed.
+Atau dengan PowerShell:
+
+```powershell
+.\Scripts\release-version.ps1 -NewVersion 5.1.5
+```
+
+**Itu saja!** Script akan otomatis:
+1. ✅ Update versi di semua file
+2. ✅ Commit perubahan
+3. ✅ Create tag `v5.1.5`
+4. ✅ Push ke GitHub
+5. ✅ Trigger workflow build & release
 
 ---
 
-## 📝 Commit Format (Important!)
+## 🔄 Workflow Lengkap
 
-For CHANGELOG to auto-generate from your commits, use **Conventional Commits**:
+### 1. Update Versi & Release
 
-### ✅ Good Examples
+```powershell
+# Release versi baru
+.\Scripts\release-version.ps1 -NewVersion 5.1.5
+
+# Dengan custom commit message
+.\Scripts\release-version.ps1 -NewVersion 5.1.5 -CommitMessage "feat: add new features"
+
+# Preview saja (tidak push)
+.\Scripts\release-version.ps1 -NewVersion 5.1.5 -SkipPush
+```
+
+### 2. Apa yang Terjadi di GitHub?
+
+Setelah push tag, GitHub Actions otomatis:
+
+```
+📦 Build Workflow (build-release.yml)
+├─ ⚙️  Setup .NET 9
+├─ 📦 Restore & Publish
+├─ 🎬 Download FFMPEG
+├─ 🛠️  Build Inno Setup Installer
+├─ 🔐 Sign dengan osslsigncode (jika cert tersedia)
+├─ 📦 Create Portable ZIP
+└─ 🚀 Upload ke GitHub Releases
+```
+
+### 3. Hasil Release
+
+GitHub Releases akan berisi:
+- `ZeroMix-v5.1.5-Setup.exe` (Installer, signed)
+- `ZeroMix-v5.1.5-Portable.zip` (Portable version)
+
+---
+
+## 📁 File yang Di-Update Otomatis
+
+Script `release-version.ps1` akan update versi di:
+
+| File | Pattern |
+|------|---------|
+| `src/MainWindow.xaml.cs` | `CURRENT_VERSION = "5.1.5"` |
+| `Exe/Setup.iss` | `#define AppVersion "5.1.5"` |
+| `ZeroMix.csproj` | `<Version>5.1.5</Version>` |
+
+---
+
+## 🏷️ Git Tag Management
+
+### Lihat Semua Tag
+
 ```bash
-# Features
-git commit -m "feat: add new recording format"
-git commit -m "feat(recorder): support 4K resolution"
-
-# Bug Fixes
-git commit -m "fix: crash on large file save"
-git commit -m "fix(encoder): audio sync issue"
-
-# Improvements
-git commit -m "refactor: simplify encoder logic"
-git commit -m "perf: improve performance 20%"
-git commit -m "docs: update installation guide"
-feat: Menambah fitur baru (Akan menaikkan versi MINOR)
-fix: Memperbaiki bug (Akan menaikkan versi PATCH)
-chore: Update dokumentasi (Akan menaikkan versi PATCH)
+git tag
 ```
 
-### ❌ Avoid These
+### Hapus Tag (Lokal & Remote)
+
 ```bash
-git commit -m "update"           # Too generic
-git commit -m "fix bug"          # Not categorized
-git commit -m "changes"          # No description
-git commit -m "WIP: stuff"       # Work in progress
+# Hapus lokal
+git tag -d v5.1.4
+
+# Hapus remote
+git push origin :refs/tags/v5.1.4
 ```
 
-**Why?** The workflow parses these messages to auto-generate CHANGELOG sections.
+### Re-release Versi yang Sama
 
----
+Jika ada kesalahan dan mau re-release versi yang sama:
 
-## 📥 Release Contains (Automatic!)
-
-After push tag, your Release page has:
-
-### 1. **Changelog Summary**
-- Automatically generated from your commits
-- Categorized by type (Features, Fixes, Improvements)
-- Always up-to-date
-
-### 2. **Portable EXE**
-```
-ZeroMix-v1.0.0.exe
-```
-- Ready to run immediately  
-- No installation needed
-- Good for testing
-
-### 3. **EXE Installer** (Inno Setup)
-```
-ZeroMix-v1.0.0-Setup.exe
-```
-- Professional installer (Inno Setup)
-- Signed with code certificate
-- Adds to Start Menu
-- Add/Remove Programs support
-- Easy uninstall
-- Checks .NET 9 & WebView2 dependencies
-
----
-
-## 🔄 What Happens (Behind the Scenes)
-
-When you push a tag:
-
-```
-1. GitHub Actions detects tag
-   └─ Workflow: build-release.yml starts
-
-2. Build Application
-   ├─ Checkout code
-   ├─ Setup .NET 9.0
-   ├─ Build for Release
-   ├─ Publish executable
-   └─ Download FFMPEG
-
-3. Code Signing (Pre-Installer)
-   ├─ Download osslsigncode
-   ├─ Sign main ZeroMix.exe
-   └─ Uses CERT_PASSWORD secret
-
-4. Generate Installer
-   ├─ Create EXE installer using Inno Setup
-   ├─ Bundles the SIGNED exe inside
-   ├─ Version passed via /DAppVersion=
-   └─ Sign the installer itself
-
-5. Generate Changelog
-   ├─ Parse your commits
-   ├─ Categorize (feat/fix/refactor)
-   └─ Create summary
-
-6. Create GitHub Release
-   ├─ Release page created
-   ├─ Summary added
-   ├─ Both EXE and Installer attached
-   └─ Ready for download!
+```powershell
+# Script akan tanya apakah mau overwrite tag
+.\Scripts\release-version.ps1 -NewVersion 5.1.5
+# Jawab 'y' untuk delete & recreate tag
 ```
 
 ---
 
-## 📊 Release Page Example
+## 🔐 Certificate Setup (Opsional)
 
+Untuk signing otomatis, setup certificate sekali saja:
+
+```powershell
+.\Scripts\setup-github-secrets.ps1
 ```
-🎉 ZeroMix v1.0.0
 
-What's Changed
+Atau manual:
+1. Encode certificate ke base64:
+   ```powershell
+   $cert = [Convert]::ToBase64String([IO.File]::ReadAllBytes("Exe/ZeroMixCert.pfx"))
+   $cert | Out-File "cert_base64.txt"
+   ```
 
-✨ Features
-- feat: add new recording format  
-- feat(ui): improve dark mode
-
-🐛 Bug Fixes
-- fix: crash on large recordings
-- fix(encoder): audio quality issue
-
-🚀 Improvements
-- refactor: simplify code structure
-- perf: increase speed 15%
-
-📥 Downloads
-- ZeroMix-v1.0.0.exe (Portable)
-- ZeroMix-v1.0.0-Setup.exe (Installer)
-
-🖥️ System Requirements
-- Windows 10/11 (64-bit)
-- .NET 9.0 Desktop Runtime
-- WebView2 Runtime
-- DirectX 12 compatible GPU
-- 2GB RAM minimum
-```
+2. Add GitHub Secrets:
+   - `CERT_BASE64` = isi dari `cert_base64.txt`
+   - `CERT_PASSWORD` = password certificate
 
 ---
 
-## 🔗 Quick Links
+## 📊 Version History Example
 
-- **GitHub Actions:** https://github.com/faizinuha/ZeroMix/actions
-- **Releases Page:** https://github.com/faizinuha/ZeroMix/releases
-- **CHANGELOG:** [CHANGELOG.md](CHANGELOG.md)
+```
+v5.1.5 (Latest)
+├─ ZeroMix-v5.1.5-Setup.exe
+└─ ZeroMix-v5.1.5-Portable.zip
+
+v5.1.4
+├─ ZeroMix-v5.1.4-Setup.exe
+└─ ZeroMix-v5.1.4-Portable.zip
+
+v5.1.3
+├─ ZeroMix-v5.1.3-Setup.exe
+└─ ZeroMix-v5.1.3-Portable.zip
+```
+
+Setiap versi punya release sendiri, tidak numpuk!
 
 ---
-# 1. Simpan semua perubahan kodenya dulu
+
+## 🛠️ Manual Release (Tanpa Script)
+
+Jika mau manual:
+
+### 1. Update Versi Manual
+
+Edit file-file ini:
+- `src/MainWindow.xaml.cs` → `CURRENT_VERSION`
+- `Exe/Setup.iss` → `AppVersion`
+- `ZeroMix.csproj` → `<Version>`
+
+### 2. Commit & Tag
+
+```bash
 git add .
-git commit -m "feat: Menambah fitur perekaman area"
-git push
+git commit -m "chore: bump version to 5.1.5"
+git tag -a v5.1.5 -m "Release 5.1.5"
+```
 
-# 2. SEKARANG BIKIN TAG RILISNYA LALU PUSH (Ini yang memicu Build Release!)
-git tag v5.1.0
-git push origin v5.1.0
+### 3. Push
 
-## 💡 Best Practices
-
-✅ **DO:**
-- Use Conventional Commits format
-- Write clear commit messages
-- Tag releases consistently (v1.0.0)
-- Review CHANGELOG after creation
-
-❌ **DON'T:**
-- Use generic commit messages  
-- Forget to follow commit format
-- Tag without incrementing version
-- Push commits without message
+```bash
+git push origin main
+git push origin v5.1.5
+```
 
 ---
 
-## ❓ Help
+## 🚨 Troubleshooting
 
-**Release failed?**
-1. Check GitHub Actions tab for error
-2. Look at specific step logs
-3. Common: .NET build warnings (usually safe)
+### Tag Sudah Ada
 
-**CHANGELOG empty?**
-1. Verify commits use Conventional Commits
-2. Check tag format: `v1.0.0` (not `1.0.0`)
-3. Ensure commits between last tag and now
+```
+❌ Tag v5.1.5 already exists!
+```
 
-**Installer didn't build?**
-1. Check Inno Setup step in Actions log
-2. Portable EXE still available as fallback
-3. Verify Setup.iss paths are correct
+**Solusi:**
+```bash
+# Hapus tag lokal & remote
+git tag -d v5.1.5
+git push origin :refs/tags/v5.1.5
 
-**Code signing skipped?**
-1. Set `CERT_PASSWORD` secret in repo Settings → Secrets → Actions
-2. Check if `ZeroMixCert.pfx` exists in `Exe/` folder
-3. osslsigncode download may have failed — check logs
+# Buat ulang
+.\Scripts\release-version.ps1 -NewVersion 5.1.5
+```
+
+### Workflow Gagal
+
+1. Cek workflow di: `https://github.com/[user]/[repo]/actions`
+2. Lihat log error
+3. Common issues:
+   - FFMPEG download timeout → Re-run workflow
+   - Inno Setup error → Cek `Exe/Setup.iss` syntax
+   - Certificate error → Cek GitHub Secrets
+
+### Build Lokal Dulu
+
+Test build sebelum release:
+
+```powershell
+# Build lokal tanpa upload
+.\build\build-sign-release.ps1 -Version 5.1.5 -SkipUpload
+```
 
 ---
 
-**Everything is automatic.** Just commit, push tag, and done! 🚀
+## 📝 Best Practices
+
+### 1. Semantic Versioning
+
+```
+MAJOR.MINOR.PATCH
+  5  . 1  . 5
+
+MAJOR: Breaking changes
+MINOR: New features (backward compatible)
+PATCH: Bug fixes
+```
+
+### 2. Release Checklist
+
+- [ ] Test aplikasi lokal
+- [ ] Update CHANGELOG.md
+- [ ] Run `release-version.ps1`
+- [ ] Monitor GitHub Actions
+- [ ] Test installer dari release
+- [ ] Announce di Discord/Social Media
+
+### 3. Hotfix Release
+
+Untuk bug critical:
+
+```powershell
+# Langsung dari main branch
+.\Scripts\release-version.ps1 -NewVersion 5.1.6 -CommitMessage "hotfix: critical bug fix"
+```
+
+---
+
+## 🎯 Examples
+
+### Release Minor Version
+
+```powershell
+# 5.1.4 → 5.1.5
+.\Scripts\release-version.ps1 -NewVersion 5.1.5
+```
+
+### Release Major Version
+
+```powershell
+# 5.1.5 → 6.0.0
+.\Scripts\release-version.ps1 -NewVersion 6.0.0 -CommitMessage "feat: major update with breaking changes"
+```
+
+### Beta Release
+
+```powershell
+# Untuk beta, gunakan tag manual
+git tag -a v5.2.0-beta.1 -m "Beta release"
+git push origin v5.2.0-beta.1
+```
+
+---
+
+## 📞 Support
+
+Jika ada masalah:
+1. Cek [WORKFLOW_TROUBLESHOOTING.md](WORKFLOW_TROUBLESHOOTING.md)
+2. Lihat GitHub Actions logs
+3. Open issue di repository
+
+---
+
+**Happy Releasing! 🚀**

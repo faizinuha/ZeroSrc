@@ -181,9 +181,9 @@ Exe/ZeroMix-Setup-v5.1.1.exe      (Installer)
 
 ## 📚 Documentation
 
-- [LOCAL_BUILD_GUIDE.md](../Docs/LOCAL_BUILD_GUIDE.md) - Detailed guide
-- [CERTIFICATE_SETUP.md](../Docs/CERTIFICATE_SETUP.md) - Certificate setup
-- [RELEASE_WORKFLOW.md](../Docs/RELEASE_WORKFLOW.md) - GitHub Actions workflow
+- [RELEASES_GUIDE.md](../Docs/RELEASES_GUIDE.md) - Complete release guide
+- [RELEASE_TROUBLESHOOTING.md](../Docs/RELEASE_TROUBLESHOOTING.md) - Troubleshooting
+- [Scripts/README.md](../Scripts/README.md) - Script documentation
 
 ## 🎯 Workflow Comparison
 
