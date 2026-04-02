@@ -137,17 +137,17 @@ namespace ZeroMix.Plugins.Weather
 
             // --- SMART PATH DETECTION ---
             string baseDir = AppDomain.CurrentDomain.BaseDirectory;
-            string assetPath = Path.Combine(baseDir, "Plugins", "zeromix.weather", "assets", fileName);
+            string assetPath = Path.Combine(baseDir, "Tools", "Plugins", "zeromix.weather", "assets", fileName);
 
             if (!File.Exists(assetPath))
             {
-                string devPath = Path.Combine(baseDir, "..", "..", "..", "Plugins", "zeromix.weather", "assets", fileName);
+                string devPath = Path.Combine(baseDir, "..", "..", "..", "Tools", "Plugins", "zeromix.weather", "assets", fileName);
                 if (File.Exists(devPath)) assetPath = devPath;
             }
 
             if (!File.Exists(assetPath))
             {
-                string absolutePath = $@"C:\ZeroMix\ZeroMix\Plugins\zeromix.weather\assets\{fileName}";
+                string absolutePath = $@"C:\ZeroMix\ZeroMix\Tools\Plugins\zeromix.weather\assets\{fileName}";
                 if (File.Exists(absolutePath)) assetPath = absolutePath;
             }
 
@@ -161,7 +161,7 @@ namespace ZeroMix.Plugins.Weather
             else
             {
                 Debug.WriteLine($"[Weather] ERROR: Could not find ANY video assets named {fileName}");
-                string fallback = Path.Combine(baseDir, "Resource", "Video", "Vs (1).mp4");
+                string fallback = Path.Combine(baseDir, "Assets", "Data", "Video", "Vs (1).mp4");
                 if (File.Exists(fallback))
                 {
                     System.Windows.Application.Current.Dispatcher.Invoke(() => {

@@ -7,9 +7,9 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>
     <UseWindowsForms>true</UseWindowsForms>
-    <ApplicationIcon>zeromix.ico</ApplicationIcon>
+    <ApplicationIcon>Assets\Icons\zeromix.ico</ApplicationIcon>
     <EnableWindowsTargeting>true</EnableWindowsTargeting>
-    <Version>5.2.4</Version>
+    <Version>5.3.0</Version>
     
     <!-- Optimasi Ukuran & Portabilitas (Self-Contained & Kompresi) -->
     <PublishSingleFile>true</PublishSingleFile>
@@ -39,7 +39,7 @@
   <!-- Obfuscate hanya di Windows environment untuk Release build -->
   <Target Name="Obfuscate" AfterTargets="AfterBuild" Condition="'$(Configuration)' == 'Release' AND '$(OS)' == 'Windows_NT'">
     <PropertyGroup>
-      <ObfuscarConfig>$(ProjectDir)obfuscar.xml</ObfuscarConfig>
+      <ObfuscarConfig>$(ProjectDir)Setup\obfuscar.xml</ObfuscarConfig>
       <!-- Gunakan path dari package yang di-restore -->
       <ObfuscarExe>"$(PkgObfuscar)\tools\Obfuscar.Console.exe"</ObfuscarExe>
     </PropertyGroup>
@@ -61,64 +61,64 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Resource Include="zeromix.ico" />
-    <Resource Include="assets\**" />
-    <Resource Include="SleepMode\IMG\**" />
-    <Resource Include="ZeroShell\asci\*" />
+    <Resource Include="Assets\Icons\zeromix.ico" />
+    <Resource Include="Assets\Icons\**" />
+    <Resource Include="src\SleepMode\IMG\**" />
+    <Resource Include="src\ZeroShell\asci\*" />
   </ItemGroup>
 
 
   <ItemGroup>
-    <Content Include="Resource\**">
+    <Content Include="Assets\Data\**">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
 
   <ItemGroup>
-    <Content Include="FFMPEG\**">
+    <Content Include="Tools\FFMPEG\**">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
 
   <ItemGroup>
-    <Content Include="Plugins\**\*.png">
+    <Content Include="Tools\Plugins\**\*.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
 
   <ItemGroup>
-    <Content Include="ZeroShell\**\*.png">
+    <Content Include="src\ZeroShell\**\*.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
 
   <ItemGroup>
-    <Content Include="ZeroShell\**\*.png">
+    <Content Include="src\ZeroShell\**\*.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
 
   <!-- Virtual Assistant assets: copy runtime files (models, textures, json) to output -->
   <ItemGroup>
-    <Content Include="Virtual_Assisten\**\*.moc3">
+    <Content Include="src\Virtual_Assisten\**\*.moc3">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="Virtual_Assisten\**\*.model3.json">
+    <Content Include="src\Virtual_Assisten\**\*.model3.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="Virtual_Assisten\**\*.physics3.json">
+    <Content Include="src\Virtual_Assisten\**\*.physics3.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="Virtual_Assisten\**\*.vtube.json">
+    <Content Include="src\Virtual_Assisten\**\*.vtube.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="Virtual_Assisten\**\*.png">
+    <Content Include="src\Virtual_Assisten\**\*.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="Virtual_Assisten\**\*.jpg">
+    <Content Include="src\Virtual_Assisten\**\*.jpg">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="Virtual_Assisten\**\*" Exclude="**\*.cs;**\*.xaml;**\*.user;**\*.vspscc;**\*.dll;**\*.exe">
+    <Content Include="src\Virtual_Assisten\**\*" Exclude="**\*.cs;**\*.xaml;**\*.user;**\*.vspscc;**\*.dll;**\*.exe">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>

@@ -77,9 +77,9 @@ namespace ZeroMix.Wallpapers
         {
             var baseDir = AppDomain.CurrentDomain.BaseDirectory;
             var paths = new[] {
+                Path.Combine(baseDir, "Tools", "FFMPEG", "ffmpeg.exe"),
                 Path.Combine(baseDir, "FFMPEG", "ffmpeg.exe"),
-                @"C:\ZeroMix\ZeroMix\FFMPEG\ffmpeg.exe",
-                Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "ZeroMix", "FFMPEG", "ffmpeg.exe")
+                Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "ZeroMix", "Tools", "FFMPEG", "ffmpeg.exe")
             };
             return paths.FirstOrDefault(File.Exists);
         }

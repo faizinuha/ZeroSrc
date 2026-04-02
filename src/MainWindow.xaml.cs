@@ -383,7 +383,7 @@ namespace ZeroMix
         {
             _notifyIcon = new NotifyIcon();
 
-            var iconUri = new Uri("zeromix.ico", UriKind.RelativeOrAbsolute);
+            var iconUri = new Uri("../Assets/Icons/zeromix.ico", UriKind.RelativeOrAbsolute);
             var iconStream = System.Windows.Application.GetResourceStream(iconUri)?.Stream;
             if (iconStream != null)
             {

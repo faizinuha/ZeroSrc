@@ -35,7 +35,7 @@ namespace ZeroMix.ZeroShell
 
     public partial class ZeroShellWindow : Window
     {
-        private const string CURRENT_VERSION = "5.2.2";
+        private const string CURRENT_VERSION = "5.2.4";
         private List<TerminalTab> _tabs = new List<TerminalTab>();
         private TerminalTab? _activeTab;
 
@@ -410,11 +410,11 @@ namespace ZeroMix.ZeroShell
                 Process.Start(new ProcessStartInfo(shellExe, "--version") { CreateNoWindow = true, UseShellExecute = false }).WaitForExit(500); 
             } catch { shellExe = "powershell.exe"; }
 
-            // ZeroMix Native Prompt (Premium look using ANSI)
+            // ZeroMix Native Prompt (Premium look - Refined to avoid ParserError in all PS versions)
+            string escape = "$([char]27)";
             string customPrompt = "function prompt { " +
                 "  $p = $ExecutionContext.SessionState.Path.CurrentLocation; " +
-                "  $e = [char]27; " +
-                "  \"$e[36m┌── $e[33m$([Environment]::UserName)@$([Environment]::MachineName)$e[90m in $e[32m$p$e[0m`n$e[35m└─❯ $e[0m\" " +
+                "  return " + escape + " + '[36m┌── ' + " + escape + " + '[33m' + [Environment]::UserName + '@' + [Environment]::MachineName + " + escape + " + '[90m in ' + " + escape + " + '[32m' + $p + " + escape + " + '[0m' + \"`n\" + " + escape + " + '[35m└─❯ ' + " + escape + " + '[0m ' " +
                 "}";
 
             var proc = new Process();

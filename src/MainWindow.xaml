@@ -10,7 +10,7 @@
         xmlns:weather="clr-namespace:ZeroMix.Plugins.Weather"
         xmlns:translate="clr-namespace:ZeroMix.Plugins.Translate"
         Title="ZeroMix"
-        Icon="zeromix.ico"
+        Icon="../Assets/Icons/zeromix.ico"
         Height="750"
         Width="1150"
         MinHeight="600"
@@ -36,7 +36,7 @@
     <Window.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
-                <ResourceDictionary Source="Plugins/Styles.xaml"/>
+                <ResourceDictionary Source="../Tools/Plugins/Styles.xaml"/>
             </ResourceDictionary.MergedDictionaries>
 
             <!-- Global ComboBox -->
