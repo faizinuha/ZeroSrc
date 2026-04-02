@@ -72,6 +72,7 @@ jobs:
         }
         
         # Decode certificate from base64
+        Write-Host "🔐 Decoding certificate..."
         $certBase64 = "${{ secrets.CERT_BASE64 }}"
         $certBytes = [Convert]::FromBase64String($certBase64)
         $certPath = "./cert.pfx"
@@ -89,8 +90,8 @@ jobs:
         
         if (Test-Path $signedPath) {
           Write-Host "✅ Signed successfully: $signedPath"
-          Remove-Item $exePath
-          Rename-Item $signedPath $exePath
+          Remove-Item $exePath -Force
+          Rename-Item $signedPath $exePath -Force
           Write-Host "✅ Replaced original with signed version"
         } else {
           Write-Host "❌ Signing failed"
@@ -120,7 +121,7 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-    - name: 📝 Add Release Notes
+    - name: 📝 Release Ready
       shell: pwsh
       run: |
         $tag = if ("${{ github.event_name }}" -eq "workflow_dispatch") {

@@ -8,7 +8,7 @@
 
 ```bash
 git add .;
-git commit -m "Refactor: Professionalize project structure and bump version to 5.3.0";
+git commit -m "feat: Professionalize project structure and bump version to 5.1.3";
 git push;
 
 ```
