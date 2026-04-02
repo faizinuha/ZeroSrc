@@ -5,8 +5,8 @@ permissions:
 
 on:
   push:
-    branches:
-      - ProyekTil
+    tags:
+      - 'v*'
   workflow_dispatch:
     inputs:
       version:
@@ -14,105 +14,94 @@ on:
         required: false
 
 jobs:
-  prepare:
-    runs-on: ubuntu-latest
+  build:
+    name: 🏗️ Build & Release
+    runs-on: windows-latest
     permissions:
       contents: write
-    outputs:
-      tag: ${{ steps.version.outputs.tag }}
-      version: ${{ steps.version.outputs.version }}
-      skip: ${{ steps.version.outputs.skip }}
-    steps:
-      - name: 📥 Checkout Code
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-      - name: 📌 Determine & Create Version Tag
-        id: version
-        run: |
-          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
-            INPUT_VER="${{ github.event.inputs.version }}"
-            INPUT_VER=${INPUT_VER#v}
-            TAG="v$INPUT_VER"
-            echo "tag=$TAG" >> $GITHUB_OUTPUT
-            echo "version=$INPUT_VER" >> $GITHUB_OUTPUT
-            echo "skip=false" >> $GITHUB_OUTPUT
-            exit 0
-          fi
-
-          COMMIT_MSG=$(git log -1 --pretty=%B)
-          echo "📄 Commit message: $COMMIT_MSG"
-          
-          LAST_TAG=$(git tag -l 'v[0-9]*' --sort=-version:refname | grep -E '^v[0-9]+(\.[0-9]+){2,3}$' | head -1)
-          if [ -z "$LAST_TAG" ]; then LAST_TAG="v0.0.0.0"; fi
-          echo "📍 Last version tag: $LAST_TAG"
-          
-          LAST_VERSION=${LAST_TAG#v}
-          IFS='.' read -r MAJOR MINOR PATCH BUILD <<< "$LAST_VERSION"
-          if [ -z "$MAJOR" ]; then MAJOR=0; fi
-          if [ -z "$MINOR" ]; then MINOR=0; fi
-          if [ -z "$PATCH" ]; then PATCH=0; fi
-          if [ -z "$BUILD" ]; then BUILD=0; fi
-          
-          if [[ $COMMIT_MSG =~ ^fix: ]] || [[ $COMMIT_MSG =~ ^chore: ]]; then
-            if [ "$BUILD" -ne 0 ]; then
-              NEW_VERSION="$MAJOR.$MINOR.$PATCH.$((BUILD+1))"
-            else
-              NEW_VERSION="$MAJOR.$MINOR.$((PATCH+1))"
-            fi
-            BUMP=true
-          elif [[ $COMMIT_MSG =~ ^feat: ]]; then
-            if [ "$BUILD" -ne 0 ]; then
-              NEW_VERSION="$MAJOR.$((MINOR+1)).0.0"
-            else
-              NEW_VERSION="$MAJOR.$((MINOR+1)).0"
-            fi
-            BUMP=true
-          elif [[ $COMMIT_MSG == *"BREAKING CHANGE"* ]]; then
-            NEW_VERSION="$((MAJOR+1)).0.0.0"
-            BUMP=true
-          else
-            echo "⏭️  No version bump needed"
-            echo "skip=true" >> $GITHUB_OUTPUT
-            exit 0
-          fi
-          
-          TAG="v$NEW_VERSION"
-          echo "✅ New version: $TAG"
-          
-          git config --local user.email "action@github.com"
-          git config --local user.name "GitHub Action Bot"
-          git tag -a "$TAG" -m "Release $TAG: $COMMIT_MSG"
-          git push origin "$TAG"
-          
-          echo "tag=$TAG" >> $GITHUB_OUTPUT
-          echo "version=$NEW_VERSION" >> $GITHUB_OUTPUT
-          echo "skip=false" >> $GITHUB_OUTPUT
-
-  build-and-release:
-    needs: prepare
-    if: needs.prepare.outputs.skip != 'true'
-    runs-on: windows-latest
 
     steps:
     - name: 📥 Checkout Code
       uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: 🔢 Determine Version
+      id: version
+      shell: bash
+      run: |
+        if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+          TAG="v${{ github.event.inputs.version }}"
+        else
+          TAG="${{ github.ref_name }}"
+        fi
+        VERSION=${TAG#v}
+        echo "tag=$TAG" >> $GITHUB_OUTPUT
+        echo "version=$VERSION" >> $GITHUB_OUTPUT
+        echo "🚀 Building ZeroMix $TAG"
 
     - name: ⚙️ Setup .NET
       uses: actions/setup-dotnet@v4
       with:
         dotnet-version: '9.0.x'
 
-    - name: 📦 Install dependencies
-      run: dotnet restore ZeroMix.csproj
+    - name: 📦 Restore & Publish
+      run: |
+        dotnet restore ZeroMix.csproj
+        dotnet publish ZeroMix.csproj -c Release -o publish/win-x64 -p:Version=${{ steps.version.outputs.version }} --self-contained true -r win-x64
 
-    - name: 🔨 Build
-      run: dotnet publish ZeroMix.csproj -c Release -o dist/ -p:Version=${{ needs.prepare.outputs.version }}
+    - name: 🎬 Download FFMPEG
+      shell: pwsh
+      run: |
+        if (!(Test-Path "FFMPEG")) { New-Item -ItemType Directory -Force -Path "FFMPEG" }
+        Invoke-WebRequest -Uri "https://www.gyan.dev/ffmpeg/builds/ffmpeg-release-essentials.zip" -OutFile "ffmpeg.zip"
+        Expand-Archive "ffmpeg.zip" -DestinationPath "ffmpeg_temp"
+        $binDir = Get-ChildItem -Path "ffmpeg_temp" -Filter "bin" -Recurse | Select-Object -First 1
+        Copy-Item "$($binDir.FullName)\ffmpeg.exe" -Destination "FFMPEG\ffmpeg.exe" -Force
+        Remove-Item "ffmpeg_temp" -Recurse -Force
+        Remove-Item "ffmpeg.zip" -Force
 
-    - name: 📦 Upload Artifact
-      uses: actions/upload-artifact@v4
+    - name: 🛠️ Build Inno Setup Installer
+      uses: Minionguyjpro/Inno-Setup-Action@v1.2.7
       with:
-        name: app-build
-        path: dist/
+        path: Exe/Setup.iss
+        options: /DAppVersion=${{ steps.version.outputs.version }}
+
+    - name: 📦 Prepare Release Artifacts
+      shell: pwsh
+      run: |
+        $VER = "${{ steps.version.outputs.version }}"
+        # Create Portable ZIP
+        Compress-Archive -Path "publish/win-x64/*" -DestinationPath "ZeroMix-v$VER-Portable.zip"
+        # Rename Setup (OutputDir in Setup.iss is '.', base name is ZeroMix-Setup-v...)
+        $setupName = "ZeroMix-Setup-v$VER.exe"
+        if (Test-Path "Exe/ZeroMix-Setup-v$VER.exe") { 
+           Move-Item "Exe/ZeroMix-Setup-v$VER.exe" "ZeroMix-v$VER-Setup.exe" 
+        }
+
+    - name: 🚀 Create GitHub Release
+      uses: softprops/action-gh-release@v2
+      with:
+        tag_name: ${{ steps.version.outputs.tag }}
+        name: ZeroMix ${{ steps.version.outputs.tag }}
+        body: |
+          🎉 **ZeroMix ${{ steps.version.outputs.tag }} is here!**
+          
+          ### 📥 Downloads
+          - **Setup Installer:** `ZeroMix-v${{ steps.version.outputs.version }}-Setup.exe` (Recommended)
+          - **Portable Version:** `ZeroMix-v${{ steps.version.outputs.version }}-Portable.zip`
+          
+          ### 🖥️ Requirements
+          - Windows 10/11 x64
+          - .NET 9.0 Desktop Runtime (Installer will check automatically)
+          
+          Check [CHANGELOG.md](https://github.com/${{ github.repository }}/blob/main/CHANGELOG.md) for full details.
+        files: |
+          ZeroMix-v${{ steps.version.outputs.version }}-Setup.exe
+          ZeroMix-v${{ steps.version.outputs.version }}-Portable.zip
+        draft: false
+        prerelease: false
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
 
