@@ -29,123 +29,66 @@ jobs:
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action Bot"
 
-      - name: 📌 Determine & Create Version Tag
-        id: tag
+      - name: 🏷️ Determine & Update Version
+        id: versioning
         run: |
-          # Get commit message
           COMMIT_MSG=$(git log -1 --pretty=%B)
-          echo "📄 Commit message: $COMMIT_MSG"
+          LAST_TAG=$(git tag -l 'v[0-9]*' --sort=-version:refname | head -1)
+          if [ -z "$LAST_TAG" ]; then LAST_TAG="v0.0.0"; fi
           
-          # Get latest valid semver tag (skip bare 'v' tag etc, support 3-part/4-part)
-          LAST_TAG=$(git tag -l 'v[0-9]*' --sort=-version:refname | grep -E '^v[0-9]+(\.[0-9]+){2,3}$' | head -1)
+          # Extract version
+          VERSION=${LAST_TAG#v}
+          IFS='.' read -r MAJOR MINOR PATCH <<< "$VERSION"
           
-          # Default version jika tidak ada tag semver
-          if [ -z "$LAST_TAG" ]; then
-            LAST_TAG="v0.0.0.0"
-          fi
+          # Default bump: Patch
+          NEW_MAJOR=$MAJOR
+          NEW_MINOR=$MINOR
+          NEW_PATCH=$((PATCH + 1))
           
-          echo "📍 Last version tag: $LAST_TAG"
-          
-          # Extract version numbers
-          LAST_VERSION=${LAST_TAG#v}  # Remove 'v' prefix
-          IFS='.' read -r MAJOR MINOR PATCH BUILD <<< "$LAST_VERSION"
-
-          # Pastikan semua segmen ada agar arithmetic aman
-          if [ -z "$MAJOR" ]; then MAJOR=0; fi
-          if [ -z "$MINOR" ]; then MINOR=0; fi
-          if [ -z "$PATCH" ]; then PATCH=0; fi
-          if [ -z "$BUILD" ]; then BUILD=0; fi
-          
-          # Check commit message untuk determine version bump
-          if [[ $COMMIT_MSG =~ ^fix: ]]; then
-            if [ "$BUILD" -ne 0 ]; then
-              NEW_BUILD=$((BUILD+1))
-              NEW_VERSION="$MAJOR.$MINOR.$PATCH.$NEW_BUILD"
-            else
-              NEW_VERSION="$MAJOR.$MINOR.$((PATCH+1))"
-            fi
-            BUMP_TYPE="patch"
-            echo "🔧 PATCH bump detected from 'fix:' commit"
-          elif [[ $COMMIT_MSG =~ ^feat: ]]; then
-            if [ "$BUILD" -ne 0 ]; then
-              NEW_VERSION="$MAJOR.$((MINOR+1)).0.0"
-            else
-              NEW_VERSION="$MAJOR.$((MINOR+1)).0"
-            fi
-            BUMP_TYPE="minor"
-            echo "✨ MINOR bump detected from 'feat:' commit"
+          if [[ $COMMIT_MSG =~ ^feat: ]]; then
+            NEW_MINOR=$((MINOR + 1))
+            NEW_PATCH=0
           elif [[ $COMMIT_MSG == *"BREAKING CHANGE"* ]]; then
-            NEW_VERSION="$((MAJOR+1)).0.0.0"
-            BUMP_TYPE="major"
-            echo "💥 MAJOR bump detected from 'BREAKING CHANGE' commit"
-          else
-            echo "⏭️  No version bump needed (commit message doesn't start with fix:/feat:)"
-            echo "skip_tag=true" >> $GITHUB_OUTPUT
-            exit 0
+            NEW_MAJOR=$((MAJOR + 1))
+            NEW_MINOR=0
+            NEW_PATCH=0
           fi
           
-          # Output version info
-          echo "version=$NEW_VERSION" >> $GITHUB_OUTPUT
-          echo "tag=v$NEW_VERSION" >> $GITHUB_OUTPUT
-          echo "bump_type=$BUMP_TYPE" >> $GITHUB_OUTPUT
-          echo "skip_tag=false" >> $GITHUB_OUTPUT
-          echo "✅ New version: v$NEW_VERSION"
-
-      - name: 🏷️  Push Tag to Repository
-        if: steps.tag.outputs.skip_tag == 'false'
-        run: |
-          TAG="${{ steps.tag.outputs.tag }}"
-          NEW_VERSION="${{ steps.tag.outputs.version }}"
-
-          # Loop to find the next available tag if it already exists
+          NEW_VERSION="$NEW_MAJOR.$NEW_MINOR.$NEW_PATCH"
+          TAG="v$NEW_VERSION"
+          
+          # AUTO-INCREMENT LOOP to avoid duplicate tag error
           while git rev-parse -q --verify "refs/tags/$TAG" >/dev/null; do
-             echo "⚠️ Tag '$TAG' already exists. Incrementing..."
-             
-             # Split version into parts
-             IFS='.' read -r M_MAJOR M_MINOR M_PATCH M_BUILD <<< "$NEW_VERSION"
-             
-             # Increment the last segment (PATCH or BUILD)
-             if [ ! -z "$M_BUILD" ] && [ "$M_BUILD" -ne 0 ]; then
-                M_BUILD=$((M_BUILD+1))
-                NEW_VERSION="$M_MAJOR.$M_MINOR.$M_PATCH.$M_BUILD"
-             else
-                M_PATCH=$((M_PATCH+1))
-                NEW_VERSION="$M_MAJOR.$M_MINOR.$M_PATCH"
-             fi
-             TAG="v$NEW_VERSION"
+            echo "⚠️ Tag $TAG exists. Incrementing patch..."
+            NEW_PATCH=$((NEW_PATCH + 1))
+            NEW_VERSION="$NEW_MAJOR.$NEW_MINOR.$NEW_PATCH"
+            TAG="v$NEW_VERSION"
           done
-
-          echo "🚀 Final unique tag determined: $TAG"
-
-          # Create annotated tag with commit message
-          COMMIT_MSG=$(git log -1 --pretty=%B)
-          git tag -a "$TAG" -m "Release $TAG: $COMMIT_MSG"
-
-          # Push tag ke repository
-          git push origin "$TAG"
-
-          echo "✅ Tag '$TAG' created and pushed!"
-          echo "tag=$TAG" >> $GITHUB_OUTPUT # Re-export final tag for subsequent steps
-        id: final_tag
-
-      - name: 📢 Create Release Notes
-        if: steps.tag.outputs.skip_tag == 'false'
-        run: |
-          TAG="${{ steps.final_tag.outputs.tag }}"
-          PREV_TAG=$(git tag -l 'v*' --sort=-version:refname | head -2 | tail -1)
           
-          if [ -z "$PREV_TAG" ]; then
-            COMMIT_RANGE="--all"
-          else
-            COMMIT_RANGE="$PREV_TAG..$TAG"
+          echo "🚀 Final version decided: $NEW_VERSION"
+          echo "version=$NEW_VERSION" >> $GITHUB_OUTPUT
+          echo "tag=$TAG" >> $GITHUB_OUTPUT
+
+      - name: 📝 Update Version in Files
+        run: |
+          VERSION="${{ steps.versioning.outputs.version }}"
+          
+          # Update MainWindow.xaml.cs
+          sed -i "s/private const string CURRENT_VERSION = \".*\";/private const string CURRENT_VERSION = \"$VERSION\";/g" MainWindow.xaml.cs
+          
+          # Update ZeroMix.csproj
+          sed -i "s/<Version>.*<\/Version>/<Version>$VERSION<\/Version>/g" ZeroMix.csproj
+          
+          # Commit changes if any
+          git add MainWindow.xaml.cs ZeroMix.csproj
+          if ! git diff --cached --quiet; then
+            git commit -m "chore: bump version to $VERSION [skip ci]"
+            git push origin ProyekTil
           fi
-          
-          echo "Release tag: $TAG"
-          echo "Previous tag: $PREV_TAG"
-          
-      - name: ✅ Trigger Build & Release
-        if: steps.tag.outputs.skip_tag == 'false'
+
+      - name: 🏷️ Push Tag
         run: |
-          echo "🚀 Tag created successfully!"
-          echo "⏳ GitHub Actions will automatically trigger build-release.yml workflow"
-          echo "   Watch progress: https://github.com/${{ github.repository }}/actions"
+          TAG="${{ steps.versioning.outputs.tag }}"
+          git tag -a "$TAG" -m "Release $TAG"
+          git push origin "$TAG"
+          echo "✅ Tag '$TAG' pushed!"
