@@ -36,6 +36,9 @@ git commit -m "fix(encoder): audio sync issue"
 git commit -m "refactor: simplify encoder logic"
 git commit -m "perf: improve performance 20%"
 git commit -m "docs: update installation guide"
+feat: Menambah fitur baru (Akan menaikkan versi MINOR)
+fix: Memperbaiki bug (Akan menaikkan versi PATCH)
+chore: Update dokumentasi (Akan menaikkan versi PATCH)
 ```
 
 ### ❌ Avoid These

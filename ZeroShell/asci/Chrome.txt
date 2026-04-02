@@ -1,0 +1,16 @@
+(color: #4285F4)
+         ██████████
+     ████          ████
+ (color: #EA4335)
+   ██      ██████      ██
+  ██    ██        ██    ██
+ (color: #FBBC05)
+  ██    ██        ██    ██
+   ██      ██████      ██
+ (color: #34A853)
+     ████          ████
+         ██████████
+ (color: #FFFFFF)
+     CHROME SHELL EDITION
+ (color: #4285F4)
+    [ Powered by ZeroMix ]

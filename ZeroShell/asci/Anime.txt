@@ -1,0 +1,19 @@
+(color: #FFFFFF)
+           .------.
+          /  _  _  \
+ (color: #FFB6C1)
+        |  (o)(o)  |
+ (color: #FFFFFF)
+        |    __    |
+         \  '--'  /
+ (color: #44CCFF)
+      .---`------`---.
+     /                \
+    /  FRIEREN SHELL   \
+   /   ZeroMix v5.1.2   \
+ (color: #FFFFFF)
+   '------------------'
+ (color: #FFB6C1)
+      ✿  ✿  ✿  ✿  ✿
+ (color: #FFFFFF)
+     [ Modern Terminal ] 

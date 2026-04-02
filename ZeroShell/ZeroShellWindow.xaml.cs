@@ -11,6 +11,7 @@ using System.Diagnostics;
 using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
+using System.Threading;
 using System.Windows.Documents;
 using System.Management;
 using System.Linq;
@@ -330,62 +331,18 @@ namespace ZeroMix.ZeroShell
             if (tab == null) return;
             AppendToTab(tab, "\n", "#CCCCCC");
             
-            string color = "#00D4FF"; // Default Cyan
-            List<string> asciLines = new List<string>();
-
-            // Load ASCII from W.txt
-            string[] searchPaths = {
-                Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "ZeroShell", "asci", "W.txt"),
-                Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "asci", "W.txt"),
-                "ZeroShell/asci/W.txt",
-                "asci/W.txt"
-            };
-
-            foreach (var path in searchPaths) {
-                if (File.Exists(path)) {
-                    string[] fileLines = File.ReadAllLines(path);
-                    foreach (var line in fileLines) {
-                        if (line.StartsWith("(color:")) {
-                            try { color = line.Substring(line.IndexOf(":") + 1).Replace(")", "").Trim(); } catch { }
-                            continue;
-                        }
-                        asciLines.Add(line);
-                    }
-                    break;
-                }
-            }
-
-            // Arch Linux Style Info
-            string ownerLine = $" Owner      : {Environment.UserName}@{Environment.MachineName.ToLower()}";
-            string osLine    = $" OS         : ZeroMix {Environment.OSVersion.VersionString}";
-            string modelLine = $" Model      : ZeroStation v5.0.3";
-            string cpuLine   = $" Processor  : {GetSimpleCPU()}";
-            string gpuLine   = $" Graphics   : Generic High Performance GPU";
-            string memLine   = $" Memory     : {GetSimpleRAM()}";
-
-            string separator = " " + new string('─', 40);
-
-            for (int i = 0; i < Math.Max(asciLines.Count, 9); i++) {
-                string asci = (i < asciLines.Count) ? asciLines[i] : new string(' ', 40);
-                AppendToTab(tab, "  " + asci.PadRight(45), color);
-                
-                switch(i) {
-                    case 0: AppendToTab(tab, ownerLine, "#FF27C93F"); break;
-                    case 1: AppendToTab(tab, separator, "#44FFFFFF"); break;
-                    case 2: AppendToTab(tab, osLine, "#EEEEEE"); break;
-                    case 3: AppendToTab(tab, modelLine, "#EEEEEE"); break;
-                    case 4: AppendToTab(tab, cpuLine, "#EEEEEE"); break;
-                    case 5: AppendToTab(tab, gpuLine, "#EEEEEE"); break;
-                    case 6: AppendToTab(tab, memLine, "#EEEEEE"); break;
-                    case 8: // Color dots
-                        string[] dots = { "#FF27C93F", "#FF6BDDFF", "#FFCC6BFF", "#FFFF9F43", "#FFFF6B6B", "#FFFFDA6B" };
-                        AppendToTab(tab, " ", "#FFFFFF");
-                        foreach(var d in dots) AppendToTab(tab, " ●", d);
-                        break;
-                }
-                AppendToTab(tab, "\n", "#CCCCCC");
-            }
+            // Minimalist Professional Header
+            string headerText = $"  ZERO MIX SHELL [Version {CURRENT_VERSION}]\n";
+            string subHeader = $"  (c) 2026 ZeroMix Corporation. All rights reserved.\n";
+            
+            AppendToTab(tab, headerText, "#00D4FF");
+            AppendToTab(tab, subHeader, "#888888");
             AppendToTab(tab, "\n", "#CCCCCC");
+            
+            // Brief session info
+            string sessionInfo = $"  Session: {tab.Title} | User: {Environment.UserName} | Host: {Environment.MachineName.ToLower()}\n";
+            AppendToTab(tab, sessionInfo, "#FF27C93F");
+            AppendToTab(tab, "  ──────────────────────────────────────────────────────────────────────────\n\n", "#44FFFFFF");
         }
 
         private string GetSimpleCPU() => "Intel Core i5-1035G1"; // Placeholder or detected
@@ -446,10 +403,21 @@ namespace ZeroMix.ZeroShell
         #region Terminal Process
         private Process StartShellProcess()
         {
+            // Determine shell (pwsh preferred for Oh My Posh)
+            string shellExe = "pwsh.exe";
+            bool isPwsh = true;
+            try { 
+                Process.Start(new ProcessStartInfo(shellExe, "--version") { CreateNoWindow = true, UseShellExecute = false }).WaitForExit(500); 
+            } catch { shellExe = "powershell.exe"; isPwsh = false; }
+
+            // Oh My Posh Init Script
+            string ompInit = "oh-my-posh init pwsh --config \"$env:POSH_THEMES_PATH\\jandedobbeleer.omp.json\" | Invoke-Expression";
+            if (!isPwsh) ompInit = ""; // OMP works best on pwsh
+
             var proc = new Process();
             proc.StartInfo = new ProcessStartInfo {
-                FileName = "powershell.exe",
-                Arguments = "-NoLogo -NoProfile -ExecutionPolicy Bypass -NoExit -Command \"function prompt { '> ' }; [Console]::OutputEncoding = [System.Text.Encoding]::UTF8; clear\"",
+                FileName = shellExe,
+                Arguments = $"-NoLogo -NoProfile -ExecutionPolicy Bypass -NoExit -Command \"function prompt {{ '> ' }}; [Console]::OutputEncoding = [System.Text.Encoding]::UTF8; {ompInit}; clear\"",
                 WorkingDirectory = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
                 UseShellExecute = false,
                 RedirectStandardInput = true,
@@ -458,6 +426,7 @@ namespace ZeroMix.ZeroShell
                 CreateNoWindow = true,
                 StandardOutputEncoding = Encoding.UTF8
             };
+
             proc.Start();
             return proc;
         }
@@ -838,19 +807,13 @@ namespace ZeroMix.ZeroShell
             // HELP / ?
             if (low == "!help" || low == "?") {
                 AppendToTab(_activeTab, "\n", "#CCCCCC");
-                AppendToTab(_activeTab, "  ███╗   ██╗███████╗██╗  ██╗ ██████╗ \n", "#FF6BDDFF");
-                AppendToTab(_activeTab, "  ████╗  ██║██╔════╝██║ ██╔╝██╔═══██╗\n", "#FF6BDDFF");
-                AppendToTab(_activeTab, "  ██╔██╗ ██║█████╗  █████╔╝ ██║   ██║\n", "#FF6BDDFF");
-                AppendToTab(_activeTab, "  ██║╚██╗██║██╔══╝  ██╔═██╗ ██║   ██║\n", "#FF6BDDFF");
-                AppendToTab(_activeTab, "  ██║ ╚████║███████╗██║  ██╗╚██████╔╝\n", "#FF6BDDFF");
-                AppendToTab(_activeTab, "  ╚═╝  ╚═══╝╚══════╝╚═╝  ╚═╝ ╚═════╝ \n", "#FF6BDDFF");
-                AppendToTab(_activeTab, "           N E K O  T E R M I N A L\n\n", "#FF6BDDFF");
+                AppendToTab(_activeTab, "  [ ZERO MIX SHELL HELP ]\n\n", "#00D4FF");
                 
                 AppendToTab(_activeTab, "  ✨ Pilih aksi atau ketik perintah:\n\n", "#FFFFDA6B");
                 
                 AppendToTab(_activeTab, "  [ 💻 SISTEM ]\n", "#FFFFDA6B");
+                AppendToTab(_activeTab, "  !task      Real-time System Monitor 📊\n", "#FF27C93F");
                 AppendToTab(_activeTab, "  !sys       Info Detail Sistem\n", "#FF27C93F");
-                AppendToTab(_activeTab, "  !tasks     Jalankan Auto Maintenance (Pro) 🚀\n", "#FF27C93F");
                 AppendToTab(_activeTab, "  !settings  Buka Panel Pengaturan ⚙️\n", "#FF27C93F");
                 AppendToTab(_activeTab, "  cls        Bersihkan Terminal\n", "#FF27C93F");
                 AppendToTab(_activeTab, "  !wifi      Lihat Password WiFi\n", "#FF27C93F");
@@ -957,41 +920,57 @@ namespace ZeroMix.ZeroShell
                 return;
             }
 
-            // OPTIMIZED SYSTEM COMMANDS (Instant & Stealth)
-            if (low == "!sys") {
-                AppendToTab(_activeTab, "\n  📊 [ N E K O  S Y S T E M  I N F O ]\n", "#FFFFDA6B");
-                Task.Run(() => {
-                    try {
-                        var os = ""; var build = "";
-                        using (var searcher = new ManagementObjectSearcher("SELECT * FROM Win32_OperatingSystem"))
-                        foreach (var obj in searcher.Get()) { os = obj["Caption"]?.ToString(); build = obj["Version"]?.ToString(); }
-                        
-                        string cpu = "";
-                        using (var searcher = new ManagementObjectSearcher("SELECT * FROM Win32_Processor"))
-                        foreach (var obj in searcher.Get()) cpu = obj["Name"]?.ToString();
+            // SYSTEM MONITOR (!task)
+            if (low == "!task") {
+                AppendToTab(_activeTab, "\n  📊 [ S Y S T E M  M O N I T O R  -  T H R O T T L E D ]\n", "#FFFFDA6B");
+                AppendToTab(_activeTab, "  (Press Ctrl+C to stop in some terminals, or just wait for 5 updates)\n\n", "#888888");
+                
+                Task.Run(async () => {
+                    using var cts = new CancellationTokenSource();
+                    for (int i = 0; i < 5; i++) { // Limit to 5 updates for safety, or make it continuous
+                        try {
+                            // CPU Info
+                            double cpuLoad = 0;
+                            using (var searcher = new ManagementObjectSearcher("select LoadPercentage from Win32_Processor"))
+                                foreach (var obj in searcher.Get()) cpuLoad = Convert.ToDouble(obj["LoadPercentage"]);
 
-                        string gpu = "";
-                        using (var searcher = new ManagementObjectSearcher("SELECT * FROM Win32_VideoController"))
-                        foreach (var obj in searcher.Get()) gpu = obj["Caption"]?.ToString();
+                            // RAM Info
+                            double totalRam = 0; double freeRam = 0;
+                            using (var searcher = new ManagementObjectSearcher("SELECT TotalVisibleMemorySize,FreePhysicalMemory FROM Win32_OperatingSystem"))
+                            foreach (var obj in searcher.Get()) {
+                                totalRam = Convert.ToDouble(obj["TotalVisibleMemorySize"]);
+                                freeRam = Convert.ToDouble(obj["FreePhysicalMemory"]);
+                            }
+                            double ramUsage = ((totalRam - freeRam) / totalRam) * 100;
 
-                        Dispatcher.Invoke(() => {
-                            AppendToTab(_activeTab, $"  ✨ OS    : {os}\n", "#FF6BDDFF");
-                            AppendToTab(_activeTab, $"  ✨ BUILD : {build}\n", "#FF6BDDFF");
-                            AppendToTab(_activeTab, $"  ✨ CPU   : {cpu?.Trim()}\n", "#FF6BDDFF");
-                            AppendToTab(_activeTab, $"  ✨ GPU   : {gpu}\n\n", "#FF6BDDFF");
-                        });
-                    } catch { Dispatcher.Invoke(() => AppendToTab(_activeTab, "  ❌ Gagal ambil info sistem.\n\n", "#FFFF6B6B")); }
+                            // GPU Info (Search for Load if available)
+                            string gpuName = "Generic GPU"; double gpuLoad = 0;
+                            using (var searcher = new ManagementObjectSearcher("SELECT Name FROM Win32_VideoController"))
+                                foreach (var obj in searcher.Get()) gpuName = obj["Name"]?.ToString() ?? "N/A";
+
+                            // Disk Info
+                            var drive = DriveInfo.GetDrives().FirstOrDefault(d => d.IsReady && d.Name.Contains("C:"));
+                            double diskUsage = drive != null ? (double)(drive.TotalSize - drive.TotalFreeSpace) / drive.TotalSize * 100 : 0;
+
+                            Dispatcher.Invoke(() => {
+                                AppendToTab(_activeTab, $"  [ UPDATE {i+1} ] ── {DateTime.Now:HH:mm:ss}\n", "#44FFFFFF");
+                                AppendToTab(_activeTab, $"  💠 CPU : {cpuLoad:F2}% \n", "#FF6BDDFF");
+                                AppendToTab(_activeTab, $"  🧠 RAM : {ramUsage:F2}% ({((totalRam - freeRam)/1024/1024):F1} GB / {(totalRam/1024/1024):F1} GB)\n", "#FFCC6BFF");
+                                AppendToTab(_activeTab, $"  🎮 GPU : {gpuName} \n", "#FF27C93F");
+                                AppendToTab(_activeTab, $"  💾 Disk: {diskUsage:F2}% (C:)\n", "#FFFF9F43");
+                                AppendToTab(_activeTab, "  ──────────────────────────────\n", "#22FFFFFF");
+                            });
+
+                            await Task.Delay(2000); // Throttled to 2 seconds
+                        } catch { break; }
+                    }
+                    Dispatcher.Invoke(() => AppendToTab(_activeTab, "  ✅ Monitoring finished.\n\n", "#FF27C93F"));
                 });
                 return;
             }
 
-            if (low == "!wifi") {
-                AppendToTab(_activeTab, "\n  🔐 [ S C A N N I N G  W I F I ]\n", "#FFCC6BFF");
-                Task.Run(() => {
-                    try {
-                        var proc = new Process { StartInfo = new ProcessStartInfo("netsh", "wlan show profiles") { UseShellExecute = false, RedirectStandardOutput = true, CreateNoWindow = true } };
-                        proc.Start(); string output = proc.StandardOutput.ReadToEnd(); proc.WaitForExit();
-                        var profiles = new List<string>();
+            // OPTIMIZED SYSTEM COMMANDS (Instant & Stealth)
+            if (low == "!sys") {
                         foreach (var line in output.Split('\n')) if (line.Contains(":")) profiles.Add(line.Split(':')[1].Trim());
                         
                         foreach (var p in profiles) {
