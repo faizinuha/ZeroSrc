@@ -1,3 +1,22 @@
+## [v5.1.2] - 2026-04-02
+
+### ✨ Features
+- 76cfb8b: feat: Perubahan Utama:
+- 7ee1fa2: feat: implement search overlay with suggestion system and add automated release tagging workflow
+
+### 🐛 Bug Fixes
+- aa5632e: fix: Memperbaiki Ci/Cd
+- a5b4723: fix: Menambah fitur perekaman area
+- e5ef89c: fix: memory leak in onboarding and VA, optimize eye tracking, and update build trigger for chore
+
+### 🔧 Changes
+- aeffb49: chore: bump version to 5.2.2 [skip ci]
+- 8f97cea: chore: bump version to 5.2.1 [skip ci]
+
+### 📊 Commit Summary
+- Total commits: **8**
+- Date range: 5.1.1 to HEAD
+
 ## [v5.0.3] - 2026-04-01
 
 ### ✨ Features
