@@ -1,5 +1,4 @@
 <Application x:Class="ZeroMix.App"
-             Icon="../Assets/Icons/zeromix.ico"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              >

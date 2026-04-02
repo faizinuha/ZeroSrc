@@ -1,0 +1,136 @@
+name: 🔐 Sign & Upload Release
+
+permissions:
+  contents: write
+
+on:
+  workflow_run:
+    workflows: ["🚀 Build & Release ZeroMix"]
+    types:
+      - completed
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: 'Release tag to sign (e.g., v1.0.0)'
+        required: true
+
+jobs:
+  sign:
+    name: 🔐 Sign Executable
+    runs-on: windows-latest
+    if: github.event.workflow_run.conclusion == 'success' || github.event_name == 'workflow_dispatch'
+
+    steps:
+    - name: 📥 Checkout Code
+      uses: actions/checkout@v4
+
+    - name: 📥 Download Release Artifacts
+      shell: pwsh
+      run: |
+        $tag = if ("${{ github.event_name }}" -eq "workflow_dispatch") {
+          "${{ github.event.inputs.release_tag }}"
+        } else {
+          # Get latest release tag
+          $releases = gh release list --limit 1 --json tagName -q '.[0].tagName'
+          $releases
+        }
+        
+        Write-Host "📥 Downloading artifacts for tag: $tag"
+        gh release download $tag -D "./release-artifacts" -p "*.exe"
+        
+        Get-ChildItem "./release-artifacts" | ForEach-Object {
+          Write-Host "  ✅ Downloaded: $($_.Name)"
+        }
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: 🔐 Install osslsigncode
+      shell: pwsh
+      run: |
+        Write-Host "⏳ Installing osslsigncode..."
+        choco install osslsigncode -y
+        osslsigncode --version
+
+    - name: 🔐 Sign Executable
+      shell: pwsh
+      run: |
+        $exeFile = Get-ChildItem "./release-artifacts" -Filter "*.exe" | Select-Object -First 1
+        
+        if ($null -eq $exeFile) {
+          Write-Host "❌ No EXE file found"
+          exit 1
+        }
+        
+        Write-Host "📝 Signing: $($exeFile.Name)"
+        
+        # Check if certificate is available in secrets
+        if ([string]::IsNullOrEmpty("${{ secrets.CERT_BASE64 }}")) {
+          Write-Host "⚠️  Certificate not found in secrets"
+          Write-Host "📝 To enable signing, add CERT_BASE64 and CERT_PASSWORD to GitHub Secrets"
+          Write-Host "✅ Executable is ready for manual signing"
+          exit 0
+        }
+        
+        # Decode certificate from base64
+        $certBase64 = "${{ secrets.CERT_BASE64 }}"
+        $certBytes = [Convert]::FromBase64String($certBase64)
+        $certPath = "./cert.pfx"
+        [IO.File]::WriteAllBytes($certPath, $certBytes)
+        
+        # Sign the executable
+        $exePath = $exeFile.FullName
+        $signedPath = "./release-artifacts/$($exeFile.BaseName)-signed.exe"
+        
+        Write-Host "⏳ Signing executable..."
+        osslsigncode sign -pkcs12 $certPath -pass "${{ secrets.CERT_PASSWORD }}" `
+          -n "ZeroMix" -i "https://zeromix.vercel.app" `
+          -t "http://timestamp.comodoca.com/authenticode" `
+          -in $exePath -out $signedPath
+        
+        if (Test-Path $signedPath) {
+          Write-Host "✅ Signed successfully: $signedPath"
+          Remove-Item $exePath
+          Rename-Item $signedPath $exePath
+          Write-Host "✅ Replaced original with signed version"
+        } else {
+          Write-Host "❌ Signing failed"
+          exit 1
+        }
+        
+        # Cleanup
+        Remove-Item $certPath -Force
+
+    - name: 📤 Upload Signed Artifacts
+      shell: pwsh
+      run: |
+        $tag = if ("${{ github.event_name }}" -eq "workflow_dispatch") {
+          "${{ github.event.inputs.release_tag }}"
+        } else {
+          $releases = gh release list --limit 1 --json tagName -q '.[0].tagName'
+          $releases
+        }
+        
+        $exeFile = Get-ChildItem "./release-artifacts" -Filter "*.exe" | Select-Object -First 1
+        
+        if ($null -ne $exeFile) {
+          Write-Host "📤 Uploading signed executable to release: $tag"
+          gh release upload $tag $exeFile.FullName --clobber
+          Write-Host "✅ Upload complete"
+        }
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: 📝 Add Release Notes
+      shell: pwsh
+      run: |
+        $tag = if ("${{ github.event_name }}" -eq "workflow_dispatch") {
+          "${{ github.event.inputs.release_tag }}"
+        } else {
+          $releases = gh release list --limit 1 --json tagName -q '.[0].tagName'
+          $releases
+        }
+        
+        Write-Host "✅ Release $tag is ready!"
+        Write-Host "📥 Download from: https://github.com/${{ github.repository }}/releases/tag/$tag"
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

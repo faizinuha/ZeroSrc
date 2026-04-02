@@ -58,12 +58,10 @@ Source: "..\publish\win-x64\*"; DestDir: "{app}"; Flags: ignoreversion recursesu
 
 ; Assets & Resources
 Source: "zeromix.ico"; DestDir: "{app}"; Flags: ignoreversion
-Source: "..\Resource\*"; DestDir: "{app}\Resource"; Flags: ignoreversion recursesubdirs createallsubdirs
-Source: "..\Plugins\**"; DestDir: "{app}\Plugins"; Flags: ignoreversion recursesubdirs createallsubdirs
-Source: "..\Virtual_Assisten\*"; DestDir: "{app}\Virtual_Assisten"; Flags: ignoreversion recursesubdirs createallsubdirs
-Source: "..\FFMPEG\ffmpeg.exe"; DestDir: "{app}\FFMPEG"; Flags: ignoreversion
-Source: "..\zeromix-update.bat"; DestDir: "{app}"; Flags: ignoreversion
-Source: "MicrosoftEdgeWebview2Setup.exe"; DestDir: "{tmp}"; Flags: deleteafterinstall
+Source: "..\Assets\**"; DestDir: "{app}\Assets"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "..\Tools\Plugins\**"; DestDir: "{app}\Tools\Plugins"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "..\Tools\FFMPEG\ffmpeg.exe"; DestDir: "{app}\Tools\FFMPEG"; Flags: ignoreversion
+Source: "..\Scripts\zeromix-update.bat"; DestDir: "{app}"; Flags: ignoreversion
 
 ; Documentation
 Source: "Privacy.txt"; DestDir: "{app}"; Flags: ignoreversion
@@ -89,7 +87,6 @@ Name: "startup"; Description: "Jalankan otomatis saat Windows Startup"; GroupDes
 [Run]
 ; Jalankan Aplikasi setelah install
 Filename: "{app}\ZeroMix.exe"; Description: "{cm:LaunchProgram}"; Flags: nowait postinstall skipifsilent
-Filename: "{tmp}\MicrosoftEdgeWebview2Setup.exe"; Parameters: "/silent /install"; StatusMsg: "Installing WebView2 Runtime..."; Flags: runhidden
 
 [Messages]
 indonesian.WelcomeLabel1=Selamat datang di ZeroMix Professional v{#AppVersion}

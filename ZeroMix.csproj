@@ -61,8 +61,15 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Resource Include="Assets\Icons\zeromix.ico" />
+    <ApplicationDefinition Include="src\App.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </ApplicationDefinition>
+  </ItemGroup>
+
+  <ItemGroup>
     <Resource Include="Assets\Icons\**" />
+    <Resource Include="Assets\Resources\Locales\**" />
     <Resource Include="src\SleepMode\IMG\**" />
     <Resource Include="src\ZeroShell\asci\*" />
   </ItemGroup>

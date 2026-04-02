@@ -159,22 +159,22 @@ namespace ZeroMix
             switch (cultureCode)
             {
                 case "id-ID":
-                    dict.Source = new Uri("Resources/Locales/id-ID.xaml", UriKind.Relative);
+                    dict.Source = new Uri("Assets/Resources/Locales/id-ID.xaml", UriKind.Relative);
                     break;
                 case "ja-JP":
-                    dict.Source = new Uri("Resources/Locales/ja-JP.xaml", UriKind.Relative);
+                    dict.Source = new Uri("Assets/Resources/Locales/ja-JP.xaml", UriKind.Relative);
                     break;
                 case "zh-CN":
-                    dict.Source = new Uri("Resources/Locales/zh-CN.xaml", UriKind.Relative);
+                    dict.Source = new Uri("Assets/Resources/Locales/zh-CN.xaml", UriKind.Relative);
                     break;
                 default:
-                    dict.Source = new Uri("Resources/Locales/en-US.xaml", UriKind.Relative);
+                    dict.Source = new Uri("Assets/Resources/Locales/en-US.xaml", UriKind.Relative);
                     break;
             }
 
             // Find old dictionary (the one containing 'Wiz_Welcome') and remove it
             var oldDict = System.Windows.Application.Current.Resources.MergedDictionaries.FirstOrDefault(
-                d => d.Source != null && d.Source.OriginalString.Contains("Resources/Locales/"));
+                d => d.Source != null && d.Source.OriginalString.Contains("Locales/"));
             
             if (oldDict != null)
             {
@@ -244,27 +244,29 @@ namespace ZeroMix
 
         private string ResolveFFmpegPath()
         {
-            // Try priority locations:
+            string baseDir = AppDomain.CurrentDomain.BaseDirectory;
+            string cwd = Directory.GetCurrentDirectory();
+
             var possiblePaths = new[]
             {
-                Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "FFMPEG", "ffmpeg.exe"),
-                Path.Combine(Directory.GetCurrentDirectory(), "FFMPEG", "ffmpeg.exe"),
-                // If we are in bin/Debug/..., go up 3 levels to find project root
-                Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "..", "..", "..", "FFMPEG", "ffmpeg.exe")
+                Path.Combine(baseDir, "Tools", "FFMPEG", "ffmpeg.exe"),
+                Path.Combine(baseDir, "FFMPEG", "ffmpeg.exe"),
+                Path.Combine(cwd, "Tools", "FFMPEG", "ffmpeg.exe"),
+                Path.Combine(cwd, "FFMPEG", "ffmpeg.exe"),
+                // project root when running from bin/Debug/net9.0-windows/win-x64/
+                Path.Combine(baseDir, "..", "..", "..", "..", "Tools", "FFMPEG", "ffmpeg.exe"),
+                @"c:\ZeroMix\ZeroMix\Tools\FFMPEG\ffmpeg.exe",
             };
 
             foreach (var path in possiblePaths)
             {
-                if (File.Exists(path))
+                string full = Path.GetFullPath(path);
+                if (File.Exists(full))
                 {
-                    Console.WriteLine($"[ZeroMix] Found FFmpeg at: {path}");
-                    return path;
+                    Console.WriteLine($"[ZeroMix] Found FFmpeg at: {full}");
+                    return full;
                 }
             }
-
-            // Fallback to absolute path user mentioned if all else fails
-            string userPath = @"c:\ZeroMix\ZeroMix\FFMPEG\ffmpeg.exe";
-            if (File.Exists(userPath)) return userPath;
 
             return "ffmpeg.exe"; // Try system PATH
         }
@@ -1071,8 +1073,15 @@ namespace ZeroMix
 
         private void InitializeRecorder()
         {
-            string ffmpegPath = ResolveFFmpegPath();
-            _recordingManager = new RecordingManager(ffmpegPath);
+            try
+            {
+                string ffmpegPath = ResolveFFmpegPath();
+                _recordingManager = new RecordingManager(ffmpegPath);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[ZeroMix] Recorder init failed: {ex.Message}");
+            }
         }
 
         private void StartGameDetection()

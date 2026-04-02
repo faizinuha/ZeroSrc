@@ -37,7 +37,7 @@ jobs:
         uses: actions/upload-pages-artifact@v3
         with:
           # Upload only the folder with static files
-          path: './Web'
+          path: './src/Web'
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4

@@ -53,13 +53,16 @@ jobs:
     - name: 🎬 Download FFMPEG
       shell: pwsh
       run: |
-        if (!(Test-Path "FFMPEG")) { New-Item -ItemType Directory -Force -Path "FFMPEG" }
+        if (!(Test-Path "Tools/FFMPEG")) { New-Item -ItemType Directory -Force -Path "Tools/FFMPEG" }
+        Write-Host "⏳ Downloading FFMPEG..."
         Invoke-WebRequest -Uri "https://www.gyan.dev/ffmpeg/builds/ffmpeg-release-essentials.zip" -OutFile "ffmpeg.zip"
+        Write-Host "📦 Extracting FFMPEG..."
         Expand-Archive "ffmpeg.zip" -DestinationPath "ffmpeg_temp"
         $binDir = Get-ChildItem -Path "ffmpeg_temp" -Filter "bin" -Recurse | Select-Object -First 1
-        Copy-Item "$($binDir.FullName)\ffmpeg.exe" -Destination "FFMPEG\ffmpeg.exe" -Force
+        Copy-Item "$($binDir.FullName)\ffmpeg.exe" -Destination "Tools/FFMPEG/ffmpeg.exe" -Force
         Remove-Item "ffmpeg_temp" -Recurse -Force
         Remove-Item "ffmpeg.zip" -Force
+        Write-Host "✅ FFMPEG ready"
 
     - name: 🛠️ Build Inno Setup Installer
       uses: Minionguyjpro/Inno-Setup-Action@v1.2.7
@@ -67,16 +70,56 @@ jobs:
         path: Exe/Setup.iss
         options: /DAppVersion=${{ steps.version.outputs.version }}
 
+    - name: � Sign Executable withu osslsigncode
+      shell: pwsh
+      run: |
+        $VER = "${{ steps.version.outputs.version }}"
+        $setupExe = "Exe/ZeroMix-Setup-v$VER.exe"
+        
+        if (Test-Path $setupExe) {
+          Write-Host "✅ Setup executable found: $setupExe"
+          Write-Host "📝 File size: $((Get-Item $setupExe).Length / 1MB) MB"
+          
+          # Install osslsigncode via chocolatey
+          Write-Host "⏳ Installing osslsigncode..."
+          choco install osslsigncode -y
+          
+          # Note: Actual signing requires certificate in GitHub Secrets
+          # For now, we prepare the executable for signing
+          Write-Host "✅ Executable ready for signing"
+        } else {
+          Write-Host "❌ Setup executable not found at $setupExe"
+          Write-Host "📂 Contents of Exe folder:"
+          Get-ChildItem "Exe/" -Filter "*.exe" | ForEach-Object { Write-Host "  - $($_.Name)" }
+          exit 1
+        }
+
     - name: 📦 Prepare Release Artifacts
       shell: pwsh
       run: |
         $VER = "${{ steps.version.outputs.version }}"
+        
         # Create Portable ZIP
-        Compress-Archive -Path "publish/win-x64/*" -DestinationPath "ZeroMix-v$VER-Portable.zip"
-        # Rename Setup (OutputDir in Setup.iss is '.', base name is ZeroMix-Setup-v...)
-        $setupName = "ZeroMix-Setup-v$VER.exe"
-        if (Test-Path "Exe/ZeroMix-Setup-v$VER.exe") { 
-           Move-Item "Exe/ZeroMix-Setup-v$VER.exe" "ZeroMix-v$VER-Setup.exe" 
+        if (Test-Path "publish/win-x64") {
+          Write-Host "📦 Creating portable ZIP..."
+          Compress-Archive -Path "publish/win-x64/*" -DestinationPath "ZeroMix-v$VER-Portable.zip" -Force
+          Write-Host "✅ Portable ZIP created"
+        } else {
+          Write-Host "❌ Publish folder not found"
+          exit 1
+        }
+        
+        # Move Setup executable
+        $setupSrc = "Exe/ZeroMix-Setup-v$VER.exe"
+        $setupDst = "ZeroMix-v$VER-Setup.exe"
+        
+        if (Test-Path $setupSrc) {
+          Move-Item $setupSrc $setupDst -Force
+          Write-Host "✅ Setup executable ready: $setupDst"
+          Write-Host "📝 File size: $((Get-Item $setupDst).Length / 1MB) MB"
+        } else {
+          Write-Host "❌ Setup not found at $setupSrc"
+          exit 1
         }
 
     - name: 🚀 Create GitHub Release
@@ -103,5 +146,3 @@ jobs:
         prerelease: false
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-

@@ -94,7 +94,7 @@ namespace ZeroMix
             }
 
             // Load resource dictionary berdasarkan language code
-            string resourcePath = $"Resources/Locales/{languageCode}.xaml";
+            string resourcePath = $"Assets/Resources/Locales/{languageCode}.xaml";
             try
             {
                 var langDictionary = new ResourceDictionary 
@@ -126,7 +126,7 @@ namespace ZeroMix
                 // Fallback ke en-US jika gagal
                 var defaultDictionary = new ResourceDictionary 
                 { 
-                    Source = new Uri("Resources/Locales/en-US.xaml", UriKind.Relative) 
+                    Source = new Uri("Assets/Resources/Locales/en-US.xaml", UriKind.Relative) 
                 };
                 this.Resources.MergedDictionaries.Add(defaultDictionary);
             }
