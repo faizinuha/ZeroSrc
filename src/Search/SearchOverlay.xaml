@@ -13,7 +13,7 @@
         AllowsTransparency="True"
         ShowInTaskbar="False"
         Opacity="0"
-        Icon="../zeromix.ico"
+        Icon="../../Assets/Icons/zeromix.ico"
         MouseLeftButtonDown="Window_MouseLeftButtonDown"
         Loaded="Window_Loaded"
         KeyDown="Window_KeyDown"
@@ -165,13 +165,53 @@
         
         <Grid>
             <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/> <!-- Image Preview Strip -->
                 <RowDefinition Height="Auto"/> <!-- Search Bar -->
                 <RowDefinition Height="Auto"/> <!-- Suggestions -->
                 <RowDefinition Height="Auto"/> <!-- Footer/Notification -->
             </Grid.RowDefinitions>
 
+            <!-- Image Preview Strip (muncul setelah pilih gambar) -->
+            <Border x:Name="ImagePreviewStrip" Grid.Row="0" 
+                    Background="#1A1A1A" BorderBrush="#333333" BorderThickness="0,0,0,1"
+                    Padding="12,8" Visibility="Collapsed">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <!-- Thumbnail -->
+                    <Border Grid.Column="0" Width="48" Height="48" CornerRadius="6" ClipToBounds="True" Margin="0,0,10,0">
+                        <Image x:Name="SelectedImageThumb" Stretch="UniformToFill" RenderOptions.BitmapScalingMode="HighQuality"/>
+                    </Border>
+                    <!-- Info + Search hint -->
+                    <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                        <TextBlock x:Name="SelectedImageName" FontSize="12" FontWeight="SemiBold" Foreground="White" TextTrimming="CharacterEllipsis"/>
+                        <TextBlock Text="Ketik perintah lalu Enter untuk cari di internet" FontSize="10" Foreground="#888888" Margin="0,2,0,0"/>
+                    </StackPanel>
+                    <!-- Clear button -->
+                    <Button Grid.Column="2" x:Name="ClearImageButton" Click="ClearImageButton_Click"
+                            Width="24" Height="24" Background="Transparent" BorderThickness="0" Cursor="Hand">
+                        <Button.Template>
+                            <ControlTemplate TargetType="Button">
+                                <Border Background="{TemplateBinding Background}" CornerRadius="4">
+                                    <TextBlock Text="&#xE711;" FontFamily="Segoe MDL2 Assets" FontSize="11"
+                                               Foreground="#888888" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                </Border>
+                                <ControlTemplate.Triggers>
+                                    <Trigger Property="IsMouseOver" Value="True">
+                                        <Setter Property="Background" Value="#333333"/>
+                                    </Trigger>
+                                </ControlTemplate.Triggers>
+                            </ControlTemplate>
+                        </Button.Template>
+                    </Button>
+                </Grid>
+            </Border>
+
             <!-- Header / Search Bar -->
-            <Grid Grid.Row="0" Margin="16">
+            <Grid Grid.Row="1" Margin="16">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition Width="*"/>
@@ -195,7 +235,26 @@
                         <TextBlock x:Name="ClockText" Text="12:00" Foreground="{StaticResource TextSecondary}" FontSize="12" HorizontalAlignment="Right"/>
                         <TextBlock x:Name="DateText" Text="Mon, 01 Jan" Foreground="#666666" FontSize="10" HorizontalAlignment="Right"/>
                     </StackPanel>
-                    
+
+                    <!-- Image Search Button -->
+                    <Button x:Name="ImageSearchButton" Click="ImageSearchButton_Click"
+                            Width="34" Height="32" Background="Transparent" BorderThickness="0" Cursor="Hand" ToolTip="Search image on internet" Margin="0,0,4,0">
+                        <Button.Template>
+                            <ControlTemplate TargetType="Button">
+                                <Border x:Name="border" Background="{TemplateBinding Background}" CornerRadius="6">
+                                    <TextBlock Text="&#xEB9F;" FontFamily="Segoe MDL2 Assets" FontSize="17"
+                                               Foreground="{StaticResource TextSecondary}" x:Name="Icon" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                                </Border>
+                                <ControlTemplate.Triggers>
+                                    <Trigger Property="IsMouseOver" Value="True">
+                                        <Setter TargetName="border" Property="Background" Value="#252525"/>
+                                        <Setter TargetName="Icon" Property="Foreground" Value="White"/>
+                                    </Trigger>
+                                </ControlTemplate.Triggers>
+                            </ControlTemplate>
+                        </Button.Template>
+                    </Button>
+
                     <!-- Ask AI Mode Toggle -->
                     <ToggleButton x:Name="AskAiToggle" Click="AskAiToggle_Click"
                                  Width="34" Height="32" Background="Transparent" BorderThickness="0" Cursor="Hand" ToolTip="Ask AI Mode" Margin="0,0,4,0">
@@ -243,7 +302,7 @@
             </Grid>
 
             <!-- Suggestions List -->
-            <Border Grid.Row="1" BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,1,0,0">
+            <Border Grid.Row="2" BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,1,0,0">
                 <ListBox x:Name="SuggestionList"
                          Background="Transparent"
                          BorderThickness="0"
@@ -260,11 +319,11 @@
             </Border>
 
             <!-- Notifications -->
-            <TextBlock x:Name="NotificationText" Grid.Row="2" 
+            <TextBlock x:Name="NotificationText" Grid.Row="3" 
                        Text="Notification" Foreground="#FF5555" HorizontalAlignment="Center" Margin="0,8" Visibility="Collapsed" FontSize="12"/>
 
             <!-- Preview Panel (Overlay) -->
-            <Border x:Name="PreviewPanel" Grid.Row="0" Grid.RowSpan="3" Background="#F2121212" Visibility="Collapsed" CornerRadius="12" 
+            <Border x:Name="PreviewPanel" Grid.Row="0" Grid.RowSpan="4" Background="#F2121212" Visibility="Collapsed" CornerRadius="12" 
                     MouseLeftButtonDown="PreviewPanel_MouseDown">
                 <Grid>
                     <Grid.RowDefinitions>
@@ -317,8 +376,25 @@
                 </Grid>
             </Border>
 
+            <!-- Toast Notification (pojok kanan bawah) -->
+            <Border x:Name="ToastNotification" Grid.Row="0" Grid.RowSpan="4"
+                    Background="#CC1E1E1E" CornerRadius="8" BorderBrush="#444444" BorderThickness="1"
+                    HorizontalAlignment="Right" VerticalAlignment="Bottom"
+                    Margin="0,0,12,12" Padding="12,8"
+                    Visibility="Collapsed" MaxWidth="260">
+                <Border.Effect>
+                    <DropShadowEffect BlurRadius="12" ShadowDepth="4" Color="Black" Opacity="0.4" Direction="270"/>
+                </Border.Effect>
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock x:Name="ToastIcon" Text="&#xEB9F;" FontFamily="Segoe MDL2 Assets" FontSize="14"
+                               Foreground="#007AFF" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                    <TextBlock x:Name="ToastText" Text="" FontSize="12" Foreground="White"
+                               VerticalAlignment="Center" TextWrapping="Wrap" MaxWidth="200"/>
+                </StackPanel>
+            </Border>
+
             <!-- Drag & Drop Overlay Hint -->
-            <Border x:Name="DragDropArea" Grid.Row="0" Grid.RowSpan="3" Background="#AA000000" Visibility="Collapsed" CornerRadius="12"
+            <Border x:Name="DragDropArea" Grid.Row="0" Grid.RowSpan="4" Background="#AA000000" Visibility="Collapsed" CornerRadius="12"
                     AllowDrop="True" Drop="DragDropArea_Drop" DragEnter="DragDropArea_DragEnter" DragLeave="DragDropArea_DragLeave">
                 <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
                     <TextBlock Text="&#xE896;" FontFamily="Segoe MDL2 Assets" FontSize="48" Foreground="White" HorizontalAlignment="Center"/>

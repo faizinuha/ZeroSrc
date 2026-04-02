@@ -8,19 +8,19 @@ Panduan lengkap untuk merilis versi baru ZeroMix ke GitHub Releases.
 
 ```bash
 # Dari root project
-.\Scripts\release-version.bat 5.1.5
+.\Scripts\release-version.bat 5.1.6
 ```
 
 Atau dengan PowerShell:
 
 ```powershell
-.\Scripts\release-version.ps1 -NewVersion 5.1.5
+.\Scripts\release-version.ps1 -NewVersion 5.1.6
 ```
 
 **Itu saja!** Script akan otomatis:
 1. ✅ Update versi di semua file
 2. ✅ Commit perubahan
-3. ✅ Create tag `v5.1.5`
+3. ✅ Create tag `v5.1.6`
 4. ✅ Push ke GitHub
 5. ✅ Trigger workflow build & release
 
@@ -32,14 +32,39 @@ Atau dengan PowerShell:
 
 ```powershell
 # Release versi baru
-.\Scripts\release-version.ps1 -NewVersion 5.1.5
+.\Scripts\release-version.ps1 -NewVersion 5.1.6
 
 # Dengan custom commit message
-.\Scripts\release-version.ps1 -NewVersion 5.1.5 -CommitMessage "feat: add new features"
+.\Scripts\release-version.ps1 -NewVersion 5.1.6 -CommitMessage "feat: add new features"
 
 # Preview saja (tidak push)
-.\Scripts\release-version.ps1 -NewVersion 5.1.5 -SkipPush
+.\Scripts\release-version.ps1 -NewVersion 5.1.6 -SkipPush
 ```
+
+Kamu:
+  .\Scripts\release-version.ps1 -NewVersion 5.1.6
+          │
+          ▼
+  Script push tag v5.1.6 ke GitHub
+          │
+          ▼
+GitHub Actions (workflow):
+  .github/workflows/build-release.yml
+          │
+          ├─ Build aplikasi
+          ├─ Download FFMPEG
+          ├─ Build installer (Inno Setup)
+          ├─ Sign executable (osslsigncode)
+          ├─ Create portable ZIP
+          │
+          ▼
+  Upload ke GitHub Releases ← INI YANG UPLOAD
+          │
+          ▼
+  https://github.com/faizinuha/ZeroMix/releases
+  ✅ Release v5.1.6 muncul dengan:
+     - ZeroMix-v5.1.6-Setup.exe
+     - ZeroMix-v5.1.6-Portable.zip
 
 ### 2. Apa yang Terjadi di GitHub?
 
@@ -59,8 +84,8 @@ Setelah push tag, GitHub Actions otomatis:
 ### 3. Hasil Release
 
 GitHub Releases akan berisi:
-- `ZeroMix-v5.1.5-Setup.exe` (Installer, signed)
-- `ZeroMix-v5.1.5-Portable.zip` (Portable version)
+- `ZeroMix-v5.1.6-Setup.exe` (Installer, signed)
+- `ZeroMix-v5.1.6-Portable.zip` (Portable version)
 
 ---
 
@@ -70,9 +95,9 @@ Script `release-version.ps1` akan update versi di:
 
 | File | Pattern |
 |------|---------|
-| `src/MainWindow.xaml.cs` | `CURRENT_VERSION = "5.1.5"` |
-| `Exe/Setup.iss` | `#define AppVersion "5.1.5"` |
-| `ZeroMix.csproj` | `<Version>5.1.5</Version>` |
+| `src/MainWindow.xaml.cs` | `CURRENT_VERSION = "5.1.6"` |
+| `Exe/Setup.iss` | `#define AppVersion "5.1.6"` |
+| `ZeroMix.csproj` | `<Version>5.1.6</Version>` |
 
 ---
 
@@ -100,7 +125,7 @@ Jika ada kesalahan dan mau re-release versi yang sama:
 
 ```powershell
 # Script akan tanya apakah mau overwrite tag
-.\Scripts\release-version.ps1 -NewVersion 5.1.5
+.\Scripts\release-version.ps1 -NewVersion 5.1.6
 # Jawab 'y' untuk delete & recreate tag
 ```
 
@@ -130,9 +155,9 @@ Atau manual:
 ## 📊 Version History Example
 
 ```
-v5.1.5 (Latest)
-├─ ZeroMix-v5.1.5-Setup.exe
-└─ ZeroMix-v5.1.5-Portable.zip
+v5.1.6 (Latest)
+├─ ZeroMix-v5.1.6-Setup.exe
+└─ ZeroMix-v5.1.6-Portable.zip
 
 v5.1.4
 ├─ ZeroMix-v5.1.4-Setup.exe
@@ -162,15 +187,15 @@ Edit file-file ini:
 
 ```bash
 git add .
-git commit -m "chore: bump version to 5.1.5"
-git tag -a v5.1.5 -m "Release 5.1.5"
+git commit -m "chore: bump version to 5.1.6"
+git tag -a v5.1.6 -m "Release 5.1.6"
 ```
 
 ### 3. Push
 
 ```bash
 git push origin main
-git push origin v5.1.5
+git push origin v5.1.6
 ```
 
 ---
@@ -180,17 +205,17 @@ git push origin v5.1.5
 ### Tag Sudah Ada
 
 ```
-❌ Tag v5.1.5 already exists!
+❌ Tag v5.1.6 already exists!
 ```
 
 **Solusi:**
 ```bash
 # Hapus tag lokal & remote
-git tag -d v5.1.5
-git push origin :refs/tags/v5.1.5
+git tag -d v5.1.6
+git push origin :refs/tags/v5.1.6
 
 # Buat ulang
-.\Scripts\release-version.ps1 -NewVersion 5.1.5
+.\Scripts\release-version.ps1 -NewVersion 5.1.6
 ```
 
 ### Workflow Gagal
@@ -208,7 +233,7 @@ Test build sebelum release:
 
 ```powershell
 # Build lokal tanpa upload
-.\build\build-sign-release.ps1 -Version 5.1.5 -SkipUpload
+.\build\build-sign-release.ps1 -Version 5.1.6 -SkipUpload
 ```
 
 ---
@@ -251,14 +276,14 @@ Untuk bug critical:
 ### Release Minor Version
 
 ```powershell
-# 5.1.4 → 5.1.5
-.\Scripts\release-version.ps1 -NewVersion 5.1.5
+# 5.1.4 → 5.1.6
+.\Scripts\release-version.ps1 -NewVersion 5.1.6
 ```
 
 ### Release Major Version
 
 ```powershell
-# 5.1.5 → 6.0.0
+# 5.1.6 → 6.0.0
 .\Scripts\release-version.ps1 -NewVersion 6.0.0 -CommitMessage "feat: major update with breaking changes"
 ```
 

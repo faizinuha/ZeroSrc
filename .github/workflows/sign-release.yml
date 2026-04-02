@@ -53,6 +53,9 @@ jobs:
 
     - name: 🔐 Sign Executable
       shell: pwsh
+      env:
+        CERT_BASE64: ${{ secrets.CERT_BASE64 }}
+        CERT_PASSWORD: ${{ secrets.CERT_PASSWORD }}
       run: |
         $exeFile = Get-ChildItem "./release-artifacts" -Filter "*.exe" | Select-Object -First 1
         
@@ -63,18 +66,15 @@ jobs:
         
         Write-Host "📝 Signing: $($exeFile.Name)"
         
-        # Check if certificate is available in secrets
-        if ([string]::IsNullOrEmpty("${{ secrets.CERT_BASE64 }}")) {
-          Write-Host "⚠️  Certificate not found in secrets"
-          Write-Host "📝 To enable signing, add CERT_BASE64 and CERT_PASSWORD to GitHub Secrets"
-          Write-Host "✅ Executable is ready for manual signing"
+        # Check if certificate is available
+        if ([string]::IsNullOrEmpty($env:CERT_BASE64)) {
+          Write-Host "⚠️  Certificate not found in secrets, skipping signing"
           exit 0
         }
         
         # Decode certificate from base64
         Write-Host "🔐 Decoding certificate..."
-        $certBase64 = "${{ secrets.CERT_BASE64 }}"
-        $certBytes = [Convert]::FromBase64String($certBase64)
+        $certBytes = [Convert]::FromBase64String($env:CERT_BASE64)
         $certPath = "./cert.pfx"
         [IO.File]::WriteAllBytes($certPath, $certBytes)
         
@@ -83,16 +83,15 @@ jobs:
         $signedPath = "./release-artifacts/$($exeFile.BaseName)-signed.exe"
         
         Write-Host "⏳ Signing executable..."
-        osslsigncode sign -pkcs12 $certPath -pass "${{ secrets.CERT_PASSWORD }}" `
+        osslsigncode sign -pkcs12 $certPath -pass "$env:CERT_PASSWORD" `
           -n "ZeroMix" -i "https://zeromix.vercel.app" `
           -t "http://timestamp.comodoca.com/authenticode" `
           -in $exePath -out $signedPath
         
         if (Test-Path $signedPath) {
-          Write-Host "✅ Signed successfully: $signedPath"
+          Write-Host "✅ Signed successfully"
           Remove-Item $exePath -Force
           Rename-Item $signedPath $exePath -Force
-          Write-Host "✅ Replaced original with signed version"
         } else {
           Write-Host "❌ Signing failed"
           exit 1

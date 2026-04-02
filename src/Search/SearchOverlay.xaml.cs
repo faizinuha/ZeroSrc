@@ -298,6 +298,159 @@ namespace ZeroMix.Search
             _aiService = new AiVisionService(ApiKeys.OPENAI_API_KEY);
         }
 
+        private bool _suppressDeactivate = false;
+        private string? _pendingImagePath = null;
+
+        private void ImageSearchButton_Click(object sender, RoutedEventArgs e)
+        {
+            _suppressDeactivate = true;
+            var dialog = new Microsoft.Win32.OpenFileDialog
+            {
+                Title = "Pilih Gambar untuk Dicari",
+                Filter = "Image Files|*.jpg;*.jpeg;*.png;*.gif;*.bmp;*.webp|All Files|*.*",
+                Multiselect = false
+            };
+
+            bool? result = dialog.ShowDialog(this);
+            _suppressDeactivate = false;
+
+            if (result == true)
+            {
+                _pendingImagePath = dialog.FileName;
+                ShowImagePreviewStrip(_pendingImagePath);
+                SearchBox.Tag = "Ketik perintah pencarian lalu Enter...";
+                SearchBox.Focus();
+            }
+        }
+
+        private void ShowImagePreviewStrip(string imagePath)
+        {
+            try
+            {
+                var strip = this.FindName("ImagePreviewStrip") as Border;
+                var thumb = this.FindName("SelectedImageThumb") as System.Windows.Controls.Image;
+                var nameText = this.FindName("SelectedImageName") as TextBlock;
+
+                if (thumb != null)
+                {
+                    var bmp = new BitmapImage();
+                    bmp.BeginInit();
+                    bmp.UriSource = new Uri(imagePath);
+                    bmp.DecodePixelWidth = 96;
+                    bmp.CacheOption = BitmapCacheOption.OnLoad;
+                    bmp.EndInit();
+                    thumb.Source = bmp;
+                }
+                if (nameText != null) nameText.Text = Path.GetFileName(imagePath);
+                if (strip != null) strip.Visibility = Visibility.Visible;
+            }
+            catch { }
+        }
+
+        private void ClearImageButton_Click(object sender, RoutedEventArgs e)
+        {
+            _pendingImagePath = null;
+            var strip = this.FindName("ImagePreviewStrip") as Border;
+            if (strip != null) strip.Visibility = Visibility.Collapsed;
+            SearchBox.Tag = "Type to search...";
+        }
+
+        private async void SearchImageOnInternet(string imagePath, string? userQuery = null)
+        {
+            if (!File.Exists(imagePath)) return;
+
+            _pendingImagePath = null;
+            var strip = this.FindName("ImagePreviewStrip") as Border;
+            if (strip != null) strip.Visibility = Visibility.Collapsed;
+            SearchBox.Tag = "Type to search...";
+
+            ShowToast("&#xEB9F;", "Uploading image...", "#007AFF");
+
+            try
+            {
+                string? publicUrl = await UploadImageToTempHostAsync(imagePath);
+
+                if (!string.IsNullOrEmpty(publicUrl))
+                {
+                    // Pakai Google Images reverse search (lebih reliable dari Lens)
+                    string query = string.IsNullOrWhiteSpace(userQuery) ? "" : $"&q={Uri.EscapeDataString(userQuery)}";
+                    string searchUrl = $"https://www.google.com/searchbyimage?image_url={Uri.EscapeDataString(publicUrl)}{query}";
+                    Process.Start(new ProcessStartInfo(searchUrl) { UseShellExecute = true });
+                    ShowToast("&#xE8FB;", "Opened in browser", "#4CAF50");
+                }
+                else
+                {
+                    // Fallback: buka Google Images upload langsung
+                    Process.Start(new ProcessStartInfo("https://images.google.com") { UseShellExecute = true });
+                    ShowToast("&#xEB9F;", "Opened Google Images - klik ikon kamera", "#FF9800");
+                }
+            }
+            catch (Exception ex)
+            {
+                ShowToast("&#xEA39;", $"Error: {ex.Message}", "#FF5555");
+            }
+
+            BeginFadeOutAndClose();
+        }
+
+        private async Task<string?> UploadImageToTempHostAsync(string imagePath)
+        {
+            try
+            {
+                // Upload ke 0x0.st (simple, no auth, returns direct URL)
+                using var form = new MultipartFormDataContent();
+                var fileBytes = await File.ReadAllBytesAsync(imagePath);
+                var fileContent = new ByteArrayContent(fileBytes);
+                fileContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(
+                    GetMimeType(Path.GetExtension(imagePath)));
+                form.Add(fileContent, "file", Path.GetFileName(imagePath));
+
+                var response = await _httpClient.PostAsync("https://0x0.st", form);
+                if (response.IsSuccessStatusCode)
+                {
+                    string url = (await response.Content.ReadAsStringAsync()).Trim();
+                    if (url.StartsWith("https://")) return url;
+                }
+            }
+            catch { }
+
+            return null;
+        }
+
+        private string GetMimeType(string extension)
+        {
+            return extension.ToLower() switch
+            {
+                ".jpg" or ".jpeg" => "image/jpeg",
+                ".png" => "image/png",
+                ".gif" => "image/gif",
+                ".bmp" => "image/bmp",
+                ".webp" => "image/webp",
+                _ => "application/octet-stream"
+            };
+        }
+
+        private void ShowToast(string icon, string message, string colorHex = "#007AFF")
+        {
+            Dispatcher.Invoke(() =>
+            {
+                var toast = this.FindName("ToastNotification") as Border;
+                var toastText = this.FindName("ToastText") as TextBlock;
+                var toastIcon = this.FindName("ToastIcon") as TextBlock;
+
+                if (toast == null || toastText == null || toastIcon == null) return;
+
+                toastIcon.Text = icon;
+                toastIcon.Foreground = new SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString(colorHex));
+                toastText.Text = message;
+                toast.Visibility = Visibility.Visible;
+
+                var timer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(3) };
+                timer.Tick += (s, e) => { toast.Visibility = Visibility.Collapsed; timer.Stop(); };
+                timer.Start();
+            });
+        }
+
         private void AskAiToggle_Click(object sender, RoutedEventArgs e)
         {
             _isAiMode = AskAiToggle.IsChecked ?? false;
@@ -1070,12 +1223,20 @@ namespace ZeroMix.Search
         }
 
         private void Window_KeyDown(object sender, System.Windows.Input.KeyEventArgs e) { if (e.Key == Key.Escape) BeginFadeOutAndClose(); }
-        private void Window_Deactivated(object sender, EventArgs e) => BeginFadeOutAndClose();
+        private void Window_Deactivated(object sender, EventArgs e) { if (!_suppressDeactivate) BeginFadeOutAndClose(); }
         private void SearchBox_KeyDown(object sender, System.Windows.Input.KeyEventArgs e)
         {
             if (e.Key == Key.Enter)
             {
                 string query = (sender as System.Windows.Controls.TextBox)?.Text.Trim() ?? "";
+
+                // Kalau ada gambar pending, search gambar dulu
+                if (_pendingImagePath != null)
+                {
+                    SearchImageOnInternet(_pendingImagePath, query);
+                    return;
+                }
+
                 if (!string.IsNullOrEmpty(query))
                 {
                     var list = SuggestionList;
@@ -1095,26 +1256,16 @@ namespace ZeroMix.Search
 
         private void CustomShortcutButton_Click(object sender, RoutedEventArgs e)
         {
-            try
-            {
-                var shortcutWindow = new CustomShortcutWindow();
-                shortcutWindow.Show();
-                BeginFadeOutAndClose();
-            }
-            catch (Exception ex)
-            {
-                // Fallback: Try to open the Shortcuts folder in Explorer
-                try 
-                {
-                    string appData = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "ZeroMix");
-                    if (Directory.Exists(appData)) Process.Start("explorer.exe", appData);
-                } 
-                catch {}
+            // Hide the overlay to focus on the settings window
+            this.Visibility = Visibility.Hidden;
 
-                ShowNotification($"Error opening settings: {ex.Message}", NotificationType.Error);
-                System.Diagnostics.Debug.WriteLine($"Error opening shortcut window: {ex.Message}");
-            }
+            var customShortcutWindow = new CustomShortcutWindow();
+            customShortcutWindow.ShowDialog(); // Blocks until closed
+
+            // After the dialog is closed, close the overlay completely.
+            this.Close();
         }
+
 
         // Drag & Drop Event Handlers
         private void SearchBox_Drop(object sender, System.Windows.DragEventArgs e)
@@ -1525,46 +1676,62 @@ namespace ZeroMix.Search
         {
             if (string.IsNullOrWhiteSpace(query)) return;
             string queryLower = query.ToLower();
-            
-            // Optimization: Run intent detection on background thread
+
+            BeginFadeOutAndClose();
+
             var intent = await Task.Run(() => {
-                if (queryLower.Contains("foto") || queryLower.Contains("gambar") || queryLower.Contains("image"))
+                if (queryLower.Contains("foto") || queryLower.Contains("gambar") || queryLower.Contains("image") || queryLower.Contains("picture"))
                 {
-                    string searchSubject = Regex.Replace(queryLower, "(carikan|cari|foto|gambar|image|tentang|saya)", "").Trim();
-                    return new { Type = "Image", Subject = searchSubject };
+                    string subject = Regex.Replace(queryLower, @"(carikan|cari|foto|gambar|image|picture|tentang|saya|dong)", "").Trim();
+                    return new { Type = "Image", Subject = subject };
                 }
-                
                 if (queryLower.Contains("beli") || queryLower.Contains("shopee") || queryLower.Contains("tokopedia") || queryLower.Contains("produk") || queryLower.Contains("harga"))
                 {
-                    string item = Regex.Replace(queryLower, "(beli|carikan|cari|shopee|tokopedia|produk|harga|murah|dong)", "").Trim();
+                    string item = Regex.Replace(queryLower, @"(beli|carikan|cari|shopee|tokopedia|produk|harga|murah|dong)", "").Trim();
                     return new { Type = "Shop", Subject = item };
                 }
-                return null;
+                if (queryLower.Contains("youtube") || queryLower.Contains("video"))
+                {
+                    string subject = Regex.Replace(queryLower, @"(carikan|cari|youtube|video|tonton|dong)", "").Trim();
+                    return new { Type = "YouTube", Subject = subject };
+                }
+                return new { Type = "Web", Subject = query };
             });
 
-            if (intent != null && !string.IsNullOrEmpty(intent.Subject))
+            string url = intent.Type switch
             {
-                if (intent.Type == "Image") {
-                    ShowNotification($"Searching images for: {intent.Subject}...");
-                    Process.Start(new ProcessStartInfo($"https://www.google.com/search?tbm=isch&q={Uri.EscapeDataString(intent.Subject)}") { UseShellExecute = true });
-                } else {
-                    ShowNotification($"Searching marketplace for: {intent.Subject}...");
-                    string url = queryLower.Contains("tokopedia") 
-                        ? $"https://www.tokopedia.com/search?st=product&q={Uri.EscapeDataString(intent.Subject)}"
-                        : $"https://shopee.co.id/search?keyword={Uri.EscapeDataString(intent.Subject)}";
-                    Process.Start(new ProcessStartInfo(url) { UseShellExecute = true });
-                }
-                BeginFadeOutAndClose();
-                return;
-            }
+                "Image" => $"https://www.google.com/search?tbm=isch&q={Uri.EscapeDataString(intent.Subject)}",
+                "Shop" when queryLower.Contains("tokopedia") => $"https://www.tokopedia.com/search?st=product&q={Uri.EscapeDataString(intent.Subject)}",
+                "Shop" => $"https://shopee.co.id/search?keyword={Uri.EscapeDataString(intent.Subject)}",
+                "YouTube" => $"https://www.youtube.com/results?search_query={Uri.EscapeDataString(intent.Subject)}",
+                _ => $"https://www.google.com/search?q={Uri.EscapeDataString(intent.Subject)}"
+            };
 
-            if (_aiService != null)
+            Process.Start(new ProcessStartInfo(url) { UseShellExecute = true });
+            ShowWindowsNotification("ZeroMix AI", $"Membuka hasil untuk: {intent.Subject}");
+        }
+
+        private void ShowWindowsNotification(string title, string message)
+        {
+            try
             {
-                ShowNotification("Thinking...", NotificationType.Info);
-                string response = await _aiService.AskAiAsync(query, "Frieren"); 
-                ShowNotification(response, NotificationType.Info);
-                App.OptimizeMemory();
+                // Pakai NotifyIcon sementara untuk balloon tip
+                using var icon = new System.Windows.Forms.NotifyIcon();
+                string iconPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Assets", "Icons", "zeromix.ico");
+                if (File.Exists(iconPath))
+                    icon.Icon = new System.Drawing.Icon(iconPath);
+                else
+                    icon.Icon = System.Drawing.SystemIcons.Information;
+
+                icon.Visible = true;
+                icon.ShowBalloonTip(3000, title, message, System.Windows.Forms.ToolTipIcon.Info);
+
+                // Dispose setelah balloon selesai
+                Task.Delay(4000).ContinueWith(_ => {
+                    try { icon.Visible = false; icon.Dispose(); } catch { }
+                });
             }
+            catch { }
         }
     }
 }

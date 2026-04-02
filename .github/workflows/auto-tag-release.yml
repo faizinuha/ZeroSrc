@@ -73,14 +73,17 @@ jobs:
         run: |
           VERSION="${{ steps.versioning.outputs.version }}"
           
-          # Update MainWindow.xaml.cs
-          sed -i "s/private const string CURRENT_VERSION = \".*\";/private const string CURRENT_VERSION = \"$VERSION\";/g" MainWindow.xaml.cs
+          # Update src/MainWindow.xaml.cs
+          sed -i "s/private const string CURRENT_VERSION = \".*\";/private const string CURRENT_VERSION = \"$VERSION\";/g" src/MainWindow.xaml.cs
+          
+          # Update Exe/Setup.iss
+          sed -i "s/#define AppVersion \".*\"/#define AppVersion \"$VERSION\"/g" Exe/Setup.iss
           
           # Update ZeroMix.csproj
           sed -i "s/<Version>.*<\/Version>/<Version>$VERSION<\/Version>/g" ZeroMix.csproj
           
           # Commit changes if any
-          git add MainWindow.xaml.cs ZeroMix.csproj
+          git add src/MainWindow.xaml.cs Exe/Setup.iss ZeroMix.csproj
           if ! git diff --cached --quiet; then
             git commit -m "chore: bump version to $VERSION [skip ci]"
             git push origin ProyekTil

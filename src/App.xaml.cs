@@ -19,10 +19,16 @@ namespace ZeroMix
         [DllImport("kernel32.dll", EntryPoint = "SetProcessWorkingSetSize")]
         internal static extern int SetProcessWorkingSetSize(IntPtr process, int minimumWorkingSetSize, int maximumWorkingSetSize);
 
+        private static readonly string ConfigPath = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "ZeroMix", "config.json");
+
         protected override void OnStartup(StartupEventArgs e)
         {
             base.OnStartup(e);
             
+            // Pastikan folder AppData/ZeroMix ada
+            Directory.CreateDirectory(Path.GetDirectoryName(ConfigPath)!);
+
             // Load language resource dictionary
             LoadLanguageResources();
             
@@ -35,11 +41,11 @@ namespace ZeroMix
             bool isFirstRun = true;
             bool startupPrompted = false;
 
-            if (File.Exists("config.json"))
+            if (File.Exists(ConfigPath))
             {
                 try
                 {
-                    string jsonString = File.ReadAllText("config.json");
+                    string jsonString = File.ReadAllText(ConfigPath);
                     using (JsonDocument doc = JsonDocument.Parse(jsonString))
                     {
                         if (doc.RootElement.TryGetProperty("IsFirstRun", out JsonElement element))
@@ -160,7 +166,7 @@ namespace ZeroMix
         {
             var config = new { IsFirstRun = isFirstRun, StartupPrompted = startupPrompted };
             string json = JsonSerializer.Serialize(config, new JsonSerializerOptions { WriteIndented = true });
-            File.WriteAllText("config.json", json);
+            File.WriteAllText(ConfigPath, json);
         }
 
         private void StartMainApp(string[]? args = null)

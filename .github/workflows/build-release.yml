@@ -76,6 +76,9 @@ jobs:
 
     - name: 🔐 Sign Executable with osslsigncode
       shell: pwsh
+      env:
+        CERT_BASE64: ${{ secrets.CERT_BASE64 }}
+        CERT_PASSWORD: ${{ secrets.CERT_PASSWORD }}
       run: |
         $VER = "${{ steps.version.outputs.version }}"
         $setupExe = "Exe/ZeroMix-Setup-v$VER.exe"
@@ -84,29 +87,26 @@ jobs:
           Write-Host "✅ Setup executable found: $setupExe"
           Write-Host "📝 File size: $([math]::Round((Get-Item $setupExe).Length / 1MB, 1)) MB"
           
+          # Check if certificate is available in secrets
+          if ([string]::IsNullOrEmpty($env:CERT_BASE64)) {
+            Write-Host "⚠️  Certificate not found in secrets, skipping signing"
+            exit 0
+          }
+          
           # Install osslsigncode via chocolatey
           Write-Host "⏳ Installing osslsigncode..."
           choco install osslsigncode -y
           
-          # Check if certificate is available in secrets
-          if ([string]::IsNullOrEmpty("${{ secrets.CERT_BASE64 }}")) {
-            Write-Host "⚠️  Certificate not found in secrets"
-            Write-Host "📝 To enable signing, add CERT_BASE64 and CERT_PASSWORD to GitHub Secrets"
-            Write-Host "✅ Executable is ready for manual signing"
-            exit 0
-          }
-          
           # Decode certificate from base64
           Write-Host "🔐 Decoding certificate..."
-          $certBase64 = "${{ secrets.CERT_BASE64 }}"
-          $certBytes = [Convert]::FromBase64String($certBase64)
+          $certBytes = [Convert]::FromBase64String($env:CERT_BASE64)
           $certPath = "./cert.pfx"
           [IO.File]::WriteAllBytes($certPath, $certBytes)
           
           # Sign the executable
           $signedPath = "Exe/ZeroMix-Setup-v$VER-signed.exe"
           Write-Host "⏳ Signing executable..."
-          osslsigncode sign -pkcs12 $certPath -pass "${{ secrets.CERT_PASSWORD }}" `
+          osslsigncode sign -pkcs12 $certPath -pass "$env:CERT_PASSWORD" `
             -n "ZeroMix" -i "https://zeromix.vercel.app" `
             -t "http://timestamp.comodoca.com/authenticode" `
             -in $setupExe -out $signedPath
