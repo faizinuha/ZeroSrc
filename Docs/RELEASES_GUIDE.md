@@ -7,11 +7,10 @@
 ## 🚀 Create Release (Super Simple!)
 
 ```bash
-# Create annotated tag
-git tag -a v1.0.0 -m "Release message"
+git add .;
+git commit -m "Refactor: Professionalize project structure and bump version to 5.3.0";
+git push;
 
-# Push to GitHub - everything runs automatically!
-git push origin v1.0.0
 ```
 
 **That's it!** ✅ No more manual steps needed.

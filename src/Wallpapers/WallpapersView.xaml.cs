@@ -326,9 +326,11 @@ namespace ZeroMix.Wallpapers
 
         private string? FindFFmpeg()
         {
-            // Simplified search
+            // Simplified search - Updated paths
+            var baseDir = AppDomain.CurrentDomain.BaseDirectory;
             var possiblePaths = new[] {
-                Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "FFMPEG", "ffmpeg.exe"),
+                Path.Combine(baseDir, "Tools", "FFMPEG", "ffmpeg.exe"),
+                Path.Combine(baseDir, "FFMPEG", "ffmpeg.exe"),
                 @"C:\ffmpeg\bin\ffmpeg.exe"
             };
             return possiblePaths.FirstOrDefault(File.Exists);
@@ -476,12 +478,13 @@ namespace ZeroMix.Wallpapers
             {
                 var exts = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { ".jpg", ".jpeg", ".png", ".bmp", ".gif", ".mp4", ".wmv", ".mov" };
                 
-                // Scan directories
-                var sourceDir = @"C:\ZeroMix\ZeroMix\Resource";
-                var videoDir = @"C:\ZeroMix\ZeroMix\Resource\Video"; // Explicitly add Video folder
-                var buildDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Resource");
+                // Scan directories - Updated paths
+                var baseDir = AppDomain.CurrentDomain.BaseDirectory;
+                var imageDir = Path.Combine(baseDir, "Assets", "Data", "Images");
+                var videoDir = Path.Combine(baseDir, "Assets", "Data", "Video");
+                var animDir = Path.Combine(baseDir, "Assets", "Data", "anim");
                 
-                var roots = new[] { videoDir, sourceDir, buildDir }; // Priority to Video folder
+                var roots = new[] { videoDir, imageDir, animDir }; // Priority to Video folder
 
                 foreach (var root in roots)
                 {

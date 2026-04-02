@@ -92,7 +92,7 @@ namespace ZeroMix.Plugins.Battery
 
             try
             {
-                string imgPath = Path.Combine(baseDir, "Plugins", "zeromix.Battery", "Maskot", mascotFile);
+                string imgPath = Path.Combine(baseDir, "Tools", "Plugins", "zeromix.Battery", "Maskot", mascotFile);
                 if (File.Exists(imgPath))
                 {
                     var bitmap = new BitmapImage();
