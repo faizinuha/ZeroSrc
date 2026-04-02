@@ -971,6 +971,42 @@ namespace ZeroMix.ZeroShell
 
             // OPTIMIZED SYSTEM COMMANDS (Instant & Stealth)
             if (low == "!sys") {
+                AppendToTab(_activeTab, "\n  📊 [ N E K O  S Y S T E M  I N F O ]\n", "#FFFFDA6B");
+                Task.Run(() => {
+                    try {
+                        var os = ""; var build = "";
+                        using (var osSearcher = new ManagementObjectSearcher("SELECT * FROM Win32_OperatingSystem")) {
+                            foreach (ManagementObject obj in osSearcher.Get()) { os = obj["Caption"]?.ToString(); build = obj["Version"]?.ToString(); }
+                        }
+                        
+                        string cpu = "";
+                        using (var cpuSearcher = new ManagementObjectSearcher("SELECT * FROM Win32_Processor")) {
+                            foreach (ManagementObject obj in cpuSearcher.Get()) { cpu = obj["Name"]?.ToString(); }
+                        }
+
+                        string gpu = "";
+                        using (var gpuSearcher = new ManagementObjectSearcher("SELECT * FROM Win32_VideoController")) {
+                            foreach (ManagementObject obj in gpuSearcher.Get()) { gpu = obj["Caption"]?.ToString(); }
+                        }
+
+                        Dispatcher.Invoke(() => {
+                            AppendToTab(_activeTab, $"  ✨ OS    : {os}\n", "#FF6BDDFF");
+                            AppendToTab(_activeTab, $"  ✨ BUILD : {build}\n", "#FF6BDDFF");
+                            AppendToTab(_activeTab, $"  ✨ CPU   : {cpu?.Trim()}\n", "#FF6BDDFF");
+                            AppendToTab(_activeTab, $"  ✨ GPU   : {gpu}\n\n", "#FF6BDDFF");
+                        });
+                    } catch { Dispatcher.Invoke(() => AppendToTab(_activeTab, "  ❌ Gagal ambil info sistem.\n\n", "#FFFF6B6B")); }
+                });
+                return;
+            }
+
+            if (low == "!wifi") {
+                AppendToTab(_activeTab, "\n  🔐 [ S C A N N I N G  W I F I ]\n", "#FFCC6BFF");
+                Task.Run(() => {
+                    try {
+                        var proc = new Process { StartInfo = new ProcessStartInfo("netsh", "wlan show profiles") { UseShellExecute = false, RedirectStandardOutput = true, CreateNoWindow = true } };
+                        proc.Start(); string output = proc.StandardOutput.ReadToEnd(); proc.WaitForExit();
+                        var profiles = new List<string>();
                         foreach (var line in output.Split('\n')) if (line.Contains(":")) profiles.Add(line.Split(':')[1].Trim());
                         
                         foreach (var p in profiles) {
