@@ -1,55 +1,3 @@
-## [v5.1.2] - 2026-04-02
-
-### ✨ Features
-- 76cfb8b: feat: Perubahan Utama:
-- 7ee1fa2: feat: implement search overlay with suggestion system and add automated release tagging workflow
-
-### 🐛 Bug Fixes
-- aa5632e: fix: Memperbaiki Ci/Cd
-- a5b4723: fix: Menambah fitur perekaman area
-- e5ef89c: fix: memory leak in onboarding and VA, optimize eye tracking, and update build trigger for chore
-
-### 🔧 Changes
-- aeffb49: chore: bump version to 5.2.2 [skip ci]
-- 8f97cea: chore: bump version to 5.2.1 [skip ci]
-
-### 📊 Commit Summary
-- Total commits: **8**
-- Date range: 5.1.1 to HEAD
-
-## [v5.0.3] - 2026-04-01
-
-### ✨ Features
-- af35367: feat: implement comprehensive code signing for ZeroMix
-- 099ce02: feat: implement industry-standard update process and fix VirtualAssistant issues
-- 010869c: feat: optimize WebView2 performance in VirtualAssistant
-
-### 🐛 Bug Fixes
-- 7b8edee: fix: robust osslsigncode download and graceful signing fallback
-- eab15b3: fix: update osslsigncode download URL and add fallback
-- b88133e: fix: prevent recording hangs and crashes in installed applications
-- dd9fbee: fix: include zeromix-update.bat in installer and build
-- 6272d82: fix: include Virtual_Assisten assets in build and installer
-
-### 🔧 Changes
-
-### 📊 Commit Summary
-- Total commits: **10**
-- Date range: v5.0.2 to HEAD
-
-## [v5.0.3] - 2026-03-31
-
-### ✨ Features
-
-### 🐛 Bug Fixes
-
-### 🔧 Changes
-
-### 📊 Commit Summary
-- Total commits: **1**
-- Range: v5.0.3..HEAD
-- Generated: Tue Mar 31 11:37:27 UTC 2026
-
 # ZeroMix - Changelog
 
 All notable changes to this project will be documented in this file.
@@ -59,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+
+## [v5.1.5] - 2026-04-02
+
+### ✨ Features
+- To be documented
+
+### 🐛 Bug Fixes
+- To be documented
+
+### 🔧 Changes
+- Version bump to 5.1.5
+
+---
 ## [Unreleased]
 
 ### ✨ Features (In Development)
