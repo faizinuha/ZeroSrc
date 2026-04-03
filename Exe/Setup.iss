@@ -47,10 +47,10 @@ CloseApplicationsFilter=ZeroMix.exe
 RestartIfNeededByRun=yes
 
 [Languages]
-Name: "english";    MessagesFile: "compiler:Default.isl";          Caption: "English"
-Name: "indonesian"; MessagesFile: "Languages\Indonesian.isl";      Caption: "Indonesia"
-Name: "japanese";   MessagesFile: "Languages\Japanese.isl";        Caption: "日本語"
-Name: "chinese";    MessagesFile: "Languages\Chinese.isl";         Caption: "中文"
+Name: "english";    MessagesFile: "compiler:Default.isl"
+Name: "indonesian"; MessagesFile: "Languages\Indonesian.isl"
+Name: "japanese";   MessagesFile: "Languages\Japanese.isl"
+Name: "chinese";    MessagesFile: "Languages\Chinese.isl"
 
 [Dirs]
 Name: "{app}"
