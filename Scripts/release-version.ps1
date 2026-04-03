@@ -6,7 +6,8 @@ param(
     [string]$NewVersion,
     
     [string]$CommitMessage = "",
-    [switch]$SkipPush = $false
+    [switch]$SkipPush = $false,
+    [switch]$ForceBuild = $false
 )
 
 $ErrorActionPreference = "Stop"
@@ -33,6 +34,10 @@ Write-Host ""
 
 Write-Host "📝 Step 1: Updating version in files..." -ForegroundColor Yellow
 
+if ($ForceBuild) {
+    Write-Host "  🔨 ForceBuild mode — skipping version file update" -ForegroundColor Cyan
+}
+
 $filesToUpdate = @(
     @{
         Path = "src/MainWindow.xaml.cs"
@@ -54,6 +59,7 @@ $filesToUpdate = @(
 $updatedFiles = @()
 
 foreach ($file in $filesToUpdate) {
+    if ($ForceBuild) { break } # Skip version update on force build
     if (Test-Path $file.Path) {
         $content = Get-Content $file.Path -Raw
         $newContent = $content -replace $file.Pattern, $file.Replacement
@@ -73,9 +79,13 @@ foreach ($file in $filesToUpdate) {
 if ($updatedFiles.Count -eq 0) {
     Write-Host ""
     Write-Host "⚠️  No files were updated. Version might already be $NewVersion" -ForegroundColor Yellow
-    $continue = Read-Host "Continue anyway? (y/n)"
-    if ($continue -ne "y") {
-        exit 0
+    if (-not $ForceBuild) {
+        $continue = Read-Host "Continue anyway? (y/n)"
+        if ($continue -ne "y") {
+            exit 0
+        }
+    } else {
+        Write-Host "  🔨 ForceBuild flag set, continuing..." -ForegroundColor Cyan
     }
 }
 
@@ -108,7 +118,6 @@ if (Test-Path $changelogPath) {
         $changelog = Get-Content $changelogPath -Raw
         $date = Get-Date -Format "yyyy-MM-dd"
         
-        # Create new version entry
         $newEntry = @"
 ## [v$NewVersion] - $date
 
@@ -125,7 +134,6 @@ if (Test-Path $changelogPath) {
 
 "@
         
-        # Insert at the top (after the header)
         if ($changelog -match '(?s)(# ZeroMix - Changelog.*?---\s*)(.*)') {
             $header = $matches[1]
             $rest = $matches[2]
@@ -151,17 +159,23 @@ Write-Host ""
 Write-Host "💾 Step 4: Committing changes..." -ForegroundColor Yellow
 
 if ([string]::IsNullOrEmpty($CommitMessage)) {
-    $CommitMessage = "chore: bump version to $NewVersion"
+    # Jika ForceBuild, pakai prefix fix: agar auto-tag-release trigger build
+    if ($ForceBuild) {
+        $CommitMessage = "fix: rebuild v$NewVersion [force-build]"
+    } else {
+        $CommitMessage = "fix: bump version to $NewVersion"
+    }
 }
 
 try {
-    # Add updated files
+    # Tambah semua perubahan yang ada
+    git add .
+    Write-Host "  ✅ Staged all changes" -ForegroundColor Green
+
     foreach ($file in $updatedFiles) {
-        git add $file
         Write-Host "  ✅ Staged: $file" -ForegroundColor Green
     }
     
-    # Commit
     git commit -m $CommitMessage
     Write-Host "  ✅ Committed: $CommitMessage" -ForegroundColor Green
 } catch {
@@ -169,15 +183,14 @@ try {
 }
 
 # ============================================================================
-# STEP 4: CREATE TAG
+# STEP 5: CREATE TAG
 # ============================================================================
 
 Write-Host ""
-Write-Host "🏷️  Step 4: Creating git tag..." -ForegroundColor Yellow
+Write-Host "🏷️  Step 5: Creating git tag..." -ForegroundColor Yellow
 
 $tagName = "v$NewVersion"
 
-# Check if tag already exists
 $existingTag = git tag -l $tagName
 if ($existingTag) {
     Write-Host "  ⚠️  Tag $tagName already exists!" -ForegroundColor Yellow
@@ -192,28 +205,24 @@ if ($existingTag) {
     }
 }
 
-# Create new tag
 git tag -a $tagName -m "Release $NewVersion"
 Write-Host "  ✅ Created tag: $tagName" -ForegroundColor Green
 
 # ============================================================================
-# STEP 5: PUSH TO GITHUB
+# STEP 6: PUSH TO GITHUB
 # ============================================================================
 
 if (-not $SkipPush) {
     Write-Host ""
-    Write-Host "🚀 Step 5: Pushing to GitHub..." -ForegroundColor Yellow
+    Write-Host "🚀 Step 6: Pushing to GitHub..." -ForegroundColor Yellow
     
-    # Get current branch
     $currentBranch = git branch --show-current
     Write-Host "  📍 Current branch: $currentBranch" -ForegroundColor Cyan
     
-    # Push commits
     Write-Host "  ⏳ Pushing commits..." -ForegroundColor Gray
     git push origin $currentBranch
     Write-Host "  ✅ Commits pushed" -ForegroundColor Green
     
-    # Push tag
     Write-Host "  ⏳ Pushing tag..." -ForegroundColor Gray
     git push origin $tagName
     Write-Host "  ✅ Tag pushed: $tagName" -ForegroundColor Green
@@ -230,7 +239,6 @@ if (-not $SkipPush) {
     Write-Host "  2. The installer will be signed (if certificate is configured)" -ForegroundColor White
     Write-Host "  3. Release will be published at:" -ForegroundColor White
     
-    # Get repository URL
     $repoUrl = git config --get remote.origin.url
     $repoUrl = $repoUrl -replace '\.git$', ''
     $repoUrl = $repoUrl -replace '^git@github\.com:', 'https://github.com/'
@@ -258,6 +266,7 @@ if (-not $SkipPush) {
 Write-Host "📊 Summary:" -ForegroundColor Cyan
 Write-Host "  Version: $NewVersion" -ForegroundColor White
 Write-Host "  Tag: $tagName" -ForegroundColor White
+Write-Host "  ForceBuild: $(if ($ForceBuild) { 'Yes' } else { 'No' })" -ForegroundColor White
 Write-Host "  Files updated: $($updatedFiles.Count)" -ForegroundColor White
 Write-Host "  Pushed: $(if ($SkipPush) { 'No' } else { 'Yes' })" -ForegroundColor White
 Write-Host ""
