@@ -43,7 +43,7 @@ namespace ZeroMix
     
     public partial class MainWindow : Window
     {
-        private const string CURRENT_VERSION = "5.1.9";
+        private const string CURRENT_VERSION = "5.2.0";
         
         // Windows API for Taskbar transparency
         [DllImport("user32.dll", SetLastError = true)]
@@ -210,12 +210,10 @@ namespace ZeroMix
             MoonSharp.Interpreter.UserData.RegisterType<Plugins.ZeroMixLuaApi>();
             
             InitializeComponent();
-            InitializeRecorder();
             StartGameDetection();
             InitializeTrayIcon();
             // Initialize SleepMode
             _sleepManager = new SleepManager();
-            _sleepManager.Start();
 
             // Berikan handle HotkeyCore ke SleepManager (untuk pendaftaran shortcut)
             Dispatcher.BeginInvoke(new Action(() => {
@@ -301,21 +299,36 @@ namespace ZeroMix
             // Set initial view after the window has loaded
             HomeButton_Click(this, new RoutedEventArgs());
             _initialWallpaperPath = GetSystemWallpaperPath();
-            _sleepManager?.Start();
 
             // Initialize Language Selector
             InitializeLanguageSelector();
 
-            // Initialize Lua Engine
-            _pluginEngine = new Plugins.PluginEngine(this);
-            _pluginEngine.Start();
+            // Initialize Lua Engine di background agar tidak block UI
+            Task.Run(() =>
+            {
+                try
+                {
+                    var engine = new Plugins.PluginEngine(this);
+                    engine.Start();
+                    Dispatcher.Invoke(() => _pluginEngine = engine);
+                }
+                catch { }
+            });
 
             // Handle Startup Args (Toggle Plugins via Shortcut)
             if (_startupArgs != null && _startupArgs.Length >= 2 && _startupArgs[0] == "--plugin")
             {
-                string targetPlugin = _startupArgs[1];
-                var plugin = _pluginEngine.GetPlugins().FirstOrDefault(p => p.Name == targetPlugin);
-                if (plugin != null) _pluginEngine.TogglePlugin(plugin);
+                // Tunda sampai plugin engine selesai load
+                Task.Run(async () =>
+                {
+                    await Task.Delay(2000);
+                    Dispatcher.Invoke(() =>
+                    {
+                        string targetPlugin = _startupArgs[1];
+                        var plugin = _pluginEngine?.GetPlugins().FirstOrDefault(p => p.Name == targetPlugin);
+                        if (plugin != null) _pluginEngine?.TogglePlugin(plugin);
+                    });
+                });
             }
         }
 
