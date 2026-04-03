@@ -172,35 +172,28 @@ jobs:
       shell: pwsh
       run: |
         $VER = "${{ steps.version.outputs.tag }}"
+        $VERNUM = "${{ steps.version.outputs.version }}"
+        $REPO = "${{ github.repository }}"
         $changelog = Get-Content "Docs/CHANGELOG.md" -Raw
 
-        # Extract section for this version between ## [vX.Y.Z] headers
         $pattern = "(?s)## \[$VER\].*?(?=\n## \[|$)"
         $match = [regex]::Match($changelog, $pattern)
 
-        $notes = if ($match.Success) {
-          $match.Value.Trim()
-        } else {
-          "## $VER`n`nSee [CHANGELOG.md](https://github.com/${{ github.repository }}/blob/main/Docs/CHANGELOG.md) for full details."
-        }
+        $notes = if ($match.Success) { $match.Value.Trim() } else { "See full changelog for details." }
 
-        $body = @"
-🎉 **ZeroMix $VER is here!**
+        $setupFile = "ZeroMix-v$VERNUM-Setup.exe"
+        $portableFile = "ZeroMix-v$VERNUM-Portable.zip"
+        $changelogUrl = "https://github.com/$REPO/blob/main/Docs/CHANGELOG.md"
 
-$notes
+        $body = "🎉 **ZeroMix $VER is here!**`n`n$notes`n`n---`n`n"
+        $body += "### 📥 Downloads`n"
+        $body += "- **Setup Installer:** ``$setupFile`` (Recommended)`n"
+        $body += "- **Portable Version:** ``$portableFile```n`n"
+        $body += "### 🖥️ Requirements`n"
+        $body += "- Windows 10/11 x64`n"
+        $body += "- .NET 9.0 Desktop Runtime (Installer will check automatically)`n`n"
+        $body += "📄 [Full Changelog]($changelogUrl)"
 
----
-
-### 📥 Downloads
-- **Setup Installer:** ``ZeroMix-v${{ steps.version.outputs.version }}-Setup.exe`` (Recommended)
-- **Portable Version:** ``ZeroMix-v${{ steps.version.outputs.version }}-Portable.zip``
-
-### 🖥️ Requirements
-- Windows 10/11 x64
-- .NET 9.0 Desktop Runtime (Installer will check automatically)
-
-📄 [Full Changelog](https://github.com/${{ github.repository }}/blob/main/Docs/CHANGELOG.md)
-"@
         $body | Out-File -FilePath "RELEASE_NOTES.md" -Encoding utf8
         Write-Host "✅ Release notes generated for $VER"
 
