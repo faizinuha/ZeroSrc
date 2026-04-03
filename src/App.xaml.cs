@@ -77,43 +77,38 @@ namespace ZeroMix
 
         private void LoadLanguageResources()
         {
-            string languageCode = "en-US"; // Default
+            string languageCode = "en-US";
 
-            // Baca language.ini jika ada
             string languageFile = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "language.ini");
             if (File.Exists(languageFile))
             {
                 try
                 {
-                    languageCode = File.ReadAllText(languageFile).Trim();
-                    
-                    // Validasi language code
-                    if (!new[] { "en-US", "id-ID", "ja-JP" }.Contains(languageCode))
-                    {
-                        languageCode = "en-US";
-                    }
+                    string code = File.ReadAllText(languageFile).Trim();
+                    var valid = new[] { "en-US", "id-ID", "ja-JP", "zh-CN" };
+                    if (valid.Contains(code))
+                        languageCode = code;
                 }
-                catch
-                {
-                    languageCode = "en-US";
-                }
+                catch { }
             }
 
-            // Load resource dictionary berdasarkan language code
-            string resourcePath = $"Assets/Resources/Locales/{languageCode}.xaml";
+            string baseDir = AppDomain.CurrentDomain.BaseDirectory;
+            string localeFile = Path.Combine(baseDir, "Assets", "Resources", "Locales", $"{languageCode}.xaml");
+
+            if (!File.Exists(localeFile))
+                localeFile = Path.Combine(baseDir, "Assets", "Resources", "Locales", "en-US.xaml");
+
             try
             {
-                var langDictionary = new ResourceDictionary 
-                { 
-                    Source = new Uri(resourcePath, UriKind.Relative) 
+                var langDictionary = new ResourceDictionary
+                {
+                    Source = new Uri(localeFile, UriKind.Absolute)
                 };
-                
-                // PENTING: Jangan gunakan Clear() karena akan menghapus Styles.xaml
-                // Cari dictionary lama yang merupakan locale (biasanya di index 0 atau check source)
+
                 bool replaced = false;
                 for (int i = 0; i < this.Resources.MergedDictionaries.Count; i++)
                 {
-                    if (this.Resources.MergedDictionaries[i].Source.OriginalString.Contains("Locales/"))
+                    if (this.Resources.MergedDictionaries[i].Source?.OriginalString.Contains("Locales") == true)
                     {
                         this.Resources.MergedDictionaries[i] = langDictionary;
                         replaced = true;
@@ -122,19 +117,11 @@ namespace ZeroMix
                 }
 
                 if (!replaced)
-                {
                     this.Resources.MergedDictionaries.Add(langDictionary);
-                }
             }
             catch (Exception ex)
             {
-                Debug.WriteLine($"Failed to load language {languageCode}: {ex.Message}");
-                // Fallback ke en-US jika gagal
-                var defaultDictionary = new ResourceDictionary 
-                { 
-                    Source = new Uri("Assets/Resources/Locales/en-US.xaml", UriKind.Relative) 
-                };
-                this.Resources.MergedDictionaries.Add(defaultDictionary);
+                Debug.WriteLine($"[Language] Failed to load {languageCode}: {ex.Message}");
             }
         }
 
