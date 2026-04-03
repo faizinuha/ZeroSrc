@@ -220,6 +220,7 @@ if (-not $SkipPush) {
     Write-Host "  📍 Current branch: $currentBranch" -ForegroundColor Cyan
     
     Write-Host "  ⏳ Pushing commits..." -ForegroundColor Gray
+    git pull --rebase origin $currentBranch
     git push origin $currentBranch
     Write-Host "  ✅ Commits pushed" -ForegroundColor Green
     
