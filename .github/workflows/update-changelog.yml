@@ -9,12 +9,13 @@ on:
 jobs:
   update-changelog:
     runs-on: ubuntu-latest
-    
+
     steps:
     - name: 📥 Checkout Code
       uses: actions/checkout@v4
       with:
         fetch-depth: 0
+        token: ${{ secrets.GITHUB_TOKEN }}
 
     - name: 🔖 Get Release Info
       id: release
@@ -23,123 +24,63 @@ jobs:
         TAG=${GITHUB_REF#refs/tags/}
         VERSION=${TAG#v}
         DATE=$(date +'%Y-%m-%d')
-        
         echo "tag=$TAG" >> $GITHUB_OUTPUT
         echo "version=$VERSION" >> $GITHUB_OUTPUT
         echo "date=$DATE" >> $GITHUB_OUTPUT
-        
-        # Get previous tag
-        PREV_TAG=$(git tag -l 'v*' --sort=-version:refname 2>/dev/null | head -2 | tail -1)
+
+        PREV_TAG=$(git tag -l 'v*' --sort=-version:refname | grep -v "^$TAG$" | head -1)
         echo "prev_tag=$PREV_TAG" >> $GITHUB_OUTPUT
-        echo "Comparing $PREV_TAG..$TAG"
 
-    - name: 📊 Parse Git Log
-      id: commits
-      shell: bash
-      run: |
-        TAG=${{ steps.release.outputs.tag }}
-        PREV_TAG=${{ steps.release.outputs.prev_tag }}
-        
-        if [ -z "$PREV_TAG" ]; then
-          COMMIT_RANGE="--all"
-        else
-          COMMIT_RANGE="$PREV_TAG..$TAG"
-        fi
-        
-        # Parse commits by type
-        FEATURES=$(git log $COMMIT_RANGE --oneline --grep="feat" --grep="feature" --all-match --pretty=format:"%h %s" 2>/dev/null)
-        FIXES=$(git log $COMMIT_RANGE --oneline --grep="fix\|bug" --all-match --pretty=format:"%h %s" 2>/dev/null)
-        IMPROVEMENTS=$(git log $COMMIT_RANGE --oneline --grep="improve\|refactor\|perf\|performance" --all-match --pretty=format:"%h %s" 2>/dev/null)
-        DOCS=$(git log $COMMIT_RANGE --oneline --grep="doc\|docs\|documentation" --all-match --pretty=format:"%h %s" 2>/dev/null)
-        
-        # Count commits
-        FEATURE_COUNT=$(echo "$FEATURES" | wc -l)
-        FIXES_COUNT=$(echo "$FIXES" | wc -l)
-        IMPROVEMENTS_COUNT=$(echo "$IMPROVEMENTS" | wc -l)
-        
-        echo "features<<EOF" >> $GITHUB_OUTPUT
-        echo "$FEATURES" >> $GITHUB_OUTPUT
-        echo "EOF" >> $GITHUB_OUTPUT
-        
-        echo "fixes<<EOF" >> $GITHUB_OUTPUT
-        echo "$FIXES" >> $GITHUB_OUTPUT
-        echo "EOF" >> $GITHUB_OUTPUT
-        
-        echo "improvements<<EOF" >> $GITHUB_OUTPUT
-        echo "$IMPROVEMENTS" >> $GITHUB_OUTPUT
-        echo "EOF" >> $GITHUB_OUTPUT
-
-    - name: ✏️ Update CHANGELOG.md
+    - name: 📝 Inject Entry into CHANGELOG
       shell: bash
       run: |
         TAG=${{ steps.release.outputs.tag }}
         VERSION=${{ steps.release.outputs.version }}
         DATE=${{ steps.release.outputs.date }}
-        
-        # Create temp changelog
-        cat > /tmp/new_changelog.md << 'EOF'
-        # ZeroMix - Changelog
-        
-        All notable changes to this project will be documented in this file.
-        
-        The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
-        and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
-        
-        ---
-        
-        ## [$VERSION] - $DATE
-        
-        ### ✨ Features
-        ${{ steps.commits.outputs.features }}
-        
-        ### 🐛 Bug Fixes
-        ${{ steps.commits.outputs.fixes }}
-        
-        ### 🚀 Improvements
-        ${{ steps.commits.outputs.improvements }}
-        
-        **Full Release:** [$TAG](https://github.com/faizinuha/ZeroMix/releases/tag/$TAG)
-        
-        ---
-        
-        EOF
-        
-        # Append existing changelog (skip first lines)
-        if [ -f CHANGELOG.md ]; then
-          tail -n +5 CHANGELOG.md >> /tmp/new_changelog.md
-        fi
-        
-        # Replace version/date placeholders
-        sed -i "s|\$VERSION|$VERSION|g" /tmp/new_changelog.md
-        sed -i "s|\$DATE|$DATE|g" /tmp/new_changelog.md
-        sed -i "s|\$TAG|$TAG|g" /tmp/new_changelog.md
-        
-        mv /tmp/new_changelog.md CHANGELOG.md
-        echo "✅ CHANGELOG.md updated"
+        PREV_TAG=${{ steps.release.outputs.prev_tag }}
 
-    - name: 📤 Commit & Push Changes
+        # Skip jika entry versi ini sudah ada
+        if grep -q "\[$TAG\]" Docs/CHANGELOG.md; then
+          echo "ℹ️ Entry $TAG already exists in CHANGELOG, skipping."
+          exit 0
+        fi
+
+        # Ambil commit log sejak tag sebelumnya
+        if [ -z "$PREV_TAG" ]; then
+          RANGE="HEAD"
+        else
+          RANGE="$PREV_TAG..$TAG"
+        fi
+
+        FEATURES=$(git log $RANGE --pretty=format:"- %s" --grep="^feat" 2>/dev/null)
+        FIXES=$(git log $RANGE --pretty=format:"- %s" --grep="^fix" 2>/dev/null)
+
+        [ -z "$FEATURES" ] && FEATURES="- No new features"
+        [ -z "$FIXES" ] && FIXES="- No bug fixes"
+
+        # Buat entry baru
+        NEW_ENTRY="## [$TAG] - $DATE\n\n### ✨ Features\n$FEATURES\n\n### 🐛 Bug Fixes\n$FIXES\n\n---\n"
+
+        # Inject setelah baris "---" pertama (setelah header)
+        awk -v entry="$NEW_ENTRY" '
+          /^---$/ && !inserted { print; printf "\n" entry; inserted=1; next }
+          { print }
+        ' Docs/CHANGELOG.md > /tmp/changelog_new.md
+
+        mv /tmp/changelog_new.md Docs/CHANGELOG.md
+        echo "✅ CHANGELOG updated for $TAG"
+
+    - name: 💾 Commit & Push
       shell: bash
       run: |
         git config --local user.email "action@github.com"
-        git config --local user.name "GitHub Action"
-        
-        git add CHANGELOG.md
-        
+        git config --local user.name "GitHub Action Bot"
+        git add Docs/CHANGELOG.md
         if git diff --cached --quiet; then
           echo "ℹ️ No changes to commit"
         else
-          git commit -m "docs: update CHANGELOG for ${{ steps.release.outputs.tag }}"
-          git push
-          echo "✅ CHANGELOG.md committed and pushed"
+          git commit -m "docs: update CHANGELOG for ${{ steps.release.outputs.tag }} [skip ci]"
+          git push origin HEAD
+          echo "✅ Pushed"
         fi
       continue-on-error: true
-
-    - name: ✅ Changelog Update Complete
-      run: |
-        echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-        echo "✅ CHANGELOG Updated Successfully"
-        echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-        echo "Version: ${{ steps.release.outputs.tag }}"
-        echo "Date: ${{ steps.release.outputs.date }}"
-        echo "File: CHANGELOG.md"
-        echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"

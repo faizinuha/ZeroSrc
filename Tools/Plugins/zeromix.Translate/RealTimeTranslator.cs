@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Net.Http;
 using System.Text.RegularExpressions;
+using System.Windows;
 using System.Windows.Forms; // Butuh reference ke System.Windows.Forms di wpf untuk Keys enum.
 
 namespace ZeroMix.Plugins.Translate
@@ -27,6 +28,10 @@ namespace ZeroMix.Plugins.Translate
         public string SourceLang { get; set; } = "id";
         public string TargetLang { get; set; } = "en";
         public int DebounceMs { get; set; } = 800; // Customizable delay
+
+        // Mode game: pakai clipboard paste alih-alih inject Unicode langsung
+        // Aktifkan ini jika target adalah game (DirectInput/RawInput)
+        public bool GameMode { get; set; } = false;
 
         private static readonly HttpClient _httpClient = new HttpClient();
 
@@ -149,20 +154,46 @@ namespace ZeroMix.Plugins.Translate
                 // Beri tahu UI buat Live Monitoring
                 OnTranslated?.Invoke(textToTranslate, translated);
 
-                // Hapus tulisan asli (Mundur perlahan, tidak lag)
-                for (int i = 0; i < textToTranslate.Length; i++)
+                if (GameMode)
                 {
-                    SendKey(0x08); // Backspace
-                    await Task.Delay(10);
-                }
+                    // === MODE GAME: Clipboard Paste ===
+                    // Hapus tulisan asli dulu pakai backspace
+                    for (int i = 0; i < textToTranslate.Length; i++)
+                    {
+                        SendKey(0x08); // Backspace
+                        await Task.Delay(15);
+                    }
 
-                // Tulis hasil Translate (Pakai Unicode Bypass Native)
-                foreach (char c in translated)
-                {
-                    SendUnicodeChar(c);
-                    await Task.Delay(10);
+                    // Taruh hasil terjemahan ke clipboard lalu paste via Ctrl+V
+                    // Ini bekerja di hampir semua game chat karena Ctrl+V adalah
+                    // shortcut OS-level yang diproses sebelum game engine
+                    await System.Windows.Application.Current.Dispatcher.InvokeAsync(() =>
+                    {
+                        System.Windows.Clipboard.SetText(translated);
+                    });
+
+                    await Task.Delay(50); // Beri waktu clipboard settle
+
+                    // Kirim Ctrl+V via scan code (lebih diterima DirectInput)
+                    SendCtrlV();
                 }
-                
+                else
+                {
+                    // === MODE NORMAL: Unicode Inject (browser, notepad, dll) ===
+                    // Hapus tulisan asli
+                    for (int i = 0; i < textToTranslate.Length; i++)
+                    {
+                        SendKey(0x08); // Backspace
+                        await Task.Delay(10);
+                    }
+
+                    // Tulis hasil Translate (Pakai Unicode Bypass Native)
+                    foreach (char c in translated)
+                    {
+                        SendUnicodeChar(c);
+                        await Task.Delay(10);
+                    }
+                }
             }
             finally
             {
@@ -227,6 +258,22 @@ namespace ZeroMix.Plugins.Translate
             inputs[0].type = 1; inputs[0].u.ki.wVk = vk;
             inputs[1].type = 1; inputs[1].u.ki.wVk = vk; inputs[1].u.ki.dwFlags = 2; // KEYUP
             SendInput(2, inputs, Marshal.SizeOf(typeof(INPUT)));
+        }
+
+        // Kirim Ctrl+V via virtual key (paste clipboard)
+        // Bekerja di game chat karena diproses di level OS/window message
+        private void SendCtrlV()
+        {
+            INPUT[] inputs = new INPUT[4];
+            // Ctrl DOWN
+            inputs[0].type = 1; inputs[0].u.ki.wVk = 0x11; // VK_CONTROL
+            // V DOWN
+            inputs[1].type = 1; inputs[1].u.ki.wVk = 0x56; // VK_V
+            // V UP
+            inputs[2].type = 1; inputs[2].u.ki.wVk = 0x56; inputs[2].u.ki.dwFlags = 2;
+            // Ctrl UP
+            inputs[3].type = 1; inputs[3].u.ki.wVk = 0x11; inputs[3].u.ki.dwFlags = 2;
+            SendInput(4, inputs, Marshal.SizeOf(typeof(INPUT)));
         }
 
         private void SendUnicodeChar(char c)

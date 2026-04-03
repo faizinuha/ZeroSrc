@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="assets/zeromix-high-resolution-logo-transparent.png" alt="ZeroMix Logo" width="160"/>
+<img src="Assets/zeromix-high-resolution-logo-transparent.png" alt="ZeroMix Logo" width="160"/>
 
 # 🎯 ZeroMix
 
@@ -175,6 +175,26 @@ High-performance technologies for a smooth experience.
    ```
 
 ---
+
+---
+```
+.\Scripts\release-version.ps1 -NewVersion 5.1.8
+         │
+         ▼
+  Update versi di file (MainWindow, Setup.iss, csproj)
+  Update CHANGELOG lokal
+  git commit + push
+  git tag v5.1.8 + push tag
+         │
+         ▼ (GitHub Actions trigger by tag push)
+  ┌─────────────────────┐    ┌──────────────────────┐
+  │  build-release.yml  │    │ update-changelog.yml │
+  │  Build + Sign + EXE │    │ Inject entry ke       │
+  │  → GitHub Release   │    │ Docs/CHANGELOG.md    │
+  └─────────────────────┘    └──────────────────────┘
+```
+
+--
 
 ## 🤝 Community & Contribution
 

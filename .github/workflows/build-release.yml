@@ -95,7 +95,17 @@ jobs:
           
           # Install osslsigncode via chocolatey
           Write-Host "⏳ Installing osslsigncode..."
-          choco install osslsigncode -y
+          choco install osslsigncode -y --no-progress
+
+          # Refresh PATH agar osslsigncode langsung bisa dipakai di step ini
+          $env:PATH = [System.Environment]::GetEnvironmentVariable("PATH", "Machine") + ";" + [System.Environment]::GetEnvironmentVariable("PATH", "User")
+
+          # Resolve binary path (fallback ke choco bin jika PATH belum update)
+          $osslBin = (Get-Command osslsigncode -ErrorAction SilentlyContinue)?.Source
+          if ([string]::IsNullOrEmpty($osslBin)) {
+            $osslBin = "C:\ProgramData\chocolatey\bin\osslsigncode.exe"
+          }
+          Write-Host "🔧 Using: $osslBin"
           
           # Decode certificate from base64
           Write-Host "🔐 Decoding certificate..."
@@ -106,7 +116,7 @@ jobs:
           # Sign the executable
           $signedPath = "Exe/ZeroMix-Setup-v$VER-signed.exe"
           Write-Host "⏳ Signing executable..."
-          osslsigncode sign -pkcs12 $certPath -pass "$env:CERT_PASSWORD" `
+          & $osslBin sign -pkcs12 $certPath -pass "$env:CERT_PASSWORD" `
             -n "ZeroMix" -i "https://zeromix.vercel.app" `
             -t "http://timestamp.comodoca.com/authenticode" `
             -in $setupExe -out $signedPath
@@ -158,23 +168,48 @@ jobs:
           exit 1
         }
 
+    - name: 📋 Extract Release Notes from CHANGELOG
+      shell: pwsh
+      run: |
+        $VER = "${{ steps.version.outputs.tag }}"
+        $changelog = Get-Content "Docs/CHANGELOG.md" -Raw
+
+        # Extract section for this version between ## [vX.Y.Z] headers
+        $pattern = "(?s)## \[$VER\].*?(?=\n## \[|$)"
+        $match = [regex]::Match($changelog, $pattern)
+
+        $notes = if ($match.Success) {
+          $match.Value.Trim()
+        } else {
+          "## $VER`n`nSee [CHANGELOG.md](https://github.com/${{ github.repository }}/blob/main/Docs/CHANGELOG.md) for full details."
+        }
+
+        $body = @"
+🎉 **ZeroMix $VER is here!**
+
+$notes
+
+---
+
+### 📥 Downloads
+- **Setup Installer:** ``ZeroMix-v${{ steps.version.outputs.version }}-Setup.exe`` (Recommended)
+- **Portable Version:** ``ZeroMix-v${{ steps.version.outputs.version }}-Portable.zip``
+
+### 🖥️ Requirements
+- Windows 10/11 x64
+- .NET 9.0 Desktop Runtime (Installer will check automatically)
+
+📄 [Full Changelog](https://github.com/${{ github.repository }}/blob/main/Docs/CHANGELOG.md)
+"@
+        $body | Out-File -FilePath "RELEASE_NOTES.md" -Encoding utf8
+        Write-Host "✅ Release notes generated for $VER"
+
     - name: 🚀 Create GitHub Release
       uses: softprops/action-gh-release@v2
       with:
         tag_name: ${{ steps.version.outputs.tag }}
         name: ZeroMix ${{ steps.version.outputs.tag }}
-        body: |
-          🎉 **ZeroMix ${{ steps.version.outputs.tag }} is here!**
-          
-          ### 📥 Downloads
-          - **Setup Installer:** `ZeroMix-v${{ steps.version.outputs.version }}-Setup.exe` (Recommended)
-          - **Portable Version:** `ZeroMix-v${{ steps.version.outputs.version }}-Portable.zip`
-          
-          ### 🖥️ Requirements
-          - Windows 10/11 x64
-          - .NET 9.0 Desktop Runtime (Installer will check automatically)
-          
-          Check [CHANGELOG.md](https://github.com/${{ github.repository }}/blob/main/CHANGELOG.md) for full details.
+        body_path: RELEASE_NOTES.md
         files: |
           ZeroMix-v${{ steps.version.outputs.version }}-Setup.exe
           ZeroMix-v${{ steps.version.outputs.version }}-Portable.zip

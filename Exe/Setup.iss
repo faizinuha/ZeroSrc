@@ -1,4 +1,4 @@
-; ZeroMix Installer Script (Professional v5.0.3)
+; ZeroMix Installer Script (Professional v)
 ; ==============================================================================
 
 [Setup]

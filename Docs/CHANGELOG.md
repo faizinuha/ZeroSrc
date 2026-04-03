@@ -8,12 +8,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ---
 
 
-
-
-
-
-
-
 ## [v5.1.7] - 2026-04-03
 
 ### ✨ Features
@@ -26,88 +20,83 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Version bump to 5.1.7
 
 ---
+## [Unreleased] - v5.2.0 Upcoming
+
+### ✨ Planned Features
+- Multi-Monitor recording support
+- Streaming mode (OBS-compatible output)
+- Advanced Audio Mixer (per-source volume control)
+- Plugin Marketplace browser in-app
+- Cloud Sync Settings antar perangkat
+
+---
+
 ## [v5.1.7] - 2026-04-03
 
 ### ✨ Features
-- To be documented
+- **Game Mode Translator**: Terjemahan via Clipboard Paste (Ctrl+V), kompatibel dengan DirectInput/RawInput game chat.
+- **CI/CD Sign Fix**: Perbaikan pipeline signing di GitHub Actions — osslsigncode PATH refresh antar step.
 
 ### 🐛 Bug Fixes
-- To be documented
-
-### 🔧 Changes
-- Version bump to 5.1.7
+- Fix `osslsigncode` tidak dikenali di step berikutnya setelah `choco install` pada Windows runner.
+- Fallback ke path hardcoded `C:\ProgramData\chocolatey\bin\` jika PATH belum ter-refresh.
 
 ---
-## [v5.1.6] - 2026-04-03
+
+## [v5.1.5] - 2026-04-02
 
 ### ✨ Features
-- To be documented
+- **Ask AI Mode Overlay**: Tombol "Ask AI" di Search Box untuk bertanya langsung dari tampilan pencarian.
+- **Smart Intent Detection**: `carikan foto [nama]` → pencarian gambar; `beli barang` / `shopee` → marketplace.
+- **Fallback to AI**: Pertanyaan umum dijawab otomatis oleh AI Frieren.
+- **Text-to-Speech (TTS)**: Frieren/Fern/HuoHuo bisa bicara langsung menjawab pertanyaan.
+- **Lip-Sync Animation**: Gerakan mulut karakter sinkron dengan suara.
 
 ### 🐛 Bug Fixes
-- To be documented
+- Fix Force Close saat tombol rekam diklik pada beberapa tipe GPU.
+- Fix Temp Cleanup — pembersihan `%temp%` lebih stabil.
 
-### 🔧 Changes
-- Version bump to 5.1.6
+### 🚀 Improvements
+- Hardware Encoder Fallback: NVENC/QSV/AMF gagal → otomatis ke CPU tanpa hang.
+- DXGI Resource Management: Screen capture tidak membebani driver video Windows.
+- Memory Optimization: Cache Live2D dibersihkan lebih agresif, mencegah memory leak.
+- System Health scan lebih ringan, tidak menyebabkan UI lag.
 
 ---
-## [v5.1.6] - 2026-04-02
+
+## [v5.1.3] - 2026-03-28
+
+### 🐛 Bug Fixes
+- Fix crash recorder pada GPU tertentu saat pertama kali dijalankan.
+- Fix memory leak pada engine Live2D saat karakter aktif dalam waktu lama.
+- Fix pembersihan `%temp%` yang tidak lengkap pada beberapa konfigurasi sistem.
+- Fix encoder fallback yang menyebabkan aplikasi hang saat NVENC tidak tersedia.
+
+### 🚀 Improvements
+- Stabilitas DXGI capture ditingkatkan.
+- Optimasi minor pada System Health scanner.
+
+---
+
+## [v5.1.2] - 2026-03-25
 
 ### ✨ Features
-- To be documented
+- **Ask AI Mode Overlay**: Menambahkan tombol "Ask AI" di Search Box untuk bertanya langsung dari tampilan pencarian.
+- **Smart Intent Detection**: `carikan foto [nama]` otomatis membuka pencarian gambar; `beli barang` / `shopee` langsung mengarahkan ke marketplace favorit.
+- **Fallback to AI**: Pertanyaan umum otomatis dijawab oleh AI Frieren dengan gaya bicaranya yang khas.
+- **Text-to-Speech (TTS)**: Frieren/Fern/HuoHuo kini bisa bicara langsung menjawab pertanyaan.
+- **Lip-Sync Animation**: Gerakan mulut karakter sinkron dengan suara yang dihasilkan.
 
 ### 🐛 Bug Fixes
-- To be documented
+- **Fix Force Close**: Memperbaiki crash saat tombol rekam diklik pada beberapa tipe GPU.
+- **Fix Temp Cleanup**: Pembersihan folder `%temp%` kini lebih stabil dan mencakup lebih banyak folder sampah sistem.
 
-### 🔧 Changes
-- Version bump to 5.1.6
-
----
-## [v5.1.6] - 2026-04-02
-
-### ✨ Features
-- To be documented
-
-### 🐛 Bug Fixes
-- To be documented
-
-### 🔧 Changes
-- Version bump to 5.1.6
-
----
-## [v5.1.6] - 2026-04-02
-
-### ✨ Features
-- To be documented
-
-### 🐛 Bug Fixes
-- To be documented
-
-### 🔧 Changes
-- Version bump to 5.1.6
-
----
-## [v5.1.6] - 2026-04-02
-
-### ✨ Features
-- To be documented
-
-### 🐛 Bug Fixes
-- To be documented
-
-### 🔧 Changes
-- Version bump to 5.1.6
-
----
-## [Unreleased]
-
-### ✨ Features (In Development)
-- [ ] To be determined
-
-### 🐛 Bug Fixes (In Development)
-- [ ] To be determined
-
-### 🚀 Improvements (In Development)
-- [ ] To be determined
+### 🚀 Improvements
+- **Hardware Encoder Fallback**: Deteksi encoder GPU (NVENC/QSV/AMF) lebih cerdas; otomatis beralih ke CPU jika gagal tanpa hang.
+- **DXGI Resource Management**: Screen capture tidak lagi membebani driver video Windows.
+- **Memory Optimization**: Pembersihan cache Live2D lebih agresif untuk mencegah memory leak saat karakter aktif lama.
+- **Optimasi System Health**: Proses scanning sistem lebih ringan, tidak menyebabkan UI lag.
+- **Version Stamp**: Update internal ke versi v5.1.2.
 
 ---
 
@@ -136,7 +125,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### 🚀 Improvements
 - Optimized frame processing pipeline
-- Improved error logging and diagnostics  
+- Improved error logging and diagnostics
 - Enhanced resource cleanup on shutdown
 - Better performance with high-resolution displays
 - Improved GPU fallback handling
@@ -156,88 +145,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 Each release follows this process:
 
 1. **Code Changes** → Push commits following [Conventional Commits](https://www.conventionalcommits.org/)
-2. **Version Bump** → Create annotated git tag: `git tag -a v1.2.0 -m "Release message"`
-3. **Push Tag** → `git push origin v1.2.0`
+2. **Version Bump** → Create annotated git tag: `git tag -a v5.1.7 -m "Release message"`
+3. **Push Tag** → `git push origin v5.1.7`
 4. **Automation** → GitHub Actions automatically:
    - Builds the project
    - Generates changelog from commits
    - Creates GitHub Release with release notes
    - Updates this CHANGELOG.md
-5. **Published** → Release available on GitHub Releases page
-
----
-
-## Version Naming
-
-ZeroMix uses [Semantic Versioning](https://semver.org/):
-
-- **MAJOR** (1.0.0 → 2.0.0) - Breaking changes
-- **MINOR** (1.0.0 → 1.1.0) - New features (backward compatible)
-- **PATCH** (1.0.0 → 1.0.1) - Bug fixes (backward compatible)
-
-Examples:
-- `v1.0.0` - Initial release
-- `v1.1.0` - New features added
-- `v1.1.1` - Bug fixes
-- `v2.0.0` - Major breaking changes
-
----
-
-## Commit Message Format
-
-Using [Conventional Commits](https://www.conventionalcommits.org/) helps generate changelogs automatically.
-
-### Format:
-```
-<type>(<scope>): <subject>
-<blank line>
-<body>
-<blank line>
-<footer>
-```
-
-### Types:
-- **feat** - New feature → Listed in ✨ Features
-- **fix** - Bug fix → Listed in 🐛 Bug Fixes  
-- **refactor** - Code refactoring → Listed in 🚀 Improvements
-- **perf** - Performance improvement → Listed in 🚀 Improvements
-- **docs** - Documentation → Listed in 📚 Documentation
-- **test** - Test additions (not in changelog)
-- **chore** - Build/config changes (not in changelog)
-- **ci** - CI/CD changes (not in changelog)
-
-### Examples:
-
-```bash
-# Feature
-git commit -m "feat(recorder): add batch recording support"
-
-# Bug fix  
-git commit -m "fix(encoder): handle FFmpeg crash gracefully"
-
-# Improvement
-git commit -m "perf(capture): optimize frame dequeuing"
-
-# Documentation
-git commit -m "docs(README): add troubleshooting section"
-```
-
----
-
-## Key Features by Version
-
-### v1.0.0
-- ✅ Core screen recording functionality
-- ✅ GPU acceleration support
-- ✅ Plugin system
-- ✅ Virtual assistant
-
-### Future (v1.1+)
-- 🔄 Real-time effects and filters
-- 🔄 Multi-monitor recording
-- 🔄 Cloud storage integration
-- 🔄 Streaming support
-- 🔄 Advanced audio mixing
+5. **Published** → Release available on [GitHub Releases](https://github.com/faizinuha/ZeroMix/releases)
 
 ---
 
@@ -249,16 +164,6 @@ git commit -m "docs(README): add troubleshooting section"
 
 ---
 
-## Contributing
-
-We welcome contributions! Please see [CONTRIBUTING.md](./CONTRIBUTING.md) for:
-- Code of conduct
-- Development setup
-- Pull request guidelines
-- Commit message standards
-
----
-
-**Last Updated:** March 31, 2026  
-**Maintained by:** ZeroMix Team  
+**Last Updated:** April 3, 2026
+**Maintained by:** ZeroMix Team
 **License:** See [LICENSE.txt](./LICENSE.txt)
