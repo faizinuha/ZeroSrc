@@ -2,18 +2,22 @@ using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
 using System.Net.Http;
-using System.Windows;
 using System.Windows.Input;
+
+// Alias eksplisit untuk menghindari konflik dengan System.Windows.Forms
+using WpfApp = System.Windows.Application;
+using WpfMsgBox = System.Windows.MessageBox;
+using WpfMsgBoxButton = System.Windows.MessageBoxButton;
+using WpfMsgBoxImage = System.Windows.MessageBoxImage;
+using WpfMsgBoxResult = System.Windows.MessageBoxResult;
+using WpfWindow = System.Windows.Window;
+using WpfRoutedEventArgs = System.Windows.RoutedEventArgs;
 
 namespace ZeroMix.Installer;
 
-public partial class MainWindow : Window
+public partial class MainWindow : WpfWindow
 {
-    // =====================================================================
-    // Ganti URL ini dengan link GitHub Releases kamu
-    // Format: https://github.com/USERNAME/REPO/releases/latest/download/ZeroMix-Setup.zip
-    // =====================================================================
-    private const string DownloadUrl = "https://github.com/YOUR_USERNAME/ZeroMix/releases/latest/download/ZeroMix-Setup.zip";
+    private const string DownloadUrl = "https://github.com/faizinuha/ZeroMix/releases/latest/download/ZeroMix-Setup.zip";
 
     private CancellationTokenSource? _cts;
     private bool _isRunning = false;
@@ -23,29 +27,29 @@ public partial class MainWindow : Window
         InitializeComponent();
     }
 
-    private void Window_MouseDown(object sender, MouseButtonEventArgs e)
+    private void Window_MouseDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
     {
         if (e.ChangedButton == MouseButton.Left)
             DragMove();
     }
 
-    private void CloseButton_Click(object sender, RoutedEventArgs e)
+    private void CloseButton_Click(object sender, WpfRoutedEventArgs e)
     {
         if (_isRunning)
         {
-            var result = MessageBox.Show(
+            var result = WpfMsgBox.Show(
                 "Instalasi sedang berjalan. Yakin ingin membatalkan?",
-                "ZeroMix Installer", MessageBoxButton.YesNo, MessageBoxImage.Warning);
-            if (result != MessageBoxResult.Yes) return;
+                "ZeroMix Installer", WpfMsgBoxButton.YesNo, WpfMsgBoxImage.Warning);
+            if (result != WpfMsgBoxResult.Yes) return;
         }
         _cts?.Cancel();
-        Application.Current.Shutdown();
+        WpfApp.Current.Shutdown();
     }
 
-    private void CancelButton_Click(object sender, RoutedEventArgs e)
+    private void CancelButton_Click(object sender, WpfRoutedEventArgs e)
         => CloseButton_Click(sender, e);
 
-    private async void InstallButton_Click(object sender, RoutedEventArgs e)
+    private async void InstallButton_Click(object sender, WpfRoutedEventArgs e)
     {
         _cts = new CancellationTokenSource();
         _isRunning = true;
@@ -62,22 +66,19 @@ public partial class MainWindow : Window
                 Directory.Delete(tempDir, true);
             Directory.CreateDirectory(tempDir);
 
-            // Step 1: Download
             await DownloadFileAsync(DownloadUrl, zipPath, _cts.Token);
             if (_cts.Token.IsCancellationRequested) return;
 
-            // Step 2: Extract
             SetStatus("Mengekstrak file...", 92);
             await Task.Run(() => ZipFile.ExtractToDirectory(zipPath, extractDir), _cts.Token);
 
-            // Step 3: Cari & jalankan installer
             SetStatus("Memulai installer...", 98);
             var installerPath = FindInstaller(extractDir);
 
             if (installerPath == null)
             {
-                MessageBox.Show("File installer tidak ditemukan di dalam arsip.",
-                    "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                WpfMsgBox.Show("File installer tidak ditemukan di dalam arsip.",
+                    "Error", WpfMsgBoxButton.OK, WpfMsgBoxImage.Error);
                 ResetUI();
                 return;
             }
@@ -90,7 +91,7 @@ public partial class MainWindow : Window
 
             SetStatus("Installer diluncurkan!", 100);
             await Task.Delay(1500);
-            Application.Current.Shutdown();
+            WpfApp.Current.Shutdown();
         }
         catch (OperationCanceledException)
         {
@@ -99,8 +100,8 @@ public partial class MainWindow : Window
         }
         catch (Exception ex)
         {
-            MessageBox.Show($"Terjadi kesalahan:\n\n{ex.Message}",
-                "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            WpfMsgBox.Show($"Terjadi kesalahan:\n\n{ex.Message}",
+                "Error", WpfMsgBoxButton.OK, WpfMsgBoxImage.Error);
             ResetUI();
         }
         finally
