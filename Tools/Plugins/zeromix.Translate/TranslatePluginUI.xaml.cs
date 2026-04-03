@@ -91,7 +91,17 @@ namespace ZeroMix.Plugins.Translate
                 _coreEngine.SourceLang = (ComboSource.SelectedItem as ComboBoxItem)?.Tag?.ToString() ?? "id";
                 _coreEngine.TargetLang = (ComboTarget.SelectedItem as ComboBoxItem)?.Tag?.ToString() ?? "en";
                 _coreEngine.DebounceMs = (int)(SpeedSlider?.Value ?? 800);
+                _coreEngine.GameMode = GameModeSwitch?.IsChecked == true;
             }
+        }
+
+        private void GameModeSwitch_Click(object sender, RoutedEventArgs e)
+        {
+            bool isGame = GameModeSwitch.IsChecked == true;
+            if (_coreEngine != null) _coreEngine.GameMode = isGame;
+            LogMsg(isGame
+                ? "[GAME MODE] Aktif — terjemahan via Clipboard Paste (Ctrl+V). Cocok untuk game chat."
+                : "[NORMAL MODE] Aktif — terjemahan via Unicode Inject. Cocok untuk browser & app.");
         }
 
         private void SwapBtn_Click(object sender, RoutedEventArgs e)

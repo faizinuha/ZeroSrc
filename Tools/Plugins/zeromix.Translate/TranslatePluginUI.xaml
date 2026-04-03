@@ -94,10 +94,27 @@
                 <TextBlock Text="Delay Ketikan (ms): Algoritma Anti-Tabrakan" Foreground="{StaticResource SubTextBrush}" FontSize="11" Margin="0,0,0,8"/>
                 <Grid Margin="0,0,0,20">
                     <Slider x:Name="SpeedSlider" Minimum="300" Maximum="2000" Value="800" TickFrequency="100" IsSnapToTickEnabled="True"
-                            VerticalAlignment="Center"/>
+                            VerticalAlignment="Center" ValueChanged="SpeedSlider_ValueChanged"/>
                     <TextBlock x:Name="SpeedLabel" Text="800 ms" Foreground="{StaticResource NeonBlueBrush}" FontSize="10" 
                                HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,0,-15"/>
                 </Grid>
+
+                <!-- Game Mode Toggle -->
+                <Border Background="#0D1117" CornerRadius="8" Padding="12" Margin="0,0,0,12" BorderThickness="1" BorderBrush="{StaticResource BorderSubtleBrush}">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Grid.Column="0">
+                            <TextBlock Text="🎮 Game Mode" Foreground="White" FontSize="12" FontWeight="Bold"/>
+                            <TextBlock Text="Pakai Clipboard Paste (Ctrl+V) — kompatibel dengan game chat" 
+                                       Foreground="{StaticResource SubTextBrush}" FontSize="10" TextWrapping="Wrap" Margin="0,3,0,0"/>
+                        </StackPanel>
+                        <CheckBox x:Name="GameModeSwitch" Grid.Column="1" VerticalAlignment="Center"
+                                  Style="{StaticResource ModernCheckBox}" Click="GameModeSwitch_Click" Margin="10,0,0,0"/>
+                    </Grid>
+                </Border>
 
                 <Button Content="PURGE MEMORY BUFFER (RESET)" Background="{StaticResource DangerBrush}" Foreground="White" 
                         FontWeight="Bold" BorderThickness="0" Padding="0,10" Cursor="Hand" Click="PurgeBtn_Click">
