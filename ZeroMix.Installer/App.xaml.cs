@@ -1,5 +1,3 @@
-using System.Windows;
-
 namespace ZeroMix.Installer;
 
-public partial class App : Application { }
+public partial class App : System.Windows.Application { }
