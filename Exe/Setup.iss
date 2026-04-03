@@ -37,16 +37,20 @@ ArchitecturesInstallIn64BitMode=x64
 ArchitecturesAllowed=x64
 MinVersion=10.0.19041
 
+; --- Language Selection Dialog at Start ---
+ShowLanguageDialog=yes
+LanguageDetectionMethod=locale
+
 ; --- Performance ---
 CloseApplications=yes
 CloseApplicationsFilter=ZeroMix.exe
 RestartIfNeededByRun=yes
 
 [Languages]
-Name: "indonesian"; MessagesFile: "Languages\Indonesian.isl"
-Name: "english"; MessagesFile: "compiler:Default.isl"
-Name: "japanese"; MessagesFile: "Languages\Japanese.isl"
-Name: "chinese"; MessagesFile: "Languages\Chinese.isl"
+Name: "english";    MessagesFile: "compiler:Default.isl";          Caption: "English"
+Name: "indonesian"; MessagesFile: "Languages\Indonesian.isl";      Caption: "Indonesia"
+Name: "japanese";   MessagesFile: "Languages\Japanese.isl";        Caption: "日本語"
+Name: "chinese";    MessagesFile: "Languages\Chinese.isl";         Caption: "中文"
 
 [Dirs]
 Name: "{app}"
@@ -128,11 +132,22 @@ end;
 procedure CurStepChanged(CurStep: TSetupStep);
 var
   ErrorCode: Integer;
+  LangCode: String;
 begin
   if CurStep = ssPostInstall then
   begin
-    // Simpan bahasa yang dipilih ke file config sederhana
-    SaveStringToFile(ExpandConstant('{app}\language.txt'), ActiveLanguage, False);
+    // Map installer language ke app language code
+    if ActiveLanguage = 'indonesian' then
+      LangCode := 'id-ID'
+    else if ActiveLanguage = 'japanese' then
+      LangCode := 'ja-JP'
+    else if ActiveLanguage = 'chinese' then
+      LangCode := 'zh-CN'
+    else
+      LangCode := 'en-US';
+
+    // Simpan ke language.ini yang dibaca oleh aplikasi
+    SaveStringToFile(ExpandConstant('{app}\language.ini'), LangCode, False);
   end;
   
   if CurStep = ssDone then

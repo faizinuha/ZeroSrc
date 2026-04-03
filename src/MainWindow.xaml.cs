@@ -155,33 +155,39 @@ namespace ZeroMix
 
         public void ChangeLanguage(string cultureCode)
         {
-            var dict = new ResourceDictionary();
-            switch (cultureCode)
-            {
-                case "id-ID":
-                    dict.Source = new Uri("Assets/Resources/Locales/id-ID.xaml", UriKind.Relative);
-                    break;
-                case "ja-JP":
-                    dict.Source = new Uri("Assets/Resources/Locales/ja-JP.xaml", UriKind.Relative);
-                    break;
-                case "zh-CN":
-                    dict.Source = new Uri("Assets/Resources/Locales/zh-CN.xaml", UriKind.Relative);
-                    break;
-                default:
-                    dict.Source = new Uri("Assets/Resources/Locales/en-US.xaml", UriKind.Relative);
-                    break;
-            }
+            // Validasi code
+            var validCodes = new[] { "en-US", "id-ID", "ja-JP", "zh-CN" };
+            if (!validCodes.Contains(cultureCode))
+                cultureCode = "en-US";
 
-            // Find old dictionary (the one containing 'Wiz_Welcome') and remove it
-            var oldDict = System.Windows.Application.Current.Resources.MergedDictionaries.FirstOrDefault(
-                d => d.Source != null && d.Source.OriginalString.Contains("Locales/"));
-            
-            if (oldDict != null)
+            // Pakai path absolut agar bekerja baik saat dev maupun installed
+            string baseDir = AppDomain.CurrentDomain.BaseDirectory;
+            string localeFile = Path.Combine(baseDir, "Assets", "Resources", "Locales", $"{cultureCode}.xaml");
+
+            // Fallback ke en-US jika file tidak ada
+            if (!File.Exists(localeFile))
+                localeFile = Path.Combine(baseDir, "Assets", "Resources", "Locales", "en-US.xaml");
+
+            try
             {
-                System.Windows.Application.Current.Resources.MergedDictionaries.Remove(oldDict);
+                var dict = new ResourceDictionary
+                {
+                    Source = new Uri(localeFile, UriKind.Absolute)
+                };
+
+                // Hapus locale lama, tambah yang baru
+                var oldDict = System.Windows.Application.Current.Resources.MergedDictionaries
+                    .FirstOrDefault(d => d.Source != null && d.Source.OriginalString.Contains("Locales"));
+
+                if (oldDict != null)
+                    System.Windows.Application.Current.Resources.MergedDictionaries.Remove(oldDict);
+
+                System.Windows.Application.Current.Resources.MergedDictionaries.Add(dict);
             }
-            
-            System.Windows.Application.Current.Resources.MergedDictionaries.Add(dict);
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"[Language] Failed to load {cultureCode}: {ex.Message}");
+            }
         }
 
         public MainWindow(string[]? args = null)

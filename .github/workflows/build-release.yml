@@ -124,7 +124,7 @@ jobs:
           if (Test-Path $signedPath) {
             Write-Host "✅ Signed successfully"
             Remove-Item $setupExe -Force
-            Rename-Item $signedPath $setupExe -Force
+            Move-Item $signedPath $setupExe -Force
             Write-Host "✅ Replaced original with signed version"
           } else {
             Write-Host "❌ Signing failed"
