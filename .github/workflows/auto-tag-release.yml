@@ -35,54 +35,63 @@ jobs:
           COMMIT_MSG=$(git log -1 --pretty=%B)
           LAST_TAG=$(git tag -l 'v[0-9]*' --sort=-version:refname | head -1)
           if [ -z "$LAST_TAG" ]; then LAST_TAG="v0.0.0"; fi
-          
-          # Extract version
+
           VERSION=${LAST_TAG#v}
           IFS='.' read -r MAJOR MINOR PATCH <<< "$VERSION"
-          
-          # Default bump: Patch
+
+          SHOULD_BUILD=false
+          FORCE_BUILD=false
           NEW_MAJOR=$MAJOR
           NEW_MINOR=$MINOR
-          NEW_PATCH=$((PATCH + 1))
-          
-          if [[ $COMMIT_MSG =~ ^feat: ]]; then
+          NEW_PATCH=$PATCH
+
+          # Cek force-build dulu
+          if [[ $COMMIT_MSG == *"[force-build]"* ]]; then
+            echo "🔨 Force build detected — same version, trigger build"
+            FORCE_BUILD=true
+            SHOULD_BUILD=true
+          elif [[ $COMMIT_MSG =~ ^feat: ]]; then
             NEW_MINOR=$((MINOR + 1))
             NEW_PATCH=0
+            SHOULD_BUILD=true
+          elif [[ $COMMIT_MSG =~ ^fix: ]]; then
+            NEW_PATCH=$((PATCH + 1))
+            SHOULD_BUILD=true
           elif [[ $COMMIT_MSG == *"BREAKING CHANGE"* ]]; then
             NEW_MAJOR=$((MAJOR + 1))
             NEW_MINOR=0
             NEW_PATCH=0
+            SHOULD_BUILD=true
+          else
+            echo "⏭️ Commit type does not require build (docs/chore/etc), skipping."
           fi
-          
+
           NEW_VERSION="$NEW_MAJOR.$NEW_MINOR.$NEW_PATCH"
           TAG="v$NEW_VERSION"
-          
-          # AUTO-INCREMENT LOOP to avoid duplicate tag error
-          while git rev-parse -q --verify "refs/tags/$TAG" >/dev/null; do
-            echo "⚠️ Tag $TAG exists. Incrementing patch..."
-            NEW_PATCH=$((NEW_PATCH + 1))
-            NEW_VERSION="$NEW_MAJOR.$NEW_MINOR.$NEW_PATCH"
-            TAG="v$NEW_VERSION"
-          done
-          
-          echo "🚀 Final version decided: $NEW_VERSION"
+
+          # Jika bukan force-build, hindari duplicate tag
+          if [ "$SHOULD_BUILD" = "true" ] && [ "$FORCE_BUILD" = "false" ]; then
+            while git rev-parse -q --verify "refs/tags/$TAG" >/dev/null; do
+              echo "⚠️ Tag $TAG exists. Incrementing patch..."
+              NEW_PATCH=$((NEW_PATCH + 1))
+              NEW_VERSION="$NEW_MAJOR.$NEW_MINOR.$NEW_PATCH"
+              TAG="v$NEW_VERSION"
+            done
+          fi
+
+          echo "🚀 Final version: $NEW_VERSION (build=$SHOULD_BUILD, force=$FORCE_BUILD)"
           echo "version=$NEW_VERSION" >> $GITHUB_OUTPUT
           echo "tag=$TAG" >> $GITHUB_OUTPUT
+          echo "should_build=$SHOULD_BUILD" >> $GITHUB_OUTPUT
+          echo "force_build=$FORCE_BUILD" >> $GITHUB_OUTPUT
 
       - name: 📝 Update Version in Files
+        if: steps.versioning.outputs.should_build == 'true' && steps.versioning.outputs.force_build == 'false'
         run: |
           VERSION="${{ steps.versioning.outputs.version }}"
-          
-          # Update src/MainWindow.xaml.cs
           sed -i "s/private const string CURRENT_VERSION = \".*\";/private const string CURRENT_VERSION = \"$VERSION\";/g" src/MainWindow.xaml.cs
-          
-          # Update Exe/Setup.iss
           sed -i "s/#define AppVersion \".*\"/#define AppVersion \"$VERSION\"/g" Exe/Setup.iss
-          
-          # Update ZeroMix.csproj
           sed -i "s/<Version>.*<\/Version>/<Version>$VERSION<\/Version>/g" ZeroMix.csproj
-          
-          # Commit changes if any
           git add src/MainWindow.xaml.cs Exe/Setup.iss ZeroMix.csproj
           if ! git diff --cached --quiet; then
             git commit -m "chore: bump version to $VERSION [skip ci]"
@@ -90,8 +99,14 @@ jobs:
           fi
 
       - name: 🏷️ Push Tag
+        if: steps.versioning.outputs.should_build == 'true'
         run: |
           TAG="${{ steps.versioning.outputs.tag }}"
+          # Untuk force-build, hapus tag lama dulu jika ada
+          if git rev-parse -q --verify "refs/tags/$TAG" >/dev/null; then
+            git tag -d "$TAG"
+            git push origin ":refs/tags/$TAG"
+          fi
           git tag -a "$TAG" -m "Release $TAG"
           git push origin "$TAG"
           echo "✅ Tag '$TAG' pushed!"
