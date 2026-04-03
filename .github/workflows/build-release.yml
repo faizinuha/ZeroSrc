@@ -1,5 +1,17 @@
 name: 🚀 Build & Release ZeroMix
 
+# ─────────────────────────────────────────────────────────────────────────────
+# KAPAN WORKFLOW INI JALAN?
+#
+# 1. Otomatis  → Saat kamu push tag seperti: git tag v5.2.0 && git push --tags
+# 2. Manual    → Buka GitHub → Actions → klik "Run workflow" → isi versi
+#
+# CATATAN PENTING:
+# - Push biasa (fix/feat ke main/dev) TIDAK akan trigger workflow ini
+# - Hanya tag 'v*' yang trigger build + release otomatis
+# - ZeroMix.Installer di-build setiap release agar URL download selalu update
+# ─────────────────────────────────────────────────────────────────────────────
+
 permissions:
   contents: read
 
@@ -10,7 +22,7 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: 'Version to build (e.g., 1.0.0)'
+        description: 'Version to build (e.g., 5.2.0)'
         required: false
 
 jobs:
@@ -26,6 +38,7 @@ jobs:
       with:
         fetch-depth: 0
 
+    # ─── STEP 1: Tentukan versi dari tag atau input manual ───────────────────
     - name: 🔢 Determine Version
       id: version
       shell: bash
@@ -45,15 +58,19 @@ jobs:
       with:
         dotnet-version: '9.0.x'
 
-    - name: 📦 Restore & Publish
+    # ─── STEP 2: Build project utama ZeroMix ────────────────────────────────
+    - name: 📦 Restore & Publish ZeroMix
       shell: pwsh
       run: |
         Write-Host "⏳ Restoring dependencies..."
         dotnet restore ZeroMix.csproj
         Write-Host "⏳ Publishing application..."
-        dotnet publish ZeroMix.csproj -c Release -o publish/win-x64 -p:Version=${{ steps.version.outputs.version }} --self-contained true -r win-x64
+        dotnet publish ZeroMix.csproj -c Release -o publish/win-x64 `
+          -p:Version=${{ steps.version.outputs.version }} `
+          --self-contained true -r win-x64
         Write-Host "✅ Publish complete"
 
+    # ─── STEP 3: Download FFMPEG (dibutuhkan oleh ZeroMix) ──────────────────
     - name: 🎬 Download FFMPEG
       shell: pwsh
       run: |
@@ -68,12 +85,14 @@ jobs:
         Remove-Item "ffmpeg.zip" -Force
         Write-Host "✅ FFMPEG ready"
 
+    # ─── STEP 4: Build Inno Setup installer (Setup.exe besar) ───────────────
     - name: 🛠️ Build Inno Setup Installer
       uses: Minionguyjpro/Inno-Setup-Action@v1.2.7
       with:
         path: Exe/Setup.iss
         options: /DAppVersion=${{ steps.version.outputs.version }}
 
+    # ─── STEP 5: Sign Setup.exe (skip jika tidak ada sertifikat) ────────────
     - name: 🔐 Sign Executable with osslsigncode
       shell: pwsh
       env:
@@ -87,65 +106,54 @@ jobs:
           Write-Host "✅ Setup executable found: $setupExe"
           Write-Host "📝 File size: $([math]::Round((Get-Item $setupExe).Length / 1MB, 1)) MB"
           
-          # Check if certificate is available in secrets
           if ([string]::IsNullOrEmpty($env:CERT_BASE64)) {
             Write-Host "⚠️  Certificate not found in secrets, skipping signing"
             exit 0
           }
           
-          # Install osslsigncode via chocolatey
           Write-Host "⏳ Installing osslsigncode..."
           choco install osslsigncode -y --no-progress
 
-          # Refresh PATH agar osslsigncode langsung bisa dipakai di step ini
           $env:PATH = [System.Environment]::GetEnvironmentVariable("PATH", "Machine") + ";" + [System.Environment]::GetEnvironmentVariable("PATH", "User")
-
-          # Resolve binary path (fallback ke choco bin jika PATH belum update)
           $osslBin = (Get-Command osslsigncode -ErrorAction SilentlyContinue)?.Source
           if ([string]::IsNullOrEmpty($osslBin)) {
             $osslBin = "C:\ProgramData\chocolatey\bin\osslsigncode.exe"
           }
-          Write-Host "🔧 Using: $osslBin"
           
-          # Decode certificate from base64
-          Write-Host "🔐 Decoding certificate..."
           $certBytes = [Convert]::FromBase64String($env:CERT_BASE64)
           $certPath = "./cert.pfx"
           [IO.File]::WriteAllBytes($certPath, $certBytes)
           
-          # Sign the executable
           $signedPath = "Exe/ZeroMix-Setup-v$VER-signed.exe"
-          Write-Host "⏳ Signing executable..."
           & $osslBin sign -pkcs12 $certPath -pass "$env:CERT_PASSWORD" `
             -n "ZeroMix" -i "https://zeromix.vercel.app" `
             -t "http://timestamp.comodoca.com/authenticode" `
             -in $setupExe -out $signedPath
           
           if (Test-Path $signedPath) {
-            Write-Host "✅ Signed successfully"
             Remove-Item $setupExe -Force
             Move-Item $signedPath $setupExe -Force
-            Write-Host "✅ Replaced original with signed version"
+            Write-Host "✅ Signed and replaced"
           } else {
             Write-Host "❌ Signing failed"
             exit 1
           }
-          
-          # Cleanup
           Remove-Item $certPath -Force
         } else {
           Write-Host "❌ Setup executable not found at $setupExe"
-          Write-Host "📂 Contents of Exe folder:"
           Get-ChildItem "Exe/" -Filter "*.exe" | ForEach-Object { Write-Host "  - $($_.Name)" }
           exit 1
         }
 
+    # ─── STEP 6: Buat ZIP dari Setup.exe ────────────────────────────────────
+    # ZIP ini yang akan di-download oleh ZeroMix.Installer (bootstrap)
+    # URL format: .../releases/latest/download/ZeroMix-Setup.zip
     - name: 📦 Prepare Release Artifacts
       shell: pwsh
       run: |
         $VER = "${{ steps.version.outputs.version }}"
         
-        # Create Portable ZIP
+        # ZIP dari publish folder (Portable)
         if (Test-Path "publish/win-x64") {
           Write-Host "📦 Creating portable ZIP..."
           Compress-Archive -Path "publish/win-x64/*" -DestinationPath "ZeroMix-v$VER-Portable.zip" -Force
@@ -155,19 +163,72 @@ jobs:
           exit 1
         }
         
-        # Move Setup executable
+        # Pindahkan Setup.exe ke root dengan nama final
         $setupSrc = "Exe/ZeroMix-Setup-v$VER.exe"
         $setupDst = "ZeroMix-v$VER-Setup.exe"
-        
         if (Test-Path $setupSrc) {
           Move-Item $setupSrc $setupDst -Force
-          Write-Host "✅ Setup executable ready: $setupDst"
-          Write-Host "📝 File size: $([math]::Round((Get-Item $setupDst).Length / 1MB, 1)) MB"
+          Write-Host "✅ Setup ready: $setupDst ($([math]::Round((Get-Item $setupDst).Length / 1MB, 1)) MB)"
         } else {
           Write-Host "❌ Setup not found at $setupSrc"
           exit 1
         }
+        
+        # Buat ZeroMix-Setup.zip → ini yang di-download oleh ZeroMix.Installer
+        # Nama file ini HARUS tetap sama di setiap release (tanpa versi di nama)
+        # karena URL di bootstrap menggunakan /releases/latest/download/ZeroMix-Setup.zip
+        Write-Host "📦 Creating ZeroMix-Setup.zip for bootstrap installer..."
+        Compress-Archive -Path $setupDst -DestinationPath "ZeroMix-Setup.zip" -Force
+        Write-Host "✅ ZeroMix-Setup.zip ready ($([math]::Round((Get-Item 'ZeroMix-Setup.zip').Length / 1MB, 1)) MB)"
 
+    # ─── STEP 7: Build ZeroMix.Installer (bootstrap) ────────────────────────
+    # Bootstrap ini di-build setiap release agar versi di UI selalu update
+    # Hasilnya di-upload ke Releases sebagai file terpisah yang kecil (~10MB)
+    # CATATAN: ZeroMix.Installer harus ada di dalam repo di folder ZeroMix.Installer/
+    - name: 🔧 Build ZeroMix.Installer (Bootstrap)
+      shell: pwsh
+      run: |
+        $VER = "${{ steps.version.outputs.version }}"
+        $REPO = "${{ github.repository }}"
+        
+        # Path installer relatif terhadap root repo (ZeroMix.Installer ada di root repo)
+        $installerDir = "ZeroMix.Installer"
+        $csFile = "$installerDir/MainWindow.xaml.cs"
+        
+        if (!(Test-Path $csFile)) {
+          Write-Host "⚠️  ZeroMix.Installer tidak ditemukan di $installerDir, skipping bootstrap build"
+          Write-Host "💡 Pastikan folder ZeroMix.Installer sudah di-push ke repo"
+          exit 0
+        }
+        
+        # Update URL download di source code sebelum build
+        # URL ini mengarah ke ZeroMix-Setup.zip yang dibuat di step sebelumnya
+        $content = Get-Content $csFile -Raw
+        $newUrl = "https://github.com/$REPO/releases/latest/download/ZeroMix-Setup.zip"
+        $content = $content -replace 'private const string DownloadUrl = ".*?"', "private const string DownloadUrl = `"$newUrl`""
+        Set-Content $csFile $content -Encoding UTF8
+        Write-Host "✅ URL updated: $newUrl"
+        
+        # Publish bootstrap sebagai single exe
+        dotnet publish "$installerDir/ZeroMix.Installer.csproj" `
+          -c Release -r win-x64 --self-contained true `
+          -p:PublishSingleFile=true `
+          -p:Version=$VER `
+          -o installer_output
+        
+        # Rename output
+        $exeSrc = "installer_output/ZeroMix-Installer.exe"
+        $exeDst = "ZeroMix-v$VER-Installer.exe"
+        if (Test-Path $exeSrc) {
+          Move-Item $exeSrc $exeDst -Force
+          Write-Host "✅ Bootstrap installer ready: $exeDst ($([math]::Round((Get-Item $exeDst).Length / 1MB, 1)) MB)"
+        } else {
+          Write-Host "❌ Bootstrap build output not found"
+          Get-ChildItem "installer_output/" | ForEach-Object { Write-Host "  - $($_.Name)" }
+          exit 1
+        }
+
+    # ─── STEP 8: Generate release notes dari CHANGELOG ──────────────────────
     - name: 📋 Extract Release Notes from CHANGELOG
       shell: pwsh
       run: |
@@ -178,25 +239,26 @@ jobs:
 
         $pattern = "(?s)## \[$VER\].*?(?=\n## \[|$)"
         $match = [regex]::Match($changelog, $pattern)
-
         $notes = if ($match.Success) { $match.Value.Trim() } else { "See full changelog for details." }
 
-        $setupFile = "ZeroMix-v$VERNUM-Setup.exe"
-        $portableFile = "ZeroMix-v$VERNUM-Portable.zip"
         $changelogUrl = "https://github.com/$REPO/blob/main/Docs/CHANGELOG.md"
 
-        $body = "🎉 **ZeroMix $VER is here!**`n`n$notes`n`n---`n`n"
+        $body  = "🎉 **ZeroMix $VER is here!**`n`n$notes`n`n---`n`n"
         $body += "### 📥 Downloads`n"
-        $body += "- **Setup Installer:** ``$setupFile`` (Recommended)`n"
-        $body += "- **Portable Version:** ``$portableFile```n`n"
+        $body += "| File | Keterangan |`n"
+        $body += "|------|------------|`n"
+        $body += "| ``ZeroMix-v$VERNUM-Installer.exe`` | ⭐ **Bootstrap** — kecil, download otomatis saat install |`n"
+        $body += "| ``ZeroMix-v$VERNUM-Setup.exe`` | Setup lengkap (offline installer) |`n"
+        $body += "| ``ZeroMix-v$VERNUM-Portable.zip`` | Portable, tanpa install |`n`n"
         $body += "### 🖥️ Requirements`n"
         $body += "- Windows 10/11 x64`n"
-        $body += "- .NET 9.0 Desktop Runtime (Installer will check automatically)`n`n"
+        $body += "- .NET 9.0 Desktop Runtime`n`n"
         $body += "📄 [Full Changelog]($changelogUrl)"
 
         $body | Out-File -FilePath "RELEASE_NOTES.md" -Encoding utf8
         Write-Host "✅ Release notes generated for $VER"
 
+    # ─── STEP 9: Upload semua ke GitHub Releases ────────────────────────────
     - name: 🚀 Create GitHub Release
       uses: softprops/action-gh-release@v2
       with:
@@ -204,8 +266,10 @@ jobs:
         name: ZeroMix ${{ steps.version.outputs.tag }}
         body_path: RELEASE_NOTES.md
         files: |
+          ZeroMix-v${{ steps.version.outputs.version }}-Installer.exe
           ZeroMix-v${{ steps.version.outputs.version }}-Setup.exe
           ZeroMix-v${{ steps.version.outputs.version }}-Portable.zip
+          ZeroMix-Setup.zip
         draft: false
         prerelease: false
       env:

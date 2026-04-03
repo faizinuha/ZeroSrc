@@ -13,7 +13,7 @@
 
 ---
 
-## ✅ v5.1.7 — Published
+## ✅ v5.1.9 — Published
 
 ### ✨ Features
 - **Game Mode Translator**: Mode terjemahan khusus game via Clipboard Paste (Ctrl+V), kompatibel dengan DirectInput/RawInput game chat.

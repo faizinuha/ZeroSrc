@@ -10,7 +10,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 
-## [v5.1.7] - 2026-04-03
+
+## [v5.1.9] - 2026-04-03
 
 ### ✨ Features
 - To be documented
@@ -19,10 +20,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - To be documented
 
 ### 🔧 Changes
-- Version bump to 5.1.7
+- Version bump to 5.1.9
 
 ---
-## [v5.1.7] - 2026-04-03
+## [v5.1.9] - 2026-04-03
 
 ### ✨ Features
 - To be documented
@@ -31,10 +32,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - To be documented
 
 ### 🔧 Changes
-- Version bump to 5.1.7
+- Version bump to 5.1.9
 
 ---
-## [v5.1.7] - 2026-04-03
+## [v5.1.9] - 2026-04-03
 
 ### ✨ Features
 - To be documented
@@ -43,7 +44,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - To be documented
 
 ### 🔧 Changes
-- Version bump to 5.1.7
+- Version bump to 5.1.9
+
+---
+## [v5.1.9] - 2026-04-03
+
+### ✨ Features
+- To be documented
+
+### 🐛 Bug Fixes
+- To be documented
+
+### 🔧 Changes
+- Version bump to 5.1.9
 
 ---
 ## [Unreleased] - v5.2.0 Upcoming
@@ -57,7 +70,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-## [v5.1.7] - 2026-04-03
+## [v5.1.9] - 2026-04-03
 
 ### ✨ Features
 - **Game Mode Translator**: Terjemahan via Clipboard Paste (Ctrl+V), kompatibel dengan DirectInput/RawInput game chat.
@@ -171,8 +184,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 Each release follows this process:
 
 1. **Code Changes** → Push commits following [Conventional Commits](https://www.conventionalcommits.org/)
-2. **Version Bump** → Create annotated git tag: `git tag -a v5.1.7 -m "Release message"`
-3. **Push Tag** → `git push origin v5.1.7`
+2. **Version Bump** → Create annotated git tag: `git tag -a v5.1.9 -m "Release message"`
+3. **Push Tag** → `git push origin v5.1.9`
 4. **Automation** → GitHub Actions automatically:
    - Builds the project
    - Generates changelog from commits

@@ -1,76 +1,61 @@
 # 🚀 Quick Release Guide
 
-## Cara Release Versi Baru (Super Mudah!)
+## Cara Release Versi Baru
 
-### 1️⃣ Satu Command Saja
-
-```bash
-.\Scripts\release-version.bat 5.1.6
-```
-
-**Done!** Otomatis:
-- ✅ Update versi di semua file
-- ✅ Commit & push ke GitHub
-- ✅ Create tag `v5.1.6`
-- ✅ Trigger build & release workflow
-
----
-
-### 2️⃣ Cek Hasil
-
-Buka: `https://github.com/[user]/[repo]/releases`
-
-Tunggu 5-10 menit, release baru akan muncul dengan:
-- `ZeroMix-v5.1.6-Setup.exe` (Installer)
-- `ZeroMix-v5.1.6-Portable.zip` (Portable)
-
----
-
-### 3️⃣ Monitor Build
-
-Buka: `https://github.com/[user]/[repo]/actions`
-
-Lihat workflow "🚀 Build & Release ZeroMix" sedang berjalan.
-
----
-
-## 🔄 Version History
-
-Setiap versi punya release sendiri:
-
-```
-v5.1.6 ← Latest
-v5.1.4
-v5.1.3
-v5.1.2
-```
-
-Tidak numpuk! Setiap tag = 1 release baru.
-
----
-
-## 🛠️ Commands Lain
+### Satu Command
 
 ```powershell
-# Preview saja (tidak push)
-.\Scripts\release-version.ps1 -NewVersion 5.1.6 -SkipPush
+.\Scripts\release-version.ps1 -NewVersion 5.1.9 -CommitMessage "feat: new bootstrap ZeroMix.Installer"
+```
 
-# Custom commit message
-.\Scripts\release-version.ps1 -NewVersion 5.1.6 -CommitMessage "feat: new features"
+Script ini otomatis:
+1. Update versi di `MainWindow.xaml.cs`, `Setup.iss`, `ZeroMix.csproj`
+2. Update `CHANGELOG.md`
+3. `git add .` → `git commit` → buat tag `v5.1.9`
+4. `git push` + `git push --tags`
+5. GitHub Actions otomatis jalan → build → release
 
-# Build lokal dulu (test)
-.\build\build-sign-release.ps1 -Version 5.1.6 -SkipUpload
+---
+
+## Apa yang Di-build GitHub Actions?
+
+Setelah tag di-push, workflow akan menghasilkan:
+
+| File | Keterangan |
+|------|------------|
+| `ZeroMix-v5.1.9-Installer.exe` | ⭐ Bootstrap kecil (~10MB) — kasih ini ke user |
+| `ZeroMix-v5.1.9-Setup.exe` | Offline installer lengkap |
+| `ZeroMix-v5.1.9-Portable.zip` | Portable tanpa install |
+| `ZeroMix-Setup.zip` | Di-download otomatis oleh bootstrap |
+
+Bootstrap (`ZeroMix-Installer.exe`) akan otomatis download `ZeroMix-Setup.zip`
+dari GitHub Releases saat user klik install.
+
+---
+
+## Monitor Build
+
+Buka: `https://github.com/faizinuha/ZeroMix/actions`
+
+Tunggu ~10 menit. Kalau hijau = sukses.
+
+---
+
+## Commands Lain
+
+```powershell
+# Preview saja, tidak push ke GitHub
+.\Scripts\release-version.ps1 -NewVersion 5.1.9 -SkipPush
+
+# Rebuild versi yang sama (misal ada bug di workflow)
+.\Scripts\release-version.ps1 -NewVersion 5.1.9 -ForceBuild
 ```
 
 ---
 
-## 📚 Dokumentasi Lengkap
+## Catatan Penting
 
-- **Complete Guide:** [Docs/RELEASES_GUIDE.md](Docs/RELEASES_GUIDE.md)
-- **Troubleshooting:** [Docs/RELEASE_TROUBLESHOOTING.md](Docs/RELEASE_TROUBLESHOOTING.md)
-- **Scripts Documentation:** [Scripts/README.md](Scripts/README.md)
-- **Build Guide:** [build/README.md](build/README.md)
-
----
-
-**That's it! Simple kan? 😎**
+- Push biasa (`git push` tanpa tag) **tidak** trigger build
+- Hanya `git push --tags` yang trigger GitHub Actions
+- Script `release-version.ps1` sudah handle semua itu otomatis
+- `ZeroMix.Installer` di-build ulang setiap release — URL download otomatis terupdate
