@@ -18,6 +18,13 @@ Plugin ZeroMix ditulis menggunakan **Lua** dan disimpan di folder `Plugins/` dal
 
 ---
 
+```
+                Siapa           Cara                  Bahasa
+
+Tombol di UI	User biasa	    Klik di ZeroMix	      Lua
+                 
+NuGet SDK	   Developer C#  	dotnet add package	  C#
+```
 ## 1. Persiapan
 
 Yang kamu butuhkan:
