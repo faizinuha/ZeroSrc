@@ -41,7 +41,7 @@ namespace ZeroMix
 {
     using ZeroMix.zeromix.CreatePlugins;
     
-    public partial class MainWindow : Window
+    public partial class MainWindow : Window, ZeroMix.Plugins.IZeroMixHost
     {
         private const string CURRENT_VERSION = "5.2.0";
         
@@ -118,6 +118,30 @@ namespace ZeroMix
         private Window? _zeroShellWindow;
         private bool _isSidebarCollapsed = false;
         private SleepManager? _sleepManager;
+
+        // ── IZeroMixHost implementation ──────────────────────────────────────
+        public void Dispatch(Action action) => Dispatcher.Invoke(action);
+
+        public void SetStatus(string text) => StatusLabel.Text = text;
+
+        public double GetCpuUsage()
+        {
+            double val = 0;
+            Dispatcher.Invoke(() => {
+                if (double.TryParse(CpuPercentText.Text.Replace(" %", ""), out double r)) val = r;
+            });
+            return val;
+        }
+
+        public double GetRamUsage()
+        {
+            double val = 0;
+            Dispatcher.Invoke(() => {
+                if (double.TryParse(RamPercentText.Text.Replace(" %", ""), out double r)) val = r;
+            });
+            return val;
+        }
+        // ─────────────────────────────────────────────────────────────────────
 
         private void HamburgerBtn_Click(object sender, RoutedEventArgs e)
         {
