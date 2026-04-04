@@ -36,7 +36,15 @@ namespace ZeroMix.Recorder
 
         public string GetDuration() => _recorder?.Duration ?? "00:00";
 
-        public void StartRecording(string outputFileName, int framerate = 30, string micDevice = "No Audio", string speakerDevice = "No Audio", IntPtr? captureHandle = null, System.Windows.Rect? captureRect = null)
+        public bool IsPaused => _recorder?.IsPaused ?? false;
+
+        public void Pause()  => _recorder?.Pause();
+        public void Resume() => _recorder?.Resume();
+
+        public void StartRecording(string outputFileName, int framerate = 30, string micDevice = "No Audio",
+                                   string speakerDevice = "No Audio", IntPtr? captureHandle = null,
+                                   System.Windows.Rect? captureRect = null,
+                                   string format = "mp4", int bitrate = 8000)
         {
             if (_recorder == null || _recorder.IsRecording)
             {
@@ -57,7 +65,7 @@ namespace ZeroMix.Recorder
                 string outputPath = Path.Combine(zeroRecordDir, outputFileName);
                 Console.WriteLine($"[RecordingManager] Starting recording to: {outputPath}");
 
-                _recorder.StartRecording(outputPath, micDevice, speakerDevice, captureHandle, captureRect);
+                _recorder.StartRecording(outputPath, micDevice, speakerDevice, captureHandle, captureRect, format, bitrate);
             }
             catch (InvalidOperationException ex)
             {

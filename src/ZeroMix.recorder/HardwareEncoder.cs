@@ -187,18 +187,28 @@ namespace ZeroMix.Recorder
             }
         }
 
-        public void Start(string outputPath, string micDevice = "No Audio", string speakerDevice = "No Audio")
+        public void Start(string outputPath, string micDevice = "No Audio", string speakerDevice = "No Audio",
+                         string format = "mp4", int bitrate = 8000)
         {
             _outputPath = outputPath;
-            
+
+            // Ganti extension sesuai format
+            string ext = format.ToLower() switch { "mkv" => ".mkv", "webm" => ".webm", _ => ".mp4" };
+            if (!_outputPath.EndsWith(ext, StringComparison.OrdinalIgnoreCase))
+                _outputPath = Path.ChangeExtension(_outputPath, ext);
+
             string encoderArgs = _encoder switch
             {
-                "h264_nvenc" => "-c:v h264_nvenc -preset fast -tune hq -rc vbr -cq 23",
-                "h264_qsv" => "-c:v h264_qsv -q 23 -preset faster -look_ahead 0",
-                "h264_amf" => "-c:v h264_amf -quality speed -rc cqp -qp_i 23 -qp_p 23",
-                "h264_mf" => "-c:v h264_mf -rate_control vbr -quality 23",
-                _ => "-c:v libx264 -preset ultrafast -crf 23 -threads 4"
+                "h264_nvenc" => $"-c:v h264_nvenc -preset fast -tune hq -b:v {bitrate}k",
+                "h264_qsv"   => $"-c:v h264_qsv -b:v {bitrate}k -preset faster -look_ahead 0",
+                "h264_amf"   => $"-c:v h264_amf -quality speed -b:v {bitrate}k",
+                "h264_mf"    => $"-c:v h264_mf -rate_control vbr -b:v {bitrate}k",
+                _            => $"-c:v libx264 -preset ultrafast -b:v {bitrate}k -threads 4"
             };
+
+            // WebM pakai VP9
+            if (format == "webm")
+                encoderArgs = $"-c:v libvpx-vp9 -b:v {bitrate}k -deadline realtime -cpu-used 8";
 
             // Audio Input Strategy (Backward Compatible)
             string audioInputs = "";
@@ -373,9 +383,24 @@ namespace ZeroMix.Recorder
             _encoderThread.Start();
         }
 
+        private bool _isPaused = false;
+        public bool IsPaused => _isPaused;
+
+        public void Pause()
+        {
+            _isPaused = true;
+            Console.WriteLine("[HardwareEncoder] Paused.");
+        }
+
+        public void Resume()
+        {
+            _isPaused = false;
+            Console.WriteLine("[HardwareEncoder] Resumed.");
+        }
+
         public void QueueFrame(ID3D11Texture2D texture)
         {
-            if (!IsInitialized || _stagingTexture == null || !_isRunning || _encoderDead) return;
+            if (!IsInitialized || _stagingTexture == null || !_isRunning || _encoderDead || _isPaused) return;
 
             // Check if encoder is still alive before queueing
             if (_ffmpegProcess == null || _ffmpegProcess.HasExited)
