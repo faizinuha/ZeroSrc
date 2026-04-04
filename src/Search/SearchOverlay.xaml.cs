@@ -364,26 +364,17 @@ namespace ZeroMix.Search
             if (strip != null) strip.Visibility = Visibility.Collapsed;
             SearchBox.Tag = "Type to search...";
 
-            ShowToast("&#xEB9F;", "Uploading image...", "#007AFF");
+            ShowToast("&#xEB9F;", "Opening Google Lens...", "#007AFF");
 
             try
             {
-                string? publicUrl = await UploadImageToTempHostAsync(imagePath);
+                // Buka Google Lens upload langsung — lebih reliable dari reverse search via URL
+                string lensUrl = "https://lens.google.com/upload";
+                Process.Start(new ProcessStartInfo(lensUrl) { UseShellExecute = true });
 
-                if (!string.IsNullOrEmpty(publicUrl))
-                {
-                    // Pakai Google Images reverse search (lebih reliable dari Lens)
-                    string query = string.IsNullOrWhiteSpace(userQuery) ? "" : $"&q={Uri.EscapeDataString(userQuery)}";
-                    string searchUrl = $"https://www.google.com/searchbyimage?image_url={Uri.EscapeDataString(publicUrl)}{query}";
-                    Process.Start(new ProcessStartInfo(searchUrl) { UseShellExecute = true });
-                    ShowToast("&#xE8FB;", "Opened in browser", "#4CAF50");
-                }
-                else
-                {
-                    // Fallback: buka Google Images upload langsung
-                    Process.Start(new ProcessStartInfo("https://images.google.com") { UseShellExecute = true });
-                    ShowToast("&#xEB9F;", "Opened Google Images - klik ikon kamera", "#FF9800");
-                }
+                // Copy path ke clipboard agar user bisa drag/paste gambar
+                System.Windows.Clipboard.SetText(imagePath);
+                ShowToast("&#xE8FB;", "Google Lens dibuka — gambar di-copy ke clipboard", "#4CAF50");
             }
             catch (Exception ex)
             {
@@ -397,7 +388,6 @@ namespace ZeroMix.Search
         {
             try
             {
-                // Upload ke 0x0.st (simple, no auth, returns direct URL)
                 using var form = new MultipartFormDataContent();
                 var fileBytes = await File.ReadAllBytesAsync(imagePath);
                 var fileContent = new ByteArrayContent(fileBytes);

@@ -17,8 +17,8 @@ $ErrorActionPreference = "Stop"
 # ============================================================================
 
 if ($NewVersion -notmatch '^\d+\.\d+\.\d+$') {
-    Write-Host "❌ Format versi salah! Gunakan format: X.Y.Z (contoh: 5.1.6)" -ForegroundColor Red
-    Write-Host "Contoh: .\release-version.ps1 -NewVersion 5.1.6" -ForegroundColor Yellow
+    Write-Host "❌ Format versi salah! Gunakan format: X.Y.Z (contoh: 5.2.1)" -ForegroundColor Red
+    Write-Host "Contoh: .\release-version.ps1 -NewVersion 5.2.1" -ForegroundColor Yellow
     exit 1
 }
 

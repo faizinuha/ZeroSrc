@@ -8,19 +8,19 @@ Panduan lengkap untuk merilis versi baru ZeroMix ke GitHub Releases.
 
 ```bash
 # Dari root project
-.\Scripts\release-version.bat 5.1.6
+.\Scripts\release-version.bat 5.2.1
 ```
 
 Atau dengan PowerShell:
 
 ```powershell
-.\Scripts\release-version.ps1 -NewVersion 5.1.6
+.\Scripts\release-version.ps1 -NewVersion 5.2.1
 ```
 
 **Itu saja!** Script akan otomatis:
 1. ✅ Update versi di semua file
 2. ✅ Commit perubahan
-3. ✅ Create tag `v5.1.6`
+3. ✅ Create tag `v5.2.1`
 4. ✅ Push ke GitHub
 5. ✅ Trigger workflow build & release
 
@@ -32,20 +32,20 @@ Atau dengan PowerShell:
 
 ```powershell
 # Release versi baru
-.\Scripts\release-version.ps1 -NewVersion 5.1.6
+.\Scripts\release-version.ps1 -NewVersion 5.2.1
 
 # Dengan custom commit message
-.\Scripts\release-version.ps1 -NewVersion 5.1.6 -CommitMessage "feat: add new features"
+.\Scripts\release-version.ps1 -NewVersion 5.2.1 -CommitMessage "feat: add new features"
 
 # Preview saja (tidak push)
-.\Scripts\release-version.ps1 -NewVersion 5.1.6 -SkipPush
+.\Scripts\release-version.ps1 -NewVersion 5.2.1 -SkipPush
 ```
 
 Kamu:
-  .\Scripts\release-version.ps1 -NewVersion 5.1.6
+  .\Scripts\release-version.ps1 -NewVersion 5.2.1
           │
           ▼
-  Script push tag v5.1.6 ke GitHub
+  Script push tag v5.2.1 ke GitHub
           │
           ▼
 GitHub Actions (workflow):
@@ -62,9 +62,9 @@ GitHub Actions (workflow):
           │
           ▼
   https://github.com/faizinuha/ZeroMix/releases
-  ✅ Release v5.1.6 muncul dengan:
-     - ZeroMix-v5.1.6-Setup.exe
-     - ZeroMix-v5.1.6-Portable.zip
+  ✅ Release v5.2.1 muncul dengan:
+     - ZeroMix-v5.2.1-Setup.exe
+     - ZeroMix-v5.2.1-Portable.zip
 
 ### 2. Apa yang Terjadi di GitHub?
 
@@ -84,8 +84,8 @@ Setelah push tag, GitHub Actions otomatis:
 ### 3. Hasil Release
 
 GitHub Releases akan berisi:
-- `ZeroMix-v5.1.6-Setup.exe` (Installer, signed)
-- `ZeroMix-v5.1.6-Portable.zip` (Portable version)
+- `ZeroMix-v5.2.1-Setup.exe` (Installer, signed)
+- `ZeroMix-v5.2.1-Portable.zip` (Portable version)
 
 ---
 
@@ -95,9 +95,9 @@ Script `release-version.ps1` akan update versi di:
 
 | File | Pattern |
 |------|---------|
-| `src/MainWindow.xaml.cs` | `CURRENT_VERSION = "5.1.6"` |
-| `Exe/Setup.iss` | `#define AppVersion "5.1.6"` |
-| `ZeroMix.csproj` | `<Version>5.1.6</Version>` |
+| `src/MainWindow.xaml.cs` | `CURRENT_VERSION = "5.2.1"` |
+| `Exe/Setup.iss` | `#define AppVersion "5.2.1"` |
+| `ZeroMix.csproj` | `<Version>5.2.1</Version>` |
 
 ---
 
@@ -125,7 +125,7 @@ Jika ada kesalahan dan mau re-release versi yang sama:
 
 ```powershell
 # Script akan tanya apakah mau overwrite tag
-.\Scripts\release-version.ps1 -NewVersion 5.1.6
+.\Scripts\release-version.ps1 -NewVersion 5.2.1
 # Jawab 'y' untuk delete & recreate tag
 ```
 
@@ -155,9 +155,9 @@ Atau manual:
 ## 📊 Version History Example
 
 ```
-v5.1.6 (Latest)
-├─ ZeroMix-v5.1.6-Setup.exe
-└─ ZeroMix-v5.1.6-Portable.zip
+v5.2.1 (Latest)
+├─ ZeroMix-v5.2.1-Setup.exe
+└─ ZeroMix-v5.2.1-Portable.zip
 
 v5.1.4
 ├─ ZeroMix-v5.1.4-Setup.exe
@@ -187,15 +187,15 @@ Edit file-file ini:
 
 ```bash
 git add .
-git commit -m "chore: bump version to 5.1.6"
-git tag -a v5.1.6 -m "Release 5.1.6"
+git commit -m "chore: bump version to 5.2.1"
+git tag -a v5.2.1 -m "Release 5.2.1"
 ```
 
 ### 3. Push
 
 ```bash
 git push origin main
-git push origin v5.1.6
+git push origin v5.2.1
 ```
 
 ---
@@ -205,17 +205,17 @@ git push origin v5.1.6
 ### Tag Sudah Ada
 
 ```
-❌ Tag v5.1.6 already exists!
+❌ Tag v5.2.1 already exists!
 ```
 
 **Solusi:**
 ```bash
 # Hapus tag lokal & remote
-git tag -d v5.1.6
-git push origin :refs/tags/v5.1.6
+git tag -d v5.2.1
+git push origin :refs/tags/v5.2.1
 
 # Buat ulang
-.\Scripts\release-version.ps1 -NewVersion 5.1.6
+.\Scripts\release-version.ps1 -NewVersion 5.2.1
 ```
 
 ### Workflow Gagal
@@ -233,7 +233,7 @@ Test build sebelum release:
 
 ```powershell
 # Build lokal tanpa upload
-.\build\build-sign-release.ps1 -Version 5.1.6 -SkipUpload
+.\build\build-sign-release.ps1 -Version 5.2.1 -SkipUpload
 ```
 
 ---
@@ -266,7 +266,7 @@ Untuk bug critical:
 
 ```powershell
 # Langsung dari main branch
-.\Scripts\release-version.ps1 -NewVersion 5.1.6 -CommitMessage "hotfix: critical bug fix"
+.\Scripts\release-version.ps1 -NewVersion 5.2.1 -CommitMessage "hotfix: critical bug fix"
 ```
 
 ---
@@ -276,14 +276,14 @@ Untuk bug critical:
 ### Release Minor Version
 
 ```powershell
-# 5.1.4 → 5.1.6
-.\Scripts\release-version.ps1 -NewVersion 5.1.6
+# 5.1.4 → 5.2.1
+.\Scripts\release-version.ps1 -NewVersion 5.2.1
 ```
 
 ### Release Major Version
 
 ```powershell
-# 5.1.6 → 6.0.0
+# 5.2.1 → 6.0.0
 .\Scripts\release-version.ps1 -NewVersion 6.0.0 -CommitMessage "feat: major update with breaking changes"
 ```
 

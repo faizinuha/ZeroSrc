@@ -80,26 +80,21 @@ namespace ZeroMix.Recorder
             {
                 try
                 {
-                    // Optimization: Reuse input bitmap if it's the same texture
-                    if (_inputBitmapCached == null || _lastInputTexture != inputTexture)
+                    // Always recreate input bitmap — texture content changes every frame
+                    // even if the pointer is the same (DXGI CopyResource updates in-place)
+                    try { _inputBitmapCached?.Dispose(); } catch { }
+                    _inputBitmapCached = null;
+
+                    try
                     {
-                        try
-                        {
-                            _inputBitmapCached?.Dispose();
-                        }
-                        catch { }
-                        
-                        try
-                        {
-                            using var dxgiSurfaceIn = inputTexture.QueryInterface<IDXGISurface>();
-                            _inputBitmapCached = _d2dContext!.CreateBitmapFromDxgiSurface(dxgiSurfaceIn);
-                            _lastInputTexture = inputTexture;
-                        }
-                        catch (Exception ex)
-                        {
-                            Console.WriteLine($"[GPUCompositor] Failed to create bitmap: {ex.Message}");
-                            return;
-                        }
+                        using var dxgiSurfaceIn = inputTexture.QueryInterface<IDXGISurface>();
+                        _inputBitmapCached = _d2dContext!.CreateBitmapFromDxgiSurface(dxgiSurfaceIn);
+                        _lastInputTexture = inputTexture;
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"[GPUCompositor] Failed to create bitmap: {ex.Message}");
+                        return;
                     }
 
                     _d2dContext.Target = _outputBitmap;

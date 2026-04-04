@@ -6,7 +6,7 @@
 
     <!-- NuGet Package Info -->
     <PackageId>ZeroMix.PluginSDK</PackageId>
-    <Version>1.0.0</Version>
+    <Version>1.0.2</Version>
     <Authors>faizinuha</Authors>
     <Company>ZeroMix Team</Company>
     <Description>SDK for building ZeroMix plugins. Provides interfaces and base types for plugin development.</Description>

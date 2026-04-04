@@ -43,7 +43,7 @@ namespace ZeroMix
     
     public partial class MainWindow : Window, ZeroMix.Plugins.IZeroMixHost
     {
-        private const string CURRENT_VERSION = "5.2.0";
+        private const string CURRENT_VERSION = "5.2.1";
         
         // Windows API for Taskbar transparency
         [DllImport("user32.dll", SetLastError = true)]
@@ -327,6 +327,9 @@ namespace ZeroMix
             // Initialize Language Selector
             InitializeLanguageSelector();
 
+            // Load VA thumbnails via absolute path (reliable di semua environment)
+            LoadVAThumbnails();
+
             // Initialize Lua Engine di background agar tidak block UI
             Task.Run(() =>
             {
@@ -353,6 +356,40 @@ namespace ZeroMix
                         if (plugin != null) _pluginEngine?.TogglePlugin(plugin);
                     });
                 });
+            }
+        }
+
+        private void LoadVAThumbnails()
+        {
+            string baseDir = AppDomain.CurrentDomain.BaseDirectory;
+            var thumbs = new[]
+            {
+                (Name: "FrierenThumb", File: "Virtual_Assisten/VA_Thumbnails/Frieren.png"),
+                (Name: "FernThumb",    File: "Virtual_Assisten/VA_Thumbnails/fern.jpg"),
+                (Name: "HuohuoThumb", File: "Virtual_Assisten/VA_Thumbnails/Huohuo.jpg"),
+            };
+
+            foreach (var (name, file) in thumbs)
+            {
+                try
+                {
+                    string fullPath = Path.Combine(baseDir, file);
+                    if (!File.Exists(fullPath)) continue;
+
+                    var bmp = new System.Windows.Media.Imaging.BitmapImage();
+                    bmp.BeginInit();
+                    bmp.UriSource = new Uri(fullPath, UriKind.Absolute);
+                    bmp.CacheOption = System.Windows.Media.Imaging.BitmapCacheOption.OnLoad;
+                    bmp.EndInit();
+                    bmp.Freeze();
+
+                    if (FindName(name) is System.Windows.Controls.Image img)
+                        img.Source = bmp;
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"[VA] Failed to load thumbnail {name}: {ex.Message}");
+                }
             }
         }
 
@@ -914,6 +951,24 @@ namespace ZeroMix
                     {
                         _selectedCaptureRect = selector.SelectedRect;
                         StatusLabel.Text = $"Area Selected: {(int)_selectedCaptureRect.Width}x{(int)_selectedCaptureRect.Height}";
+                    }
+                }
+                else if (_selectedRecordingMode == "Window")
+                {
+                    var picker = new ZeroMix.Recorder.WindowPickerWindow();
+                    picker.Owner = this;
+                    picker.ShowDialog();
+
+                    if (picker.IsConfirmed && picker.SelectedHandle != IntPtr.Zero)
+                    {
+                        _detectedGameHandle = picker.SelectedHandle;
+                        StatusLabel.Text = $"Window dipilih untuk direkam";
+                    }
+                    else
+                    {
+                        // Reset ke FullScreen kalau batal
+                        _selectedRecordingMode = "FullScreen";
+                        StatusLabel.Text = "Mode direset ke FullScreen";
                     }
                 }
             }

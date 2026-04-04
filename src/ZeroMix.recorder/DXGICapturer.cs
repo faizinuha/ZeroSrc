@@ -173,25 +173,30 @@ namespace ZeroMix.Recorder
 
             try
             {
-                var result = _deskDupl.AcquireNextFrame(0, out var frameInfo, out var resource);
+                var result = _deskDupl.AcquireNextFrame(16, out var frameInfo, out var resource);
                 
                 if (result.Success && resource != null)
                 {
                     using var desktopTexture = resource.QueryInterface<ID3D11Texture2D>();
                     _context.CopyResource(_lastFrame!, desktopTexture);
-                    
                     _deskDupl.ReleaseFrame();
                     resource.Dispose();
-                }
-                else if (result.Code != (int)Vortice.DXGI.ResultCode.WaitTimeout)
-                {
-                    // Jangan return null langsung, coba pakai frame terakhir dulu
-                    return _lastFrame;
                 }
 
                 return _lastFrame;
             }
-            catch { return _lastFrame; }
+            catch (Exception ex)
+            {
+                // DXGI_ERROR_ACCESS_LOST — reinitialize
+                if ((uint)ex.HResult == 0x887A0026 || (uint)ex.HResult == 0x887A0004)
+                {
+                    Console.WriteLine("[DXGICapturer] Access lost, reinitializing...");
+                    _deskDupl?.Dispose();
+                    _deskDupl = null;
+                    Initialize();
+                }
+                return _lastFrame;
+            }
         }
 
         public void Dispose()
