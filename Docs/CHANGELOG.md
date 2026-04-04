@@ -16,6 +16,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 
+
+## [v5.2.1] - 2026-04-04
+
+### ✨ Features
+- Publish SDK to nuget.org
+- Add PluginSDK and refactor IZeroMixHost
+
+### 🐛 Bug Fixes
+- Fix Zeromix.recorder | Virtual_assisten Img | Upcooming : Bitrate control ΓÇö slider untuk pilih kualitas (720p/1080p/4K)
+
+### 🔧 Changes
+- Update
+- update
+- update readme
+- Update FIle docs
+
+---
 ## [v5.2.1] - 2026-04-04
 
 ### ✨ Features
