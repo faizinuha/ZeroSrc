@@ -1148,6 +1148,37 @@
                                                 </StackPanel>
                                             </Grid>
 
+                                            <!-- Format & Bitrate -->
+                                            <Grid Margin="0,12,0,0">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                </Grid.ColumnDefinitions>
+                                                <StackPanel Grid.Column="0" Margin="0,0,10,0">
+                                                    <TextBlock Text="FORMAT" FontSize="9" Foreground="{StaticResource SubTextBrush}" Margin="0,0,0,6"/>
+                                                    <ComboBox x:Name="FormatComboBox" Style="{StaticResource ModernComboBox}" SelectedIndex="0">
+                                                        <ComboBoxItem Content="MP4" Tag="mp4"/>
+                                                        <ComboBoxItem Content="MKV" Tag="mkv"/>
+                                                        <ComboBoxItem Content="WebM" Tag="webm"/>
+                                                    </ComboBox>
+                                                </StackPanel>
+                                                <StackPanel Grid.Column="1" Margin="5,0">
+                                                    <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
+                                                        <TextBlock Text="QUALITY" FontSize="9" Foreground="{StaticResource SubTextBrush}"/>
+                                                        <TextBlock x:Name="BitrateLabel" Text=" — 8 Mbps" FontSize="9" Foreground="{StaticResource NeonBlueBrush}"/>
+                                                    </StackPanel>
+                                                    <Slider x:Name="BitrateSlider" Minimum="2000" Maximum="50000" Value="8000"
+                                                            TickFrequency="2000" IsSnapToTickEnabled="True"
+                                                            ValueChanged="BitrateSlider_ValueChanged"/>
+                                                </StackPanel>
+                                                <Button x:Name="PauseResumeBtn" Grid.Column="2"
+                                                        Content="⏸ Pause" Margin="10,0,0,0"
+                                                        Style="{StaticResource CasualBtn}" FontSize="10"
+                                                        Visibility="Collapsed"
+                                                        Click="PauseResumeBtn_Click"/>
+                                            </Grid>
+
                                             <!-- Features & Info -->
                                             <StackPanel Orientation="Horizontal" Margin="0,20,0,0">
                                                 <CheckBox x:Name="CinematicZoomToggle" IsChecked="True" Style="{StaticResource ModernCheckBox}" Margin="0,0,20,0">

@@ -35,6 +35,7 @@ namespace ZeroMix.Recorder
         public bool IsZoomEnabled { get; set; } = true;
 
         public bool IsRecording => _isRecording;
+        public bool IsPaused => _encoder?.IsPaused ?? false;
         public bool IsInitialized => (_dxgiCapturer?.IsInitialized ?? false) || (_gdiCapturer?.IsInitialized ?? false);
         
         public bool IsUsingGDI => _gdiCapturer != null && _gdiCapturer.IsInitialized;
@@ -90,7 +91,12 @@ namespace ZeroMix.Recorder
                 Console.WriteLine("[ScreenStudioRecorder] CRITICAL: No capture system initialized!");
         }
 
-        public void StartRecording(string outputPath, string micDevice = "No Audio", string speakerDevice = "No Audio", IntPtr? captureHandle = null, System.Windows.Rect? captureRect = null)
+        public void Pause()  { _encoder?.Pause();  _recordingTimer.Stop(); }
+        public void Resume() { _encoder?.Resume(); _recordingTimer.Start(); }
+
+        public void StartRecording(string outputPath, string micDevice = "No Audio", string speakerDevice = "No Audio",
+                                   IntPtr? captureHandle = null, System.Windows.Rect? captureRect = null,
+                                   string format = "mp4", int bitrate = 8000)
         {
             if (_isRecording)
             {
@@ -126,7 +132,7 @@ namespace ZeroMix.Recorder
                 Console.WriteLine($"[ScreenStudioRecorder] Using {(IsUsingGDI ? "GDI" : "DXGI")} capture mode");
                 
                 _encoder = new HardwareEncoder(_ffmpegPath, device, context, width, height, _framerate, _d3dContextLock);
-                _encoder.Start(outputPath, micDevice, speakerDevice);
+                _encoder.Start(outputPath, micDevice, speakerDevice, format, bitrate);
             }
             catch (Exception ex)
             {

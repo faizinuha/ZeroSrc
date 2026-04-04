@@ -1215,18 +1215,11 @@ namespace ZeroMix
         private async void ZeroRecordBtn_Click(object sender, RoutedEventArgs e)
         {
             if (_recordingManager == null) return;
-
-            // Prevent spam clicks
             if (HomeRecordBtn != null) HomeRecordBtn.IsEnabled = false;
 
             if (!_isRecordingActive)
             {
-                StatusLabel.Text = "Booting Recorder Engine...";
-                if (HomeRecordBtnText != null) HomeRecordBtnText.Text = "STARTING...";
-
-                string timestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss");
-                
-                // Get FPS from UI
+                // ── Ambil settings dari UI ──────────────────────────────────
                 int fps = 30;
                 if (FpsComboBox != null)
                 {
@@ -1234,59 +1227,58 @@ namespace ZeroMix
                     int.TryParse(content.Split(' ')[0], out fps);
                 }
 
-                // Get Audio Devices
-                string mic = (MicComboBox?.SelectedItem as ComboBoxItem)?.Content?.ToString() ?? "No Audio";
+                string mic     = (MicComboBox?.SelectedItem as ComboBoxItem)?.Content?.ToString() ?? "No Audio";
                 string speaker = (SpeakerComboBox?.SelectedItem as ComboBoxItem)?.Content?.ToString() ?? "No Audio";
 
-                // Check if FFmpeg exists
+                // Format output
+                string format = "mp4";
+                if (FindName("FormatComboBox") is System.Windows.Controls.ComboBox fmtBox)
+                    format = (fmtBox.SelectedItem as ComboBoxItem)?.Tag?.ToString() ?? "mp4";
+
+                // Bitrate dari slider (default 8000 kbps)
+                int bitrate = 8000;
+                if (FindName("BitrateSlider") is Slider bSlider)
+                    bitrate = (int)bSlider.Value;
+
                 if (!File.Exists(_recordingManager.FFmpegPath))
                 {
-                    System.Windows.MessageBox.Show($"FFmpeg not found at:\n{_recordingManager.FFmpegPath}\n\nPlease check the FFMPEG folder.", "ZeroRecord Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                    System.Windows.MessageBox.Show($"FFmpeg not found at:\n{_recordingManager.FFmpegPath}", "ZeroRecord Error", MessageBoxButton.OK, MessageBoxImage.Error);
                     if (HomeRecordBtn != null) HomeRecordBtn.IsEnabled = true;
-                    if (HomeRecordBtnText != null) HomeRecordBtnText.Text = "START RECORD";
                     return;
                 }
 
                 IntPtr? hCapture = null;
                 System.Windows.Rect? rCapture = null;
+                if (_selectedRecordingMode == "Application") hCapture = _detectedGameHandle;
+                else if (_selectedRecordingMode == "Area")   rCapture = _selectedCaptureRect;
+                else if (_selectedRecordingMode == "Window") hCapture = _detectedGameHandle != IntPtr.Zero ? _detectedGameHandle : IntPtr.Zero;
 
-                if (_selectedRecordingMode == "Application")
-                {
-                    hCapture = _detectedGameHandle;
-                }
-                else if (_selectedRecordingMode == "Area")
-                {
-                    rCapture = _selectedCaptureRect;
-                }
-                else if (_selectedRecordingMode == "Window")
-                {
-                    // Fallback to active window if nothing specific picked
-                    hCapture = _detectedGameHandle != IntPtr.Zero ? _detectedGameHandle : IntPtr.Zero;
-                }
+                // ── Countdown 3..2..1 ───────────────────────────────────────
+                if (HomeRecordBtnText != null) HomeRecordBtnText.Text = "3...";
+                StatusLabel.Text = "Bersiap...";
+                await Task.Delay(1000);
+                if (HomeRecordBtnText != null) HomeRecordBtnText.Text = "2...";
+                await Task.Delay(1000);
+                if (HomeRecordBtnText != null) HomeRecordBtnText.Text = "1...";
+                await Task.Delay(1000);
+                if (HomeRecordBtnText != null) HomeRecordBtnText.Text = "STARTING...";
 
-                bool started = await Task.Run(() => 
+                string timestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss");
+
+                bool started = await Task.Run(() =>
                 {
-                    try 
+                    try
                     {
-                        _recordingManager.StartRecording($"ZeroRecord_{timestamp}.mp4", fps, mic, speaker, hCapture, rCapture);
+                        _recordingManager.StartRecording($"ZeroRecord_{timestamp}.{format}", fps, mic, speaker, hCapture, rCapture, format, bitrate);
                         return true;
                     }
                     catch (Exception ex)
                     {
                         Console.WriteLine($"[ZeroRecord] Start Error: {ex.Message}");
-                        Dispatcher.Invoke(() => {
-                            System.Windows.MessageBox.Show($"[FATAL CRASH] Gagal memulai perekaman:\n{ex.Message}\n\nPastikan FFMPEG sudah terinstall di folder ZeroMix dan GPU Driver update.", "Recording Error", MessageBoxButton.OK, MessageBoxImage.Error);
-                        });
+                        Dispatcher.Invoke(() =>
+                            System.Windows.MessageBox.Show($"Gagal memulai perekaman:\n{ex.Message}", "Recording Error", MessageBoxButton.OK, MessageBoxImage.Error));
                         return false;
                     }
-                }).ContinueWith(task => {
-                    // Timeout protection - if task takes too long, assume failure
-                    if (!task.Wait(TimeSpan.FromSeconds(10)))
-                    {
-                        Console.WriteLine("[ZeroRecord] Recording start timed out!");
-                        return false;
-                    }
-                    return task.Result;
                 });
 
                 if (started)
@@ -1375,17 +1367,53 @@ namespace ZeroMix
             }
         }
 
+        private void BitrateSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        {
+            if (BitrateLabel == null) return;
+            double mbps = e.NewValue / 1000.0;
+            string label = mbps switch
+            {
+                <= 3  => $" — {mbps:F0} Mbps (Low)",
+                <= 8  => $" — {mbps:F0} Mbps (Medium)",
+                <= 20 => $" — {mbps:F0} Mbps (High)",
+                _     => $" — {mbps:F0} Mbps (Ultra)"
+            };
+            BitrateLabel.Text = label;
+        }
+
+        private void PauseResumeBtn_Click(object sender, RoutedEventArgs e)
+        {
+            if (_recordingManager == null || !_isRecordingActive) return;
+
+            if (_recordingManager.IsPaused)
+            {
+                _recordingManager.Resume();
+                _recordDurationTimer?.Start();
+                if (FindName("PauseResumeBtn") is Button btn) btn.Content = "⏸ Pause";
+                StatusLabel.Text = "Recording Active";
+            }
+            else
+            {
+                _recordingManager.Pause();
+                _recordDurationTimer?.Stop();
+                if (FindName("PauseResumeBtn") is Button btn) btn.Content = "▶ Resume";
+                StatusLabel.Text = "Recording Paused";
+            }
+        }
+
         private void UpdateRecordUI(bool isActive)
         {
             if (isActive)
             {
                 if (HomeRecordBtnText != null) HomeRecordBtnText.Text = "STOP RECORD";
                 if (HomeRecordBtn != null) HomeRecordBtn.Opacity = 1.0;
+                if (FindName("PauseResumeBtn") is Button pb) { pb.Visibility = Visibility.Visible; pb.Content = "⏸ Pause"; }
             }
             else
             {
                 if (HomeRecordBtnText != null) HomeRecordBtnText.Text = "ZeroRecord";
                 if (HomeRecordBtn != null) HomeRecordBtn.Opacity = 0.7;
+                if (FindName("PauseResumeBtn") is Button pb) pb.Visibility = Visibility.Collapsed;
             }
         }
 
