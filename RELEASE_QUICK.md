@@ -5,7 +5,11 @@
 ### Satu Command
 
 ```powershell
+
 .\Scripts\release-version.ps1 -NewVersion 5.1.9 -CommitMessage "feat: new bootstrap ZeroMix.Installer"
+
+.\Scripts\release-version.ps1 -NewVersion 5.2.0 -CommitMessage "fix: fix startup freeze, move plugin init to background"
+
 ```
 
 Script ini otomatis:
