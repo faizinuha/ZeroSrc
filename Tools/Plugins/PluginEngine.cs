@@ -22,7 +22,8 @@ namespace ZeroMix.Plugins
 {
     public class PluginEngine
     {
-        private readonly MainWindow _main;
+        private readonly IZeroMixHost _host;
+        private readonly MainWindow _main; // tetap untuk RefreshUserPluginsUI & Dispatcher
         private readonly string _pluginsDir;
         private readonly List<LuaPlugin> _plugins = new List<LuaPlugin>();
         private readonly DispatcherTimer _updateTimer;
@@ -43,6 +44,7 @@ namespace ZeroMix.Plugins
         public PluginEngine(MainWindow main)
         {
             _main = main;
+            _host = main; // MainWindow implements IZeroMixHost
             _pluginsDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Plugins");
             
             _updateTimer = new DispatcherTimer();
@@ -124,7 +126,7 @@ namespace ZeroMix.Plugins
                     new string[] { Path.Combine(pluginFolder, "?.lua") };
             }
 
-            var api = new ZeroMixLuaApi(_main, pluginFolder);
+            var api = new ZeroMixLuaApi(_host, pluginFolder);
             api.SetActiveScript(script);
             plugin.Api = api;
             plugin.Script = script;
@@ -212,13 +214,12 @@ namespace ZeroMix.Plugins
     [MoonSharpUserData]
     public class ZeroMixLuaApi
     {
-        private readonly MainWindow _main;
-
+        private readonly IZeroMixHost _host;
         private readonly string? _pluginDir;
 
-        public ZeroMixLuaApi(MainWindow main, string? pluginDir = null)
+        public ZeroMixLuaApi(IZeroMixHost host, string? pluginDir = null)
         {
-            _main = main;
+            _host = host;
             _pluginDir = pluginDir;
         }
 
@@ -230,15 +231,12 @@ namespace ZeroMix.Plugins
 
         public void CloseWindow()
         {
-            _main.Dispatcher.Invoke(() =>
-            {
-                _currentWin?.Close();
-            });
+            _host.Dispatch(() => _currentWin?.Close());
         }
 
         public void CreateUI(string title, int width, int height)
         {
-            _main.Dispatcher.Invoke(() =>
+            _host.Dispatch(() =>
             {
                 _currentWin = new DynamicPluginWindow();
                 _currentWin.TitleText.Text = title;
@@ -251,7 +249,7 @@ namespace ZeroMix.Plugins
 
         public void AddLabel(string text)
         {
-            _main.Dispatcher.Invoke(() =>
+            _host.Dispatch(() =>
             {
                 var label = new TextBlock { Text = text, Foreground = new SolidColorBrush(Color.FromRgb(87, 96, 111)), FontSize = 12, FontWeight = FontWeights.SemiBold };
                 _currentWin?.AddControl(label);
@@ -260,12 +258,12 @@ namespace ZeroMix.Plugins
 
         public void AddInput(string id, string placeholder)
         {
-            _main.Dispatcher.Invoke(() =>
+            _host.Dispatch(() =>
             {
-                var input = new TextBox { 
-                    Tag = id, 
-                    Text = placeholder, 
-                    Padding = new Thickness(10), 
+                var input = new TextBox {
+                    Tag = id,
+                    Text = placeholder,
+                    Padding = new Thickness(10),
                     Background = new SolidColorBrush(Color.FromRgb(249, 249, 249)),
                     BorderBrush = new SolidColorBrush(Color.FromRgb(221, 221, 221)),
                     BorderThickness = new Thickness(1)
@@ -277,10 +275,10 @@ namespace ZeroMix.Plugins
 
         public void AddButton(string text, string callbackName)
         {
-            _main.Dispatcher.Invoke(() =>
+            _host.Dispatch(() =>
             {
-                var btn = new Button { 
-                    Content = text, 
+                var btn = new Button {
+                    Content = text,
                     Padding = new Thickness(20, 10, 20, 10),
                     Background = new SolidColorBrush(Color.FromRgb(0, 120, 212)),
                     Foreground = Brushes.White,
@@ -288,14 +286,12 @@ namespace ZeroMix.Plugins
                     BorderThickness = new Thickness(0),
                     Cursor = Cursors.Hand
                 };
-                
                 btn.Click += (s, e) => {
                     if (_activeScript != null) {
                         var func = _activeScript.Globals[callbackName];
                         if (func != null) _activeScript.Call(func);
                     }
                 };
-
                 _currentWin?.AddControl(btn);
             });
         }
@@ -303,54 +299,30 @@ namespace ZeroMix.Plugins
         public string GetInput(string id)
         {
             string val = "";
-            _main.Dispatcher.Invoke(() => {
+            _host.Dispatch(() => {
                 if (_inputs.ContainsKey(id)) val = _inputs[id].Text;
             });
             return val;
         }
 
-        public void Log(string message)
-        {
-            Debug.WriteLine($"[LUA] {message}");
-        }
+        public void Log(string message) => Debug.WriteLine($"[LUA] {message}");
 
         public void Notify(string title, string message)
         {
-            _main.Dispatcher.Invoke(() =>
-            {
-                System.Windows.MessageBox.Show(message, title, System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Information);
-            });
+            _host.Dispatch(() =>
+                System.Windows.MessageBox.Show(message, title,
+                    System.Windows.MessageBoxButton.OK,
+                    System.Windows.MessageBoxImage.Information));
         }
 
-        public double GetCpuUsage()
-        {
-            double val = 0;
-            _main.Dispatcher.Invoke(() => {
-                if (double.TryParse(_main.CpuPercentText.Text.Replace(" %", ""), out double result))
-                    val = result;
-            });
-            return val;
-        }
+        public double GetCpuUsage() => _host.GetCpuUsage();
 
-        public double GetRamUsage()
-        {
-            double val = 0;
-            _main.Dispatcher.Invoke(() => {
-                if (double.TryParse(_main.RamPercentText.Text.Replace(" %", ""), out double result))
-                    val = result;
-            });
-            return val;
-        }
+        public double GetRamUsage() => _host.GetRamUsage();
 
         public int GetTimeHour() => DateTime.Now.Hour;
         public int GetTimeMin() => DateTime.Now.Minute;
 
-        public void SetStatusText(string text)
-        {
-            _main.Dispatcher.Invoke(() => {
-                _main.StatusLabel.Text = text;
-            });
-        }
+        public void SetStatusText(string text) => _host.SetStatus(text);
 
         public void SaveConfig(string key, string json)
         {
