@@ -106,40 +106,86 @@ if ($gitStatus) {
 }
 
 # ============================================================================
-# STEP 3: UPDATE CHANGELOG
+# STEP 3: UPDATE CHANGELOG (auto-generate dari git commits)
 # ============================================================================
 
 Write-Host ""
-Write-Host "📝 Step 3: Updating CHANGELOG..." -ForegroundColor Yellow
+Write-Host "📝 Step 3: Updating CHANGELOG from git commits..." -ForegroundColor Yellow
 
 $changelogPath = "Docs/CHANGELOG.md"
 if (Test-Path $changelogPath) {
     try {
         $changelog = Get-Content $changelogPath -Raw
         $date = Get-Date -Format "yyyy-MM-dd"
-        
+
+        # Ambil tag sebelumnya untuk range commit
+        $prevTag = git describe --tags --abbrev=0 HEAD 2>$null
+        if ([string]::IsNullOrEmpty($prevTag)) {
+            $commitRange = "HEAD"
+        } else {
+            $commitRange = "$prevTag..HEAD"
+        }
+
+        # Ambil semua commit dalam range
+        $commits = git log $commitRange --pretty=format:"%s" 2>$null | Where-Object { $_ -ne "" }
+
+        # Kategorikan berdasarkan prefix konvensional
+        $features  = @()
+        $fixes     = @()
+        $changes   = @()
+        $others    = @()
+
+        foreach ($msg in $commits) {
+            $clean = $msg -replace '^(feat|fix|chore|refactor|perf|style|docs|test|ci|build)\([^)]*\):\s*', '' `
+                          -replace '^(feat|fix|chore|refactor|perf|style|docs|test|ci|build):\s*', ''
+            $clean = $clean.Substring(0,1).ToUpper() + $clean.Substring(1)
+
+            if ($msg -match '^feat') {
+                $features += "- $clean"
+            } elseif ($msg -match '^fix') {
+                $fixes += "- $clean"
+            } elseif ($msg -match '^(chore|refactor|perf|style|docs|test|ci|build)') {
+                $changes += "- $clean"
+            } else {
+                # Commit tanpa prefix tetap masuk ke changes
+                if ($msg -notmatch '^Merge' -and $msg -notmatch '^bump version') {
+                    $others += "- $msg"
+                }
+            }
+        }
+
+        # Fallback kalau kosong
+        if ($features.Count -eq 0) { $features  = @("- No new features") }
+        if ($fixes.Count -eq 0)    { $fixes     = @("- No bug fixes") }
+        if ($changes.Count -eq 0 -and $others.Count -eq 0) { $changes = @("- Version bump to $NewVersion") }
+
+        $featuresStr = $features -join "`n"
+        $fixesStr    = $fixes -join "`n"
+        $changesStr  = ($changes + $others) -join "`n"
+
         $newEntry = @"
 ## [v$NewVersion] - $date
 
 ### ✨ Features
-- To be documented
+$featuresStr
 
 ### 🐛 Bug Fixes
-- To be documented
+$fixesStr
 
 ### 🔧 Changes
-- Version bump to $NewVersion
+$changesStr
 
 ---
 
 "@
-        
+
         if ($changelog -match '(?s)(# ZeroMix - Changelog.*?---\s*)(.*)') {
             $header = $matches[1]
             $rest = $matches[2]
             $newChangelog = $header + "`n" + $newEntry + $rest
             Set-Content -Path $changelogPath -Value $newChangelog -NoNewline
-            Write-Host "  ✅ CHANGELOG updated" -ForegroundColor Green
+            Write-Host "  ✅ CHANGELOG updated with $($commits.Count) commits" -ForegroundColor Green
+            Write-Host "  📋 Features: $($features.Count) | Fixes: $($fixes.Count) | Changes: $($changes.Count + $others.Count)" -ForegroundColor Cyan
             $updatedFiles += $changelogPath
         } else {
             Write-Host "  ⚠️  Could not parse CHANGELOG format" -ForegroundColor Yellow
