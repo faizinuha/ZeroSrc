@@ -47,7 +47,6 @@ jobs:
           -c Release \
           -p:Version=${{ steps.ver.outputs.version }} \
           -o ./nupkg
-      working-directory: ZeroMix
 
     - name: 🚀 Publish to GitHub Packages
       run: |
@@ -55,4 +54,10 @@ jobs:
           --source "https://nuget.pkg.github.com/faizinuha/index.json" \
           --api-key ${{ secrets.GITHUB_TOKEN }} \
           --skip-duplicate
-      working-directory: ZeroMix
+
+    - name: 🌐 Publish to NuGet.org
+      run: |
+        dotnet nuget push ./nupkg/*.nupkg \
+          --source "https://api.nuget.org/v3/index.json" \
+          --api-key ${{ secrets.NUGET_API_KEY }} \
+          --skip-duplicate
