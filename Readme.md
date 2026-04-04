@@ -111,6 +111,10 @@ Download from **[GitHub Releases →](https://github.com/faizinuha/ZeroMix/relea
 | `Ctrl + R` | Force Refresh System Metrics |
 | `Esc` | Close Active Overlay/Window |
 
+| Key | Ask AI |
+| Carikan saya sepatu yang murah -> otomatis buka 
+| Carikan saya bajuu yang murah di tokopedia -> otomatis buka Tokopedia
+| Carikan saya Handphone yang murah di Shoppe -> otomatis buka Shoppe
 ---
 
 ## 🛠️ Built With
@@ -170,7 +174,7 @@ The atmospheric experiences in ZeroMix are powered by beautiful visuals from the
 
 <div align="center">
 
-[![Trakteer Support](https://img.shields.io/badge/Trakteer-Support_The_Dev-EE4B2B?style=for-the-badge&logoColor=white)](https://trakteer.id/MyCici)
+[![sociabuzz Support](https://img.shields.io/badge/sociabuzz-Support_The_Dev-EE4B2B?style=for-the-badge&logoColor=white)](https://sociabuzz.com/zuax)
 
 Made with ❤️ by **Faizinuha** and the community.
 **ZeroMix © 2025-2026**

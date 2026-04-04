@@ -15,6 +15,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 
+
+## [v5.2.1] - 2026-04-04
+
+### ✨ Features
+- Publish SDK to nuget.org
+- Add PluginSDK and refactor IZeroMixHost
+
+### 🐛 Bug Fixes
+- No bug fixes
+
+### 🔧 Changes
+- Update
+- update
+- update readme
+- Update FIle docs
+
+---
 ## [v5.2.0] - 2026-04-03
 
 ### ✨ Features

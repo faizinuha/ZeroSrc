@@ -9,7 +9,7 @@
     <UseWindowsForms>true</UseWindowsForms>
     <ApplicationIcon>Assets\Icons\zeromix.ico</ApplicationIcon>
     <EnableWindowsTargeting>true</EnableWindowsTargeting>
-    <Version>5.2.0</Version>
+    <Version>5.2.1</Version>
     
     <!-- Optimasi Ukuran & Portabilitas (Self-Contained & Kompresi) -->
     <PublishSingleFile>true</PublishSingleFile>
@@ -18,6 +18,14 @@
     <PublishTrimmed>false</PublishTrimmed>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="ZeroMix.Installer\**" />
+    <EmbeddedResource Remove="ZeroMix.Installer\**" />
+    <None Remove="ZeroMix.Installer\**" />
+    <Page Remove="ZeroMix.Installer\**" />
+    <Content Remove="ZeroMix.Installer\**" />
+  </ItemGroup>
 
   <!-- Mode Debug: Simbol Aktif untuk mempermudah perbaikan -->
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
@@ -120,4 +128,5 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
+
 </Project>

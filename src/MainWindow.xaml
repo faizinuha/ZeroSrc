@@ -739,7 +739,7 @@
                                         <StackPanel>
                                             <Border Height="150" CornerRadius="14,14,0,0"
                                                     Background="#141922" ClipToBounds="True">
-                                                <Image Source="Virtual_Assisten/VA_Thumbnails/Frieren.png"
+                                                <Image x:Name="FrierenThumb"
                                                        Stretch="UniformToFill" VerticalAlignment="Top"/>
                                             </Border>
                                             <StackPanel Margin="14">
@@ -759,7 +759,7 @@
                                         <StackPanel>
                                             <Border Height="150" CornerRadius="14,14,0,0"
                                                     Background="#141922" ClipToBounds="True">
-                                                <Image Source="Virtual_Assisten/VA_Thumbnails/fern.jpg"
+                                                <Image x:Name="FernThumb"
                                                        Stretch="UniformToFill" VerticalAlignment="Top"/>
                                             </Border>
                                             <StackPanel Margin="14">
@@ -779,7 +779,7 @@
                                         <StackPanel>
                                             <Border Height="150" CornerRadius="14,14,0,0"
                                                     Background="#141922" ClipToBounds="True">
-                                                <Image Source="Virtual_Assisten/VA_Thumbnails/Huohuo.jpg"
+                                                <Image x:Name="HuohuoThumb"
                                                        Stretch="UniformToFill" VerticalAlignment="Top"/>
                                             </Border>
                                             <StackPanel Margin="14">
@@ -840,7 +840,7 @@
                                                                Margin="0,0,0,6"/>
                                                     <StackPanel Orientation="Horizontal">
                                                         <TextBlock x:Name="VersionText"
-                                                                   Text="v5.1.6"
+                                                                   Text="v5.2.1"
                                                                    FontSize="18"
                                                                    FontWeight="Bold"
                                                                    Foreground="White"
