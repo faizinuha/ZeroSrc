@@ -4,6 +4,8 @@
 
 # 🎯 ZeroMix
 
+[🇺🇸 English](README.md) | [🇮🇩 Indonesia](README.id.md)
+
 **The Ultimate Windows Suite for Performance & Aesthetics**
 
 [![GitHub Release](https://img.shields.io/github/v/release/faizinuha/ZeroMix?color=00D9FF&style=for-the-badge)](https://github.com/faizinuha/ZeroMix/releases)
@@ -155,18 +157,18 @@ The atmospheric experiences in ZeroMix are powered by beautiful visuals from the
 ---
 
 > [!IMPORTANT]
-> **Kebijakan Penghapusan (Removal Policy):** Jika Model ini tidak diperbolehkan untuk digunakan dalam aplikasi, mohon segera hubungi kami melalui Email: **Rozakadm@gmail.com**. Kami akan segera menghapus model tersebut untuk menghormati hak pemilik dan memastikan kenyamanan bagi semua pihak. Terima kasih.
+> **Removal Policy:** If this model is not permitted for use in the application, please contact us immediately via email: **Rozakadm@gmail.com**. We will immediately remove the model to respect the owner's rights and ensure the comfort of all parties. Thank you.
 
 > [!NOTE]
-> Jika ingin mendownload model, harap gunakan **situs resmi yang telah kami sediakan**. Mohon hargai kerja keras pembuat model. Jangan menggunakan model ini untuk **komersial atau dijual tanpa izin**. Terima kasih atas pengertiannya! 🥰
+> If you wish to download the model, please use the **official website we have provided**. Please respect the hard work of the model creator. Do not use this model for **commercial purposes or sell it without permission**. Thank you for your understanding! 🥰
 
 > [!NOTE]
-> Penggunaan model ini sepenuhnya menjadi tanggung jawab pengguna.
-> Pengembang aplikasi tidak menyediakan izin komersial apa pun atas model ini dan hanya meneruskan ketentuan dari pembuat asli.
+> Use of this model is entirely the user's responsibility.
+> The application developer does not provide any commercial license for this model and only passes on the terms of the original creator.
 
 > [!WARNING]
-> Pengembang aplikasi tidak bertindak sebagai pemberi lisensi model.
-> Penggunaan yang melanggar ketentuan pembuat asli merupakan tanggung jawab pengguna.
+> The application developer does not act as the model's licensor.
+> Any use that violates the original creator's terms is the user's responsibility.
 
 ---
 
