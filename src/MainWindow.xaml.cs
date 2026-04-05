@@ -498,19 +498,6 @@ namespace ZeroMix
             shellItem.Click += (s, args) => ToggleZeroShell();
             contextMenu.Items.Add(shellItem);
 
-            var showTerminalItem = new ToolStripMenuItem("Show Terminal");
-            showTerminalItem.Name = "ShowTerminalItem";
-            showTerminalItem.Click += (s, args) => {
-                if (_zeroShellWindow != null) {
-                    _zeroShellWindow.Show();
-                    _zeroShellWindow.Activate();
-                    _zeroShellWindow.WindowState = WindowState.Normal;
-                } else {
-                    ToggleZeroShell();
-                }
-            };
-            contextMenu.Items.Add(showTerminalItem);
-
             contextMenu.Items.Add(new ToolStripSeparator());
             contextMenu.Items.Add("Exit", null, (s, args) => ExitApplication());
             _notifyIcon.ContextMenuStrip = contextMenu;
@@ -542,17 +529,10 @@ namespace ZeroMix
             if (_notifyIcon?.ContextMenuStrip != null)
             {
                 var enableItem = _notifyIcon.ContextMenuStrip.Items["EnableShellItem"] as ToolStripMenuItem;
-                var showItem = _notifyIcon.ContextMenuStrip.Items["ShowTerminalItem"] as ToolStripMenuItem;
-                
                 bool isEnabled = _zeroShellWindow != null;
-                
                 if (enableItem != null) {
                     enableItem.Checked = isEnabled;
                     enableItem.Text = isEnabled ? "ZeroShell (Enabled)" : "Enable ZeroShell";
-                }
-                
-                if (showItem != null) {
-                    showItem.Enabled = isEnabled;
                 }
             }
         }
