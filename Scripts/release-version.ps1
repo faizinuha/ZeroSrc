@@ -106,11 +106,52 @@ if ($gitStatus) {
 }
 
 # ============================================================================
-# STEP 3: UPDATE CHANGELOG (auto-generate dari git commits)
+# STEP 3: UPDATE CHANGELOG (smart auto-detect dari commit + changed files)
 # ============================================================================
 
 Write-Host ""
-Write-Host "📝 Step 3: Updating CHANGELOG from git commits..." -ForegroundColor Yellow
+Write-Host "📝 Step 3: Auto-generating CHANGELOG from commits & changed files..." -ForegroundColor Yellow
+
+# ── Mapping: folder/file → kategori & label ──────────────────────────────
+function Get-FileCategory {
+    param([string]$FilePath)
+
+    $f = $FilePath.ToLower() -replace '\\', '/'
+
+    # Skip file yang tidak perlu masuk changelog
+    if ($f -match '(changelog|\.md$|\.gitignore|\.gitattributes|obj/|bin/|\.cache$|\.user$)') {
+        return $null
+    }
+
+    # Features — UI, fitur baru, plugin, assistant
+    if ($f -match '^src/mainwindow\.xaml$')           { return @{ Cat = "feat"; Label = "Updated main UI layout" } }
+    if ($f -match '^src/mainwindow\.xaml\.cs$')        { return @{ Cat = "feat"; Label = "Updated main window logic" } }
+    if ($f -match '^src/')                             { return @{ Cat = "feat"; Label = "Updated source: $FilePath" } }
+    if ($f -match '^plugins/')                         { return @{ Cat = "feat"; Label = "Updated plugin: $FilePath" } }
+    if ($f -match '^virtual_assisten/')                { return @{ Cat = "feat"; Label = "Updated Virtual Assistant" } }
+    if ($f -match '^wallpapers/')                      { return @{ Cat = "feat"; Label = "Updated Wallpapers module" } }
+    if ($f -match '^widgets/')                         { return @{ Cat = "feat"; Label = "Updated Widgets" } }
+    if ($f -match '^studio/')                          { return @{ Cat = "feat"; Label = "Updated Studio module" } }
+    if ($f -match '^onboarding/')                      { return @{ Cat = "feat"; Label = "Updated Onboarding flow" } }
+    if ($f -match '^search/')                          { return @{ Cat = "feat"; Label = "Updated Search module" } }
+    if ($f -match '^assets/')                          { return @{ Cat = "feat"; Label = "Updated assets/resources" } }
+
+    # Bug Fixes — recorder, hotkeys, sleep, transparan
+    if ($f -match '^recorder/')                        { return @{ Cat = "fix"; Label = "Fixed Recorder module" } }
+    if ($f -match '^hotkeys/')                         { return @{ Cat = "fix"; Label = "Fixed Hotkeys" } }
+    if ($f -match '^sleepmode/')                       { return @{ Cat = "fix"; Label = "Fixed Sleep Mode" } }
+    if ($f -match '^transparan/')                      { return @{ Cat = "fix"; Label = "Fixed Transparent Taskbar" } }
+    if ($f -match '^tools/')                           { return @{ Cat = "fix"; Label = "Fixed Tools: $FilePath" } }
+
+    # Changes — scripts, build, config, exe
+    if ($f -match '^scripts/')                         { return @{ Cat = "chore"; Label = "Updated script: $FilePath" } }
+    if ($f -match '^\.github/')                        { return @{ Cat = "chore"; Label = "Updated CI/CD workflow" } }
+    if ($f -match '\.csproj$|\.sln$')                 { return @{ Cat = "chore"; Label = "Updated project config" } }
+    if ($f -match '^exe/')                             { return @{ Cat = "chore"; Label = "Updated installer config" } }
+    if ($f -match 'config\.json$|appsettings')        { return @{ Cat = "chore"; Label = "Updated app config" } }
+
+    return $null
+}
 
 $changelogPath = "Docs/CHANGELOG.md"
 if (Test-Path $changelogPath) {
@@ -118,62 +159,81 @@ if (Test-Path $changelogPath) {
         $changelog = Get-Content $changelogPath -Raw
         $date = Get-Date -Format "yyyy-MM-dd"
 
-        # Ambil tag sebelumnya untuk range commit
+        # Ambil tag sebelumnya
         $prevTag = git describe --tags --abbrev=0 HEAD 2>$null
-        if ([string]::IsNullOrEmpty($prevTag)) {
-            $commitRange = "HEAD"
-        } else {
-            $commitRange = "$prevTag..HEAD"
-        }
+        $commitRange = if ([string]::IsNullOrEmpty($prevTag)) { "HEAD" } else { "$prevTag..HEAD" }
 
-        # Ambil semua commit dalam range
+        # ── Kumpulkan dari commit messages ────────────────────────────────
         $commits = git log $commitRange --pretty=format:"%s" 2>$null | Where-Object { $_ -ne "" }
 
-        # Kategorikan berdasarkan prefix konvensional
-        $features  = @()
-        $fixes     = @()
-        $changes   = @()
-        $others    = @()
+        $features = @()
+        $fixes    = @()
+        $changes  = @()
 
         foreach ($msg in $commits) {
-            $clean = $msg -replace '^(feat|fix|chore|refactor|perf|style|docs|test|ci|build)\([^)]*\):\s*', '' `
-                          -replace '^(feat|fix|chore|refactor|perf|style|docs|test|ci|build):\s*', ''
-            $clean = $clean.Substring(0,1).ToUpper() + $clean.Substring(1)
+            # Skip noise
+            if ($msg -match '^Merge|^bump version|^v\d|^Docs/CHANGELOG') { continue }
 
-            if ($msg -match '^feat') {
+            $clean = $msg -replace '^(feat|fix|chore|refactor|perf|style|docs|test|ci|build)\s*(\([^)]*\))?\s*:?\s*', ''
+            if ($clean.Length -gt 0) { $clean = $clean.Substring(0,1).ToUpper() + $clean.Substring(1) }
+            if ([string]::IsNullOrWhiteSpace($clean)) { continue }
+
+            if ($msg -match '^feat')                                          { $features += "- $clean" }
+            elseif ($msg -match '^fix')                                       { $fixes    += "- $clean" }
+            elseif ($msg -match '^(chore|refactor|perf|style|docs|test|ci|build)') { $changes += "- $clean" }
+            else {
+                # Tidak ada prefix → masuk ke features (asumsi penambahan)
                 $features += "- $clean"
-            } elseif ($msg -match '^fix') {
-                $fixes += "- $clean"
-            } elseif ($msg -match '^(chore|refactor|perf|style|docs|test|ci|build)') {
-                $changes += "- $clean"
-            } else {
-                # Commit tanpa prefix tetap masuk ke changes
-                if ($msg -notmatch '^Merge' -and $msg -notmatch '^bump version') {
-                    $others += "- $msg"
+            }
+        }
+
+        # ── Auto-detect dari file yang berubah (git diff) ─────────────────
+        $changedFiles = git diff --name-only $commitRange 2>$null
+        if (-not $changedFiles) {
+            # Fallback: staged files
+            $changedFiles = git diff --name-only HEAD 2>$null
+        }
+
+        $detectedLabels = @{ feat = @(); fix = @(); chore = @() }
+
+        foreach ($file in $changedFiles) {
+            $cat = Get-FileCategory -FilePath $file
+            if ($cat -ne $null) {
+                $label = "- $($cat.Label)"
+                # Hindari duplikat label yang sama
+                if (-not $detectedLabels[$cat.Cat].Contains($label)) {
+                    $detectedLabels[$cat.Cat] += $label
                 }
             }
         }
 
-        # Fallback kalau kosong
-        if ($features.Count -eq 0) { $features  = @("- No new features") }
-        if ($fixes.Count -eq 0)    { $fixes     = @("- No bug fixes") }
-        if ($changes.Count -eq 0 -and $others.Count -eq 0) { $changes = @("- Version bump to $NewVersion") }
+        # Merge: commit message lebih prioritas, file-detect sebagai tambahan
+        foreach ($l in $detectedLabels["feat"]) {
+            if (-not ($features -contains $l)) { $features += $l }
+        }
+        foreach ($l in $detectedLabels["fix"]) {
+            if (-not ($fixes -contains $l)) { $fixes += $l }
+        }
+        foreach ($l in $detectedLabels["chore"]) {
+            if (-not ($changes -contains $l)) { $changes += $l }
+        }
 
-        $featuresStr = $features -join "`n"
-        $fixesStr    = $fixes -join "`n"
-        $changesStr  = ($changes + $others) -join "`n"
+        # Fallback kalau semua kosong
+        if ($features.Count -eq 0) { $features = @("- No new features") }
+        if ($fixes.Count -eq 0)    { $fixes    = @("- No bug fixes") }
+        if ($changes.Count -eq 0)  { $changes  = @("- Version bump to $NewVersion") }
 
         $newEntry = @"
 ## [v$NewVersion] - $date
 
 ### ✨ Features
-$featuresStr
+$($features -join "`n")
 
 ### 🐛 Bug Fixes
-$fixesStr
+$($fixes -join "`n")
 
 ### 🔧 Changes
-$changesStr
+$($changes -join "`n")
 
 ---
 
@@ -181,11 +241,11 @@ $changesStr
 
         if ($changelog -match '(?s)(# ZeroMix - Changelog.*?---\s*)(.*)') {
             $header = $matches[1]
-            $rest = $matches[2]
-            $newChangelog = $header + "`n" + $newEntry + $rest
-            Set-Content -Path $changelogPath -Value $newChangelog -NoNewline
-            Write-Host "  ✅ CHANGELOG updated with $($commits.Count) commits" -ForegroundColor Green
-            Write-Host "  📋 Features: $($features.Count) | Fixes: $($fixes.Count) | Changes: $($changes.Count + $others.Count)" -ForegroundColor Cyan
+            $rest   = $matches[2]
+            Set-Content -Path $changelogPath -Value ($header + "`n" + $newEntry + $rest) -NoNewline
+            Write-Host "  ✅ CHANGELOG generated!" -ForegroundColor Green
+            Write-Host "  📋 Features: $($features.Count) | Fixes: $($fixes.Count) | Changes: $($changes.Count)" -ForegroundColor Cyan
+            Write-Host "  📁 Files scanned: $($changedFiles.Count) changed files" -ForegroundColor Cyan
             $updatedFiles += $changelogPath
         } else {
             Write-Host "  ⚠️  Could not parse CHANGELOG format" -ForegroundColor Yellow

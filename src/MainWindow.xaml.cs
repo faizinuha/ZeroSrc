@@ -43,7 +43,7 @@ namespace ZeroMix
     
     public partial class MainWindow : Window, ZeroMix.Plugins.IZeroMixHost
     {
-        private const string CURRENT_VERSION = "5.2.2";
+        private const string CURRENT_VERSION = "5.2.3";
         
         // Windows API for Taskbar transparency
         [DllImport("user32.dll", SetLastError = true)]
@@ -341,6 +341,9 @@ namespace ZeroMix
                 }
                 catch { }
             });
+
+            // Silent update check di background
+            _ = CheckUpdateSilentAsync();
 
             // Handle Startup Args (Toggle Plugins via Shortcut)
             if (_startupArgs != null && _startupArgs.Length >= 2 && _startupArgs[0] == "--plugin")
@@ -1899,6 +1902,33 @@ end";
             }
         }
 
+        private async Task CheckUpdateSilentAsync()
+        {
+            try
+            {
+                await Task.Delay(3000); // Tunggu app fully loaded
+                using var client = new HttpClient();
+                client.DefaultRequestHeaders.Add("User-Agent", "ZeroMix-Updater");
+                client.Timeout = TimeSpan.FromSeconds(10);
+
+                var response = await client.GetStringAsync("https://api.github.com/repos/faizinuha/ZeroMix/releases/latest");
+                using var doc = JsonDocument.Parse(response);
+                string latestVersion = doc.RootElement.GetProperty("tag_name").GetString()?.Replace("v", "") ?? "0.0.0";
+
+                if (IsNewerVersion(latestVersion, CURRENT_VERSION))
+                {
+                    Dispatcher.Invoke(() =>
+                    {
+                        if (UpdateBadge != null) UpdateBadge.Visibility = Visibility.Visible;
+                        if (SidebarUpdateDot != null) SidebarUpdateDot.Visibility = Visibility.Visible;
+                        if (SidebarUpdateBadge != null) SidebarUpdateBadge.Visibility = Visibility.Visible;
+                        StatusLabel.Text = $"Update v{latestVersion} tersedia!";
+                    });
+                }
+            }
+            catch { /* Silent fail, no internet or API limit */ }
+        }
+
         private async void CheckUpdateBtn_Click(object sender, RoutedEventArgs e)
         {
             CheckUpdateBtn.IsEnabled = false;
@@ -1923,6 +1953,9 @@ end";
                         if (IsNewerVersion(latestVersion, CURRENT_VERSION))
                         {
                             UpdateBadge.Visibility = Visibility.Visible;
+                            // Tampilkan badge di sidebar
+                            if (SidebarUpdateDot != null) SidebarUpdateDot.Visibility = Visibility.Visible;
+                            if (SidebarUpdateBadge != null) SidebarUpdateBadge.Visibility = Visibility.Visible;
                             var result = System.Windows.MessageBox.Show(
                                 $"Versi baru tersedia: v{latestVersion}\n\nApakah Kakak ingin download sekarang?", 
                                 "ZeroMix Update", 
