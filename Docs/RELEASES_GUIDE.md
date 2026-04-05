@@ -6,6 +6,21 @@ Panduan lengkap untuk merilis versi baru ZeroMix ke GitHub Releases.
 
 ### Cara Paling Mudah (Otomatis)
 
+```
+
+💡 Ringkasan Cepat
+Jenis Perubahan	Versi (Contoh)	Tipe Commit
+Perbaikan Bug	5.2.1 → 5.2.2	fix:
+Fitur Baru	5.2.1 → 5.3.0	feat:
+Perubahan Besar (Rusak)	5.2.1 → 6.0.0	feat!: atau fix!:
+
+Contoh Alur Penomoran:
+5.3.0-alpha.1 (Coba fitur baru)
+5.3.0-beta.1 (Tes ke komunitas)
+5.3.0-rc.1 (Persiapan rilis)
+5.3.0 (Rilis Resmi )
+```
+
 ```bash
 # Dari root project
 .\Scripts\release-version.bat 5.2.1

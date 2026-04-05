@@ -334,8 +334,51 @@
 
                                 <Button x:Name="AboutButton" Style="{StaticResource NavButtonStyle}" Click="AboutButton_Click">
                                     <StackPanel Orientation="Horizontal">
-                                        <TextBlock x:Name="IconAbout" Text="&#xE946;" FontFamily="Segoe MDL2 Assets" FontSize="20" Width="30" Margin="0,0,15,0" Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" VerticalAlignment="Center"/>
-                                        <TextBlock x:Name="NavTextAbout" Text="System Info" VerticalAlignment="Center"/>
+                                        <!-- Icon + Update Badge -->
+                                        <Grid Width="30" Margin="0,0,15,0" VerticalAlignment="Center">
+                                            <TextBlock x:Name="IconAbout" Text="&#xE946;" FontFamily="Segoe MDL2 Assets" FontSize="20"
+                                                       Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"
+                                                       VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                                            <!-- Update dot badge -->
+                                            <Ellipse x:Name="SidebarUpdateDot"
+                                                     Width="8" Height="8"
+                                                     Fill="#FF4D4D"
+                                                     HorizontalAlignment="Right"
+                                                     VerticalAlignment="Top"
+                                                     Margin="0,0,-2,-2"
+                                                     Visibility="Collapsed">
+                                                <Ellipse.Style>
+                                                    <Style TargetType="Ellipse">
+                                                        <Style.Triggers>
+                                                            <Trigger Property="Visibility" Value="Visible">
+                                                                <Trigger.EnterActions>
+                                                                    <BeginStoryboard>
+                                                                        <Storyboard RepeatBehavior="Forever" AutoReverse="True">
+                                                                            <DoubleAnimation Storyboard.TargetProperty="Opacity"
+                                                                                             From="1" To="0.3"
+                                                                                             Duration="0:0:1"/>
+                                                                        </Storyboard>
+                                                                    </BeginStoryboard>
+                                                                </Trigger.EnterActions>
+                                                            </Trigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </Ellipse.Style>
+                                            </Ellipse>
+                                        </Grid>
+                                        <StackPanel Orientation="Horizontal">
+                                            <TextBlock x:Name="NavTextAbout" Text="System Info" VerticalAlignment="Center"/>
+                                            <!-- Update text badge (visible saat sidebar expanded) -->
+                                            <Border x:Name="SidebarUpdateBadge"
+                                                    Background="#FF4D4D"
+                                                    CornerRadius="4"
+                                                    Padding="5,1"
+                                                    Margin="8,0,0,0"
+                                                    Visibility="Collapsed"
+                                                    VerticalAlignment="Center">
+                                                <TextBlock Text="UPDATE" FontSize="8" FontWeight="Bold" Foreground="White"/>
+                                            </Border>
+                                        </StackPanel>
                                     </StackPanel>
                                 </Button>
                             </StackPanel>
