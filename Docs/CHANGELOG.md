@@ -18,6 +18,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 
+
+## [v5.2.2] - 2026-04-05
+
+### ✨ Features
+- Something
+
+### 🐛 Bug Fixes
+- No bug fixes
+
+### 🔧 Changes
+- Version bump to 5.2.2
+
+---
 ## [v5.2.1] - 2026-04-04
 
 ### ✨ Features
