@@ -14,6 +14,15 @@ Perbaikan Bug	5.2.3 → 5.2.2	fix:
 Fitur Baru	5.2.3 → 5.3.0	feat:
 Perubahan Besar (Rusak)	5.2.3 → 6.0.0	feat!: atau fix!:
 
+# Rilis biasa
+.\Scripts\release-version.ps1 -NewVersion 5.2.3 -CommitMessage "Update version 5.2.3"
+
+# Kalau ada fitur spesifik yang mau keliatan di changelog
+.\Scripts\release-version.ps1 -NewVersion 5.2.3 -CommitMessage "feat: tambah settings page dan tweaks"
+
+# Fix tanpa naik versi
+.\Scripts\release-version.ps1 -NewVersion 5.2.3 -CommitMessage "fix: crash saat buka plugin" -ForceBuild
+
 Contoh Alur Penomoran:
 5.3.0-alpha.1 (Coba fitur baru)
 5.3.0-beta.1 (Tes ke komunitas)
