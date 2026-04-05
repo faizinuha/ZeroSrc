@@ -6,6 +6,20 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) | [Semantic Ver
 ---
 
 
+
+## [v5.2.3] - 2026-04-05
+
+### ✨ Features
+- Updated main UI layout
+
+### 🐛 Bug Fixes
+- No bug fixes
+
+### 🔧 Changes
+- Updated script: Scripts/release-version.bat
+- Updated script: Scripts/release-version.ps1
+
+---
 ## [v5.2.3] - 2026-04-05
 
 ### ✨ Features
@@ -40,7 +54,7 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) | [Semantic Ver
 
 ---
 
-## [v5.2.1] - 2026-04-04
+## [v5.2.3] - 2026-04-04
 
 ### ✨ Features
 - Publish SDK to NuGet.org

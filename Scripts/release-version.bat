@@ -1,11 +1,11 @@
 @echo off
 REM ZeroMix Version Release - Batch Wrapper
-REM Usage: release-version.bat 5.2.1
+REM Usage: release-version.bat 5.2.3
 
 if "%~1"=="" (
     echo.
     echo Usage: release-version.bat [VERSION]
-    echo Example: release-version.bat 5.2.1
+    echo Example: release-version.bat 5.2.3
     echo.
     pause
     exit /b 1
