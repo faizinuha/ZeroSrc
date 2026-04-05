@@ -14,16 +14,16 @@ Kumpulan script automation untuk development dan release ZeroMix.
 
 ```bash
 # Cara termudah (Windows)
-.\Scripts\release-version.bat 5.2.1
+.\Scripts\release-version.bat 5.2.3
 
 # Atau dengan PowerShell
-.\Scripts\release-version.ps1 -NewVersion 5.2.1
+.\Scripts\release-version.ps1 -NewVersion 5.2.3
 
 # Dengan custom commit message
-.\Scripts\release-version.ps1 -NewVersion 5.2.1 -CommitMessage "feat: new features"
+.\Scripts\release-version.ps1 -NewVersion 5.2.3 -CommitMessage "feat: new features"
 
 # Preview saja (tidak push)
-.\Scripts\release-version.ps1 -NewVersion 5.2.1 -SkipPush
+.\Scripts\release-version.ps1 -NewVersion 5.2.3 -SkipPush
 ```
 
 **Apa yang dilakukan:**
@@ -32,12 +32,12 @@ Kumpulan script automation untuk development dan release ZeroMix.
 3. ✅ Update versi di `ZeroMix.csproj`
 4. ✅ Update CHANGELOG.md dengan entry baru
 5. ✅ Git commit semua perubahan
-6. ✅ Create git tag `v5.2.1`
+6. ✅ Create git tag `v5.2.3`
 7. ✅ Push commit & tag ke GitHub
 8. ✅ Trigger GitHub Actions workflow
 
 **Output:**
-- Tag baru di GitHub: `v5.2.1`
+- Tag baru di GitHub: `v5.2.3`
 - GitHub Release otomatis dengan installer & portable ZIP
 - Workflow monitoring link
 
@@ -104,10 +104,10 @@ zeromix-update.bat
 
 ```bash
 # 1. Test build lokal
-.\build\build-sign-release.ps1 -Version 5.2.1 -SkipUpload
+.\build\build-sign-release.ps1 -Version 5.2.3 -SkipUpload
 
 # 2. Jika OK, release ke GitHub
-.\Scripts\release-version.bat 5.2.1
+.\Scripts\release-version.bat 5.2.3
 
 # 3. Monitor workflow
 # Buka: https://github.com/[user]/[repo]/actions
@@ -132,7 +132,7 @@ dir Exe\ZeroMixCert.pfx
 
 ```bash
 # Langsung release tanpa banyak testing
-.\Scripts\release-version.ps1 -NewVersion 5.2.1 -CommitMessage "hotfix: critical bug"
+.\Scripts\release-version.ps1 -NewVersion 5.2.3 -CommitMessage "hotfix: critical bug"
 ```
 
 ---
@@ -149,10 +149,10 @@ dir Exe\ZeroMixCert.pfx
 
 ```powershell
 # Test dengan -WhatIf (dry run)
-.\Scripts\release-version.ps1 -NewVersion 5.2.1 -SkipPush -WhatIf
+.\Scripts\release-version.ps1 -NewVersion 5.2.3 -SkipPush -WhatIf
 
 # Test dengan -Verbose
-.\Scripts\release-version.ps1 -NewVersion 5.2.1 -Verbose
+.\Scripts\release-version.ps1 -NewVersion 5.2.3 -Verbose
 ```
 
 ---
@@ -186,11 +186,11 @@ git config --global user.email "your@email.com"
 
 ```bash
 # Hapus tag lokal & remote
-git tag -d v5.2.1
-git push origin :refs/tags/v5.2.1
+git tag -d v5.2.3
+git push origin :refs/tags/v5.2.3
 
 # Buat ulang
-.\Scripts\release-version.bat 5.2.1
+.\Scripts\release-version.bat 5.2.3
 ```
 
 ---
