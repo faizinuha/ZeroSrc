@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.Windows.Threading;
 using Microsoft.Win32;
 using ZeroMix.Hotkeys;
+using System.Threading;
 
 namespace ZeroMix
 {
@@ -14,7 +15,13 @@ namespace ZeroMix
     {
         public static HotkeyCore? HotkeyCoreInstance { get; private set; }
         private DispatcherTimer? _memoryTimer;
+        private static Mutex? _mutex;
 
+        [DllImport("user32.dll")]
+        private static extern bool SetForegroundWindow(IntPtr hWnd);
+
+        [DllImport("user32.dll")]
+        private static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
 
         [DllImport("kernel32.dll", EntryPoint = "SetProcessWorkingSetSize")]
         internal static extern int SetProcessWorkingSetSize(IntPtr process, int minimumWorkingSetSize, int maximumWorkingSetSize);
@@ -24,6 +31,26 @@ namespace ZeroMix
 
         protected override void OnStartup(StartupEventArgs e)
         {
+            // ── Single Instance Guard ─────────────────────────────────────
+            _mutex = new Mutex(true, "ZeroMix_SingleInstance", out bool isNewInstance);
+            if (!isNewInstance)
+            {
+                // Sudah ada instance yang jalan — bring to front lalu exit
+                var existing = Process.GetProcessesByName(
+                    Path.GetFileNameWithoutExtension(Process.GetCurrentProcess().MainModule?.FileName ?? "ZeroMix"));
+                foreach (var p in existing)
+                {
+                    if (p.Id != Process.GetCurrentProcess().Id)
+                    {
+                        ShowWindow(p.MainWindowHandle, 9); // SW_RESTORE
+                        SetForegroundWindow(p.MainWindowHandle);
+                        break;
+                    }
+                }
+                Shutdown();
+                return;
+            }
+
             base.OnStartup(e);
             
             // Pastikan folder AppData/ZeroMix ada
@@ -180,6 +207,13 @@ namespace ZeroMix
                 }
             }
             catch { }
+        }
+
+        protected override void OnExit(ExitEventArgs e)
+        {
+            _mutex?.ReleaseMutex();
+            _mutex?.Dispose();
+            base.OnExit(e);
         }
     }
 }

@@ -85,10 +85,16 @@ Setelah install, cari ikon ⚡ di system tray. ZeroMix akan minta izin untuk ber
 | `Ctrl + R` | Refresh System Metrics |
 | `Esc` | Tutup overlay aktif |
 
+---
+
+
+```
 **Ask AI (di Search Overlay):**
+
 - `Carikan sepatu murah` → otomatis buka pencarian
 - `Carikan baju di Tokopedia` → otomatis buka Tokopedia
 - `Carikan HP murah di Shopee` → otomatis buka Shopee
+```
 
 ---
 
