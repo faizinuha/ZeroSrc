@@ -75,26 +75,21 @@ Setelah install, cari ikon ⚡ di system tray. ZeroMix akan minta izin untuk ber
 
 ---
 
-## Keyboard Shortcuts
+## ⌨️ Keyboard Shortcuts
 
-| Shortcut | Aksi |
+| Shortcut | Action |
 | :--- | :--- |
 | `Alt + S` | Toggle Fake Sleep Mode |
-| `Ctrl + Space` | Buka Search Overlay |
-| `Ctrl + Q` | Toggle Dashboard |
-| `Ctrl + R` | Refresh System Metrics |
-| `Esc` | Tutup overlay aktif |
+| `Ctrl + Space` | Open Search Overlay |
+| `Ctrl + Q` | Toggle Main Dashboard |
+| `Ctrl + R` | Force Refresh System Metrics |
+| `Esc` | Close Active Overlay/Window |
 
+| Key | Ask AI |
+| Carikan saya sepatu yang murah -> otomatis buka 
+| Carikan saya bajuu yang murah di tokopedia -> otomatis buka Tokopedia
+| Carikan saya Handphone yang murah di Shoppe -> otomatis buka Shoppe
 ---
-
-
-```
-**Ask AI (di Search Overlay):**
-
-- `Carikan sepatu murah` → otomatis buka pencarian
-- `Carikan baju di Tokopedia` → otomatis buka Tokopedia
-- `Carikan HP murah di Shopee` → otomatis buka Shopee
-```
 
 ---
 

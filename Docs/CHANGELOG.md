@@ -9,6 +9,24 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) | [Semantic Ver
 
 
 
+
+## [v5.2.3] - 2026-04-06
+
+### ✨ Features
+- No new features
+
+### 🐛 Bug Fixes
+- No bug fixes
+
+### 🔧 Changes
+- Rebuilt: Scripts/release-version.ps1
+- Rebuilt: src/SleepMode/SleepOverlayWindow.xaml
+- Rebuilt: src/SleepMode/SleepOverlayWindow.xaml.cs
+- Rebuilt: src/SleepMode/SleepSettingsModel.cs
+- Rebuilt: src/SleepMode/SleepSettingsWindow.xaml
+- Rebuilt: src/SleepMode/SleepSettingsWindow.xaml.cs
+
+---
 ## [v5.2.3] - 2026-04-05
 
 ### ✨ Features
