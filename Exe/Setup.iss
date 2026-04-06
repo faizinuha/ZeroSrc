@@ -14,7 +14,7 @@ VersionInfoProductVersion={#AppVersion}.0
 AppVerName=ZeroMix v{#AppVersion}
 AppPublisher=ZeroMix Team
 AppPublisherURL=https://zeromix.vercel.app
-AppCopyright=Copyright (c) 2025 - All Rights Reserved
+AppCopyright=Copyright (c) 2026 - All Rights Reserved
 
 ; --- Installation Path ---
 DefaultDirName={autopf}\ZeroMix

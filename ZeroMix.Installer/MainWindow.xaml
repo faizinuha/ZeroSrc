@@ -117,7 +117,7 @@
             </StackPanel>
 
             <!-- Footer -->
-            <TextBlock Grid.Row="2" Text="© 2025 ZeroMix Team · zeromix.vercel.app"
+            <TextBlock Grid.Row="2" Text="© 2026 ZeroMix Team · zeromix.vercel.app"
                        Foreground="#374151" FontSize="11" HorizontalAlignment="Center"
                        Margin="0,0,0,14"/>
         </Grid>

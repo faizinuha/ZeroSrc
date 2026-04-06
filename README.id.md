@@ -145,4 +145,4 @@ Setelah install, cari ikon ⚡ di system tray. ZeroMix akan minta izin untuk ber
 [![Trakteer](https://img.shields.io/badge/Trakteer-Support_Dev-red?style=flat-square)](https://trakteer.id/MyCici)
 [![Sociabuzz](https://img.shields.io/badge/Sociabuzz-Support_Dev-EE4B2B?style=flat-square)](https://sociabuzz.com/zuax)
 
-Dibuat dengan ❤️ oleh **Faizinuha** dan komunitas. **ZeroMix © 2025-2026**
+Dibuat dengan ❤️ oleh **Faizinuha** dan komunitas. **ZeroMix © 2026-2026**

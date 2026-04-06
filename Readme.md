@@ -189,6 +189,6 @@ The atmospheric experiences in ZeroMix are powered by beautiful visuals from the
 </a>
 
 Made with ❤️ by **Faizinuha** and the community.
-**ZeroMix © 2025-2026**
+**ZeroMix © 2026-2026**
 
 </div>
