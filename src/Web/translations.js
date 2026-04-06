@@ -123,8 +123,8 @@ const translations = {
     '🐛 Lapor Bug': '🐛 Lapor Bug',
 
     // Footer
-    '© 2025 ZeroMix Project – Dibuat dengan ❤️ oleh Zaki':
-      '© 2025 ZeroMix Project – Dibuat dengan ❤️ oleh Zaki',
+    '© 2026 ZeroMix Project – Dibuat dengan ❤️ oleh Zaki':
+      '© 2026 ZeroMix Project – Dibuat dengan ❤️ oleh Zaki',
     '🤫 Psst... Terima kasih sudah scroll sampai sini. Kamu luar biasa! 💖':
       '🤫 Psst... Terima kasih sudah scroll sampai sini. Kamu luar biasa! 💖',
   },
@@ -252,8 +252,8 @@ const translations = {
     '🐛 Lapor Bug': '🐛 Report Bug',
 
     // Footer
-    '© 2025 ZeroMix Project – Dibuat dengan ❤️ oleh Zaki':
-      '© 2025 ZeroMix Project – Made with ❤️ by Zaki',
+    '© 2026 ZeroMix Project – Dibuat dengan ❤️ oleh Zaki':
+      '© 2026 ZeroMix Project – Made with ❤️ by Zaki',
     '🤫 Psst... Terima kasih sudah scroll sampai sini. Kamu luar biasa! 💖':
       '🤫 Psst... Thanks for scrolling this far. You are amazing! 💖',
   },

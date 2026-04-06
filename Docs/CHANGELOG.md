@@ -16,10 +16,10 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) | [Semantic Ver
 - No new features
 
 ### 🐛 Bug Fixes
-- Memperbaiki Bugs
+- No bug fixes
 
 ### 🔧 Changes
-- Rebuilt: Scripts/release-version.ps1
+- Force rebuild v5.2.3
 
 ---
 ## [v5.2.3] - 2026-04-06
@@ -28,10 +28,10 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) | [Semantic Ver
 - No new features
 
 ### 🐛 Bug Fixes
-- Memperbaiki Bugs
+- No bug fixes
 
 ### 🔧 Changes
-- Rebuilt: Scripts/release-version.ps1
+- Force rebuild v5.2.3
 
 ---
 ## [v5.2.3] - 2026-04-06
@@ -40,10 +40,10 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) | [Semantic Ver
 - No new features
 
 ### 🐛 Bug Fixes
-- Memperbaiki Bugs
+- No bug fixes
 
 ### 🔧 Changes
-- Rebuilt: Scripts/release-version.ps1
+- Force rebuild v5.2.3
 
 ---
 ## [v5.2.3] - 2026-04-06
@@ -52,10 +52,10 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) | [Semantic Ver
 - No new features
 
 ### 🐛 Bug Fixes
-- Memperbaiki Bugs
+- No bug fixes
 
 ### 🔧 Changes
-- Rebuilt: Scripts/release-version.ps1
+- Force rebuild v5.2.3
 
 ---
 ## [v5.2.3] - 2026-04-06
@@ -64,10 +64,10 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) | [Semantic Ver
 - No new features
 
 ### 🐛 Bug Fixes
-- Memperbaiki Bugs
+- No bug fixes
 
 ### 🔧 Changes
-- Rebuilt: Scripts/release-version.ps1
+- Force rebuild v5.2.3
 
 ---
 ## [v5.2.2] - 2026-04-05
@@ -94,10 +94,10 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) | [Semantic Ver
 - No new features
 
 ### 🐛 Bug Fixes
-- Memperbaiki Bugs
+- No bug fixes
 
 ### 🔧 Changes
-- Rebuilt: Scripts/release-version.ps1
+- Force rebuild v5.2.3
 
 ---
 ## [v5.1.9] - 2026-04-03
