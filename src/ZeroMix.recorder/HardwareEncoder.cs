@@ -247,10 +247,11 @@ namespace ZeroMix.Recorder
                 audioCodecArgs = "-c:a aac -b:a 128k";
             }
 
+            // CRITICAL FIX: Add -vsync cfr to prevent frame timing issues that cause black video
             string args = $"-f rawvideo -pixel_format bgra -video_size {_width}x{_height} " +
                           $"-framerate {_framerate} -i - " +
                           $"{audioInputs.Trim()} " +
-                          $"{encoderArgs} -pix_fmt yuv420p -r {_framerate} {mapArgs} {audioCodecArgs.Trim()} -y \"{_outputPath}\"";
+                          $"{encoderArgs} -pix_fmt yuv420p -vsync cfr -r {_framerate} {mapArgs} {audioCodecArgs.Trim()} -y \"{_outputPath}\"";
 
             Console.WriteLine($"[HardwareEncoder] FINAL COMMAND: {_ffmpegPath} {args}");
 
@@ -337,12 +338,12 @@ namespace ZeroMix.Recorder
                             // Retry with libx264 - but PREVENT INFINITE RECURSION
                             _encoder = "libx264";
                             
-                            // Re-init arguments for libx264
+                            // Re-init arguments for libx264 with vsync cfr
                             string fallbackEncoderArgs = "-c:v libx264 -preset ultrafast -crf 23 -threads 4";
                             string fallbackArgs = $"-f rawvideo -pixel_format bgra -video_size {_width}x{_height} " +
                                                 $"-framerate {_framerate} -i - " +
                                                 $"{audioInputs.Trim()} " +
-                                                $"{fallbackEncoderArgs} -pix_fmt yuv420p -r {_framerate} {mapArgs} {audioCodecArgs.Trim()} -y \"{_outputPath}\"";
+                                                $"{fallbackEncoderArgs} -pix_fmt yuv420p -vsync cfr -r {_framerate} {mapArgs} {audioCodecArgs.Trim()} -y \"{_outputPath}\"";
                             
                             psi.Arguments = fallbackArgs;
                             _ffmpegProcess = Process.Start(psi);

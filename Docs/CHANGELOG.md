@@ -19,6 +19,7 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) | [Semantic Ver
 - Sleep Mode custom background + Check Update di tray
 
 ### 🐛 Bug Fixes
+- Bug Fixes Completed
 - Hotfix build rusak
 
 ### 🔧 Changes
@@ -26,6 +27,7 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) | [Semantic Ver
 - Rebuilt: Scripts/release-version.ps1
 - Rebuilt: ZeroMix.csproj
 - Rebuilt: src/MainWindow.xaml.cs
+- Rebuilt: src/Search/SearchOverlay.xaml
 - Rebuilt: src/SleepMode/SleepOverlayWindow.xaml
 - Rebuilt: src/SleepMode/SleepOverlayWindow.xaml.cs
 - Rebuilt: src/SleepMode/SleepSettingsModel.cs
