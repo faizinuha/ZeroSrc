@@ -11,7 +11,7 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) | [Semantic Ver
 
 
 
-## [v5.2.5] - 2026-04-06
+## [v5.2.5] - 2026-04-07
 
 ### ✨ Features
 - Sleep Mode custom background + Check Update di tray
@@ -19,6 +19,7 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) | [Semantic Ver
 - Sleep Mode custom background + Check Update di tray
 
 ### 🐛 Bug Fixes
+- Memperbaiki Beberapa Bugs
 - Bug Fixes Completed
 - Hotfix build rusak
 
@@ -26,13 +27,16 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) | [Semantic Ver
 - Rebuilt: Exe/Setup.iss
 - Rebuilt: Scripts/release-version.ps1
 - Rebuilt: ZeroMix.csproj
+- Rebuilt: src/MainWindow.xaml
 - Rebuilt: src/MainWindow.xaml.cs
 - Rebuilt: src/Search/SearchOverlay.xaml
+- Rebuilt: src/Search/SearchOverlay.xaml.cs
 - Rebuilt: src/SleepMode/SleepOverlayWindow.xaml
 - Rebuilt: src/SleepMode/SleepOverlayWindow.xaml.cs
 - Rebuilt: src/SleepMode/SleepSettingsModel.cs
 - Rebuilt: src/SleepMode/SleepSettingsWindow.xaml
 - Rebuilt: src/SleepMode/SleepSettingsWindow.xaml.cs
+- Rebuilt: src/ZeroMix.recorder/HardwareEncoder.cs
 
 ---
 ## [v5.2.3] - 2026-04-06
