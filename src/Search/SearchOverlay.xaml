@@ -155,9 +155,9 @@
     </Window.RenderTransform>
 
     <Border x:Name="MainBorder" 
-            Background="#D9121212" 
+            Background="#1C1C1E" 
             CornerRadius="12" 
-            BorderBrush="{StaticResource BorderBrush}" 
+            BorderBrush="#3A3A3C" 
             BorderThickness="1">
         <Border.Effect>
             <DropShadowEffect BlurRadius="40" ShadowDepth="10" Color="Black" Opacity="0.5" Direction="270"/>

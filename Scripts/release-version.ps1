@@ -160,9 +160,13 @@ if (Test-Path $changelogPath) {
         $changelog = Get-Content $changelogPath -Raw
         $date = Get-Date -Format "yyyy-MM-dd"
 
-        # Ambil tag sebelumnya
-        $prevTag = git describe --tags --abbrev=0 HEAD 2>$null
+        # Ambil tag sebelumnya — exclude tag HEAD saat ini
+        $prevTag = git describe --tags --abbrev=0 HEAD^ 2>$null
+        if ([string]::IsNullOrEmpty($prevTag)) {
+            $prevTag = git tag --sort=-version:refname 2>$null | Where-Object { $_ -ne "v$NewVersion" } | Select-Object -First 1
+        }
         $commitRange = if ([string]::IsNullOrEmpty($prevTag)) { "HEAD" } else { "$prevTag..HEAD" }
+        Write-Host "  📌 Commit range: $commitRange" -ForegroundColor Gray
 
         # ── Kumpulkan dari commit messages ────────────────────────────────
         $commits = git log $commitRange --pretty=format:"%s" 2>$null | Where-Object { $_ -ne "" }
