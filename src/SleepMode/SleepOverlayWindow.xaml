@@ -60,13 +60,16 @@
                 <Ellipse Width="4" Height="4" Fill="#44FFFFFF" HorizontalAlignment="Right" Margin="0,0,8,0"/>
                 <!-- Hour hand -->
                 <Line x:Name="HourHand" X1="80" Y1="80" X2="80" Y2="45"
-                      Stroke="#AAFFFFFF" StrokeThickness="3" StrokeLineCap="Round"/>
+                      Stroke="#AAFFFFFF" StrokeThickness="3"
+                      StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
                 <!-- Minute hand -->
                 <Line x:Name="MinuteHand" X1="80" Y1="80" X2="80" Y2="30"
-                      Stroke="#CCFFFFFF" StrokeThickness="2" StrokeLineCap="Round"/>
+                      Stroke="#CCFFFFFF" StrokeThickness="2"
+                      StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
                 <!-- Second hand -->
                 <Line x:Name="SecondHand" X1="80" Y1="80" X2="80" Y2="22"
-                      Stroke="#00D9FF" StrokeThickness="1" StrokeLineCap="Round"/>
+                      Stroke="#00D9FF" StrokeThickness="1"
+                      StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
                 <!-- Center dot -->
                 <Ellipse Width="8" Height="8" Fill="#00D9FF" HorizontalAlignment="Center" VerticalAlignment="Center"/>
             </Grid>

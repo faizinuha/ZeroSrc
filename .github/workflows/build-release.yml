@@ -258,21 +258,31 @@ jobs:
         $body | Out-File -FilePath "RELEASE_NOTES.md" -Encoding utf8
         Write-Host "✅ Release notes generated for $VER"
 
-    # ─── STEP 9: Upload semua ke GitHub Releases ────────────────────────────
-    - name: 🚀 Create GitHub Release
+    # ─── STEP 9: Buat Release entry dulu (selalu jalan, meski build gagal) ──
+    # Release dibuat lebih awal agar tag tetap terdaftar sebagai "latest"
+    - name: 🏷️ Create GitHub Release (always)
       uses: softprops/action-gh-release@v2
       with:
         tag_name: ${{ steps.version.outputs.tag }}
         name: ZeroMix ${{ steps.version.outputs.tag }}
         body_path: RELEASE_NOTES.md
+        draft: false
+        prerelease: false
+        make_latest: true
+        fail_on_unmatched_files: false
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    # ─── STEP 10: Upload assets (hanya jika file ada / build sukses) ─────────
+    - name: 📤 Upload Release Assets
+      uses: softprops/action-gh-release@v2
+      with:
+        tag_name: ${{ steps.version.outputs.tag }}
         files: |
           ZeroMix-v${{ steps.version.outputs.version }}-Installer.exe
           ZeroMix-v${{ steps.version.outputs.version }}-Setup.exe
           ZeroMix-v${{ steps.version.outputs.version }}-Portable.zip
           ZeroMix-Setup.zip
-        draft: false
-        prerelease: false
-        make_latest: true
         fail_on_unmatched_files: false
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
