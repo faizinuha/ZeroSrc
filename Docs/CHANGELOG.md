@@ -16,13 +16,10 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) | [Semantic Ver
 - No new features
 
 ### 🐛 Bug Fixes
-- No bug fixes
+- Memperbaiki Bugs
 
 ### 🔧 Changes
-- Rebuilt: .github/workflows/build-release.yml
-- Rebuilt: src/SleepMode/SleepOverlayWindow.xaml
-- Rebuilt: src/SleepMode/SleepOverlayWindow.xaml.cs
-- Rebuilt: src/SleepMode/SleepSettingsWindow.xaml.cs
+- Rebuilt: Scripts/release-version.ps1
 
 ---
 ## [v5.2.3] - 2026-04-06
@@ -31,13 +28,10 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) | [Semantic Ver
 - No new features
 
 ### 🐛 Bug Fixes
-- No bug fixes
+- Memperbaiki Bugs
 
 ### 🔧 Changes
-- Rebuilt: .github/workflows/build-release.yml
-- Rebuilt: src/SleepMode/SleepOverlayWindow.xaml
-- Rebuilt: src/SleepMode/SleepOverlayWindow.xaml.cs
-- Rebuilt: src/SleepMode/SleepSettingsWindow.xaml.cs
+- Rebuilt: Scripts/release-version.ps1
 
 ---
 ## [v5.2.3] - 2026-04-06
@@ -46,13 +40,10 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) | [Semantic Ver
 - No new features
 
 ### 🐛 Bug Fixes
-- No bug fixes
+- Memperbaiki Bugs
 
 ### 🔧 Changes
-- Rebuilt: .github/workflows/build-release.yml
-- Rebuilt: src/SleepMode/SleepOverlayWindow.xaml
-- Rebuilt: src/SleepMode/SleepOverlayWindow.xaml.cs
-- Rebuilt: src/SleepMode/SleepSettingsWindow.xaml.cs
+- Rebuilt: Scripts/release-version.ps1
 
 ---
 ## [v5.2.3] - 2026-04-06
@@ -61,13 +52,10 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) | [Semantic Ver
 - No new features
 
 ### 🐛 Bug Fixes
-- No bug fixes
+- Memperbaiki Bugs
 
 ### 🔧 Changes
-- Rebuilt: .github/workflows/build-release.yml
-- Rebuilt: src/SleepMode/SleepOverlayWindow.xaml
-- Rebuilt: src/SleepMode/SleepOverlayWindow.xaml.cs
-- Rebuilt: src/SleepMode/SleepSettingsWindow.xaml.cs
+- Rebuilt: Scripts/release-version.ps1
 
 ---
 ## [v5.2.3] - 2026-04-06
@@ -76,13 +64,10 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) | [Semantic Ver
 - No new features
 
 ### 🐛 Bug Fixes
-- No bug fixes
+- Memperbaiki Bugs
 
 ### 🔧 Changes
-- Rebuilt: .github/workflows/build-release.yml
-- Rebuilt: src/SleepMode/SleepOverlayWindow.xaml
-- Rebuilt: src/SleepMode/SleepOverlayWindow.xaml.cs
-- Rebuilt: src/SleepMode/SleepSettingsWindow.xaml.cs
+- Rebuilt: Scripts/release-version.ps1
 
 ---
 ## [v5.2.2] - 2026-04-05
@@ -109,13 +94,10 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) | [Semantic Ver
 - No new features
 
 ### 🐛 Bug Fixes
-- No bug fixes
+- Memperbaiki Bugs
 
 ### 🔧 Changes
-- Rebuilt: .github/workflows/build-release.yml
-- Rebuilt: src/SleepMode/SleepOverlayWindow.xaml
-- Rebuilt: src/SleepMode/SleepOverlayWindow.xaml.cs
-- Rebuilt: src/SleepMode/SleepSettingsWindow.xaml.cs
+- Rebuilt: Scripts/release-version.ps1
 
 ---
 ## [v5.1.9] - 2026-04-03

@@ -171,18 +171,28 @@ if (Test-Path $changelogPath) {
         $changes  = @()
 
         if ($ForceBuild) {
-            # ForceBuild → baca commit message untuk feat/fix, file berubah masuk Changes
+            # ForceBuild → parse -CommitMessage parameter langsung (bukan git log)
+            # karena commit belum dibuat saat step ini jalan
+            if (-not [string]::IsNullOrWhiteSpace($CommitMessage)) {
+                $msgs = $CommitMessage -split '\|' | ForEach-Object { $_.Trim() } | Where-Object { $_ -ne "" }
+                foreach ($msg in $msgs) {
+                    $clean = $msg -replace '^(feat|fix|chore|refactor|perf|style|docs|test|ci|build)\s*(\([^)]*\))?\s*:?\s*', ''
+                    if ($clean.Length -gt 0) { $clean = $clean.Substring(0,1).ToUpper() + $clean.Substring(1) }
+                    if ([string]::IsNullOrWhiteSpace($clean)) { continue }
+                    if ($msg -match '^feat')    { $features += "- $clean" }
+                    elseif ($msg -match '^fix') { $fixes    += "- $clean" }
+                }
+            }
+
+            # Juga baca git log commits yang sudah ada sebelumnya
             foreach ($msg in $commits) {
                 if ($msg -match '^Merge|^bump version|^v\d|^Docs/CHANGELOG') { continue }
-
                 $clean = $msg -replace '^(feat|fix|chore|refactor|perf|style|docs|test|ci|build)\s*(\([^)]*\))?\s*:?\s*', ''
                 if ($clean.Length -gt 0) { $clean = $clean.Substring(0,1).ToUpper() + $clean.Substring(1) }
                 if ([string]::IsNullOrWhiteSpace($clean)) { continue }
-
-                if ($msg -match '^feat')      { $features += "- $clean" }
-                elseif ($msg -match '^fix')   { $fixes    += "- $clean" }
+                if ($msg -match '^feat')    { $features += "- $clean" }
+                elseif ($msg -match '^fix') { $fixes    += "- $clean" }
             }
-
             # File yang berubah → semua masuk Changes
             $changedFiles = git diff --name-only $commitRange 2>$null
             if (-not $changedFiles) { $changedFiles = git diff --name-only HEAD 2>$null }
