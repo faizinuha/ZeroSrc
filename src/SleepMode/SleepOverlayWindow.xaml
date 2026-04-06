@@ -23,6 +23,15 @@
         <StackPanel x:Name="AnimContainer" 
                     HorizontalAlignment="Center" 
                     VerticalAlignment="Center">
+
+            <!-- Date Focus style -->
+            <TextBlock x:Name="DateText"
+                       Text="APR 5"
+                       FontSize="52" FontWeight="Light"
+                       Foreground="#55FFFFFF"
+                       HorizontalAlignment="Center"
+                       Margin="0,0,0,8"
+                       Visibility="Collapsed"/>
             
             <TextBlock x:Name="TimeText" 
                        Text="00:00" 
@@ -38,6 +47,29 @@
                        Foreground="#11FFFFFF" 
                        HorizontalAlignment="Center"
                        Margin="0,10,0,0"/>
+
+            <!-- Analog Clock -->
+            <Grid x:Name="AnalogClockContainer" Width="160" Height="160"
+                  Margin="0,10,0,0" Visibility="Collapsed">
+                <!-- Face -->
+                <Ellipse Stroke="#33FFFFFF" StrokeThickness="1.5"/>
+                <!-- Hour markers -->
+                <Ellipse Width="4" Height="4" Fill="#44FFFFFF" VerticalAlignment="Top" Margin="0,8,0,0"/>
+                <Ellipse Width="4" Height="4" Fill="#44FFFFFF" VerticalAlignment="Bottom" Margin="0,0,0,8"/>
+                <Ellipse Width="4" Height="4" Fill="#44FFFFFF" HorizontalAlignment="Left" Margin="8,0,0,0"/>
+                <Ellipse Width="4" Height="4" Fill="#44FFFFFF" HorizontalAlignment="Right" Margin="0,0,8,0"/>
+                <!-- Hour hand -->
+                <Line x:Name="HourHand" X1="80" Y1="80" X2="80" Y2="45"
+                      Stroke="#AAFFFFFF" StrokeThickness="3" StrokeLineCap="Round"/>
+                <!-- Minute hand -->
+                <Line x:Name="MinuteHand" X1="80" Y1="80" X2="80" Y2="30"
+                      Stroke="#CCFFFFFF" StrokeThickness="2" StrokeLineCap="Round"/>
+                <!-- Second hand -->
+                <Line x:Name="SecondHand" X1="80" Y1="80" X2="80" Y2="22"
+                      Stroke="#00D9FF" StrokeThickness="1" StrokeLineCap="Round"/>
+                <!-- Center dot -->
+                <Ellipse Width="8" Height="8" Fill="#00D9FF" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+            </Grid>
 
             <!-- Pixel Character Placeholder -->
             <Grid x:Name="PixelCharContainer" 

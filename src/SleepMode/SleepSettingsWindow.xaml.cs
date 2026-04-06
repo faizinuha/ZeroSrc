@@ -1,12 +1,14 @@
-using System;
 using System.Windows;
 using System.Windows.Input;
+using System.Windows.Media;
+using System.Windows.Controls;
 
 namespace ZeroMix.SleepMode
 {
     public partial class SleepSettingsWindow : Window
     {
         public SleepSettingsModel? ResultSettings { get; private set; }
+        private AodStyle _selectedStyle = AodStyle.MinimalClock;
 
         public SleepSettingsWindow(SleepSettingsModel? initialSettings = null)
         {
@@ -16,62 +18,80 @@ namespace ZeroMix.SleepMode
 
         private void ApplySettingsToUI(SleepSettingsModel settings)
         {
-            // Trigger Mode (Flags — bisa multi-select)
-            ManualModeChk.IsChecked = settings.HasMode(TriggerMode.Manual);
-            IdleModeChk.IsChecked = settings.HasMode(TriggerMode.Idle);
+            ManualModeChk.IsChecked  = settings.HasMode(TriggerMode.Manual);
+            IdleModeChk.IsChecked    = settings.HasMode(TriggerMode.Idle);
             ShortcutModeChk.IsChecked = settings.HasMode(TriggerMode.Shortcut);
-            IdleSecondsTxt.Text = settings.IdleThresholdSeconds.ToString();
-            ShortcutTxt.Text = settings.ShortcutKey;
+            IdleSecondsTxt.Text      = settings.IdleThresholdSeconds.ToString();
+            ShortcutTxt.Text         = settings.ShortcutKey;
 
-            // Exit Behavior
             ExitMouseMoveChk.IsChecked = settings.ExitOnMouseMove;
             ExitMouseDownChk.IsChecked = settings.ExitOnMouseDown;
-            ExitKeyDownChk.IsChecked = settings.ExitOnKeyDown;
+            ExitKeyDownChk.IsChecked   = settings.ExitOnKeyDown;
 
-            // Visuals
-            ShowClockChk.IsChecked = settings.ShowClock;
-            ShowPixelCharChk.IsChecked = settings.ShowPixelCharacter;
-            GlowEffectChk.IsChecked = settings.GlowEffect;
             BrightnessSld.Value = settings.Brightness;
-
-            // Advanced
-            HideNotificationsChk.IsChecked = settings.HideNotifications;
-            DisableAnimsChk.IsChecked = settings.DisableAnimations;
-            LowBatteryDisableChk.IsChecked = settings.AutoDisableOnLowBattery;
+            _selectedStyle      = settings.Style;
+            SelectStyleCard(_selectedStyle);
         }
 
         private SleepSettingsModel GetSettingsFromUI()
         {
-            var settings = new SleepSettingsModel();
+            var s = new SleepSettingsModel();
 
-            // Trigger Mode (Flags — gabungkan semua yang dicentang)
-            settings.Mode = TriggerMode.None;
-            if (ManualModeChk.IsChecked == true) settings.Mode |= TriggerMode.Manual;
-            if (IdleModeChk.IsChecked == true) settings.Mode |= TriggerMode.Idle;
-            if (ShortcutModeChk.IsChecked == true) settings.Mode |= TriggerMode.Shortcut;
+            s.Mode = TriggerMode.None;
+            if (ManualModeChk.IsChecked  == true) s.Mode |= TriggerMode.Manual;
+            if (IdleModeChk.IsChecked    == true) s.Mode |= TriggerMode.Idle;
+            if (ShortcutModeChk.IsChecked == true) s.Mode |= TriggerMode.Shortcut;
 
-            if (int.TryParse(IdleSecondsTxt.Text, out int seconds))
-                settings.IdleThresholdSeconds = seconds;
+            if (int.TryParse(IdleSecondsTxt.Text, out int sec)) s.IdleThresholdSeconds = sec;
+            s.ShortcutKey = ShortcutTxt.Text;
 
-            settings.ShortcutKey = ShortcutTxt.Text;
+            s.ExitOnMouseMove = ExitMouseMoveChk.IsChecked ?? true;
+            s.ExitOnMouseDown = ExitMouseDownChk.IsChecked ?? true;
+            s.ExitOnKeyDown   = ExitKeyDownChk.IsChecked   ?? true;
 
-            // Exit Behavior
-            settings.ExitOnMouseMove = ExitMouseMoveChk.IsChecked ?? true;
-            settings.ExitOnMouseDown = ExitMouseDownChk.IsChecked ?? true;
-            settings.ExitOnKeyDown = ExitKeyDownChk.IsChecked ?? true;
+            s.Style      = _selectedStyle;
+            s.Brightness = BrightnessSld.Value;
+            s.AutoDisableOnLowBattery = true;
 
-            // Visuals
-            settings.ShowClock = ShowClockChk.IsChecked ?? true;
-            settings.ShowPixelCharacter = ShowPixelCharChk.IsChecked ?? false;
-            settings.GlowEffect = GlowEffectChk.IsChecked ?? false;
-            settings.Brightness = BrightnessSld.Value;
+            return s;
+        }
 
-            // Advanced
-            settings.HideNotifications = HideNotificationsChk.IsChecked ?? false;
-            settings.DisableAnimations = DisableAnimsChk.IsChecked ?? false;
-            settings.AutoDisableOnLowBattery = LowBatteryDisableChk.IsChecked ?? true;
+        private void StyleCard_Click(object sender, MouseButtonEventArgs e)
+        {
+            if (sender is Border b && b.Tag is string tag &&
+                System.Enum.TryParse<AodStyle>(tag, out var style))
+            {
+                _selectedStyle = style;
+                SelectStyleCard(style);
+            }
+        }
 
-            return settings;
+        private void SelectStyleCard(AodStyle style)
+        {
+            var neon   = (Brush)FindResource("NeonBlueBrush");
+            var border = new SolidColorBrush(Color.FromRgb(26, 32, 48));
+
+            var cards = new[]
+            {
+                (StyleCardMinimal, AodStyle.MinimalClock),
+                (StyleCardGlow,    AodStyle.DigitalGlow),
+                (StyleCardAnalog,  AodStyle.Analog),
+                (StyleCardDate,    AodStyle.DateFocus),
+                (StyleCardBlank,   AodStyle.Blank),
+            };
+
+            foreach (var (card, s) in cards)
+            {
+                if (card == null) continue;
+                card.BorderBrush     = s == style ? neon : border;
+                card.BorderThickness = s == style ? new Thickness(2) : new Thickness(1);
+            }
+        }
+
+        private void BrightnessSld_ValueChanged(object sender, System.Windows.RoutedPropertyChangedEventArgs<double> e)
+        {
+            if (BrightnessLabel != null)
+                BrightnessLabel.Text = $" — {(int)(e.NewValue * 100)}%";
         }
 
         private void StartBtn_Click(object sender, RoutedEventArgs e)
@@ -89,8 +109,7 @@ namespace ZeroMix.SleepMode
 
         private void Window_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
-            if (e.LeftButton == MouseButtonState.Pressed)
-                this.DragMove();
+            if (e.LeftButton == MouseButtonState.Pressed) this.DragMove();
         }
     }
 }

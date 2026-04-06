@@ -170,58 +170,74 @@ if (Test-Path $changelogPath) {
         $fixes    = @()
         $changes  = @()
 
-        foreach ($msg in $commits) {
-            # Skip noise
-            if ($msg -match '^Merge|^bump version|^v\d|^Docs/CHANGELOG') { continue }
+        if ($ForceBuild) {
+            # ForceBuild → baca commit message untuk feat/fix, file berubah masuk Changes
+            foreach ($msg in $commits) {
+                if ($msg -match '^Merge|^bump version|^v\d|^Docs/CHANGELOG') { continue }
 
-            $clean = $msg -replace '^(feat|fix|chore|refactor|perf|style|docs|test|ci|build)\s*(\([^)]*\))?\s*:?\s*', ''
-            if ($clean.Length -gt 0) { $clean = $clean.Substring(0,1).ToUpper() + $clean.Substring(1) }
-            if ([string]::IsNullOrWhiteSpace($clean)) { continue }
+                $clean = $msg -replace '^(feat|fix|chore|refactor|perf|style|docs|test|ci|build)\s*(\([^)]*\))?\s*:?\s*', ''
+                if ($clean.Length -gt 0) { $clean = $clean.Substring(0,1).ToUpper() + $clean.Substring(1) }
+                if ([string]::IsNullOrWhiteSpace($clean)) { continue }
 
-            if ($msg -match '^feat')                                          { $features += "- $clean" }
-            elseif ($msg -match '^fix')                                       { $fixes    += "- $clean" }
-            elseif ($msg -match '^(chore|refactor|perf|style|docs|test|ci|build)') { $changes += "- $clean" }
-            else {
-                # Tidak ada prefix → masuk ke features (asumsi penambahan)
-                $features += "- $clean"
+                if ($msg -match '^feat')      { $features += "- $clean" }
+                elseif ($msg -match '^fix')   { $fixes    += "- $clean" }
             }
-        }
 
-        # ── Auto-detect dari file yang berubah (git diff) ─────────────────
-        $changedFiles = git diff --name-only $commitRange 2>$null
-        if (-not $changedFiles) {
-            # Fallback: staged files
-            $changedFiles = git diff --name-only HEAD 2>$null
-        }
+            # File yang berubah → semua masuk Changes
+            $changedFiles = git diff --name-only $commitRange 2>$null
+            if (-not $changedFiles) { $changedFiles = git diff --name-only HEAD 2>$null }
 
-        $detectedLabels = @{ feat = @(); fix = @(); chore = @() }
+            foreach ($file in $changedFiles) {
+                $f = $file.ToLower() -replace '\\', '/'
+                if ($f -match '(changelog|\.md$|\.gitignore|obj/|bin/|\.cache$)') { continue }
+                $label = "- Rebuilt: $file"
+                if (-not ($changes -contains $label)) { $changes += $label }
+            }
 
-        foreach ($file in $changedFiles) {
-            $cat = Get-FileCategory -FilePath $file
-            if ($cat -ne $null) {
-                $label = "- $($cat.Label)"
-                # Hindari duplikat label yang sama
-                if (-not $detectedLabels[$cat.Cat].Contains($label)) {
-                    $detectedLabels[$cat.Cat] += $label
+            if ($features.Count -eq 0) { $features = @("- No new features") }
+            if ($fixes.Count -eq 0)    { $fixes    = @("- No bug fixes") }
+            if ($changes.Count -eq 0)  { $changes  = @("- Force rebuild v$NewVersion") }
+
+        } else {
+            # Normal build → kategorikan dari commit message + file detect
+            foreach ($msg in $commits) {
+                if ($msg -match '^Merge|^bump version|^v\d|^Docs/CHANGELOG') { continue }
+
+                $clean = $msg -replace '^(feat|fix|chore|refactor|perf|style|docs|test|ci|build)\s*(\([^)]*\))?\s*:?\s*', ''
+                if ($clean.Length -gt 0) { $clean = $clean.Substring(0,1).ToUpper() + $clean.Substring(1) }
+                if ([string]::IsNullOrWhiteSpace($clean)) { continue }
+
+                if ($msg -match '^feat')                                               { $features += "- $clean" }
+                elseif ($msg -match '^fix')                                            { $fixes    += "- $clean" }
+                elseif ($msg -match '^(chore|refactor|perf|style|docs|test|ci|build)') { $changes  += "- $clean" }
+                else { $features += "- $clean" }  # tanpa prefix → feat
+            }
+
+            # Auto-detect dari file yang berubah sebagai pelengkap
+            $changedFiles = git diff --name-only $commitRange 2>$null
+            if (-not $changedFiles) { $changedFiles = git diff --name-only HEAD 2>$null }
+
+            $detectedLabels = @{ feat = @(); fix = @(); chore = @() }
+            foreach ($file in $changedFiles) {
+                $cat = Get-FileCategory -FilePath $file
+                if ($cat -ne $null) {
+                    $label = "- $($cat.Label)"
+                    if (-not $detectedLabels[$cat.Cat].Contains($label)) {
+                        $detectedLabels[$cat.Cat] += $label
+                    }
                 }
             }
-        }
 
-        # Merge: commit message lebih prioritas, file-detect sebagai tambahan
-        foreach ($l in $detectedLabels["feat"]) {
-            if (-not ($features -contains $l)) { $features += $l }
-        }
-        foreach ($l in $detectedLabels["fix"]) {
-            if (-not ($fixes -contains $l)) { $fixes += $l }
-        }
-        foreach ($l in $detectedLabels["chore"]) {
-            if (-not ($changes -contains $l)) { $changes += $l }
-        }
+            # Merge — commit message prioritas, file-detect sebagai tambahan
+            foreach ($l in $detectedLabels["feat"])  { if (-not ($features -contains $l)) { $features += $l } }
+            foreach ($l in $detectedLabels["fix"])   { if (-not ($fixes    -contains $l)) { $fixes    += $l } }
+            foreach ($l in $detectedLabels["chore"]) { if (-not ($changes  -contains $l)) { $changes  += $l } }
 
-        # Fallback kalau semua kosong
-        if ($features.Count -eq 0) { $features = @("- No new features") }
-        if ($fixes.Count -eq 0)    { $fixes    = @("- No bug fixes") }
-        if ($changes.Count -eq 0)  { $changes  = @("- Version bump to $NewVersion") }
+            # Fallback
+            if ($features.Count -eq 0) { $features = @("- No new features") }
+            if ($fixes.Count -eq 0)    { $fixes    = @("- No bug fixes") }
+            if ($changes.Count -eq 0)  { $changes  = @("- Version bump to $NewVersion") }
+        }
 
         $newEntry = @"
 ## [v$NewVersion] - $date
