@@ -178,6 +178,16 @@ The atmospheric experiences in ZeroMix are powered by beautiful visuals from the
 
 [![sociabuzz Support](https://img.shields.io/badge/sociabuzz-Support_The_Dev-EE4B2B?style=for-the-badge&logoColor=white)](https://sociabuzz.com/zuax)
 
+## Star History
+
+<a href="https://www.star-history.com/?repos=faizinuha%2FZeroMix&type=date&legend=top-left">
+ <picture>
+   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/chart?repos=faizinuha/ZeroMix&type=date&theme=dark&legend=top-left" />
+   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/chart?repos=faizinuha/ZeroMix&type=date&legend=top-left" />
+   <img alt="Star History Chart" src="https://api.star-history.com/chart?repos=faizinuha/ZeroMix&type=date&legend=top-left" />
+ </picture>
+</a>
+
 Made with ❤️ by **Faizinuha** and the community.
 **ZeroMix © 2025-2026**
 
