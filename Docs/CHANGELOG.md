@@ -14,7 +14,7 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) | [Semantic Ver
 ## [v5.2.5] - 2026-04-06
 
 ### ✨ Features
-- Update Readme.md
+- No new features
 
 ### 🐛 Bug Fixes
 - No bug fixes
