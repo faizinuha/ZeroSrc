@@ -1993,7 +1993,19 @@ end";
                         }
                         else
                         {
-                            System.Windows.MessageBox.Show("ZeroMix sudah versi terbaru! 😎", "No Update", MessageBoxButton.OK, MessageBoxImage.Information);
+                            // Versi sama — tawarkan reinstall untuk perbaiki instalasi rusak
+                            var result = System.Windows.MessageBox.Show(
+                                $"ZeroMix sudah versi terbaru (v{latestVersion}) 😎\n\nIngin reinstall untuk memperbaiki instalasi yang rusak?",
+                                "Up to Date", MessageBoxButton.YesNo, MessageBoxImage.Information);
+
+                            if (result == MessageBoxResult.Yes)
+                            {
+                                string updaterScript = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "zeromix-update.bat");
+                                if (System.IO.File.Exists(updaterScript))
+                                    Process.Start(new ProcessStartInfo { FileName = "cmd.exe", Arguments = $"/c \"{updaterScript}\"", UseShellExecute = true });
+                                else
+                                    Process.Start(new ProcessStartInfo(downloadUrl) { UseShellExecute = true });
+                            }
                         }
                     }
                 }
