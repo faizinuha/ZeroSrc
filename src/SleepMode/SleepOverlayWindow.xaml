@@ -14,10 +14,26 @@
 
     <Grid x:Name="MainGrid" Opacity="1">
         <!-- Background Image (3.jpg) - Sangat tipis (hampir tidak kelihatan tapi ada) -->
-        <Image Source="IMG/3.jpg" 
+        <Image x:Name="DefaultBgImage"
+               Source="IMG/3.jpg" 
                Stretch="UniformToFill" 
                Opacity="0.10"
                IsHitTestVisible="False"/>
+
+        <!-- Custom Background (gambar/video pilihan user) -->
+        <Image x:Name="CustomBgImage"
+               Stretch="UniformToFill"
+               Opacity="0.3"
+               IsHitTestVisible="False"
+               Visibility="Collapsed"/>
+        <MediaElement x:Name="CustomBgVideo"
+                      Stretch="UniformToFill"
+                      LoadedBehavior="Play"
+                      IsMuted="True"
+                      Opacity="0.3"
+                      IsHitTestVisible="False"
+                      Visibility="Collapsed"
+                      MediaEnded="CustomBgVideo_MediaEnded"/>
 
         <!-- Konten animasi ringan (Jam digital) -->
         <StackPanel x:Name="AnimContainer" 

@@ -43,7 +43,7 @@ namespace ZeroMix
     
     public partial class MainWindow : Window, ZeroMix.Plugins.IZeroMixHost
     {
-        private const string CURRENT_VERSION = "5.2.3";
+        private const string CURRENT_VERSION = "5.2.5";
         
         // Windows API for Taskbar transparency
         [DllImport("user32.dll", SetLastError = true)]
@@ -494,10 +494,17 @@ namespace ZeroMix
             contextMenu.Items.Add(new ToolStripSeparator());
             
             var shellItem = new ToolStripMenuItem("Enable ZeroShell");
+            // cek update
+            var UpdateZeromix = new ToolStripMenuItem("Check Update");
+            UpdateZeromix.Name = "CheckUpdateItem";
+            UpdateZeromix.Click += (s, args) => Dispatcher.Invoke(() => CheckUpdateBtn_Click(this, new RoutedEventArgs()));
+            
             shellItem.Name = "EnableShellItem";
             shellItem.Click += (s, args) => ToggleZeroShell();
             contextMenu.Items.Add(shellItem);
 
+            contextMenu.Items.Add(new ToolStripSeparator());
+            contextMenu.Items.Add(UpdateZeromix);
             contextMenu.Items.Add(new ToolStripSeparator());
             contextMenu.Items.Add("Exit", null, (s, args) => ExitApplication());
             _notifyIcon.ContextMenuStrip = contextMenu;

@@ -7,7 +7,8 @@ param(
     
     [string]$CommitMessage = "",
     [switch]$SkipPush = $false,
-    [switch]$ForceBuild = $false
+    [switch]$ForceBuild = $false,
+    [switch]$Force = $false   # Skip prompt kalau versi sama, tanpa ForceBuild
 )
 
 $ErrorActionPreference = "Stop"
@@ -79,13 +80,13 @@ foreach ($file in $filesToUpdate) {
 if ($updatedFiles.Count -eq 0) {
     Write-Host ""
     Write-Host "⚠️  No files were updated. Version might already be $NewVersion" -ForegroundColor Yellow
-    if (-not $ForceBuild) {
+    if (-not $ForceBuild -and -not $Force) {
         $continue = Read-Host "Continue anyway? (y/n)"
         if ($continue -ne "y") {
             exit 0
         }
     } else {
-        Write-Host "  🔨 ForceBuild flag set, continuing..." -ForegroundColor Cyan
+        Write-Host "  🔨 Continuing..." -ForegroundColor Cyan
     }
 }
 

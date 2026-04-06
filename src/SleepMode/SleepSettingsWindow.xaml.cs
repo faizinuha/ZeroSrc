@@ -11,6 +11,7 @@ namespace ZeroMix.SleepMode
     {
         public SleepSettingsModel? ResultSettings { get; private set; }
         private AodStyle _selectedStyle = AodStyle.MinimalClock;
+        private string? _customBgPath = null;
 
         public SleepSettingsWindow(SleepSettingsModel? initialSettings = null)
         {
@@ -33,6 +34,9 @@ namespace ZeroMix.SleepMode
             BrightnessSld.Value = settings.Brightness;
             _selectedStyle      = settings.Style;
             SelectStyleCard(_selectedStyle);
+
+            if (!string.IsNullOrEmpty(settings.CustomBackgroundPath))
+                CustomBgPathText.Text = System.IO.Path.GetFileName(settings.CustomBackgroundPath);
         }
 
         private SleepSettingsModel GetSettingsFromUI()
@@ -54,6 +58,7 @@ namespace ZeroMix.SleepMode
             s.Style      = _selectedStyle;
             s.Brightness = BrightnessSld.Value;
             s.AutoDisableOnLowBattery = true;
+            s.CustomBackgroundPath = _customBgPath;
 
             return s;
         }
@@ -112,6 +117,26 @@ namespace ZeroMix.SleepMode
         private void Window_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
             if (e.LeftButton == MouseButtonState.Pressed) this.DragMove();
+        }
+
+        private void BrowseCustomBg_Click(object sender, System.Windows.RoutedEventArgs e)
+        {
+            var dlg = new Microsoft.Win32.OpenFileDialog
+            {
+                Title  = "Pilih Background AOD",
+                Filter = "Media Files|*.jpg;*.jpeg;*.png;*.bmp;*.mp4;*.webm;*.mkv|All Files|*.*"
+            };
+            if (dlg.ShowDialog() == true)
+            {
+                _customBgPath = dlg.FileName;
+                CustomBgPathText.Text = System.IO.Path.GetFileName(dlg.FileName);
+            }
+        }
+
+        private void ClearCustomBg_Click(object sender, System.Windows.RoutedEventArgs e)
+        {
+            _customBgPath = null;
+            CustomBgPathText.Text = "Tidak ada file dipilih";
         }
     }
 }
