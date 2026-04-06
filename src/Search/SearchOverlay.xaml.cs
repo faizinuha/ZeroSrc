@@ -517,6 +517,8 @@ namespace ZeroMix.Search
         }
         #endregion
 
+        private bool _blurEnabled = false;
+        
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
             var screenWidth = SystemParameters.PrimaryScreenWidth;
@@ -525,7 +527,13 @@ namespace ZeroMix.Search
             this.Top = screenHeight * 0.2;
 
             this.Background = System.Windows.Media.Brushes.Transparent;
-            EnableBlur();
+            
+            // Only enable blur once to prevent rendering issues
+            if (!_blurEnabled)
+            {
+                EnableBlur();
+                _blurEnabled = true;
+            }
 
             var searchBox = this.FindName("SearchBox") as System.Windows.Controls.TextBox;
             searchBox?.Focus();

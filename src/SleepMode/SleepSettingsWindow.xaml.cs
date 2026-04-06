@@ -36,7 +36,10 @@ namespace ZeroMix.SleepMode
             SelectStyleCard(_selectedStyle);
 
             if (!string.IsNullOrEmpty(settings.CustomBackgroundPath))
+            {
+                _customBgPath = settings.CustomBackgroundPath;
                 CustomBgPathText.Text = System.IO.Path.GetFileName(settings.CustomBackgroundPath);
+            }
         }
 
         private SleepSettingsModel GetSettingsFromUI()
