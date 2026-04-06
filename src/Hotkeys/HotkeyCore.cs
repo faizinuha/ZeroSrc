@@ -39,15 +39,6 @@ namespace ZeroMix.Hotkeys
 
             RegisterOverlayHotkey();
             RegisterCustomHotkeys();
-
-            // Pre-load overlay di background agar Ctrl+Space langsung muncul
-            Dispatcher.BeginInvoke(new Action(() => {
-                _overlay = new SearchOverlay();
-                _overlay.Closing += (s, ev) => {
-                    ev.Cancel = true;
-                    _overlay.Hide();
-                };
-            }), System.Windows.Threading.DispatcherPriority.Background);
         }
 
         private void RegisterOverlayHotkey()
@@ -110,25 +101,17 @@ namespace ZeroMix.Hotkeys
 
         private void HandleOverlayHotkey()
         {
-            if (_overlay == null)
+            if (_overlay != null && _overlay.IsVisible)
             {
-                _overlay = new SearchOverlay();
-                _overlay.Closing += (s, e) => {
-                    // Jangan close, hide saja agar tidak perlu init ulang
-                    e.Cancel = true;
-                    _overlay.Hide();
-                };
+                _overlay.BeginFadeOutAndCloseByMain();
+                _overlay = null;
+                return;
             }
 
-            if (_overlay.IsVisible)
-            {
-                _overlay.Hide();
-            }
-            else
-            {
-                _overlay.Show();
-                _overlay.Activate();
-            }
+            // Selalu buat instance baru agar state bersih (tidak ada kotak-kotak)
+            _overlay = new SearchOverlay();
+            _overlay.Show();
+            _overlay.Activate();
         }
 
         private IntPtr HwndHook(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
