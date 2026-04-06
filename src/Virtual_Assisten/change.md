@@ -2,7 +2,20 @@
 
 ---
 
-## 🚀 v5.2.3 — Latest
+## 🚀 v5.2.9 — Upcoming
+
+### ✨ Planned Features
+- **Sleep Mode Custom Background**: User bisa pilih gambar (JPG/PNG) atau video (MP4/WebM) sendiri sebagai background AOD.
+- **Video Background Loop**: Video background di Sleep Mode otomatis loop tanpa henti.
+- **Multi-Monitor Support**: Rekam atau capture layar dari monitor lebih dari satu sekaligus.
+- **Streaming Mode**: Dukungan output langsung ke platform streaming (OBS-compatible).
+- **Advanced Audio Mixer**: Kontrol volume per-source (mic, system, game) secara terpisah.
+- **Plugin Marketplace**: Browser plugin langsung dari dalam aplikasi.
+- **Cloud Sync Settings**: Sinkronisasi konfigurasi antar perangkat via cloud.
+
+---
+
+## ✅ v5.2.3 — Latest
 
 ### ✨ Features
 - **AOD Style Picker**: Sleep Mode kini punya 5 style Always-On Display — Minimal Clock, Neon Glow, Analog, Date Focus, Blank.
@@ -12,20 +25,23 @@
 
 ### 🐛 Bug Fixes
 - Fix double instance — klik icon desktop saat app sudah jalan di tray tidak lagi buka instance baru.
-- Fix Search Overlay (Ctrl+Space) lambat — overlay sekarang di-preload saat startup, tidak init ulang tiap kali dipanggil.
+- Fix Search Overlay (Ctrl+Space) lambat — overlay sekarang di-preload saat startup.
 - Fix "Show Terminal" masih muncul di tray menu.
 - Fix installer popup "applications using files" — ZeroMix di-close otomatis sebelum update.
+- Fix Sleep Mode overlay crash saat laptop wake up dari sleep/hibernate (PowerModeChanged event).
 
 ### 🔧 Changes
 - Sleep Mode settings: section Visuals diganti jadi AOD style card picker.
 - Brightness slider sekarang tampilkan persentase langsung.
+- CHANGELOG auto-generate dari git commits + file yang berubah via release script.
+- Release script: ForceBuild baca `-CommitMessage` parameter langsung untuk feat/fix.
 
 ---
 
 ## ✅ v5.2.2 — Published
 
 ### ✨ Features
-- **Parallel Chunked Download**: Updater script pakai 8 koneksi paralel (IDM-style) untuk download lebih cepat.
+- **Parallel Chunked Download**: Updater script pakai 8 koneksi paralel (IDM-style).
 - **Progress Bar Updater**: Tampilkan speed (KB/s) dan ETA saat download update.
 
 ### 🐛 Bug Fixes
@@ -35,7 +51,6 @@
 
 ### 🔧 Changes
 - README ditambah versi Indonesia (README.id.md).
-- CHANGELOG sekarang auto-generate dari git commits + file yang berubah via release script.
 
 ---
 
@@ -66,116 +81,36 @@
 ## ✅ v5.1.9 — Published
 
 ### ✨ Features
-- **Game Mode Translator**: Mode terjemahan khusus game via Clipboard Paste (Ctrl+V), kompatibel dengan DirectInput/RawInput game chat.
-- **CI/CD Sign Fix**: Perbaikan pipeline signing executable di GitHub Actions (osslsigncode PATH refresh).
+- **Game Mode Translator**: Mode terjemahan khusus game via Clipboard Paste (Ctrl+V).
+- **CI/CD Sign Fix**: Perbaikan pipeline signing executable di GitHub Actions.
 
 ### 🐛 Bug Fixes
-- Fix `osslsigncode` tidak dikenali di step berikutnya setelah `choco install` pada Windows runner.
-- Fallback ke path hardcoded `C:\ProgramData\chocolatey\bin\` jika PATH belum ter-refresh.
+- Fix `osslsigncode` tidak dikenali setelah `choco install` pada Windows runner.
+- Fallback ke path hardcoded `C:\ProgramData\chocolatey\bin\`.
 
 ---
 
 ## ✅ v5.1.5 — Published
 
 ### ✨ Features
-- **Ask AI Mode Overlay**: Tombol "Ask AI" di Search Box untuk bertanya langsung dari tampilan pencarian.
-- **Smart Intent Detection**:
-  - `carikan foto [nama]` → Otomatis membuka hasil pencarian gambar.
-  - `beli barang` / `shopee` → Langsung mengarahkan ke marketplace favorit.
-- **Fallback to AI**: Pertanyaan umum dijawab otomatis oleh AI Frieren.
-- **Text-to-Speech (TTS)**: Frieren/Fern/HuoHuo bisa bicara langsung menjawab pertanyaan.
-- **Lip-Sync Animation**: Gerakan mulut karakter sinkron dengan suara.
+- **Ask AI Mode Overlay**: Tombol "Ask AI" di Search Box.
+- **Smart Intent Detection**: carikan foto, beli barang, shopee → otomatis buka.
+- **Text-to-Speech (TTS)**: Frieren/Fern/HuoHuo bisa bicara.
+- **Lip-Sync Animation**: Gerakan mulut sinkron dengan suara.
 
 ### 🐛 Bug Fixes
-- Fix Force Close saat tombol rekam diklik pada beberapa tipe GPU.
-- Fix Temp Cleanup — pembersihan `%temp%` lebih stabil.
-
-### 🚀 Improvements
-- Hardware Encoder Fallback: NVENC/QSV/AMF gagal → otomatis ke CPU tanpa hang.
-- DXGI Resource Management lebih efisien.
-- Memory Optimization: cache Live2D dibersihkan lebih agresif.
-- System Health scan lebih ringan.
+- Fix Force Close saat tombol rekam diklik pada beberapa GPU.
+- Fix Temp Cleanup lebih stabil.
 
 ---
 
 ## 🔧 v5.1.3 — Fix Release
 
 ### 🐛 Bug Fixes
-- Fix crash recorder pada GPU tertentu saat pertama kali dijalankan.
-- Fix memory leak pada engine Live2D saat karakter aktif lama.
+- Fix crash recorder pada GPU tertentu.
+- Fix memory leak pada engine Live2D.
 - Fix pembersihan `%temp%` yang tidak lengkap.
 - Fix encoder fallback yang menyebabkan hang saat NVENC tidak tersedia.
-
----
-
-## ✅ v5.1.2 — Standard Industrial
-
-### ✨ Features
-- AI Control & Search Assistant (dasar).
-- Virtual Assistant upgrade awal (TTS & Lip-Sync prototype).
-- Recorder Engine stability improvements.
-- Dashboard & System Health optimization.
-
----
-
-*ZeroMix - Smart Desktop Launcher*
-
-
-### ✨ Planned Features
-- **Multi-Monitor Support**: Rekam atau capture layar dari monitor lebih dari satu sekaligus.
-- **Streaming Mode**: Dukungan output langsung ke platform streaming (OBS-compatible).
-- **Advanced Audio Mixer**: Kontrol volume per-source (mic, system, game) secara terpisah.
-- **Plugin Marketplace**: Browser plugin langsung dari dalam aplikasi.
-- **Cloud Sync Settings**: Sinkronisasi konfigurasi antar perangkat via cloud.
-
----
-
-## ✅ v5.1.9 — Published
-
-### ✨ Features
-- **Game Mode Translator**: Mode terjemahan khusus game via Clipboard Paste (Ctrl+V), kompatibel dengan DirectInput/RawInput game chat.
-- **CI/CD Sign Fix**: Perbaikan pipeline signing executable di GitHub Actions (osslsigncode PATH refresh).
-
-### 🐛 Bug Fixes
-- Fix `osslsigncode` tidak dikenali di step berikutnya setelah `choco install` pada Windows runner.
-- Fallback ke path hardcoded `C:\ProgramData\chocolatey\bin\` jika PATH belum ter-refresh.
-
----
-
-## ✅ v5.1.5 — Published
-
-### ✨ Features
-- **Ask AI Mode Overlay**: Tombol "Ask AI" di Search Box untuk bertanya langsung dari tampilan pencarian.
-- **Smart Intent Detection**:
-  - `carikan foto [nama]` → Otomatis membuka hasil pencarian gambar.
-  - `beli barang` / `shopee` → Langsung mengarahkan ke marketplace favorit (Shopee/Tokopedia).
-- **Fallback to AI**: Pertanyaan umum dijawab otomatis oleh AI Frieren dengan gaya bicaranya yang khas.
-- **Text-to-Speech (TTS)**: Frieren/Fern/HuoHuo kini bisa bicara langsung menjawab pertanyaan.
-- **Lip-Sync Animation**: Gerakan mulut karakter sinkron dengan suara yang dihasilkan.
-
-### 🐛 Bug Fixes
-- Fix Force Close saat tombol rekam diklik pada beberapa tipe GPU.
-- Fix Temp Cleanup — pembersihan `%temp%` lebih stabil dan mencakup lebih banyak folder sampah.
-
-### 🚀 Improvements
-- Hardware Encoder Fallback: NVENC/QSV/AMF gagal → otomatis ke CPU tanpa hang.
-- DXGI Resource Management: Screen capture tidak membebani driver video Windows.
-- Memory Optimization: Cache Live2D dibersihkan lebih agresif, mencegah memory leak.
-- System Health scan lebih ringan, tidak menyebabkan UI lag.
-
----
-
-## 🔧 v5.1.3 — Fix Release
-
-### 🐛 Bug Fixes
-- Fix crash recorder pada GPU tertentu saat pertama kali dijalankan.
-- Fix memory leak pada engine Live2D saat karakter aktif dalam waktu lama.
-- Fix pembersihan `%temp%` yang tidak lengkap pada beberapa konfigurasi sistem.
-- Fix encoder fallback yang menyebabkan aplikasi hang saat NVENC tidak tersedia.
-
-### 🚀 Improvements
-- Stabilitas DXGI capture ditingkatkan.
-- Optimasi minor pada System Health scanner.
 
 ---
 

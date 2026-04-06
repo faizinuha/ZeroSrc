@@ -38,6 +38,9 @@ namespace ZeroMix.SleepMode
 
             this.Cursor = System.Windows.Input.Cursors.None;
 
+            // Load custom background jika ada
+            LoadCustomBackground();
+
             // ── Dengerin event power Windows ─────────────────────────────
             // Kalau laptop suspend/hibernate/wake → tutup overlay otomatis
             SystemEvents.PowerModeChanged += OnPowerModeChanged;
@@ -65,6 +68,34 @@ namespace ZeroMix.SleepMode
             _isClosing = true;
             _animationTimer?.Stop();
             this.Close();
+        }
+
+        private void LoadCustomBackground()
+        {
+            var path = _settings.CustomBackgroundPath;
+            if (string.IsNullOrEmpty(path) || !System.IO.File.Exists(path)) return;
+
+            var ext = System.IO.Path.GetExtension(path).ToLower();
+            DefaultBgImage.Visibility = Visibility.Collapsed;
+
+            if (ext == ".mp4" || ext == ".webm" || ext == ".mkv")
+            {
+                CustomBgVideo.Source = new Uri(path, UriKind.Absolute);
+                CustomBgVideo.Visibility = Visibility.Visible;
+            }
+            else
+            {
+                var bmp = new System.Windows.Media.Imaging.BitmapImage(new Uri(path, UriKind.Absolute));
+                CustomBgImage.Source = bmp;
+                CustomBgImage.Visibility = Visibility.Visible;
+            }
+        }
+
+        private void CustomBgVideo_MediaEnded(object sender, RoutedEventArgs e)
+        {
+            // Loop video
+            CustomBgVideo.Position = TimeSpan.Zero;
+            CustomBgVideo.Play();
         }
 
         private void ApplyStyle(AodStyle style)

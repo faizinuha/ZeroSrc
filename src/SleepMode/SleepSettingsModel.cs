@@ -36,6 +36,7 @@ namespace ZeroMix.SleepMode
         // AOD Style
         public AodStyle Style { get; set; } = AodStyle.MinimalClock;
         public double Brightness { get; set; } = 1.0;
+        public string? CustomBackgroundPath { get; set; } = null;
 
         // Advanced
         public bool AutoDisableOnLowBattery { get; set; } = true;

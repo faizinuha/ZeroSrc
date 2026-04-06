@@ -10,6 +10,19 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) | [Semantic Ver
 
 
 
+
+## [v5.2.5] - 2026-04-06
+
+### ✨ Features
+- Update Readme.md
+
+### 🐛 Bug Fixes
+- No bug fixes
+
+### 🔧 Changes
+- Version bump to 5.2.5
+
+---
 ## [v5.2.3] - 2026-04-06
 
 ### ✨ Features
