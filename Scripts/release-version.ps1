@@ -258,8 +258,20 @@ $($changes -join "`n")
         if ($changelog -match '(?s)(# ZeroMix - Changelog.*?---\s*)(.*)') {
             $header = $matches[1]
             $rest   = $matches[2]
-            Set-Content -Path $changelogPath -Value ($header + "`n" + $newEntry + $rest) -NoNewline
-            Write-Host "  ✅ CHANGELOG generated!" -ForegroundColor Green
+
+            # Cek apakah versi ini sudah ada → timpa, jangan duplikat
+            $existingPattern = "(?s)## \[v$([regex]::Escape($NewVersion))\].*?(?=\n## \[|\z)"
+            if ($changelog -match $existingPattern) {
+                # Timpa entry yang sudah ada
+                $newChangelog = $changelog -replace $existingPattern, $newEntry.TrimEnd()
+                Set-Content -Path $changelogPath -Value $newChangelog -NoNewline
+                Write-Host "  ✅ CHANGELOG updated (overwritten v$NewVersion)" -ForegroundColor Green
+            } else {
+                # Insert baru di atas
+                Set-Content -Path $changelogPath -Value ($header + "`n" + $newEntry + $rest) -NoNewline
+                Write-Host "  ✅ CHANGELOG generated (new entry v$NewVersion)" -ForegroundColor Green
+            }
+
             Write-Host "  📋 Features: $($features.Count) | Fixes: $($fixes.Count) | Changes: $($changes.Count)" -ForegroundColor Cyan
             Write-Host "  📁 Files scanned: $($changedFiles.Count) changed files" -ForegroundColor Cyan
             $updatedFiles += $changelogPath
@@ -315,19 +327,12 @@ $tagName = "v$NewVersion"
 
 $existingTag = git tag -l $tagName
 if ($existingTag) {
-    Write-Host "  ⚠️  Tag $tagName already exists!" -ForegroundColor Yellow
-    $overwrite = Read-Host "Delete and recreate tag? (y/n)"
-    if ($overwrite -eq "y") {
-        git tag -d $tagName
-        git push origin :refs/tags/$tagName 2>$null
-        Write-Host "  ✅ Deleted old tag" -ForegroundColor Green
-    } else {
-        Write-Host "  ❌ Aborted" -ForegroundColor Red
-        exit 1
-    }
+    Write-Host "  ♻️  Tag $tagName sudah ada, di-update..." -ForegroundColor Yellow
+    git tag -d $tagName 2>$null
+    git push origin :refs/tags/$tagName 2>$null
 }
 
-git tag -a $tagName -m "Release $NewVersion"
+git tag -a $tagName -m "Release $NewVersion" -f
 Write-Host "  ✅ Created tag: $tagName" -ForegroundColor Green
 
 # ============================================================================

@@ -19,27 +19,11 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) | [Semantic Ver
 - No bug fixes
 
 ### 🔧 Changes
+- Rebuilt: .github/workflows/build-release.yml
 - Rebuilt: Scripts/release-version.ps1
-- Rebuilt: src/SleepMode/SleepOverlayWindow.xaml
-- Rebuilt: src/SleepMode/SleepOverlayWindow.xaml.cs
-- Rebuilt: src/SleepMode/SleepSettingsModel.cs
-- Rebuilt: src/SleepMode/SleepSettingsWindow.xaml
-- Rebuilt: src/SleepMode/SleepSettingsWindow.xaml.cs
 
 ---
-## [v5.2.3] - 2026-04-05
-
-### ✨ Features
-- Update Readme
-
-### 🐛 Bug Fixes
-- No bug fixes
-
-### 🔧 Changes
-- Version bump to 5.2.3
-
----
-## [v5.2.3] - 2026-04-05
+## [v5.2.3] - 2026-04-06
 
 ### ✨ Features
 - No new features
@@ -48,36 +32,47 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) | [Semantic Ver
 - No bug fixes
 
 ### 🔧 Changes
-- Version bump to 5.2.3
+- Rebuilt: .github/workflows/build-release.yml
+- Rebuilt: Scripts/release-version.ps1
 
 ---
-## [v5.2.3] - 2026-04-05
+## [v5.2.3] - 2026-04-06
 
 ### ✨ Features
-- Updated main UI layout
+- No new features
 
 ### 🐛 Bug Fixes
 - No bug fixes
 
 ### 🔧 Changes
-- Updated script: Scripts/release-version.bat
-- Updated script: Scripts/release-version.ps1
+- Rebuilt: .github/workflows/build-release.yml
+- Rebuilt: Scripts/release-version.ps1
 
 ---
-## [v5.2.3] - 2026-04-05
+## [v5.2.3] - 2026-04-06
 
 ### ✨ Features
-- Updated main UI layout
-- Updated main window logic
-- Updated source: src/Web/ThanksYou.html
+- No new features
 
 ### 🐛 Bug Fixes
 - No bug fixes
 
 ### 🔧 Changes
-- Updated installer config
-- Updated script: Scripts/release-version.ps1
-- Updated project config
+- Rebuilt: .github/workflows/build-release.yml
+- Rebuilt: Scripts/release-version.ps1
+
+---
+## [v5.2.3] - 2026-04-06
+
+### ✨ Features
+- No new features
+
+### 🐛 Bug Fixes
+- No bug fixes
+
+### 🔧 Changes
+- Rebuilt: .github/workflows/build-release.yml
+- Rebuilt: Scripts/release-version.ps1
 
 ---
 ## [v5.2.2] - 2026-04-05
@@ -98,22 +93,19 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) | [Semantic Ver
 
 ---
 
-## [v5.2.3] - 2026-04-04
+## [v5.2.3] - 2026-04-06
 
 ### ✨ Features
-- Publish SDK to NuGet.org
-- Add PluginSDK and refactor IZeroMixHost
+- No new features
 
 ### 🐛 Bug Fixes
-- Fix ZeroMix.Recorder crash on some GPU configurations
-- Fix Virtual Assistant thumbnail not loading
-- Fix Bitrate control slider untuk pilih kualitas recording
+- No bug fixes
 
 ### 🔧 Changes
-- Update README dan dokumentasi
+- Rebuilt: .github/workflows/build-release.yml
+- Rebuilt: Scripts/release-version.ps1
 
 ---
-
 ## [v5.1.9] - 2026-04-03
 
 ### ✨ Features
