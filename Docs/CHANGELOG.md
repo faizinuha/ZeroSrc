@@ -17,10 +17,10 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) | [Semantic Ver
 - No new features
 
 ### 🐛 Bug Fixes
-- No bug fixes
+- Hotfix build rusak
 
 ### 🔧 Changes
-- Version bump to 5.2.5
+- Rebuilt: src/MainWindow.xaml.cs
 
 ---
 ## [v5.2.3] - 2026-04-06
