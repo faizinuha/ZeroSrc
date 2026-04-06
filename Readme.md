@@ -113,10 +113,13 @@ Download from **[GitHub Releases →](https://github.com/faizinuha/ZeroMix/relea
 | `Ctrl + R` | Force Refresh System Metrics |
 | `Esc` | Close Active Overlay/Window |
 
+```
 | Key | Ask AI |
 | Carikan saya sepatu yang murah -> otomatis buka 
 | Carikan saya bajuu yang murah di tokopedia -> otomatis buka Tokopedia
 | Carikan saya Handphone yang murah di Shoppe -> otomatis buka Shoppe
+
+```
 ---
 
 ## 🛠️ Built With
