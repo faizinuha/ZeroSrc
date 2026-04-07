@@ -28,16 +28,6 @@ namespace ZeroMix.Virtual_Assisten
         private string _apiKey = ApiKeys.OPENAI_API_KEY; 
         private string _currentLang = "id-ID";
 
-        // Voice Recognition State
-        public static readonly DependencyProperty IsListeningProperty = 
-            DependencyProperty.Register("IsListening", typeof(bool), typeof(VirtualAssistantWindow), new PropertyMetadata(false));
-
-        public bool IsListening
-        {
-            get => (bool)GetValue(IsListeningProperty);
-            set => SetValue(IsListeningProperty, value);
-        }
-
         private readonly Dictionary<string, List<string>> _characterMessages = new()
         {
             ["Frieren"] = new List<string> { "Halo! Aku Frieren~ ✨" },
@@ -68,12 +58,13 @@ namespace ZeroMix.Virtual_Assisten
             _autoTalkTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(60) };
             _autoTalkTimer.Tick += (s, e) => ShowNextChatMessage();
 
-            _eyeTrackingTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(200) };
+            _eyeTrackingTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(300) };
             _eyeTrackingTimer.Tick += UpdateEyeTracking;
             _eyeTrackingTimer.Start();
 
             _visionService = new AiVisionService(_apiKey);
-            _visionTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(30) };
+            // Vision timer lebih jarang — hemat RAM & CPU
+            _visionTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(60) };
             _visionTimer.Tick += async (s, e) => await PerformAiObservation();
             _visionTimer.Start();
         }
@@ -95,14 +86,15 @@ namespace ZeroMix.Virtual_Assisten
                 WebView.CoreWebView2.Settings.AreDefaultScriptDialogsEnabled = false;
                 WebView.CoreWebView2.Settings.IsStatusBarEnabled = false;
                 WebView.CoreWebView2.Settings.IsZoomControlEnabled = false;
-                WebView.CoreWebView2.Settings.AreDevToolsEnabled = false; // Disable dev tools in production
+                WebView.CoreWebView2.Settings.AreDevToolsEnabled = false;
                 WebView.CoreWebView2.Settings.IsGeneralAutofillEnabled = false;
                 WebView.CoreWebView2.Settings.IsPasswordAutosaveEnabled = false;
+                WebView.CoreWebView2.Settings.AreBrowserAcceleratorKeysEnabled = false;
+                WebView.CoreWebView2.Settings.IsSwipeNavigationEnabled = false;
                 
                 WebView.CoreWebView2.MemoryUsageTargetLevel = CoreWebView2MemoryUsageTargetLevel.Low;
-                WebView.CoreWebView2.PermissionRequested += (s, args) => {
-                    if (args.PermissionKind == CoreWebView2PermissionKind.Microphone) args.State = CoreWebView2PermissionState.Allow;
-                };
+                // Tidak perlu izin mic — mic sudah dihapus dari UI
+                WebView.CoreWebView2.PermissionRequested += (s, args) => args.State = CoreWebView2PermissionState.Deny;
 
                 // Map virtual host root to AppBase so paths like /Virtual_Assisten/... resolve correctly
                 string appBase = AppDomain.CurrentDomain.BaseDirectory;
@@ -122,20 +114,12 @@ namespace ZeroMix.Virtual_Assisten
             {
                 string jsonMessage = e.WebMessageAsJson;
                 if (jsonMessage.Contains("\"type\":\"click\"")) ShowNextChatMessage();
-                else if (jsonMessage.Contains("\"type\":\"model_loaded\""))
-                {
-                    ShowNextChatMessage();
-                    if (IsListening)
-                    {
-                        await WebView.ExecuteScriptAsync($"startSpeech('{_currentLang}');");
-                    }
-                }
+                else if (jsonMessage.Contains("\"type\":\"model_loaded\"")) ShowNextChatMessage();
                 else if (jsonMessage.Contains("\"type\":\"speech_result\""))
                 {
                     JObject data = JObject.Parse(jsonMessage);
                     ProcessUserVoice(data["text"]?.ToString() ?? "");
                 }
-                else if (jsonMessage.Contains("\"type\":\"speech_end\"")) IsListening = false;
             } 
             catch { }
         }
@@ -199,18 +183,12 @@ namespace ZeroMix.Virtual_Assisten
             _hideChatTimer?.Stop(); _hideChatTimer?.Start();
         }
 
-        private async void MicButton_Click(object sender, RoutedEventArgs e)
-        {
-            if (IsListening) { IsListening = false; await WebView.ExecuteScriptAsync("stopSpeech();"); }
-            else { IsListening = true; await WebView.ExecuteScriptAsync($"startSpeech('{_currentLang}');"); ShowNotification("Mendengarkan..."); }
-        }
-
         private void Language_Click(object sender, RoutedEventArgs e)
         {
             var langText = LanguageBtn.Template.FindName("LangText", LanguageBtn) as TextBlock;
             if (langText == null) return;
             if (_currentLang == "id-ID") { _currentLang = "en-US"; langText.Text = "🇺🇸"; }
-            else if (_currentLang == "en-US") { _currentLang = "jp-JP"; langText.Text = "🇯🇵"; }
+            else if (_currentLang == "en-US") { _currentLang = "ja-JP"; langText.Text = "🇯🇵"; }
             else { _currentLang = "id-ID"; langText.Text = "🇮🇩"; }
             ShowNotification($"Lang: {_currentLang}");
         }
@@ -219,9 +197,6 @@ namespace ZeroMix.Virtual_Assisten
         public void PreConfigure(string lang, bool enableMic)
         {
             _currentLang = lang;
-            IsListening = enableMic;
-            // Note: We can't call WebView.ExecuteScript until it's loaded, 
-            // so we handle the initial state in OnWebMessageReceived or model_loaded.
         }
 
         private async void ProcessUserVoice(string text)

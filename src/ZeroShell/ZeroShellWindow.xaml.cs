@@ -35,7 +35,7 @@ namespace ZeroMix.ZeroShell
 
     public partial class ZeroShellWindow : Window
     {
-        private const string CURRENT_VERSION = "5.2.4";
+        private const string CURRENT_VERSION = "5.3.0";
         private List<TerminalTab> _tabs = new List<TerminalTab>();
         private TerminalTab? _activeTab;
 
@@ -158,7 +158,17 @@ namespace ZeroMix.ZeroShell
             if (SettingsOverlay.Visibility == Visibility.Visible)
                 SettingsOverlay.Visibility = Visibility.Collapsed;
             else
+            {
+                // Sync nilai saat ini ke UI settings sebelum tampil
+                if (_activeTab?.Output != null)
+                {
+                    FontSizeSlider.Value = _activeTab.Output.FontSize;
+                    var current = (FontCombo.ItemsSource as IEnumerable<System.Windows.Media.FontFamily>)
+                        ?.FirstOrDefault(f => f.Source == _activeTab.Output.FontFamily?.Source);
+                    if (current != null) FontCombo.SelectedItem = current;
+                }
                 SettingsOverlay.Visibility = Visibility.Visible;
+            }
         }
 
         private void SaveSettings_Click(object sender, RoutedEventArgs e)
@@ -404,23 +414,29 @@ namespace ZeroMix.ZeroShell
         #region Terminal Process
         private Process StartShellProcess()
         {
-            // Determine shell (pwsh preferred for speed)
             string shellExe = "pwsh.exe";
             try { 
-                Process.Start(new ProcessStartInfo(shellExe, "--version") { CreateNoWindow = true, UseShellExecute = false }).WaitForExit(500); 
+                Process.Start(new ProcessStartInfo(shellExe, "--version") { CreateNoWindow = true, UseShellExecute = false })?.WaitForExit(500); 
             } catch { shellExe = "powershell.exe"; }
 
-            // ZeroMix Native Prompt (Premium look - Refined to avoid ParserError in all PS versions)
-            string escape = "$([char]27)";
-            string customPrompt = "function prompt { " +
-                "  $p = $ExecutionContext.SessionState.Path.CurrentLocation; " +
-                "  return " + escape + " + '[36m┌── ' + " + escape + " + '[33m' + [Environment]::UserName + '@' + [Environment]::MachineName + " + escape + " + '[90m in ' + " + escape + " + '[32m' + $p + " + escape + " + '[0m' + \"`n\" + " + escape + " + '[35m└─❯ ' + " + escape + " + '[0m ' " +
-                "}";
+            // Prompt sederhana — tidak pakai ANSI escape agar tidak ParserError di semua versi PS
+            string promptScript = @"
+[Console]::OutputEncoding = [System.Text.Encoding]::UTF8
+function prompt {
+    $p = $ExecutionContext.SessionState.Path.CurrentLocation
+    $user = [Environment]::UserName
+    $host_ = [Environment]::MachineName
+    return ""$user@$host_ $p> ""
+}
+Clear-Host
+";
+            // Encode ke Base64 agar tidak ada quoting issue
+            string encoded = Convert.ToBase64String(System.Text.Encoding.Unicode.GetBytes(promptScript));
 
             var proc = new Process();
             proc.StartInfo = new ProcessStartInfo {
                 FileName = shellExe,
-                Arguments = $"-NoLogo -NoProfile -ExecutionPolicy Bypass -NoExit -Command \"[Console]::OutputEncoding = [System.Text.Encoding]::UTF8; {customPrompt}; clear\"",
+                Arguments = $"-NoLogo -NoProfile -ExecutionPolicy Bypass -NoExit -EncodedCommand {encoded}",
                 WorkingDirectory = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
                 UseShellExecute = false,
                 RedirectStandardInput = true,

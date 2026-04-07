@@ -151,12 +151,13 @@ namespace ZeroMix.Wallpapers
             string error = e.ErrorException?.Message ?? "Unknown Media Error";
             System.Diagnostics.Debug.WriteLine($"[VIDEO ERROR] Media failed: {error}");
             
-            // If it fails, maybe the path needs to be converted to absolute Uri or the codec is unsupported
             this.Dispatcher.Invoke(() => {
-                // Show hint if it's a codec issue
-                if (error.Contains("0xC00D11B1")) {
-                     System.Windows.MessageBox.Show("Codec video tidak didukung oleh Windows Media Player. Pastikan Windows Media Player terinstal dan mendukung MP4.", "Video Error");
-                }
+                System.Windows.MessageBox.Show(
+                    $"Video tidak bisa diputar.\n\nKemungkinan penyebab:\n• Codec tidak didukung (install K-Lite Codec Pack)\n• File rusak atau format tidak kompatibel\n\nDetail: {error}",
+                    "Video Wallpaper Error",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Warning);
+                this.Close();
             });
         }
 

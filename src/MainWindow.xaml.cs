@@ -43,7 +43,7 @@ namespace ZeroMix
     
     public partial class MainWindow : Window, ZeroMix.Plugins.IZeroMixHost
     {
-        private const string CURRENT_VERSION = "5.2.5";
+        private const string CURRENT_VERSION = "5.3.1";
         
         // Windows API for Taskbar transparency
         [DllImport("user32.dll", SetLastError = true)]
@@ -762,18 +762,158 @@ namespace ZeroMix
         private void SleepSettingsBtn_Click(object sender, RoutedEventArgs e)
         {
             if (_sleepManager == null) return;
+            // Navigasi ke panel SleepContent — isi dari settings saat ini
+            SLP_LoadSettingsToUI(_sleepManager.Settings);
+            DeactivateAllTabs();
+            SleepContent.Visibility = Visibility.Visible;
+        }
 
-            var settingsWindow = new SleepSettingsWindow(_sleepManager.Settings.Clone());
-            if (settingsWindow.ShowDialog() == true && settingsWindow.ResultSettings != null)
+        // ── Sleep Panel Handlers ─────────────────────────────────────────────
+        private AodStyle _slpSelectedStyle = AodStyle.MinimalClock;
+        private string? _slpCustomBgPath = null;
+        private string? _slpMusicPath = null;
+
+        private void SLP_LoadSettingsToUI(SleepSettingsModel s)
+        {
+            SLP_ManualModeChk.IsChecked   = s.HasMode(TriggerMode.Manual);
+            SLP_IdleModeChk.IsChecked     = s.HasMode(TriggerMode.Idle);
+            SLP_ShortcutModeChk.IsChecked = s.HasMode(TriggerMode.Shortcut);
+            SLP_IdleSecondsTxt.Text       = s.IdleThresholdSeconds.ToString();
+            SLP_ShortcutTxt.Text          = s.ShortcutKey;
+            SLP_ExitMouseMoveChk.IsChecked = s.ExitOnMouseMove;
+            SLP_ExitMouseDownChk.IsChecked = s.ExitOnMouseDown;
+            SLP_ExitKeyDownChk.IsChecked   = s.ExitOnKeyDown;
+            SLP_BrightnessSld.Value = s.Brightness;
+            _slpSelectedStyle = s.Style;
+            SLP_SelectStyleCard(_slpSelectedStyle);
+            _slpCustomBgPath = s.CustomBackgroundPath;
+            SLP_CustomBgPathText.Text = string.IsNullOrEmpty(s.CustomBackgroundPath)
+                ? "Tidak ada file dipilih" : System.IO.Path.GetFileName(s.CustomBackgroundPath);
+            _slpMusicPath = s.MusicPath;
+            SLP_MusicPathText.Text = string.IsNullOrEmpty(s.MusicPath)
+                ? "Tidak ada musik dipilih" : System.IO.Path.GetFileName(s.MusicPath);
+            SLP_MusicVolumeSld.Value = s.MusicVolume;
+        }
+
+        private SleepSettingsModel SLP_GetSettingsFromUI()
+        {
+            var s = new SleepSettingsModel();
+            s.Mode = TriggerMode.None;
+            if (SLP_ManualModeChk.IsChecked   == true) s.Mode |= TriggerMode.Manual;
+            if (SLP_IdleModeChk.IsChecked     == true) s.Mode |= TriggerMode.Idle;
+            if (SLP_ShortcutModeChk.IsChecked == true) s.Mode |= TriggerMode.Shortcut;
+            if (int.TryParse(SLP_IdleSecondsTxt.Text, out int sec)) s.IdleThresholdSeconds = sec;
+            s.ShortcutKey          = SLP_ShortcutTxt.Text;
+            s.ExitOnMouseMove      = SLP_ExitMouseMoveChk.IsChecked ?? true;
+            s.ExitOnMouseDown      = SLP_ExitMouseDownChk.IsChecked ?? true;
+            s.ExitOnKeyDown        = SLP_ExitKeyDownChk.IsChecked   ?? true;
+            s.Style                = _slpSelectedStyle;
+            s.Brightness           = SLP_BrightnessSld.Value;
+            s.AutoDisableOnLowBattery = true;
+            s.CustomBackgroundPath = _slpCustomBgPath;
+            s.MusicPath            = _slpMusicPath;
+            s.MusicVolume          = SLP_MusicVolumeSld.Value;
+            return s;
+        }
+
+        private void SLP_SelectStyleCard(AodStyle style)
+        {
+            var neon   = (System.Windows.Media.Brush)FindResource("NeonBlueBrush");
+            var border = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(26, 32, 48));
+            var cards  = new[] {
+                (SLP_StyleCardMinimal, AodStyle.MinimalClock),
+                (SLP_StyleCardGlow,    AodStyle.DigitalGlow),
+                (SLP_StyleCardAnalog,  AodStyle.Analog),
+                (SLP_StyleCardDate,    AodStyle.DateFocus),
+                (SLP_StyleCardBlank,   AodStyle.Blank),
+            };
+            foreach (var (card, s) in cards)
             {
-                _sleepManager.ApplySettings(settingsWindow.ResultSettings);
-                
-                // Jika mode Manual dipilih, langsung jalankan overlay
-                if (settingsWindow.ResultSettings.HasMode(TriggerMode.Manual))
-                {
-                    _sleepManager.ShowOverlay();
-                }
+                if (card == null) continue;
+                card.BorderBrush     = s == style ? neon : border;
+                card.BorderThickness = s == style ? new Thickness(2) : new Thickness(1);
             }
+        }
+
+        private void SLP_StyleCard_Click(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        {
+            if (sender is Border b && b.Tag is string tag &&
+                Enum.TryParse<AodStyle>(tag, out var style))
+            {
+                _slpSelectedStyle = style;
+                SLP_SelectStyleCard(style);
+            }
+        }
+
+        private void SLP_BrightnessSld_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        {
+            if (SLP_BrightnessLabel != null)
+                SLP_BrightnessLabel.Text = $" — {(int)(e.NewValue * 100)}%";
+        }
+
+        private void SLP_MusicVolumeSld_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        {
+            if (SLP_MusicVolumeLabel != null)
+                SLP_MusicVolumeLabel.Text = $"{(int)(e.NewValue * 100)}%";
+        }
+
+        private void SLP_BrowseCustomBg_Click(object sender, RoutedEventArgs e)
+        {
+            var dlg = new Microsoft.Win32.OpenFileDialog
+            {
+                Title  = "Pilih Background AOD",
+                Filter = "Media Files|*.jpg;*.jpeg;*.png;*.bmp;*.mp4;*.webm;*.mkv|All Files|*.*"
+            };
+            if (dlg.ShowDialog() == true)
+            {
+                _slpCustomBgPath = dlg.FileName;
+                SLP_CustomBgPathText.Text = System.IO.Path.GetFileName(dlg.FileName);
+            }
+        }
+
+        private void SLP_ClearCustomBg_Click(object sender, RoutedEventArgs e)
+        {
+            _slpCustomBgPath = null;
+            SLP_CustomBgPathText.Text = "Tidak ada file dipilih";
+        }
+
+        private void SLP_BrowseMusic_Click(object sender, RoutedEventArgs e)
+        {
+            var dlg = new Microsoft.Win32.OpenFileDialog
+            {
+                Title  = "Pilih Musik untuk Sleep Mode",
+                Filter = "Audio Files|*.mp3;*.wav;*.flac;*.ogg;*.m4a;*.aac|All Files|*.*"
+            };
+            if (dlg.ShowDialog() == true)
+            {
+                _slpMusicPath = dlg.FileName;
+                SLP_MusicPathText.Text = System.IO.Path.GetFileName(dlg.FileName);
+            }
+        }
+
+        private void SLP_ClearMusic_Click(object sender, RoutedEventArgs e)
+        {
+            _slpMusicPath = null;
+            SLP_MusicPathText.Text = "Tidak ada musik dipilih";
+        }
+
+        private void SLP_StartBtn_Click(object sender, RoutedEventArgs e)
+        {
+            if (_sleepManager == null) return;
+            var settings = SLP_GetSettingsFromUI();
+            _sleepManager.ApplySettings(settings);
+            // Kembali ke Home lalu jalankan overlay
+            HomeButton_Click(this, new RoutedEventArgs());
+            if (settings.HasMode(TriggerMode.Manual))
+                _sleepManager.ShowOverlay();
+        }
+
+        private void SleepBackBtn_Click(object sender, RoutedEventArgs e)
+        {
+            // Simpan settings lalu kembali ke Home
+            if (_sleepManager != null)
+                _sleepManager.ApplySettings(SLP_GetSettingsFromUI());
+            HomeButton_Click(this, new RoutedEventArgs());
         }
 
         // --- Navigation --- //
@@ -786,6 +926,7 @@ namespace ZeroMix
             if (WallpapersContent != null) WallpapersContent.Visibility = Visibility.Collapsed;
             if (PluginsContent != null) PluginsContent.Visibility = Visibility.Collapsed;
             if (RecorderContent != null) RecorderContent.Visibility = Visibility.Collapsed;
+            if (SleepContent != null) SleepContent.Visibility = Visibility.Collapsed;
 
             if (_performanceTimer != null) _performanceTimer.Stop();
 

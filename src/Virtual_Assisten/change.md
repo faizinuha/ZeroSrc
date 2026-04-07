@@ -2,16 +2,66 @@
 
 ---
 
+## 🚀 v5.3.1 — Latest
+
+### ✨ Features
+- **Sleep Mode Settings Panel**: Settings dipindah ke panel navigasi dalam MainWindow — konsep seperti Settings Windows 11.
+- **Sleep Mode Music**: Opsi musik opsional (MP3/WAV/FLAC/OGG/M4A) dengan volume slider.
+- **Sleep Mode No Delay**: Custom background (gambar/video) langsung tampil tanpa delay.
+
+### 🐛 Bug Fixes
+- Fix ParserError di ZeroShell prompt — ganti `-Command` ke `-EncodedCommand` (Base64).
+- Fix ZeroShell crash saat klik gear — `TerminalSettingsWindow` dihapus, kembali ke `SettingsOverlay` inline.
+- Fix Terminal Customizer tidak bisa scroll — tambah `ScrollViewer` di konten settings.
+- Fix tombol BROWSE Terminal Wallpaper tidak bisa diklik — tambah `IsHitTestVisible="False"` pada TextBlock.
+- Fix Search Overlay kotak-kotak setelah penggunaan ke-2.
+- Fix SleepMode custom background tidak tersimpan.
+- Fix ZeroMix.recorder video output hitam.
+- Fix video wallpaper tidak bisa diputar.
+- Fix uninstaller tidak hapus registry dan startup shortcut.
+- Fix window list recorder tidak lengkap — explorer tidak di-skip, icon fetch dipisah.
+
+### 🔧 Changes
+- Hapus `SleepSettingsWindow.xaml/.cs`, diganti panel `SleepContent` di MainWindow.
+- Hapus `TerminalSettingsWindow.xaml/.cs`, kembali pakai `SettingsOverlay` inline di ZeroShellWindow.
+- Virtual Assistant: hapus tombol mic dari UI overlay.
+- Virtual Assistant: eye tracking 200ms → 300ms, vision timer 30s → 60s.
+- Wallpapers: video langsung play tanpa pre-process ffmpeg.
+- Uninstaller: auto kill, hapus registry, startup shortcut, LocalAppData.
+- Window Picker: ukuran minimum 100px → 50px, window minimize tidak di-skip.
+
+---
+
 ## 🚀 v5.2.9 — Upcoming
 
 ### ✨ Planned Features
-- **Sleep Mode Custom Background**: User bisa pilih gambar (JPG/PNG) atau video (MP4/WebM) sendiri sebagai background AOD.
-- **Video Background Loop**: Video background di Sleep Mode otomatis loop tanpa henti.
 - **Multi-Monitor Support**: Rekam atau capture layar dari monitor lebih dari satu sekaligus.
 - **Streaming Mode**: Dukungan output langsung ke platform streaming (OBS-compatible).
 - **Advanced Audio Mixer**: Kontrol volume per-source (mic, system, game) secara terpisah.
 - **Plugin Marketplace**: Browser plugin langsung dari dalam aplikasi.
 - **Cloud Sync Settings**: Sinkronisasi konfigurasi antar perangkat via cloud.
+
+---
+
+## ✅ v5.2.5 — Latest
+
+### ✨ Features
+- **Sleep Mode Music**: Opsi musik opsional (MP3/WAV/FLAC/OGG/M4A) — bisa dipakai bareng background apapun, ada volume slider.
+- **Sleep Mode No Delay**: Custom background (gambar/video) langsung tampil tanpa delay.
+
+### 🐛 Bug Fixes
+- Fix Search Overlay kotak-kotak setelah penggunaan ke-2 (root cause: window di-reuse, sekarang selalu buat instance baru).
+- Fix SleepMode custom background tidak tersimpan saat settings dibuka ulang.
+- Fix ZeroMix.recorder video output hitam (tambah -vsync cfr flag ke FFmpeg).
+- Fix video wallpaper tidak bisa diputar — error handling diperbaiki.
+- Fix uninstaller tidak hapus registry context menu dan startup shortcut.
+
+### 🔧 Changes
+- Virtual Assistant: hapus tombol mic dari UI overlay (tetap bisa diakses dari halaman list model).
+- Virtual Assistant: eye tracking 200ms → 300ms, vision timer 30s → 60s (hemat CPU/RAM ~10-15MB).
+- Wallpapers: hapus pre-process ffmpeg yang tidak perlu, video langsung play.
+- Uninstaller: auto kill ZeroMix.exe, hapus registry, startup shortcut, LocalAppData.
+- Sleep Mode: BitmapImage di-Freeze() setelah load, DispatcherTimer pakai Background priority.
 
 ---
 

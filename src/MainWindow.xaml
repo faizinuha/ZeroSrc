@@ -883,7 +883,7 @@
                                                                Margin="0,0,0,6"/>
                                                     <StackPanel Orientation="Horizontal">
                                                         <TextBlock x:Name="VersionText"
-                                                                   Text="v5.2.5"
+                                                                   Text="5.3.1"
                                                                    FontSize="18"
                                                                    FontWeight="Bold"
                                                                    Foreground="White"
@@ -1297,6 +1297,185 @@
                                         </ItemsControl.ItemTemplate>
                                     </ItemsControl>
                                 </ScrollViewer>
+                            </StackPanel>
+                        </ScrollViewer>
+
+                        <!-- ═══ SLEEP MODE SETTINGS VIEW ═══ -->
+                        <ScrollViewer x:Name="SleepContent"
+                                      Visibility="Collapsed"
+                                      VerticalScrollBarVisibility="Auto"
+                                      BorderThickness="0">
+                            <StackPanel Margin="0,0,0,30">
+                                <!-- Header + Back -->
+                                <Grid Margin="0,0,0,24">
+                                    <StackPanel>
+                                        <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
+                                            <Button Content="← Back" Click="SleepBackBtn_Click"
+                                                    Style="{StaticResource CasualBtn}" Padding="12,5" FontSize="11" Margin="0,0,12,0"/>
+                                            <TextBlock Text="Sleep Mode Settings"
+                                                       FontSize="28" FontWeight="Black"
+                                                       Foreground="{StaticResource NeonBlueBrush}"
+                                                       VerticalAlignment="Center"/>
+                                        </StackPanel>
+                                        <TextBlock Text="Configure how fake sleep behaves"
+                                                   FontSize="13" Foreground="{StaticResource SubTextBrush}"/>
+                                    </StackPanel>
+                                </Grid>
+
+                                <!-- Trigger Mode -->
+                                <TextBlock Text="BEHAVIOR MODE" FontSize="11" FontWeight="Bold"
+                                           Foreground="{StaticResource TextMutedBrush}" Margin="0,0,0,12"/>
+                                <Border Style="{StaticResource CardBorder}" Margin="0,0,0,20">
+                                    <StackPanel>
+                                        <CheckBox x:Name="SLP_ManualModeChk" Content="Direct Activation (Manual)" IsChecked="True" Style="{StaticResource ModernCheckBox}"/>
+                                        <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
+                                            <CheckBox x:Name="SLP_IdleModeChk" Content="Active when Idle" Style="{StaticResource ModernCheckBox}" VerticalAlignment="Center" Margin="0"/>
+                                            <TextBox x:Name="SLP_IdleSecondsTxt" Text="60" Width="40" Margin="10,0,5,0" HorizontalContentAlignment="Center"/>
+                                            <TextBlock Text="sec" Foreground="{StaticResource SubTextBrush}" VerticalAlignment="Center"/>
+                                        </StackPanel>
+                                        <StackPanel Orientation="Horizontal">
+                                            <CheckBox x:Name="SLP_ShortcutModeChk" Content="Shortcut Activation" Style="{StaticResource ModernCheckBox}" VerticalAlignment="Center" Margin="0"/>
+                                            <TextBox x:Name="SLP_ShortcutTxt" Text="Alt + S" IsReadOnly="True" Width="80" Margin="10,0,0,0" HorizontalContentAlignment="Center"/>
+                                        </StackPanel>
+                                    </StackPanel>
+                                </Border>
+
+                                <!-- Exit Behavior -->
+                                <TextBlock Text="EXIT BEHAVIOR" FontSize="11" FontWeight="Bold"
+                                           Foreground="{StaticResource TextMutedBrush}" Margin="0,0,0,12"/>
+                                <Border Style="{StaticResource CardBorder}" Margin="0,0,0,20">
+                                    <StackPanel>
+                                        <CheckBox x:Name="SLP_ExitMouseMoveChk" Content="Exit on Mouse Move" IsChecked="True" Style="{StaticResource ModernCheckBox}"/>
+                                        <CheckBox x:Name="SLP_ExitMouseDownChk" Content="Exit on Mouse Click" IsChecked="True" Style="{StaticResource ModernCheckBox}"/>
+                                        <CheckBox x:Name="SLP_ExitKeyDownChk" Content="Exit on Key Press" IsChecked="True" Style="{StaticResource ModernCheckBox}"/>
+                                    </StackPanel>
+                                </Border>
+
+                                <!-- AOD Style -->
+                                <TextBlock Text="ALWAYS-ON DISPLAY STYLE" FontSize="11" FontWeight="Bold"
+                                           Foreground="{StaticResource TextMutedBrush}" Margin="0,0,0,12"/>
+                                <UniformGrid Columns="3" Margin="0,0,0,20">
+                                    <Border x:Name="SLP_StyleCardMinimal" CornerRadius="10" Margin="0,0,6,6" Padding="10" Cursor="Hand"
+                                            Background="#141922" BorderThickness="2" BorderBrush="{StaticResource NeonBlueBrush}"
+                                            MouseLeftButtonDown="SLP_StyleCard_Click" Tag="MinimalClock">
+                                        <StackPanel HorizontalAlignment="Center">
+                                            <TextBlock Text="00:00" FontSize="18" FontWeight="Bold" Foreground="#44FFFFFF" HorizontalAlignment="Center"/>
+                                            <TextBlock Text="Minimal" FontSize="10" Foreground="{StaticResource NeonBlueBrush}" HorizontalAlignment="Center" Margin="0,4,0,0" FontWeight="SemiBold"/>
+                                        </StackPanel>
+                                    </Border>
+                                    <Border x:Name="SLP_StyleCardGlow" CornerRadius="10" Margin="3,0,3,6" Padding="10" Cursor="Hand"
+                                            Background="#141922" BorderThickness="1" BorderBrush="#1A2030"
+                                            MouseLeftButtonDown="SLP_StyleCard_Click" Tag="DigitalGlow">
+                                        <StackPanel HorizontalAlignment="Center">
+                                            <TextBlock Text="00:00" FontSize="18" FontWeight="Bold" HorizontalAlignment="Center" Foreground="#00D9FF"/>
+                                            <TextBlock Text="Neon Glow" FontSize="10" Foreground="{StaticResource SubTextBrush}" HorizontalAlignment="Center" Margin="0,4,0,0"/>
+                                        </StackPanel>
+                                    </Border>
+                                    <Border x:Name="SLP_StyleCardAnalog" CornerRadius="10" Margin="6,0,0,6" Padding="10" Cursor="Hand"
+                                            Background="#141922" BorderThickness="1" BorderBrush="#1A2030"
+                                            MouseLeftButtonDown="SLP_StyleCard_Click" Tag="Analog">
+                                        <StackPanel HorizontalAlignment="Center">
+                                            <Ellipse Width="30" Height="30" Stroke="#44FFFFFF" StrokeThickness="1.5" HorizontalAlignment="Center"/>
+                                            <TextBlock Text="Analog" FontSize="10" Foreground="{StaticResource SubTextBrush}" HorizontalAlignment="Center" Margin="0,4,0,0"/>
+                                        </StackPanel>
+                                    </Border>
+                                    <Border x:Name="SLP_StyleCardDate" CornerRadius="10" Margin="0,0,6,0" Padding="10" Cursor="Hand"
+                                            Background="#141922" BorderThickness="1" BorderBrush="#1A2030"
+                                            MouseLeftButtonDown="SLP_StyleCard_Click" Tag="DateFocus">
+                                        <StackPanel HorizontalAlignment="Center">
+                                            <TextBlock Text="APR 5" FontSize="14" FontWeight="Bold" Foreground="#44FFFFFF" HorizontalAlignment="Center"/>
+                                            <TextBlock Text="Date Focus" FontSize="10" Foreground="{StaticResource SubTextBrush}" HorizontalAlignment="Center" Margin="0,4,0,0"/>
+                                        </StackPanel>
+                                    </Border>
+                                    <Border x:Name="SLP_StyleCardBlank" CornerRadius="10" Margin="3,0,3,0" Padding="10" Cursor="Hand"
+                                            Background="#0A0A0A" BorderThickness="1" BorderBrush="#1A2030"
+                                            MouseLeftButtonDown="SLP_StyleCard_Click" Tag="Blank">
+                                        <StackPanel HorizontalAlignment="Center">
+                                            <TextBlock Text="■" FontSize="18" Foreground="#11FFFFFF" HorizontalAlignment="Center"/>
+                                            <TextBlock Text="Blank" FontSize="10" Foreground="{StaticResource SubTextBrush}" HorizontalAlignment="Center" Margin="0,4,0,0"/>
+                                        </StackPanel>
+                                    </Border>
+                                </UniformGrid>
+
+                                <!-- Brightness -->
+                                <TextBlock Text="BRIGHTNESS" FontSize="11" FontWeight="Bold"
+                                           Foreground="{StaticResource TextMutedBrush}" Margin="0,0,0,12"/>
+                                <Border Style="{StaticResource CardBorder}" Margin="0,0,0,20">
+                                    <StackPanel>
+                                        <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
+                                            <TextBlock Text="Brightness" Foreground="{StaticResource SubTextBrush}" FontSize="11"/>
+                                            <TextBlock x:Name="SLP_BrightnessLabel" Text=" — 100%" Foreground="{StaticResource NeonBlueBrush}" FontSize="11"/>
+                                        </StackPanel>
+                                        <Slider x:Name="SLP_BrightnessSld" Minimum="0.2" Maximum="1.0" Value="1.0"
+                                                TickFrequency="0.1" IsSnapToTickEnabled="True"
+                                                ValueChanged="SLP_BrightnessSld_ValueChanged"/>
+                                    </StackPanel>
+                                </Border>
+
+                                <!-- Custom Background -->
+                                <TextBlock Text="CUSTOM BACKGROUND" FontSize="11" FontWeight="Bold"
+                                           Foreground="{StaticResource TextMutedBrush}" Margin="0,0,0,12"/>
+                                <Border Style="{StaticResource CardBorder}" Margin="0,0,0,20">
+                                    <StackPanel>
+                                        <TextBlock Text="Pilih gambar atau video sebagai background AOD"
+                                                   Foreground="{StaticResource SubTextBrush}" FontSize="11" Margin="0,0,0,10"/>
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+                                            <Border Grid.Column="0" Background="#0D1117" CornerRadius="6" Padding="8,6" Margin="0,0,8,0">
+                                                <TextBlock x:Name="SLP_CustomBgPathText" Text="Tidak ada file dipilih"
+                                                           Foreground="{StaticResource SubTextBrush}" FontSize="11"
+                                                           TextTrimming="CharacterEllipsis" VerticalAlignment="Center"/>
+                                            </Border>
+                                            <Button Grid.Column="1" Content="Pilih File" Style="{StaticResource ActionButton}"
+                                                    Padding="12,6" Click="SLP_BrowseCustomBg_Click" Margin="0,0,6,0"/>
+                                            <Button Grid.Column="2" Content="✕" Style="{StaticResource CasualBtn}"
+                                                    Padding="10,6" Click="SLP_ClearCustomBg_Click"/>
+                                        </Grid>
+                                        <TextBlock Text="Format: JPG, PNG, MP4, WebM"
+                                                   Foreground="#44FFFFFF" FontSize="10" Margin="0,6,0,0"/>
+                                    </StackPanel>
+                                </Border>
+
+                                <!-- Music -->
+                                <TextBlock Text="MUSIC (OPSIONAL)" FontSize="11" FontWeight="Bold"
+                                           Foreground="{StaticResource TextMutedBrush}" Margin="0,0,0,12"/>
+                                <Border Style="{StaticResource CardBorder}" Margin="0,0,0,20">
+                                    <StackPanel>
+                                        <TextBlock Text="Putar musik saat Sleep Mode aktif — bisa dipakai dengan background apapun"
+                                                   Foreground="{StaticResource SubTextBrush}" FontSize="11" Margin="0,0,0,10"/>
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+                                            <Border Grid.Column="0" Background="#0D1117" CornerRadius="6" Padding="8,6" Margin="0,0,8,0">
+                                                <TextBlock x:Name="SLP_MusicPathText" Text="Tidak ada musik dipilih"
+                                                           Foreground="{StaticResource SubTextBrush}" FontSize="11"
+                                                           TextTrimming="CharacterEllipsis" VerticalAlignment="Center"/>
+                                            </Border>
+                                            <Button Grid.Column="1" Content="Pilih Musik" Style="{StaticResource ActionButton}"
+                                                    Padding="12,6" Click="SLP_BrowseMusic_Click" Margin="0,0,6,0"/>
+                                            <Button Grid.Column="2" Content="✕" Style="{StaticResource CasualBtn}"
+                                                    Padding="10,6" Click="SLP_ClearMusic_Click"/>
+                                        </Grid>
+                                        <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
+                                            <TextBlock Text="Volume" Foreground="{StaticResource SubTextBrush}" FontSize="11" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                                            <Slider x:Name="SLP_MusicVolumeSld" Minimum="0" Maximum="1" Value="0.5"
+                                                    Width="160" VerticalAlignment="Center" ValueChanged="SLP_MusicVolumeSld_ValueChanged"/>
+                                            <TextBlock x:Name="SLP_MusicVolumeLabel" Text="50%" Foreground="{StaticResource NeonBlueBrush}"
+                                                       FontSize="11" VerticalAlignment="Center" Margin="8,0,0,0"/>
+                                        </StackPanel>
+                                    </StackPanel>
+                                </Border>
+
+                                <!-- Start Button -->
+                                <Button Content="Start Sleep Mode" Click="SLP_StartBtn_Click"
+                                        Style="{StaticResource PrimaryBtn}" Width="200" HorizontalAlignment="Left"/>
                             </StackPanel>
                         </ScrollViewer>
 

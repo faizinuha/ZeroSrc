@@ -28,12 +28,19 @@
                Visibility="Collapsed"/>
         <MediaElement x:Name="CustomBgVideo"
                       Stretch="UniformToFill"
-                      LoadedBehavior="Play"
+                      LoadedBehavior="Manual"
                       IsMuted="True"
                       Opacity="0.3"
                       IsHitTestVisible="False"
                       Visibility="Collapsed"
                       MediaEnded="CustomBgVideo_MediaEnded"/>
+
+        <!-- Music Player (opsional, audio only, tidak tampil) -->
+        <MediaElement x:Name="MusicPlayer"
+                      LoadedBehavior="Manual"
+                      Visibility="Collapsed"
+                      IsHitTestVisible="False"
+                      MediaEnded="MusicPlayer_MediaEnded"/>
 
         <!-- Konten animasi ringan (Jam digital) -->
         <StackPanel x:Name="AnimContainer" 

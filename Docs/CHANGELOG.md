@@ -5,18 +5,24 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) | [Semantic Ver
 
 ---
 
-
-
-
-
-
-
-## [v5.2.5] - 2026-04-07
+## [v5.3.1] - 2026-04-07
 
 ### ✨ Features
 - Sleep Mode custom background + Check Update di tray
 - Sleep Mode custom background + Check Update di tray
 - Sleep Mode custom background + Check Update di tray
+- Update Readme.md
+- Updated source: src/Hotkeys/HotkeyCore.cs
+- Updated main UI layout
+- Updated main window logic
+- Updated source: src/Search/SearchOverlay.xaml
+- Updated source: src/Search/SearchOverlay.xaml.cs
+- Updated source: src/SleepMode/SleepOverlayWindow.xaml
+- Updated source: src/SleepMode/SleepOverlayWindow.xaml.cs
+- Updated source: src/SleepMode/SleepSettingsModel.cs
+- Updated source: src/SleepMode/SleepSettingsWindow.xaml
+- Updated source: src/SleepMode/SleepSettingsWindow.xaml.cs
+- Updated source: src/ZeroMix.recorder/HardwareEncoder.cs
 
 ### 🐛 Bug Fixes
 - Memperbaiki Beberapa Bugs
@@ -24,79 +30,79 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) | [Semantic Ver
 - Hotfix build rusak
 
 ### 🔧 Changes
-- Rebuilt: Exe/Setup.iss
-- Rebuilt: Scripts/release-version.ps1
-- Rebuilt: ZeroMix.csproj
-- Rebuilt: src/MainWindow.xaml
-- Rebuilt: src/MainWindow.xaml.cs
-- Rebuilt: src/Search/SearchOverlay.xaml
-- Rebuilt: src/Search/SearchOverlay.xaml.cs
-- Rebuilt: src/SleepMode/SleepOverlayWindow.xaml
-- Rebuilt: src/SleepMode/SleepOverlayWindow.xaml.cs
-- Rebuilt: src/SleepMode/SleepSettingsModel.cs
-- Rebuilt: src/SleepMode/SleepSettingsWindow.xaml
-- Rebuilt: src/SleepMode/SleepSettingsWindow.xaml.cs
-- Rebuilt: src/ZeroMix.recorder/HardwareEncoder.cs
+- Updated installer config
+- Updated script: Scripts/release-version.ps1
+- Updated project config
+
+---
+## [5.3.0] - 2026-04-07
+
+### ✨ Features
+- Sleep Mode: tambah opsi musik opsional (MP3/WAV/FLAC/OGG/M4A) — bisa dipakai bareng background apapun
+- Sleep Mode: custom background (gambar/video) langsung tampil tanpa delay
+- Sleep Mode: volume slider untuk musik
+
+### 🐛 Bug Fixes
+- Fix Search Overlay kotak-kotak setelah penggunaan ke-2 (root cause: window di-reuse, sekarang selalu buat instance baru)
+- Fix SleepMode custom background tidak tersimpan saat settings dibuka ulang
+- Fix ZeroMix.recorder video output hitam (tambah -vsync cfr flag ke FFmpeg)
+- Fix video wallpaper tidak bisa diputar — error handling diperbaiki dengan pesan yang jelas
+- Fix uninstaller tidak hapus registry context menu dan startup shortcut
+
+### 🔧 Changes
+- Virtual Assistant: hapus tombol mic dari UI overlay (mic tetap bisa diakses dari halaman list model)
+- Virtual Assistant: eye tracking interval 200ms → 300ms, vision timer 30s → 60s (hemat CPU/RAM)
+- Virtual Assistant: semua permission request di-deny kecuali yang dibutuhkan
+- Wallpapers: hapus kode optimasi video background yang tidak perlu (langsung play tanpa ffmpeg pre-process)
+- Uninstaller: auto kill ZeroMix.exe, hapus registry, hapus startup shortcut, hapus LocalAppData
+- Sleep Mode: BitmapImage di-Freeze() setelah load → tidak makan RAM berulang
+- Sleep Mode: DispatcherTimer pakai Background priority
+
+---
+
+
+
+-- End Version 5.2.5 -> 5.3.0 -- 
+
+
+
+## [v5.2.5] - 2026-04-07
+
+### ✨ Features
+- Sleep Mode: tambah opsi musik opsional (MP3/WAV/FLAC/OGG/M4A) — bisa dipakai bareng background apapun
+- Sleep Mode: custom background (gambar/video) langsung tampil tanpa delay
+- Sleep Mode: volume slider untuk musik
+
+### 🐛 Bug Fixes
+- Fix Search Overlay kotak-kotak setelah penggunaan ke-2 (root cause: window di-reuse, sekarang selalu buat instance baru)
+- Fix SleepMode custom background tidak tersimpan saat settings dibuka ulang
+- Fix ZeroMix.recorder video output hitam (tambah -vsync cfr flag ke FFmpeg)
+- Fix video wallpaper tidak bisa diputar — error handling diperbaiki dengan pesan yang jelas
+- Fix uninstaller tidak hapus registry context menu dan startup shortcut
+
+### 🔧 Changes
+- Virtual Assistant: hapus tombol mic dari UI overlay (mic tetap bisa diakses dari halaman list model)
+- Virtual Assistant: eye tracking interval 200ms → 300ms, vision timer 30s → 60s (hemat CPU/RAM)
+- Virtual Assistant: semua permission request di-deny kecuali yang dibutuhkan
+- Virtual Assistant: tambah AreBrowserAcceleratorKeysEnabled=false dan IsSwipeNavigationEnabled=false
+- Wallpapers: hapus kode optimasi video background yang tidak perlu (langsung play tanpa ffmpeg pre-process)
+- Uninstaller: auto kill ZeroMix.exe, hapus registry, hapus startup shortcut, hapus LocalAppData
+- Sleep Mode: BitmapImage di-Freeze() setelah load → tidak makan RAM berulang
+- Sleep Mode: DispatcherTimer pakai Background priority
 
 ---
 ## [v5.2.3] - 2026-04-06
 
 ### ✨ Features
-- No new features
+- AOD Style Picker — 5 style Always-On Display
+- Analog Clock AOD dengan anti burn-in
+- Sidebar Update Badge
+- Auto Silent Update Check
 
 ### 🐛 Bug Fixes
-- No bug fixes
-
-### 🔧 Changes
-- Force rebuild v5.2.3
-
----
-## [v5.2.3] - 2026-04-06
-
-### ✨ Features
-- No new features
-
-### 🐛 Bug Fixes
-- No bug fixes
-
-### 🔧 Changes
-- Force rebuild v5.2.3
-
----
-## [v5.2.3] - 2026-04-06
-
-### ✨ Features
-- No new features
-
-### 🐛 Bug Fixes
-- No bug fixes
-
-### 🔧 Changes
-- Force rebuild v5.2.3
-
----
-## [v5.2.3] - 2026-04-06
-
-### ✨ Features
-- No new features
-
-### 🐛 Bug Fixes
-- No bug fixes
-
-### 🔧 Changes
-- Force rebuild v5.2.3
-
----
-## [v5.2.3] - 2026-04-06
-
-### ✨ Features
-- No new features
-
-### 🐛 Bug Fixes
-- No bug fixes
-
-### 🔧 Changes
-- Force rebuild v5.2.3
+- Fix double instance
+- Fix Search Overlay lambat
+- Fix Sleep Mode overlay crash saat laptop wake up
 
 ---
 ## [v5.2.2] - 2026-04-05
@@ -117,18 +123,6 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) | [Semantic Ver
 
 ---
 
-## [v5.2.3] - 2026-04-06
-
-### ✨ Features
-- No new features
-
-### 🐛 Bug Fixes
-- No bug fixes
-
-### 🔧 Changes
-- Force rebuild v5.2.3
-
----
 ## [v5.1.9] - 2026-04-03
 
 ### ✨ Features
