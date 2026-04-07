@@ -5,7 +5,7 @@
 ; --- App Identity ---
 AppId={{ZeroMix-v2-ZeroMix-identifier}}
 AppName=ZeroMix
-#define AppVersion "5.2.5"
+#define AppVersion "5.3.1"
 AppVersion={#AppVersion}
 VersionInfoVersion={#AppVersion}.0
 VersionInfoCompany=Frieren
@@ -159,11 +159,27 @@ end;
 
 procedure CurUninstallStepChanged(CurStep: TUninstallStep);
 begin
+  if CurStep = usUninstall then
+  begin
+    // Tutup ZeroMix jika masih berjalan
+    ShellExec('', 'taskkill.exe', '/f /im ZeroMix.exe', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
+  end;
+
   if CurStep = usPostUninstall then
   begin
-    if MsgBox('Apakah Kakak juga ingin menghapus folder pengaturan (config) di AppData?', mbConfirmation, MB_YESNO) = IDYES then
+    // Hapus registry context menu
+    RegDeleteKeyIncludingSubkeys(HKCR, 'Directory\Background\shell\ZeroMix');
+
+    // Hapus startup shortcut jika ada
+    DeleteFile(ExpandConstant('{userstartup}\ZeroMix.lnk'));
+
+    // Tanya hapus data AppData
+    if MsgBox('Hapus juga data pengaturan ZeroMix di AppData?', mbConfirmation, MB_YESNO) = IDYES then
     begin
       DelTree(ExpandConstant('{userappdata}\ZeroMix'), True, True, True);
     end;
+
+    // Hapus folder temp ZeroMix
+    DelTree(ExpandConstant('{localappdata}\ZeroMix'), True, True, True);
   end;
 end;

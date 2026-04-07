@@ -220,7 +220,7 @@ namespace ZeroMix.Wallpapers
         {
             if (string.IsNullOrEmpty(_selectedImagePath) || !File.Exists(_selectedImagePath))
             {
-                System.Windows.MessageBox.Show("Please select a wallpaper first!", "Attention", MessageBoxButton.OK, MessageBoxImage.Warning);
+                System.Windows.MessageBox.Show("Pilih wallpaper dulu!", "Perhatian", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
 
@@ -229,35 +229,19 @@ namespace ZeroMix.Wallpapers
             try
             {
                 SetWallpaperButton.IsEnabled = false;
-                
+
                 if (type == WallpaperType.Video)
                 {
-                    StatusLabel.Text = "🎬 Launching Video Wallpaper...";
-                    
-                    // Instant launch using original path
+                    StatusLabel.Text = "🎬 Memuat Video Wallpaper...";
                     LaunchVideoWallpaper(_selectedImagePath);
-                    
-                    // Optimization check in background (non-blocking)
-                    _ = Task.Run(() => 
-                    {
-                        var ffmpegPath = FindFFmpeg();
-                        if (!string.IsNullOrEmpty(ffmpegPath)) 
-                        {
-                            OptimizeVideoForWallpaper(_selectedImagePath, ffmpegPath);
-                        }
-                    });
-
-                    StatusLabel.Text = "✅ Video Applied!";
+                    StatusLabel.Text = "✅ Video Wallpaper Aktif!";
                 }
                 else
                 {
-                    StatusLabel.Text = "Applying Wallpaper...";
-                    
-                    // Stop video if running
+                    StatusLabel.Text = "Menerapkan Wallpaper...";
                     StopVideoWallpaper();
-                    
                     await Task.Run(() => NativeMethods.SetWallpaper(_selectedImagePath));
-                    StatusLabel.Text = "✅ Wallpaper Successfully Applied!";
+                    StatusLabel.Text = "✅ Wallpaper Berhasil Diterapkan!";
                 }
             }
             catch (Exception ex)

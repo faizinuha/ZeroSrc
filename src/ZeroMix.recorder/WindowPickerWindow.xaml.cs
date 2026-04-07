@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Media;
@@ -65,8 +66,9 @@ namespace ZeroMix.Recorder
                 if (string.IsNullOrEmpty(title)) return true;
                 if (title.Length < 2) return true;
 
-                // Skip taskbar dan shell windows
-                if (title == "Program Manager" || title == "Windows Input Experience") return true;
+                // Skip window sistem yang tidak relevan
+                if (title is "Program Manager" or "Windows Input Experience" 
+                          or "Task Switching" or "Start" or "Search") return true;
 
                 GetWindowThreadProcessId(hWnd, out uint pid);
                 string processName = "";
@@ -77,27 +79,37 @@ namespace ZeroMix.Recorder
                     var proc = Process.GetProcessById((int)pid);
                     processName = proc.ProcessName;
 
-                    // Skip proses sistem
-                    if (processName is "explorer" or "SearchHost" or "ShellExperienceHost") return true;
+                    // Skip proses sistem murni (bukan explorer biasa)
+                    if (processName is "SearchHost" or "ShellExperienceHost" 
+                                    or "StartMenuExperienceHost" or "LockApp") return true;
 
-                    // Ambil icon dari proses
-                    var sysIcon = System.Drawing.Icon.ExtractAssociatedIcon(proc.MainModule?.FileName ?? "");
-                    if (sysIcon != null)
+                    // Ambil icon — pakai try terpisah agar gagal icon tidak skip window
+                    try
                     {
-                        icon = Imaging.CreateBitmapSourceFromHIcon(
-                            sysIcon.Handle, Int32Rect.Empty,
-                            BitmapSizeOptions.FromEmptyOptions());
-                        icon.Freeze();
+                        string? exePath = proc.MainModule?.FileName;
+                        if (!string.IsNullOrEmpty(exePath))
+                        {
+                            var sysIcon = System.Drawing.Icon.ExtractAssociatedIcon(exePath);
+                            if (sysIcon != null)
+                            {
+                                icon = Imaging.CreateBitmapSourceFromHIcon(
+                                    sysIcon.Handle, Int32Rect.Empty,
+                                    BitmapSizeOptions.FromEmptyOptions());
+                                icon.Freeze();
+                            }
+                        }
                     }
+                    catch { /* icon gagal, window tetap ditampilkan */ }
                 }
-                catch { }
+                catch { return true; } // pid tidak valid, skip
 
-                // Cek ukuran window — skip yang terlalu kecil
+                // Cek ukuran — skip yang sangat kecil, tapi izinkan window minimize (0x0)
                 if (GetWindowRect(hWnd, out RECT rect))
                 {
                     int w = rect.Right - rect.Left;
                     int h = rect.Bottom - rect.Top;
-                    if (w < 100 || h < 100) return true;
+                    // Hanya skip kalau punya ukuran tapi terlalu kecil (bukan minimize)
+                    if (w > 0 && h > 0 && (w < 50 || h < 50)) return true;
                 }
 
                 windows.Add(new WindowInfo
@@ -111,7 +123,11 @@ namespace ZeroMix.Recorder
                 return true;
             }, IntPtr.Zero);
 
-            WindowList.ItemsSource = windows;
+            // Sort: window dengan icon di atas
+            WindowList.ItemsSource = windows
+                .OrderByDescending(w => w.Icon != null)
+                .ThenBy(w => w.Title)
+                .ToList();
         }
 
         private void SelectButton_Click(object sender, RoutedEventArgs e)

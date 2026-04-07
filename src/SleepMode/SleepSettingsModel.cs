@@ -38,6 +38,10 @@ namespace ZeroMix.SleepMode
         public double Brightness { get; set; } = 1.0;
         public string? CustomBackgroundPath { get; set; } = null;
 
+        // Music (opsional, bisa dipakai bareng background apapun)
+        public string? MusicPath { get; set; } = null;
+        public double MusicVolume { get; set; } = 0.5;
+
         // Advanced
         public bool AutoDisableOnLowBattery { get; set; } = true;
 

@@ -165,7 +165,8 @@
                             <TextBlock Text="TERMINAL CUSTOMIZER" Foreground="#00D4FF" FontWeight="Bold" FontSize="18" 
                                        Margin="30,0" VerticalAlignment="Center" Padding="2"/>
                             
-                            <StackPanel Grid.Row="1" Margin="30,10">
+                            <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                            <StackPanel Margin="30,10">
                                 <TextBlock Text="Appearance" Foreground="#88FFFFFF" FontSize="12" Margin="0,10,0,15" FontWeight="Bold"/>
                                 
                                 <!-- Font Family -->
@@ -213,7 +214,8 @@
                                         <ColumnDefinition Width="Auto"/>
                                     </Grid.ColumnDefinitions>
                                     <TextBlock x:Name="WallpaperPathText" Text="No Image Selected" Foreground="#88FFFFFF" 
-                                               FontSize="11" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" Margin="0,0,10,0"/>
+                                               FontSize="11" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"
+                                               Margin="0,0,10,0" IsHitTestVisible="False"/>
                                     <Button Grid.Column="1" Content="BROWSE" Click="BrowseWallpaper_Click" Padding="15,5" 
                                             Background="#22FFFFFF" Foreground="White" BorderThickness="1" BorderBrush="#33FFFFFF">
                                         <Button.Resources>
@@ -235,6 +237,7 @@
                                     </StackPanel>
                                 </Grid>
                             </StackPanel>
+                            </ScrollViewer>
 
                             <Border Grid.Row="2" Background="#08FFFFFF" CornerRadius="0,0,16,16">
                                 <Button Content="SAVE &amp; APPLY" Width="140" Height="32" Background="#00D4FF" Foreground="Black" 

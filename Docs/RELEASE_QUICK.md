@@ -1,6 +1,12 @@
 # 🚀 Quick Release Guide
 
 ## Cara Release Versi Baru
+5.2.7  →  5.3.0  (tambah fitur, patch reset)
+5.3.0  →  5.3.1  (bug fix)
+5.3.1  →  5.3.2  (bug fix lagi)
+5.3.2  →  5.4.0  (tambah fitur lagi, patch reset lagi)
+
+5.3.2  →  6.0.0  (breaking change, minor & patch reset)
 
 ### Satu Command
 
