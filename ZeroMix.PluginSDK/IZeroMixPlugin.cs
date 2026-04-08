@@ -1,22 +1,22 @@
 namespace ZeroMix.PluginSDK;
 
 /// <summary>
-/// Interface utama untuk plugin ZeroMix berbasis C#.
-/// Implement interface ini untuk membuat plugin native.
+/// Interface utama untuk semua plugin.
+/// Kompatibel dengan ZeroMix dan aplikasi host lain yang mengimplementasi IPluginHost.
 /// </summary>
 public interface IZeroMixPlugin
 {
-    /// <summary>Nama plugin yang tampil di UI ZeroMix</summary>
+    /// <summary>Nama plugin yang tampil di UI host</summary>
     string Name { get; }
 
-    /// <summary>Versi plugin</summary>
+    /// <summary>Versi plugin (format: x.y.z)</summary>
     string Version { get; }
 
     /// <summary>Deskripsi singkat plugin</summary>
     string Description { get; }
 
-    /// <summary>Dipanggil saat plugin diaktifkan</summary>
-    void OnLoad(IZeroMixHost host);
+    /// <summary>Dipanggil saat plugin diaktifkan oleh host</summary>
+    void OnLoad(IPluginHost host);
 
     /// <summary>Dipanggil saat plugin dinonaktifkan</summary>
     void OnUnload();

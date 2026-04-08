@@ -1,8 +1,9 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net9.0-windows</TargetFramework>
+    <TargetFramework>net9.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+    <ApplicationIcon>.\Assets\Icons\zeromix.ico</ApplicationIcon>
 
     <!-- NuGet Package Info -->
     <PackageId>ZeroMix.PluginSDK</PackageId>
