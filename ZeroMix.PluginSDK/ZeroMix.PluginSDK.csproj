@@ -1,24 +1,26 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net9.0</TargetFramework>
+    <TargetFrameworks>net9.0;net9.0-windows</TargetFrameworks>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <ApplicationIcon>.\Assets\Icons\zeromix.ico</ApplicationIcon>
 
     <!-- NuGet Package Info -->
     <PackageId>ZeroMix.PluginSDK</PackageId>
-    <Version>1.0.2</Version>
+    <Version>2.0.0</Version>
     <Authors>faizinuha</Authors>
     <Company>ZeroMix Team</Company>
-    <Description>SDK for building ZeroMix plugins. Provides interfaces and base types for plugin development.</Description>
-    <PackageTags>zeromix;plugin;sdk;wpf</PackageTags>
+    <Description>Universal plugin SDK. Build plugins for ZeroMix or any application that implements IPluginHost. Includes Lua SDK (zeromix.sdk.lua) for non-.NET platforms.</Description>
+    <PackageTags>zeromix;plugin;sdk;lua;cross-platform;universal</PackageTags>
     <RepositoryUrl>https://github.com/faizinuha/ZeroMix</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageIcon>icon.png</PackageIcon>
   </PropertyGroup>
 
   <ItemGroup>
     <None Include="README.md" Pack="true" PackagePath="\" />
+    <None Include="zeromix.sdk.lua" Pack="true" PackagePath="lua\" />
+    <None Include="..\Assets\zeromix-high-resolution-logo.png" Pack="true" PackagePath="icon.png" Visible="false"/>
   </ItemGroup>
 </Project>
