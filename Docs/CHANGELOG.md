@@ -5,34 +5,33 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) | [Semantic Ver
 
 ---
 
-## [v5.3.1] - 2026-04-07
+## [v5.3.1] - 2026-04-08
 
 ### ✨ Features
-- Sleep Mode custom background + Check Update di tray
-- Sleep Mode custom background + Check Update di tray
-- Sleep Mode custom background + Check Update di tray
-- Update Readme.md
-- Updated source: src/Hotkeys/HotkeyCore.cs
-- Updated main UI layout
-- Updated main window logic
-- Updated source: src/Search/SearchOverlay.xaml
-- Updated source: src/Search/SearchOverlay.xaml.cs
-- Updated source: src/SleepMode/SleepOverlayWindow.xaml
-- Updated source: src/SleepMode/SleepOverlayWindow.xaml.cs
-- Updated source: src/SleepMode/SleepSettingsModel.cs
-- Updated source: src/SleepMode/SleepSettingsWindow.xaml
-- Updated source: src/SleepMode/SleepSettingsWindow.xaml.cs
-- Updated source: src/ZeroMix.recorder/HardwareEncoder.cs
+- Menambahkan Beberapa komponenen dan perbaikan , ZeroMixSell , SleepMode , Perubahan Tampilan , perbaiki Bugs , Optimize Virtual ,
+- Menambahkan Beberapa komponenen dan perbaikan , ZeroMixSell , SleepMode , Perubahan Tampilan , perbaiki Bugs , Optimize Virtual ,
 
 ### 🐛 Bug Fixes
-- Memperbaiki Beberapa Bugs
-- Bug Fixes Completed
-- Hotfix build rusak
+- No bug fixes
 
 ### 🔧 Changes
-- Updated installer config
-- Updated script: Scripts/release-version.ps1
-- Updated project config
+- Rebuilt: Assets/Data/Video/Vs (5).mp4
+- Rebuilt: Exe/Setup.iss
+- Rebuilt: ZeroMix.csproj
+- Rebuilt: src/MainWindow.xaml
+- Rebuilt: src/MainWindow.xaml.cs
+- Rebuilt: src/SleepMode/SleepOverlayWindow.xaml
+- Rebuilt: src/SleepMode/SleepOverlayWindow.xaml.cs
+- Rebuilt: src/SleepMode/SleepSettingsModel.cs
+- Rebuilt: src/SleepMode/SleepSettingsWindow.xaml
+- Rebuilt: src/SleepMode/SleepSettingsWindow.xaml.cs
+- Rebuilt: src/Virtual_Assisten/VirtualAssistantWindow.xaml
+- Rebuilt: src/Virtual_Assisten/VirtualAssistantWindow.xaml.cs
+- Rebuilt: src/Wallpapers/VideoWallpaperWindow.xaml.cs
+- Rebuilt: src/Wallpapers/WallpapersView.xaml.cs
+- Rebuilt: src/ZeroMix.recorder/WindowPickerWindow.xaml.cs
+- Rebuilt: src/ZeroShell/ZeroShellWindow.xaml
+- Rebuilt: src/ZeroShell/ZeroShellWindow.xaml.cs
 
 ---
 ## [5.3.0] - 2026-04-07

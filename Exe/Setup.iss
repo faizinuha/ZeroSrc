@@ -162,7 +162,7 @@ begin
   if CurStep = usUninstall then
   begin
     // Tutup ZeroMix jika masih berjalan
-    ShellExec('', 'taskkill.exe', '/f /im ZeroMix.exe', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
+    Exec('taskkill.exe', '/f /im ZeroMix.exe', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
   end;
 
   if CurStep = usPostUninstall then
