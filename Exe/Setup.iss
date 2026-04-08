@@ -158,6 +158,8 @@ begin
 end;
 
 procedure CurUninstallStepChanged(CurStep: TUninstallStep);
+var
+  ResultCode: Integer;
 begin
   if CurStep = usUninstall then
   begin
