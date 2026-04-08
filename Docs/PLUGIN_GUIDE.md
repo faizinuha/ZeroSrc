@@ -25,6 +25,11 @@ Tombol di UI	User biasa	    Klik di ZeroMix	      Lua
                  
 NuGet SDK	   Developer C#  	dotnet add package	  C#
 ```
+
+dotnet pack ZeroMix.PluginSDK/ZeroMix.PluginSDK.csproj -c Release
+dotnet nuget push ZeroMix.PluginSDK/bin/Release/ZeroMix.PluginSDK.2.0.0.nupkg --api-key YOUR_KEY --source https://api.nuget.org/v3/index.json
+
+
 ## 1. Persiapan
 
 Yang kamu butuhkan:

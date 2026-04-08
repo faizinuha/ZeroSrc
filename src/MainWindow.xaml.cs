@@ -119,10 +119,18 @@ namespace ZeroMix
         private bool _isSidebarCollapsed = false;
         private SleepManager? _sleepManager;
 
-        // ── IZeroMixHost implementation ──────────────────────────────────────
+        // ── IPluginHost + IZeroMixHost implementation ───────────────────────
+        public string HostName    => "ZeroMix";
+        public string HostVersion => CURRENT_VERSION;
+
         public void Dispatch(Action action) => Dispatcher.Invoke(action);
 
+        public void Log(string message) => System.Diagnostics.Debug.WriteLine($"[Plugin] {message}");
+
         public void SetStatus(string text) => StatusLabel.Text = text;
+
+        public void ShowNotification(string title, string message) =>
+            System.Windows.MessageBox.Show(message, title, MessageBoxButton.OK, MessageBoxImage.Information);
 
         public double GetCpuUsage()
         {
@@ -141,7 +149,23 @@ namespace ZeroMix
             });
             return val;
         }
-        // ─────────────────────────────────────────────────────────────────────
+
+        public double GetDiskUsage()
+        {
+            double val = 0;
+            Dispatcher.Invoke(() => {
+                if (double.TryParse(DiskPercentText.Text.Replace(" %", ""), out double r)) val = r;
+            });
+            return val;
+        }
+
+        public T? GetService<T>() where T : class
+        {
+            // ZeroMix expose semua service-nya sendiri
+            if (typeof(T).IsAssignableFrom(typeof(MainWindow))) return this as T;
+            return null;
+        }
+        // ────────────────────────────────────────────────────────────────────
 
         private void HamburgerBtn_Click(object sender, RoutedEventArgs e)
         {
