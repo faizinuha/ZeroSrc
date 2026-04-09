@@ -62,11 +62,12 @@ jobs:
     - name: 📦 Restore & Publish ZeroMix
       shell: pwsh
       run: |
+        $VER = "${{ steps.version.outputs.version }}" -replace '^v', ''
         Write-Host "⏳ Restoring dependencies..."
         dotnet restore ZeroMix.csproj
         Write-Host "⏳ Publishing application..."
         dotnet publish ZeroMix.csproj -c Release -o publish/win-x64 `
-          -p:Version=${{ steps.version.outputs.version }} `
+          -p:Version=$VER `
           --self-contained true -r win-x64
         Write-Host "✅ Publish complete"
 
@@ -213,7 +214,7 @@ jobs:
         dotnet publish "$installerDir/ZeroMix.Installer.csproj" `
           -c Release -r win-x64 --self-contained true `
           -p:PublishSingleFile=true `
-          -p:Version=$VER `
+          -p:Version=($VER -replace '^v', '') `
           -o installer_output
         
         # Rename output
