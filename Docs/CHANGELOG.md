@@ -5,6 +5,26 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) | [Semantic Ver
 
 ---
 
+## [v5.4.0] - 2026-04-09
+
+### ✨ Features
+- Menambahkan Beberapa komponenen dan perbaikan , ZeroMixSell , SleepMode , Perubahan Tampilan , perbaiki Bugs , Optimize Virtual ,
+
+### 🐛 Bug Fixes
+- No bug fixes
+
+### 🔧 Changes
+- Rebuilt: Tools/Plugins/IZeroMixHost.cs
+- Rebuilt: ZeroMix.PluginSDK/IPluginHost.cs
+- Rebuilt: ZeroMix.PluginSDK/IPluginServices.cs
+- Rebuilt: ZeroMix.PluginSDK/IZeroMixHost.cs
+- Rebuilt: ZeroMix.PluginSDK/IZeroMixPlugin.cs
+- Rebuilt: ZeroMix.PluginSDK/ZeroMix.PluginSDK.csproj
+- Rebuilt: ZeroMix.PluginSDK/zeromix.sdk.lua
+- Rebuilt: build/build.ps1
+- Rebuilt: src/MainWindow.xaml.cs
+
+---
 ## [v5.3.1] - 2026-04-08
 
 ### ✨ Features

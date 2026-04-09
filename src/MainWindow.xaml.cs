@@ -456,15 +456,18 @@ namespace ZeroMix
             {
                 string selectedLanguage = selectedItem.Tag?.ToString() ?? "en-US";
                 
-                // Save to language.ini
-                string languageFile = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "language.ini");
+                // Save to AppData (bukan BaseDirectory yang mungkin read-only)
+                string appDataDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "ZeroMix");
+                Directory.CreateDirectory(appDataDir);
+                string languageFile = Path.Combine(appDataDir, "language.ini");
+                
                 try
                 {
                     File.WriteAllText(languageFile, selectedLanguage);
                 }
-                catch
+                catch (Exception ex)
                 {
-                    System.Windows.MessageBox.Show("Failed to save language preference.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                    System.Windows.MessageBox.Show($"Failed to save language preference.\n\n{ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
                     return;
                 }
 

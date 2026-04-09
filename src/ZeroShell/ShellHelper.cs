@@ -87,37 +87,40 @@ namespace ZeroMix.ZeroShell
         }
 
 
-        private static void ApplyBlur(IntPtr hwnd)
+        // Dark acrylic — hitam dominan, wallpaper tidak tembus, tidak ikut warna background
+        private static void ApplyBlur(IntPtr hwnd, int alpha = 0xCC, int rgb = 0x000000)
         {
-            var accent = new AccentPolicy();
-            // Lighten the tint to fix 'Bold' font look (0x33 instead of 0x66)
-            accent.AccentState = AccentState.ACCENT_ENABLE_ACRYLICBLURBEHIND;
-            accent.GradientColor = (0x33 << 24) | (0x020202 & 0xFFFFFF); 
+            var accent = new AccentPolicy {
+                AccentState = AccentState.ACCENT_ENABLE_ACRYLICBLURBEHIND,
+                AccentFlags = 0,
+                GradientColor = (alpha << 24) | rgb
+            };
 
-            var accentStructSize = Marshal.SizeOf(accent);
-            var accentPtr = Marshal.AllocHGlobal(accentStructSize);
-            Marshal.StructureToPtr(accent, accentPtr, false);
+            var size = Marshal.SizeOf(accent);
+            var ptr = Marshal.AllocHGlobal(size);
+            Marshal.StructureToPtr(accent, ptr, false);
 
-            var data = new WindowCompositionAttributeData();
-            data.Attribute = WindowCompositionAttribute.WCA_ACCENT_POLICY;
-            data.SizeOfData = accentStructSize;
-            data.Data = accentPtr;
+            var data = new WindowCompositionAttributeData {
+                Attribute = WindowCompositionAttribute.WCA_ACCENT_POLICY,
+                SizeOfData = size,
+                Data = ptr
+            };
 
             SetWindowCompositionAttribute(hwnd, ref data);
-            Marshal.FreeHGlobal(accentPtr);
+            Marshal.FreeHGlobal(ptr);
         }
 
         public static void ApplyTaskbarTransparency()
         {
+            // Taskbar: paling gelap (alpha 0xDD)
             IntPtr taskbarHwnd = FindWindow("Shell_TrayWnd", null);
-            if (taskbarHwnd != IntPtr.Zero) ApplyBlur(taskbarHwnd);
+            if (taskbarHwnd != IntPtr.Zero) ApplyBlur(taskbarHwnd, 0xDD);
 
-            // For Secondary monitors
             EnumWindows((hWnd, lParam) =>
             {
                 StringBuilder className = new StringBuilder(256);
                 GetClassName(hWnd, className, className.Capacity);
-                if (className.ToString() == "Shell_SecondaryTrayWnd") ApplyBlur(hWnd);
+                if (className.ToString() == "Shell_SecondaryTrayWnd") ApplyBlur(hWnd, 0xDD);
                 return true;
             }, IntPtr.Zero);
         }
@@ -174,36 +177,122 @@ namespace ZeroMix.ZeroShell
                     GetClassName(hWnd, className, className.Capacity);
                     string cls = className.ToString();
                     if (cls == "CabinetWClass" || cls == "ExplorerWClass") {
-                        ApplyCrystalBlur(hWnd);
-                        InjectCustomFont(hWnd);
+                        // Explorer: alpha 0xBB — cukup gelap, wallpaper tidak tembus
+                        ApplyBlur(hWnd, 0xBB);
                     }
                 }
                 return true;
             }, IntPtr.Zero);
         }
 
-        private static void ApplyCrystalBlur(IntPtr hwnd)
+        /// <summary>
+        /// Apply glass/blur ke Start Menu — apply ke semua child windows agar bagian dalam ikut berubah
+        /// </summary>
+        public static void ApplyStartMenuGlass()
         {
-            var accent = new AccentPolicy();
-            // Windows 12 Style: Transparent center, blurred borders
-            accent.AccentState = AccentState.ACCENT_ENABLE_BLURBEHIND;
-            // Draw left, top, right, bottom borders with blur (0x20 | 0x40 | 0x80 | 0x100)
-            accent.AccentFlags = 0x20 | 0x40 | 0x80 | 0x100;
-            // Very light white tint for the border (0x10 alpha to keep it subtle)
-            accent.GradientColor = (0x10 << 24) | (0xFFFFFF & 0xFFFFFF); 
+            // Windows 10
+            IntPtr startMenu10 = FindWindow("Windows.UI.Core.CoreWindow", "Start");
+            if (startMenu10 == IntPtr.Zero)
+                startMenu10 = FindWindow("DV2ControlHost", null);
+            if (startMenu10 != IntPtr.Zero) {
+                ApplyBlur(startMenu10, 0x66);
+                ApplyBlurToChildren(startMenu10, 0x66);
+            }
 
-            var accentStructSize = Marshal.SizeOf(accent);
-            var accentPtr = Marshal.AllocHGlobal(accentStructSize);
-            Marshal.StructureToPtr(accent, accentPtr, false);
+            // Windows 11 — StartMenuExperienceHost
+            var targetPids = new HashSet<uint>();
+            foreach (var p in Process.GetProcesses()) {
+                if (p.ProcessName.ToLower() == "startmenuexperiencehost")
+                    targetPids.Add((uint)p.Id);
+            }
 
-            var data = new WindowCompositionAttributeData();
-            data.Attribute = WindowCompositionAttribute.WCA_ACCENT_POLICY;
-            data.SizeOfData = accentStructSize;
-            data.Data = accentPtr;
-
-            SetWindowCompositionAttribute(hwnd, ref data);
-            Marshal.FreeHGlobal(accentPtr);
+            EnumWindows((hWnd, lParam) => {
+                uint pid;
+                GetWindowThreadProcessId(hWnd, out pid);
+                if (targetPids.Contains(pid)) {
+                    ApplyBlur(hWnd, 0x66);
+                    ApplyBlurToChildren(hWnd, 0x66);
+                }
+                return true;
+            }, IntPtr.Zero);
         }
+
+        /// <summary>
+        /// Apply glass/blur ke Notification Panel (Action Center)
+        /// Windows 11: ControlCenterWindow di proses explorer atau ShellExperienceHost
+        /// </summary>
+        public static void ApplyNotificationPanelGlass()
+        {
+            var targetPids = new HashSet<uint>();
+            foreach (var p in Process.GetProcesses()) {
+                string name = p.ProcessName.ToLower();
+                // Windows 11 notif panel ada di explorer atau shellexperiencehost
+                if (name == "shellexperiencehost" || name == "explorer" || name == "shellhost")
+                    targetPids.Add((uint)p.Id);
+            }
+
+            EnumWindows((hWnd, lParam) => {
+                uint pid;
+                GetWindowThreadProcessId(hWnd, out pid);
+                if (!targetPids.Contains(pid)) return true;
+
+                StringBuilder cls = new StringBuilder(256);
+                GetClassName(hWnd, cls, cls.Capacity);
+                string clsName = cls.ToString();
+
+                // Windows 11: ControlCenterWindow, Windows 10: ActionCenter
+                if (clsName.Contains("ControlCenter") || clsName.Contains("ActionCenter") ||
+                    clsName.Contains("NotifyIcon") || clsName == "Windows.UI.Core.CoreWindow") {
+                    ApplyBlur(hWnd, 0x66);
+                    ApplyBlurToChildren(hWnd, 0x66);
+                }
+                return true;
+            }, IntPtr.Zero);
+        }
+
+        // Apply blur ke semua child window langsung (agar bagian dalam ikut berubah)
+        private static void ApplyBlurToChildren(IntPtr parent, int alpha)
+        {
+            EnumChildWindows(parent, (child, lParam) => {
+                ApplyBlur(child, alpha);
+                return true;
+            }, IntPtr.Zero);
+        }
+
+        /// <summary>
+        /// Restore semua WDM ke normal — disable accent policy
+        /// </summary>
+        public static void RestoreAllWDM()
+        {
+            // Restore Taskbar
+            IntPtr taskbarHwnd = FindWindow("Shell_TrayWnd", null);
+            if (taskbarHwnd != IntPtr.Zero) DisableAccent(taskbarHwnd);
+
+            EnumWindows((hWnd, lParam) => {
+                StringBuilder className = new StringBuilder(256);
+                GetClassName(hWnd, className, className.Capacity);
+                string cls = className.ToString();
+                if (cls == "Shell_SecondaryTrayWnd" || cls == "CabinetWClass" || cls == "ExplorerWClass")
+                    DisableAccent(hWnd);
+                return true;
+            }, IntPtr.Zero);
+        }
+
+        private static void DisableAccent(IntPtr hwnd)
+        {
+            var accent = new AccentPolicy { AccentState = AccentState.ACCENT_DISABLED };
+            var size = Marshal.SizeOf(accent);
+            var ptr = Marshal.AllocHGlobal(size);
+            Marshal.StructureToPtr(accent, ptr, false);
+            var data = new WindowCompositionAttributeData {
+                Attribute = WindowCompositionAttribute.WCA_ACCENT_POLICY,
+                SizeOfData = size,
+                Data = ptr
+            };
+            SetWindowCompositionAttribute(hwnd, ref data);
+            Marshal.FreeHGlobal(ptr);
+        }
+
 
         [DllImport("user32.dll", CharSet = CharSet.Auto, SetLastError = true)]
         static extern int GetWindowText(IntPtr hWnd, StringBuilder lpString, int nMaxCount);

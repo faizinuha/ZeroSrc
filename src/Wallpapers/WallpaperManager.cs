@@ -17,7 +17,7 @@ namespace ZeroMix.Wallpapers
         private static VideoWallpaperWindow? _videoWallpaperWindow;
 
         /// <summary>
-        /// Launch a video wallpaper.
+        /// Launch a video wallpaper dan simpan session ke JSON.
         /// </summary>
         public static void LaunchVideoWallpaper(string videoPath, double volume = 0)
         {
@@ -26,7 +26,17 @@ namespace ZeroMix.Wallpapers
                 StopVideoWallpaper();
                 _videoWallpaperWindow = new VideoWallpaperWindow(videoPath, volume);
                 _videoWallpaperWindow.Show();
-                Debug.WriteLine($"Height Video wallpaper launched: {videoPath}");
+
+                // Simpan session
+                WallpaperSession.Save(new WallpaperSession {
+                    Name = Path.GetFileNameWithoutExtension(videoPath),
+                    WallpaperPath = videoPath,
+                    Volume = volume,
+                    Type = "video",
+                    Active = true
+                });
+
+                Debug.WriteLine($"Video wallpaper launched: {videoPath}");
             }
             catch (Exception ex)
             {
@@ -35,7 +45,7 @@ namespace ZeroMix.Wallpapers
         }
 
         /// <summary>
-        /// Stop the current video wallpaper.
+        /// Stop wallpaper dan clear session.
         /// </summary>
         public static void StopVideoWallpaper()
         {
@@ -46,10 +56,32 @@ namespace ZeroMix.Wallpapers
                     _videoWallpaperWindow.Close();
                     _videoWallpaperWindow = null;
                 }
+                WallpaperSession.Clear();
             }
             catch (Exception ex)
             {
                 Debug.WriteLine($"Error stopping video wallpaper: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Restore wallpaper dari session JSON saat app startup.
+        /// Dipanggil dari App.xaml.cs → StartMainApp.
+        /// </summary>
+        public static void RestoreSession()
+        {
+            try
+            {
+                var session = WallpaperSession.Load();
+                if (session == null || !session.Active) return;
+                if (!File.Exists(session.WallpaperPath)) return;
+
+                Debug.WriteLine($"[WallpaperManager] Restoring session: {session.WallpaperPath}");
+                LaunchVideoWallpaper(session.WallpaperPath, session.Volume);
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"[WallpaperManager] RestoreSession error: {ex.Message}");
             }
         }
 
