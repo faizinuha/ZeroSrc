@@ -274,22 +274,18 @@ $($changes -join "`n")
             $header = $matches[1]
             $rest   = $matches[2]
 
-            # Cek apakah versi ini sudah ada → timpa, jangan duplikat
+            # Cek apakah versi ini sudah ada → skip, jangan timpa manual entry
             $existingPattern = "(?s)## \[v$([regex]::Escape($NewVersion))\].*?(?=\n## \[|\z)"
             if ($changelog -match $existingPattern) {
-                # Timpa entry yang sudah ada
-                $newChangelog = $changelog -replace $existingPattern, $newEntry.TrimEnd()
-                Set-Content -Path $changelogPath -Value $newChangelog -NoNewline
-                Write-Host "  ✅ CHANGELOG updated (overwritten v$NewVersion)" -ForegroundColor Green
+                Write-Host "  ℹ️  Entry v$NewVersion sudah ada di CHANGELOG — tidak ditimpa (manual entry preserved)" -ForegroundColor Cyan
             } else {
                 # Insert baru di atas
                 Set-Content -Path $changelogPath -Value ($header + "`n" + $newEntry + $rest) -NoNewline
                 Write-Host "  ✅ CHANGELOG generated (new entry v$NewVersion)" -ForegroundColor Green
+                Write-Host "  📋 Features: $($features.Count) | Fixes: $($fixes.Count) | Changes: $($changes.Count)" -ForegroundColor Cyan
+                Write-Host "  📁 Files scanned: $($changedFiles.Count) changed files" -ForegroundColor Cyan
+                $updatedFiles += $changelogPath
             }
-
-            Write-Host "  📋 Features: $($features.Count) | Fixes: $($fixes.Count) | Changes: $($changes.Count)" -ForegroundColor Cyan
-            Write-Host "  📁 Files scanned: $($changedFiles.Count) changed files" -ForegroundColor Cyan
-            $updatedFiles += $changelogPath
         } else {
             Write-Host "  ⚠️  Could not parse CHANGELOG format" -ForegroundColor Yellow
         }
