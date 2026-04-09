@@ -66,7 +66,7 @@ Source: "..\Assets\Icons\**"; DestDir: "{app}\Assets\Icons"; Flags: ignoreversio
 Source: "..\Assets\Resources\**"; DestDir: "{app}\Assets\Resources"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "..\Assets\Data\anim\**"; DestDir: "{app}\Assets\Data\anim"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "..\Assets\Data\Images\**"; DestDir: "{app}\Assets\Data\Images"; Flags: ignoreversion
-Source: "..\Assets\Data\Video\**"; DestDir: "{app}\Assets\Data\Video"; (DISABLED)
+Source: "..\Assets\Data\Video\**"; DestDir: "{app}\Assets\Data\Video";
 Source: "..\Assets\zeromix-high-resolution-logo-transparent.png"; DestDir: "{app}\Assets"; Flags: ignoreversion
 
 Source: "..\Tools\Plugins\**"; DestDir: "{app}\Tools\Plugins"; Flags: ignoreversion recursesubdirs createallsubdirs
