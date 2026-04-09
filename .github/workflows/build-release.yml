@@ -236,11 +236,12 @@ jobs:
       shell: pwsh
       run: |
         $VER = "${{ steps.version.outputs.tag }}"
-        $VERNUM = "${{ steps.version.outputs.version }}"
+        $VERNUM = "${{ steps.version.outputs.version }}" -replace '^v', ''
         $REPO = "${{ github.repository }}"
         $changelog = Get-Content "Docs/CHANGELOG.md" -Raw
 
-        $pattern = "(?s)## \[$VER\].*?(?=\n## \[|$)"
+        # Match dengan atau tanpa prefix v: [v5.4.1] atau [5.4.1]
+        $pattern = "(?s)## \[v?$([regex]::Escape($VERNUM))\].*?(?=\n## \[|\z)"
         $match = [regex]::Match($changelog, $pattern)
         $notes = if ($match.Success) { $match.Value.Trim() } else { "See full changelog for details." }
 
