@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.Windows.Threading;
 using Microsoft.Win32;
 using ZeroMix.Hotkeys;
+using ZeroMix.Wallpapers;
 using System.Threading;
 
 namespace ZeroMix
@@ -16,6 +17,7 @@ namespace ZeroMix
         public static HotkeyCore? HotkeyCoreInstance { get; private set; }
         private DispatcherTimer? _memoryTimer;
         private static Mutex? _mutex;
+        private static bool _mutexOwned = false;
 
         [DllImport("user32.dll")]
         private static extern bool SetForegroundWindow(IntPtr hWnd);
@@ -33,6 +35,7 @@ namespace ZeroMix
         {
             // ── Single Instance Guard ─────────────────────────────────────
             _mutex = new Mutex(true, "ZeroMix_SingleInstance", out bool isNewInstance);
+            _mutexOwned = isNewInstance;
             if (!isNewInstance)
             {
                 // Sudah ada instance yang jalan — bring to front lalu exit
@@ -106,7 +109,11 @@ namespace ZeroMix
         {
             string languageCode = "en-US";
 
-            string languageFile = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "language.ini");
+            // Cek di AppData dulu (user preference), fallback ke BaseDirectory (installer default)
+            string appDataFile = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "ZeroMix", "language.ini");
+            string baseFile = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "language.ini");
+            string languageFile = File.Exists(appDataFile) ? appDataFile : baseFile;
+
             if (File.Exists(languageFile))
             {
                 try
@@ -190,7 +197,10 @@ namespace ZeroMix
 
             HotkeyCoreInstance = new HotkeyCore();
             HotkeyCoreInstance.Show();
-            
+
+            // Restore video wallpaper dari session terakhir
+            WallpaperManager.RestoreSession();
+
             // Initial optimization
             OptimizeMemory();
         }
@@ -211,7 +221,9 @@ namespace ZeroMix
 
         protected override void OnExit(ExitEventArgs e)
         {
-            _mutex?.ReleaseMutex();
+            if (_mutexOwned) {
+                try { _mutex?.ReleaseMutex(); } catch (ApplicationException) { }
+            }
             _mutex?.Dispose();
             base.OnExit(e);
         }

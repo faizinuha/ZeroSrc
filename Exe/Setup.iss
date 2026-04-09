@@ -60,9 +60,15 @@ Name: "{userappdata}\ZeroMix"; Permissions: users-modify
 ; Main Core - Mengambil dari folder publish hasil build dotnet
 Source: "..\publish\win-x64\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 
-; Assets & Resources
+; Assets & Resources (exclude file besar untuk kurangi ukuran installer)
 Source: "zeromix.ico"; DestDir: "{app}"; Flags: ignoreversion
-Source: "..\Assets\**"; DestDir: "{app}\Assets"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "..\Assets\Icons\**"; DestDir: "{app}\Assets\Icons"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "..\Assets\Resources\**"; DestDir: "{app}\Assets\Resources"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "..\Assets\Data\anim\**"; DestDir: "{app}\Assets\Data\anim"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "..\Assets\Data\Images\**"; DestDir: "{app}\Assets\Data\Images"; Flags: ignoreversion
+Source: "..\Assets\Data\Video\**"; DestDir: "{app}\Assets\Data\Video"; (DISABLED)
+Source: "..\Assets\zeromix-high-resolution-logo-transparent.png"; DestDir: "{app}\Assets"; Flags: ignoreversion
+
 Source: "..\Tools\Plugins\**"; DestDir: "{app}\Tools\Plugins"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "..\Tools\FFMPEG\ffmpeg.exe"; DestDir: "{app}\Tools\FFMPEG"; Flags: ignoreversion
 Source: "..\Scripts\zeromix-update.bat"; DestDir: "{app}"; Flags: ignoreversion

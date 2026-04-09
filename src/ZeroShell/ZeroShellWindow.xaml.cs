@@ -99,8 +99,10 @@ namespace ZeroMix.ZeroShell
         // WDM Mode
         private bool _isSelectingWDM = false;
         private static readonly string[] WDMOptions = {
-            "Crystal Glass Explorer",
-            "Glass Taskbar (Blur Bar)",
+            "Glass Explorer",
+            "Glass Taskbar",
+            "Glass Start Menu",
+            "Glass Notification Panel",
             "Hide Desktop Icons",
             "Minimalist Ultimate (Apply All)",
             "Restore to Normal"
@@ -109,7 +111,11 @@ namespace ZeroMix.ZeroShell
         // WDM State Persistence
         private bool _isExplorerWdmEnabled = false;
         private bool _isTaskbarWdmEnabled = false;
+        private bool _isStartMenuWdmEnabled = false;
+        private bool _isNotifWdmEnabled = false;
+        private bool _isIconsHidden = false;
         private System.Windows.Threading.DispatcherTimer? _wdmPulseTimer;
+        private readonly string _wdmFilePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "ZeroShell", "wdm.json");
 
         public string? AutoRunCommand { get; set; }
 
@@ -198,24 +204,11 @@ namespace ZeroMix.ZeroShell
                 ApplyWallpaper(WallpaperPathText.Text);
             }
 
-            // Apply WDM Settings from UI Gear
-            if (WdmExplorerBox.IsChecked == true) { _isExplorerWdmEnabled = true; ShellHelper.ApplyExplorerTransparency(); }
-            else { _isExplorerWdmEnabled = false; }
-
-            if (WdmTaskbarBox.IsChecked == true) { _isTaskbarWdmEnabled = true; ShellHelper.ApplyTaskbarTransparency(); }
-            else { _isTaskbarWdmEnabled = false; }
-
-            if (WdmHideIconsBox.IsChecked == true) { ShellHelper.HideDesktopIcons(); }
-            else { ShellHelper.ShowDesktopIcons(); }
-
-            // Start pulse if any WDM is active
-            if (_isExplorerWdmEnabled || _isTaskbarWdmEnabled) StartWdmPulse();
-
             // Hide Settings
             SettingsOverlay.Visibility = Visibility.Collapsed;
             
             if (_activeTab != null)
-                AppendToTab(_activeTab, "\n  ✅ Settings saved and WDM logic applied!\n\n", "#FF27C93F");
+                AppendToTab(_activeTab, "\n  ✅ Settings saved!\n\n", "#FF27C93F");
         }
 
         #region Settings Persistence
@@ -231,6 +224,7 @@ namespace ZeroMix.ZeroShell
                     _currentLayout = JsonSerializer.Deserialize<int>(json);
                 }
             } catch { }
+            LoadWdmState();
         }
 
         private void SaveSettings()
@@ -243,6 +237,40 @@ namespace ZeroMix.ZeroShell
             } catch { }
         }
         #endregion
+
+        private void SaveWdmState()
+        {
+            try {
+                string dir = Path.GetDirectoryName(_wdmFilePath) ?? "";
+                if (!Directory.Exists(dir)) Directory.CreateDirectory(dir);
+                var state = new Dictionary<string, bool> {
+                    ["explorer"] = _isExplorerWdmEnabled,
+                    ["taskbar"]  = _isTaskbarWdmEnabled,
+                    ["startmenu"] = _isStartMenuWdmEnabled,
+                    ["notif"]    = _isNotifWdmEnabled,
+                    ["icons"]    = _isIconsHidden
+                };
+                File.WriteAllText(_wdmFilePath, JsonSerializer.Serialize(state));
+            } catch { }
+        }
+
+        private void LoadWdmState()
+        {
+            try {
+                if (!File.Exists(_wdmFilePath)) return;
+                var state = JsonSerializer.Deserialize<Dictionary<string, bool>>(File.ReadAllText(_wdmFilePath));
+                if (state == null) return;
+
+                if (state.TryGetValue("explorer",  out bool exp)  && exp) { _isExplorerWdmEnabled  = true; ShellHelper.ApplyExplorerTransparency(); }
+                if (state.TryGetValue("taskbar",   out bool tb)   && tb)  { _isTaskbarWdmEnabled   = true; ShellHelper.ApplyTaskbarTransparency(); }
+                if (state.TryGetValue("startmenu", out bool sm)   && sm)  { _isStartMenuWdmEnabled = true; ShellHelper.ApplyStartMenuGlass(); }
+                if (state.TryGetValue("notif",     out bool nf)   && nf)  { _isNotifWdmEnabled     = true; ShellHelper.ApplyNotificationPanelGlass(); }
+                if (state.TryGetValue("icons",     out bool ico)  && ico) { _isIconsHidden         = true; ShellHelper.HideDesktopIcons(); }
+
+                if (_isExplorerWdmEnabled || _isTaskbarWdmEnabled) StartWdmPulse();
+            } catch { }
+        }
+      
 
         #region Alias Storage
         private void LoadAliases()
@@ -676,24 +704,40 @@ Clear-Host
                                 ShellHelper.ApplyTaskbarTransparency();
                                 AppendToTab(_activeTab!, "  ✨ Taskbar sekarang transparan (Blur Bar)!\n\n", "#CCCCCC");
                                 break;
-                            case 2: // Hide Icons
+                            case 2: // Glass Start Menu
+                                _isStartMenuWdmEnabled = true;
+                                ShellHelper.ApplyStartMenuGlass();
+                                AppendToTab(_activeTab!, "  ✨ Start Menu glass applied! (Buka Start Menu dulu agar efek aktif)\n\n", "#CCCCCC");
+                                break;
+                            case 3: // Glass Notification Panel
+                                _isNotifWdmEnabled = true;
+                                ShellHelper.ApplyNotificationPanelGlass();
+                                AppendToTab(_activeTab!, "  ✨ Notification Panel glass applied! (Buka notif panel dulu agar efek aktif)\n\n", "#CCCCCC");
+                                break;
+                            case 4: // Hide Icons
+                                _isIconsHidden = true;
                                 ShellHelper.HideDesktopIcons();
                                 AppendToTab(_activeTab!, "  🙈 Ikon Desktop disembunyikan.\n\n", "#CCCCCC");
                                 break;
-                            case 3: // Ultimate
-                                _isExplorerWdmEnabled = _isTaskbarWdmEnabled = true;
+                            case 5: // Ultimate
+                                _isExplorerWdmEnabled = _isTaskbarWdmEnabled = _isStartMenuWdmEnabled = _isNotifWdmEnabled = _isIconsHidden = true;
                                 ShellHelper.ApplyExplorerTransparency();
                                 ShellHelper.ApplyTaskbarTransparency();
+                                ShellHelper.ApplyStartMenuGlass();
+                                ShellHelper.ApplyNotificationPanelGlass();
                                 ShellHelper.HideDesktopIcons();
                                 _currentLayout = 7; ApplyLayout();
-                                AppendToTab(_activeTab!, "  💎 Mode Minimalis Ultimate Aktif! (Explorer & Taskbar & Ikon Sembunyi)\n", "#FF6BDDFF");
+                                AppendToTab(_activeTab!, "  💎 Mode Minimalis Ultimate Aktif!\n\n", "#FF6BDDFF");
                                 break;
-                            case 4: // Restore
-                                _isExplorerWdmEnabled = _isTaskbarWdmEnabled = false;
+                            case 6: // Restore
+                                _isExplorerWdmEnabled = _isTaskbarWdmEnabled = _isStartMenuWdmEnabled = _isNotifWdmEnabled = _isIconsHidden = false;
+                                StopWdmPulse();
+                                ShellHelper.RestoreAllWDM();
                                 ShellHelper.ShowDesktopIcons();
                                 AppendToTab(_activeTab!, "  🔄 Tampilan Desktop dikembalikan normal.\n\n", "#CCCCCC");
                                 break;
                         }
+                        SaveWdmState();
                         StartWdmPulse();
                     }
                     e.Handled = true;
@@ -776,15 +820,25 @@ Clear-Host
 
         private void StartWdmPulse()
         {
-            if (_wdmPulseTimer == null)
-            {
-                _wdmPulseTimer = new System.Windows.Threading.DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
-                _wdmPulseTimer.Tick += (s, e) => {
-                    if (_isExplorerWdmEnabled) ShellHelper.ApplyExplorerTransparency();
-                    if (_isTaskbarWdmEnabled) ShellHelper.ApplyTaskbarTransparency();
-                };
-                _wdmPulseTimer.Start();
-            }
+            if (_wdmPulseTimer != null) return; // sudah jalan
+
+            _wdmPulseTimer = new System.Windows.Threading.DispatcherTimer { 
+            // Timer 2 -> 0 
+                Interval = TimeSpan.FromSeconds(0) 
+            };
+            _wdmPulseTimer.Tick += (s, e) => {
+                if (_isExplorerWdmEnabled)  ShellHelper.ApplyExplorerTransparency();
+                if (_isTaskbarWdmEnabled)   ShellHelper.ApplyTaskbarTransparency();
+                if (_isStartMenuWdmEnabled) ShellHelper.ApplyStartMenuGlass();
+                if (_isNotifWdmEnabled)     ShellHelper.ApplyNotificationPanelGlass();
+            };
+            _wdmPulseTimer.Start();
+        }
+
+        private void StopWdmPulse()
+        {
+            _wdmPulseTimer?.Stop();
+            _wdmPulseTimer = null;
         }
 
         private void StartClock()

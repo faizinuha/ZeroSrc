@@ -2,7 +2,39 @@
 
 ---
 
-## 🚀 v5.3.1 — Latest
+## 🚀 v5.4.0 — Latest
+
+### ✨ Features
+- **WDM Start Menu Glass**: Efek dark acrylic blur pada Start Menu (Windows 10 & 11).
+- **WDM Notification Panel Glass**: Efek dark acrylic blur pada Action Center / Notification Panel.
+- **WDM Persistence**: State WDM disimpan ke `wdm.json`, di-restore otomatis saat ZeroShell dibuka kembali.
+- **Wallpaper Session**: State video wallpaper disimpan ke `wallpaper_session.json`, auto-restore saat app dibuka.
+
+### 🐛 Bug Fixes
+- Fix File Explorer glass — hapus font injection yang menyebabkan font bertolak belakang.
+- Fix build error `CS1513` di `ShellHelper.cs` — lambda `EnumWindows` tidak tertutup.
+- Fix build error `CS1028` di `ZeroShellWindow.xaml.cs` — `#endregion` ganda.
+- Fix Start Menu glass hanya apply ke parent, sekarang apply ke semua child windows.
+- Fix Notification Panel tidak berubah — tambah `ControlCenterWindow` class untuk Windows 11.
+- Fix "Failed to save language preference" — `language.ini` dipindah ke `%AppData%\ZeroMix\`.
+- Fix `Mutex.ReleaseMutex()` crash saat shutdown — track `_mutexOwned` agar hanya release 
+- Fix app langsung exit saat `dotnet run` — karena proses lama masih jalan (single instance guard).
+
+### 🔧 Changes
+- `ApplyBlur` direfactor — tiap elemen punya intensitas blur berbeda (Taskbar `0x99`, Start Menu/Notif `0x66`, Explorer `0x44`).
+- `ApplyCrystalBlur` dihapus, semua pakai satu fungsi `ApplyBlur`.
+- `ACCENT_ENABLE_ACRYLICBLURBEHIND` → `ACCENT_ENABLE_BLURBEHIND` untuk hasil blur netral tidak ikut warna wallpaper.
+- WDM pulse timer diperluas cover semua 4 elemen, interval 2 detik.
+- WDM section dihapus dari gear settings — hanya bisa diakses via `!wdm`.
+- `!wdm` menu diperluas dari 5 opsi menjadi 7 opsi.
+- `ApplyBlurToChildren` baru — apply blur ke semua child window agar bagian dalam ikut berubah.
+- Setup.iss: exclude video wallpaper, kurangi image wallpaper, hapus duplicate logo dari installer.
+- `language.ini` dibaca dari AppData dulu, fallback ke BaseDirectory.
+- Plugins & About view: fix responsive layout — tidak overflow ke kanan saat window dikecilkan.
+
+---
+
+## 🚀 v5.3.1 — Previous -> Lates
 
 ### ✨ Features
 - **Sleep Mode Settings Panel**: Settings dipindah ke panel navigasi dalam MainWindow — konsep seperti Settings Windows 11.
@@ -32,7 +64,7 @@
 
 ---
 
-## 🚀 v5.2.9 — Upcoming
+## 🚀 v5.2.9 — Lates
 
 ### ✨ Planned Features
 - **Multi-Monitor Support**: Rekam atau capture layar dari monitor lebih dari satu sekaligus.

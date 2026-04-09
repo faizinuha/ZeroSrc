@@ -853,8 +853,9 @@
                         <ScrollViewer x:Name="AboutContent"
                                       Visibility="Collapsed"
                                       VerticalScrollBarVisibility="Hidden"
+                                      HorizontalScrollBarVisibility="Disabled"
                                       BorderThickness="0">
-                            <StackPanel MaxWidth="700" HorizontalAlignment="Left">
+                            <StackPanel HorizontalAlignment="Stretch">
                                 <Border Style="{StaticResource CardBorder}">
                                     <StackPanel>
                                         <!-- Title -->
@@ -883,7 +884,7 @@
                                                                Margin="0,0,0,6"/>
                                                     <StackPanel Orientation="Horizontal">
                                                         <TextBlock x:Name="VersionText"
-                                                                   Text="5.3.1"
+                                                                   Text="5.4.0"
                                                                    FontSize="18"
                                                                    FontWeight="Bold"
                                                                    Foreground="White"
@@ -974,8 +975,9 @@
                         <ScrollViewer x:Name="PluginsContent"
                                       Visibility="Collapsed"
                                       VerticalScrollBarVisibility="Auto"
+                                      HorizontalScrollBarVisibility="Disabled"
                                       BorderThickness="0">
-                            <StackPanel>
+                            <StackPanel HorizontalAlignment="Stretch">
                                 <!-- Header -->
                                 <Grid Margin="0,0,0,24">
                                     <StackPanel>
@@ -1026,6 +1028,7 @@
                         <ScrollViewer x:Name="RecorderContent"
                                        Visibility="Collapsed"
                                        VerticalScrollBarVisibility="Auto"
+                                       HorizontalScrollBarVisibility="Disabled"
                                        BorderThickness="0">
                             <StackPanel Margin="0,0,0,30">
                                 <!-- Header Section -->
@@ -1114,8 +1117,8 @@
                                     </Border>
                                 </Grid>
 
-                                <UniformGrid Columns="4" Margin="0,0,0,20">
-                                    <Border x:Name="ModeFullScreen" CornerRadius="12" Background="#141922" BorderThickness="2" BorderBrush="{StaticResource NeonBlueBrush}" Margin="0,0,8,0" Padding="15" Cursor="Hand" Tag="FullScreen" MouseLeftButtonDown="RecordingMode_Click">
+                                <WrapPanel Margin="0,0,0,20" ItemWidth="160">
+                                    <Border x:Name="ModeFullScreen" CornerRadius="12" Background="#141922" BorderThickness="2" BorderBrush="{StaticResource NeonBlueBrush}" Margin="0,0,8,8" Padding="15" Cursor="Hand" Tag="FullScreen" MouseLeftButtonDown="RecordingMode_Click">
                                         <Grid>
                                             <Canvas x:Name="CanvasFullScreen" Opacity="0.1" Background="{StaticResource NeonBlueBrush}" IsHitTestVisible="False"/>
                                             <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
@@ -1125,7 +1128,7 @@
                                             </StackPanel>
                                         </Grid>
                                     </Border>
-                                    <Border x:Name="ModeApp" CornerRadius="12" Background="#111620" BorderThickness="1" BorderBrush="#1A2030" Margin="4,0" Padding="15" Cursor="Hand" Tag="Application" MouseLeftButtonDown="RecordingMode_Click">
+                                    <Border x:Name="ModeApp" CornerRadius="12" Background="#111620" BorderThickness="1" BorderBrush="#1A2030" Margin="0,0,8,8" Padding="15" Cursor="Hand" Tag="Application" MouseLeftButtonDown="RecordingMode_Click">
                                         <Grid>
                                             <Canvas x:Name="CanvasApp" Opacity="0.1" Background="#6B7280" IsHitTestVisible="False"/>
                                             <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
@@ -1135,7 +1138,7 @@
                                             </StackPanel>
                                         </Grid>
                                     </Border>
-                                    <Border x:Name="ModeArea" CornerRadius="12" Background="#111620" BorderThickness="1" BorderBrush="#1A2030" Margin="4,0" Padding="15" Cursor="Hand" Tag="Area" MouseLeftButtonDown="RecordingMode_Click">
+                                    <Border x:Name="ModeArea" CornerRadius="12" Background="#111620" BorderThickness="1" BorderBrush="#1A2030" Margin="0,0,8,8" Padding="15" Cursor="Hand" Tag="Area" MouseLeftButtonDown="RecordingMode_Click">
                                         <Grid>
                                             <Canvas x:Name="CanvasArea" Opacity="0.1" Background="#F59E0B" IsHitTestVisible="False"/>
                                             <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
@@ -1145,7 +1148,7 @@
                                             </StackPanel>
                                         </Grid>
                                     </Border>
-                                    <Border x:Name="ModeWindow" CornerRadius="12" Background="#111620" BorderThickness="1" BorderBrush="#1A2030" Margin="8,0,0,0" Padding="15" Cursor="Hand" Tag="Window" MouseLeftButtonDown="RecordingMode_Click">
+                                    <Border x:Name="ModeWindow" CornerRadius="12" Background="#111620" BorderThickness="1" BorderBrush="#1A2030" Margin="0,0,0,8" Padding="15" Cursor="Hand" Tag="Window" MouseLeftButtonDown="RecordingMode_Click">
                                         <Grid>
                                             <Canvas x:Name="CanvasWindow" Opacity="0.1" Background="#3B82F6" IsHitTestVisible="False"/>
                                             <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
@@ -1155,7 +1158,7 @@
                                             </StackPanel>
                                         </Grid>
                                     </Border>
-                                </UniformGrid>
+                                </WrapPanel>
 
                                 <!-- 2. CAPTURE CONTROLS -->
                                 <Border Background="#111620" CornerRadius="16" Padding="24" BorderThickness="1" BorderBrush="#1A2030">
