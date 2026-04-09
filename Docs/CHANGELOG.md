@@ -8,21 +8,30 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) | [Semantic Ver
 ## [v5.4.0] - 2026-04-09
 
 ### ✨ Features
-- Menambahkan Beberapa komponenen dan perbaikan , ZeroMixSell , SleepMode , Perubahan Tampilan , perbaiki Bugs , Optimize Virtual ,
+- **WDM Start Menu Glass**: Efek dark acrylic blur pada Start Menu (Windows 10 & 11).
+- **WDM Notification Panel Glass**: Efek dark acrylic blur pada Action Center / Notification Panel.
+- **WDM Persistence**: State WDM disimpan ke `wdm.json`, di-restore otomatis saat ZeroShell dibuka kembali.
+- **Wallpaper Session**: State video wallpaper disimpan ke `wallpaper_session.json`, auto-restore saat app dibuka.
 
 ### 🐛 Bug Fixes
-- No bug fixes
+- Fix File Explorer glass — hapus font injection yang menyebabkan font bertolak belakang.
+- Fix Start Menu glass hanya apply ke parent — sekarang apply ke semua child windows.
+- Fix Notification Panel tidak berubah — tambah `ControlCenterWindow` class untuk Windows 11.
+- Fix "Failed to save language preference" — `language.ini` dipindah ke `%AppData%\ZeroMix\`.
+- Fix `Mutex.ReleaseMutex()` crash saat shutdown.
+- Fix Plugins & About view overflow ke kanan saat window dikecilkan.
+- Fix CI/CD: `v5.4.0` not valid version string — strip prefix `v` sebelum `-p:Version`.
+- Fix Inno Setup output filename tidak match tag — `#define AppVersion` di-override via `/D`.
 
 ### 🔧 Changes
-- Rebuilt: Tools/Plugins/IZeroMixHost.cs
-- Rebuilt: ZeroMix.PluginSDK/IPluginHost.cs
-- Rebuilt: ZeroMix.PluginSDK/IPluginServices.cs
-- Rebuilt: ZeroMix.PluginSDK/IZeroMixHost.cs
-- Rebuilt: ZeroMix.PluginSDK/IZeroMixPlugin.cs
-- Rebuilt: ZeroMix.PluginSDK/ZeroMix.PluginSDK.csproj
-- Rebuilt: ZeroMix.PluginSDK/zeromix.sdk.lua
-- Rebuilt: build/build.ps1
-- Rebuilt: src/MainWindow.xaml.cs
+- `ApplyBlur` pakai `ACCENT_ENABLE_ACRYLICBLURBEHIND` dengan alpha tinggi agar warna hitam dominan.
+- WDM pulse timer cover semua 4 elemen (Explorer, Taskbar, Start Menu, Notif), interval 2 detik.
+- WDM section dihapus dari gear settings — hanya via `!wdm`.
+- `!wdm` menu diperluas dari 5 opsi menjadi 7 opsi.
+- Setup.iss: exclude video wallpaper & duplicate logo dari installer.
+- Plugins & Recorder view: `UniformGrid` → `WrapPanel` untuk responsive layout.
+- Release script: tidak timpa entry CHANGELOG yang sudah ditulis manual.
+- GitHub Release notes diambil langsung dari `Docs/CHANGELOG.md`.
 
 ---
 ## [v5.3.1] - 2026-04-08
