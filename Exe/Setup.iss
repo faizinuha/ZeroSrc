@@ -5,7 +5,11 @@
 ; --- App Identity ---
 AppId={{ZeroMix-v2-ZeroMix-identifier}}
 AppName=ZeroMix
-#define AppVersion "5.3.1"
+; AppVersion di-inject dari workflow via /DAppVersion=X.Y.Z
+; Fallback jika build manual tanpa /D
+{#ifndef AppVersion}
+  #define AppVersion "5.4.0"
+{#endif}
 AppVersion={#AppVersion}
 VersionInfoVersion={#AppVersion}.0
 VersionInfoCompany=Frieren
