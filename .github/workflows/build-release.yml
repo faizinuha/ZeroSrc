@@ -214,7 +214,7 @@ jobs:
         dotnet publish "$installerDir/ZeroMix.Installer.csproj" `
           -c Release -r win-x64 --self-contained true `
           -p:PublishSingleFile=true `
-          -p:Version=($VER -replace '^v', '') `
+          "-p:Version=$($VER -replace '^v', '')" `
           -o installer_output
         
         # Rename output
@@ -224,9 +224,11 @@ jobs:
           Move-Item $exeSrc $exeDst -Force
           Write-Host "✅ Bootstrap installer ready: $exeDst ($([math]::Round((Get-Item $exeDst).Length / 1MB, 1)) MB)"
         } else {
-          Write-Host "❌ Bootstrap build output not found"
-          Get-ChildItem "installer_output/" | ForEach-Object { Write-Host "  - $($_.Name)" }
-          exit 1
+          Write-Host "⚠️  Bootstrap build output not found — skipping"
+          if (Test-Path "installer_output/") {
+            Get-ChildItem "installer_output/" | ForEach-Object { Write-Host "  - $($_.Name)" }
+          }
+          # Tidak exit 1 — bootstrap opsional, release tetap jalan
         }
 
     # ─── STEP 8: Generate release notes dari CHANGELOG ──────────────────────
