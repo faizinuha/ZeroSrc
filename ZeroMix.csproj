@@ -9,7 +9,7 @@
     <UseWindowsForms>true</UseWindowsForms>
     <ApplicationIcon>Assets\Icons\zeromix.ico</ApplicationIcon>
     <EnableWindowsTargeting>true</EnableWindowsTargeting>
-    <Version>5.4.0</Version>
+    <Version>5.5.0</Version>
     
     <!-- Optimasi Ukuran & Portabilitas (Self-Contained & Kompresi) -->
     <PublishSingleFile>true</PublishSingleFile>
@@ -66,6 +66,7 @@
     <PackageReference Include="Vortice.DXGI" Version="3.8.2" />
     <PackageReference Include="Vortice.Mathematics" Version="2.1.0" />
     <PackageReference Include="System.Management" Version="9.0.0" />
+    <PackageReference Include="LottieSharp" Version="1.1.0" />
   </ItemGroup>
 
   <ItemGroup>
@@ -79,7 +80,6 @@
     <Resource Include="Assets\Icons\**" />
     <Resource Include="Assets\Resources\Locales\**" />
     <Resource Include="src\SleepMode\IMG\**" />
-    <Resource Include="src\ZeroShell\asci\*" />
     <Resource Include="Tools\Plugins\Styles.xaml" />
   </ItemGroup>
 
@@ -103,7 +103,12 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Content Include="src\ZeroShell\**\*.png">
+    <Content Include="Tools\Plugins\**\*.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Tools\Plugins\**\*.wav">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
@@ -113,9 +118,7 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
-
-  <!-- Virtual Assistant assets: copy to output as Virtual_Assisten\... (strip src\ prefix) -->
-    
+  <!-- Virtual Assistant assets: copy to output as Virtual_Assisten\... (strip src\ prefix) --> 
   <ItemGroup>
    <Content Include="src\Virtual_Assisten\**\*.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>

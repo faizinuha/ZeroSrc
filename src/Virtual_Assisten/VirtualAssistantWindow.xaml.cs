@@ -75,14 +75,13 @@ namespace ZeroMix.Virtual_Assisten
             {
                 var userDataFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "ZeroMix", "WebView2_VA");
                 
-                // Optimasi: Tambahkan browser arguments untuk performa
                 var options = new CoreWebView2EnvironmentOptions();
-                options.AdditionalBrowserArguments = "--disable-features=AudioServiceOutOfProcess,MediaRouter --disable-gpu-vsync --disable-background-timer-throttling --disable-extensions --disable-plugins --disable-default-apps";
+                // Minimal flags — avoid disabling GPU entirely as it breaks Live2D rendering
+                options.AdditionalBrowserArguments = "--disable-features=AudioServiceOutOfProcess,MediaRouter --disable-background-timer-throttling --disable-extensions --disable-default-apps --js-flags=--max-old-space-size=128";
                 
                 var env = await CoreWebView2Environment.CreateAsync(null, userDataFolder, options);
                 await WebView.EnsureCoreWebView2Async(env);
                 
-                // Optimasi: Konfigurasi settings untuk performa
                 WebView.CoreWebView2.Settings.AreDefaultScriptDialogsEnabled = false;
                 WebView.CoreWebView2.Settings.IsStatusBarEnabled = false;
                 WebView.CoreWebView2.Settings.IsZoomControlEnabled = false;
@@ -91,21 +90,46 @@ namespace ZeroMix.Virtual_Assisten
                 WebView.CoreWebView2.Settings.IsPasswordAutosaveEnabled = false;
                 WebView.CoreWebView2.Settings.AreBrowserAcceleratorKeysEnabled = false;
                 WebView.CoreWebView2.Settings.IsSwipeNavigationEnabled = false;
-                
                 WebView.CoreWebView2.MemoryUsageTargetLevel = CoreWebView2MemoryUsageTargetLevel.Low;
-                // Tidak perlu izin mic — mic sudah dihapus dari UI
                 WebView.CoreWebView2.PermissionRequested += (s, args) => args.State = CoreWebView2PermissionState.Deny;
 
-                // Map virtual host root to AppBase so paths like /Virtual_Assisten/... resolve correctly
                 string appBase = AppDomain.CurrentDomain.BaseDirectory;
                 WebView.CoreWebView2.SetVirtualHostNameToFolderMapping("zeromix.vercel.app", appBase, CoreWebView2HostResourceAccessKind.Allow);
                 
-                WebView.Source = new Uri("https://zeromix.vercel.app/Virtual_Assisten/live2d-viewer.html");
                 WebView.WebMessageReceived += OnWebMessageReceived;
+
+                // Navigate to the viewer — model will be sent after page signals ready via model_loaded
+                WebView.Source = new Uri("https://zeromix.vercel.app/Virtual_Assisten/live2d-viewer.html");
+
+                // Wait for navigation to complete before marking initialized
+                var tcs = new TaskCompletionSource<bool>();
+                void OnNavCompleted(object? s2, CoreWebView2NavigationCompletedEventArgs args2)
+                {
+                    WebView.CoreWebView2.NavigationCompleted -= OnNavCompleted;
+                    tcs.TrySetResult(true);
+                }
+                WebView.CoreWebView2.NavigationCompleted += OnNavCompleted;
+                await tcs.Task;
+
                 _isWebViewInitialized = true;
-                SetCharacter(_currentCharacter);
+
+                // Now safe to send the model path
+                await SendModelToWebView(_currentCharacter);
             }
-            catch (Exception ex) { Console.WriteLine($"[VA] Error: {ex.Message}"); }
+            catch (Exception ex) { Console.WriteLine($"[VA] WebView init error: {ex.Message}"); }
+        }
+
+        private async Task SendModelToWebView(string characterName)
+        {
+            if (!_isWebViewInitialized) return;
+            string modelPath = GetModelPath(characterName);
+            string appBase = AppDomain.CurrentDomain.BaseDirectory.TrimEnd('\\', '/');
+            string webPath = "https://zeromix.vercel.app/" + modelPath.Replace(appBase, "").TrimStart('\\', '/').Replace("\\", "/");
+            try
+            {
+                await WebView.ExecuteScriptAsync($"if(typeof changeModel === 'function') changeModel('{Uri.EscapeUriString(webPath)}');");
+            }
+            catch (Exception ex) { Console.WriteLine($"[VA] SendModel error: {ex.Message}"); }
         }
 
         private async void OnWebMessageReceived(object? sender, CoreWebView2WebMessageReceivedEventArgs e)
@@ -128,10 +152,7 @@ namespace ZeroMix.Virtual_Assisten
         {
             _currentCharacter = characterName;
             if (!_isWebViewInitialized) return;
-            string modelPath = GetModelPath(characterName);
-            string appBase = AppDomain.CurrentDomain.BaseDirectory.TrimEnd('\\', '/');
-            string webPath = "https://zeromix.vercel.app/" + modelPath.Replace(appBase, "").TrimStart('\\', '/').Replace("\\", "/");
-            await WebView.ExecuteScriptAsync($"if(typeof changeModel === 'function') changeModel('{Uri.EscapeUriString(webPath)}');");
+            await SendModelToWebView(characterName);
         }
 
         private string GetModelPath(string characterName)

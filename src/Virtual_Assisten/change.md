@@ -2,7 +2,35 @@
 
 ---
 
-## 🚀 v5.4.0 — Latest
+## 🚀 v5.5.0 — Latest
+
+### ✨ Features
+- **Charger Notif Plugin** (`ChargerBatterynotif.core`): Plugin baru khusus event charger — notifikasi animasi Lottie + suara saat charger dicolok, dicabut, dan baterai penuh.
+- **Lottie Animation**: Integrasi `LottieSharp` untuk animasi JSON di notifikasi. Fallback ke PNG maskot `zeromix.Battery/Maskot/` jika Lottie tidak ada.
+- **Custom Sound per Event**: User pilih `.wav` sendiri via Browse per event (Charging/Unplug/Full). Built-in WAV bawaan. Tombol ▶ preview, ✕ reset.
+- **Bahasa Korea (ko-KR)**: Locale baru — total 5 bahasa: EN, ID, JP, ZH, KR.
+- **Language Switch Tanpa Reload**: Ganti bahasa langsung apply ke UI, sidebar nav labels diupdate programatik.
+- **Virtual Assistant — Fast Model Loading**: Guard concurrent load, pause GC 80ms antar model, tidak lagi not responding saat klik ACTIVATE.
+- **Virtual Assistant — Idle Animations Berjalan**: `playBodyMotion()` baru panggil `model.motion("", idx)` — Frieren 2 motions, Fern 1, Huohuo 7. Expression cycle 5–10 detik, body motion 8–15 detik. Langsung play 300ms setelah loaded.
+- **Video Wallpaper Optimization**: FFmpeg encode background async (1280×720, CRF 28, veryfast). Play langsung dengan file asli, swap seamless ke file teroptimasi. Cache di `%AppData%\ZeroMix\WallpaperCache\`.
+
+### 🐛 Bug Fixes
+- Fix Virtual Assistant model tidak load — `SetCharacter` dipanggil sebelum WebView navigation selesai.
+- Fix idle animation tidak berjalan — `startAutoMotion()` sekarang dipanggil setelah model loaded.
+- Fix `--disable-gpu-vsync` dan `--disable-plugins` merusak Live2D rendering pada beberapa GPU.
+- Fix language selector trigger dua kali saat init.
+- Fix `Loader cat.json` duplikat root JSON object.
+- Fix video wallpaper berat tanpa optimasi.
+
+### 🔧 Changes
+- `ChargerBatterynotif.core` hanya handle Charging, Unplugged, Full. Low/Critical tetap di `zeromix.Battery`.
+- `live2d-viewer.html` di-rewrite: loading guard, GC pause, auto-motion loop, body motion per karakter.
+- Virtual Assistant WebView: `powerPreference: "low-power"`, resolusi cap 1.5x, hapus args yang merusak GPU.
+- Language ComboBox: tambah 中文 dan 한국어.
+
+---
+
+## 🚀 v5.4.0 — Previous
 
 ### ✨ Features
 - **WDM Start Menu Glass**: Efek dark acrylic blur pada Start Menu (Windows 10 & 11).
