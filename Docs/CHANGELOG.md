@@ -5,6 +5,45 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) | [Semantic Ver
 
 ---
 
+## [v5.5.0] - 2026-04-11
+
+### ✨ Features
+
+- **Charger Notif Plugin** (`ChargerBatterynotif.core`): Plugin baru khusus event charger — notifikasi + Lottie animation + suara saat charger dicolok, dicabut, dan baterai penuh 100%.
+- **Lottie Animation Support**: Integrasi `LottieSharp` NuGet untuk animasi JSON di notifikasi charger. Fallback otomatis ke PNG maskot dari `zeromix.Battery/Maskot/` jika Lottie tidak tersedia.
+- **Custom Sound per Event**: User bisa pilih file `.wav` sendiri via tombol Browse untuk tiap event (Charging, Unplug, Full). Built-in WAV bawaan tersedia sebagai default. Reset ke bawaan dengan tombol ✕.
+- **Sound Preview**: Tombol ▶ untuk preview suara langsung dari settings panel tanpa perlu trigger event sungguhan.
+- **Config Persistence**: Pilihan pesan dan sound disimpan ke `%AppData%\ZeroMix\charger_notif_config.json`, tidak hilang saat restart.
+- **Bahasa Korea (ko-KR)**: Tambah file locale `ko-KR.xaml` — ZeroMix kini mendukung 5 bahasa: English, Indonesia, 日本語, 中文, 한국어.
+- **Language Switching Tanpa Reload**: Ganti bahasa langsung apply ke UI tanpa restart aplikasi. Sidebar nav labels diupdate secara programatik via `ApplyLanguageToStaticElements`.
+- **Language Selector Fix**: `InitializeLanguageSelector` sekarang baca dari AppData terlebih dahulu, suppress `SelectionChanged` saat init agar tidak trigger dua kali.
+- **Virtual Assistant — Fast Model Loading**: Guard `isLoadingModel` mencegah concurrent load yang menyebabkan not responding. Pause 80ms setelah destroy model lama agar GC bersih sebelum load berikutnya.
+- **Virtual Assistant — Idle Animations**: `playBodyMotion()` baru yang memanggil `model.motion("", idx)` sesuai model — Frieren (2 motions), Fern (1), Huohuo (7). Body motion cycle setiap 8–15 detik, expression cycle setiap 5–10 detik. Model langsung play idle 300ms setelah loaded.
+- **Video Wallpaper Optimization**: Video besar di-encode ulang di background via FFmpeg (1280×720, CRF 28, preset veryfast). Playback langsung mulai dengan file asli, swap seamless ke file teroptimasi setelah selesai. Cache disimpan di `%AppData%\ZeroMix\WallpaperCache\`.
+
+### 🐛 Bug Fixes
+
+- Fix `LanguageComboBox_SelectionChanged` menampilkan MessageBox error yang tidak perlu saat save language.
+- Fix language preference disimpan ke BaseDirectory (read-only) — sekarang ke AppData.
+- Fix Virtual Assistant model tidak load saat tombol ACTIVATE diklik — `SetCharacter` dipanggil sebelum WebView navigation selesai. Sekarang tunggu `NavigationCompleted` event.
+- Fix idle animation tidak berjalan di Virtual Assistant — `startAutoMotion()` sekarang dipanggil setelah model loaded, bukan saat init.
+- Fix `--disable-gpu-vsync` dan `--disable-plugins` di WebView args yang menyebabkan Live2D rendering rusak pada beberapa GPU.
+- Fix video wallpaper berat tanpa optimasi — sekarang optimize async di background tanpa block UI.
+- Fix `Loader cat.json` duplikat root JSON object — file dipotong ke 6374 baris yang valid.
+
+### 🔧 Changes
+
+- `ChargerBatterynotif.core` scope dipersempit: hanya handle Charging, Unplugged, Full. Low & Critical tetap di `zeromix.Battery`.
+- Built-in WAV sounds untuk Charger Notif: `charging.wav` (chime naik E5→G5), `unplug.wav` (chime turun), `full.wav` (triple chime C5→E5→G5), `low.wav` (440Hz), `critical.wav` (double beep 300Hz).
+- `zeromix.Battery/Maskot/` PNG direferensi langsung dari `ChargerBatterynotif.core` — tidak duplikat file.
+- Virtual Assistant WebView: hapus `--disable-gpu-vsync` dan `--disable-plugins` dari browser args, tambah `--js-flags=--max-old-space-size=128`.
+- Virtual Assistant `powerPreference` diubah ke `"low-power"` untuk spek rendah, resolusi di-cap `Math.min(devicePixelRatio, 1.5)`.
+- `live2d-viewer.html` di-rewrite: loading guard, GC pause, auto-motion loop, body motion per karakter.
+- `ZeroMix.csproj`: tambah `LottieSharp` NuGet, copy `*.json` dan `*.wav` dari `Tools\Plugins\**` ke output.
+- Language ComboBox di MainWindow.xaml: tambah opsi `中文` dan `한국어`.
+
+---
+
 ## [v5.4.0] - 2026-04-09
 
 ### ✨ Features

@@ -43,7 +43,7 @@ namespace ZeroMix
     
     public partial class MainWindow : Window, ZeroMix.Plugins.IZeroMixHost
     {
-        private const string CURRENT_VERSION = "5.3.1";
+        private const string CURRENT_VERSION = "5.5.0";
         
         // Windows API for Taskbar transparency
         [DllImport("user32.dll", SetLastError = true)]
@@ -204,7 +204,7 @@ namespace ZeroMix
         public void ChangeLanguage(string cultureCode)
         {
             // Validasi code
-            var validCodes = new[] { "en-US", "id-ID", "ja-JP", "zh-CN" };
+            var validCodes = new[] { "en-US", "id-ID", "ja-JP", "zh-CN", "ko-KR" };
             if (!validCodes.Contains(cultureCode))
                 cultureCode = "en-US";
 
@@ -231,10 +231,33 @@ namespace ZeroMix
                     System.Windows.Application.Current.Resources.MergedDictionaries.Remove(oldDict);
 
                 System.Windows.Application.Current.Resources.MergedDictionaries.Add(dict);
+
+                // Update hardcoded UI text yang tidak pakai DynamicResource
+                ApplyLanguageToStaticElements(dict);
             }
             catch (Exception ex)
             {
                 Debug.WriteLine($"[Language] Failed to load {cultureCode}: {ex.Message}");
+            }
+        }
+
+        private void ApplyLanguageToStaticElements(ResourceDictionary dict)
+        {
+            try
+            {
+                string Get(string key) => dict.Contains(key) ? dict[key]?.ToString() ?? "" : "";
+
+                // Sidebar nav labels
+                if (NavTextHome != null)    NavTextHome.Text    = Get("Nav_Home");
+                if (NavTextWall != null)    NavTextWall.Text    = Get("Nav_Wallpapers");
+                if (NavTextPlugins != null) NavTextPlugins.Text = Get("Nav_Plugins");
+                if (NavTextRec != null)     NavTextRec.Text     = Get("Nav_Record");
+                if (NavTextAsst != null)    NavTextAsst.Text    = Get("Nav_AI") is { Length: > 0 } s ? s : "AI Companions";
+                if (NavTextAbout != null)   NavTextAbout.Text   = Get("Nav_About");
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"[Language] ApplyLanguageToStaticElements error: {ex.Message}");
             }
         }
 
@@ -425,20 +448,22 @@ namespace ZeroMix
             var comboBox = this.FindName("LanguageComboBox") as System.Windows.Controls.ComboBox;
             if (comboBox != null)
             {
-                // Read current language from language.ini
-                string languageFile = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "language.ini");
+                // Read current language — check AppData first, then BaseDirectory fallback
+                string appDataFile = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "ZeroMix", "language.ini");
+                string baseDirFile = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "language.ini");
                 string currentLang = "en-US";
                 
-                if (File.Exists(languageFile))
+                try
                 {
-                    try
-                    {
-                        currentLang = File.ReadAllText(languageFile).Trim();
-                    }
-                    catch { }
+                    if (File.Exists(appDataFile))
+                        currentLang = File.ReadAllText(appDataFile).Trim();
+                    else if (File.Exists(baseDirFile))
+                        currentLang = File.ReadAllText(baseDirFile).Trim();
                 }
+                catch { }
 
-                // Set combobox to current language
+                // Suppress SelectionChanged during init
+                comboBox.SelectionChanged -= LanguageComboBox_SelectionChanged;
                 foreach (ComboBoxItem item in comboBox.Items)
                 {
                     if (item.Tag?.ToString() == currentLang)
@@ -447,6 +472,10 @@ namespace ZeroMix
                         break;
                     }
                 }
+                comboBox.SelectionChanged += LanguageComboBox_SelectionChanged;
+
+                // Apply the saved language
+                ChangeLanguage(currentLang);
             }
         }
 
@@ -456,26 +485,16 @@ namespace ZeroMix
             {
                 string selectedLanguage = selectedItem.Tag?.ToString() ?? "en-US";
                 
-                // Save to AppData (bukan BaseDirectory yang mungkin read-only)
+                // Save to AppData
                 string appDataDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "ZeroMix");
                 Directory.CreateDirectory(appDataDir);
                 string languageFile = Path.Combine(appDataDir, "language.ini");
                 
-                try
-                {
-                    File.WriteAllText(languageFile, selectedLanguage);
-                }
-                catch (Exception ex)
-                {
-                    System.Windows.MessageBox.Show($"Failed to save language preference.\n\n{ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-                    return;
-                }
+                try { File.WriteAllText(languageFile, selectedLanguage); }
+                catch (Exception ex) { Debug.WriteLine($"[Language] Save failed: {ex.Message}"); }
 
-                // Instantly apply language
+                // Apply language instantly — no reload needed
                 ChangeLanguage(selectedLanguage);
-
-                // Update Status or specific UI elements if they don't use DynamicResource
-                StatusLabel.Text = "Language updated to " + (selectedItem.Content?.ToString() ?? "Default");
             }
         }
 

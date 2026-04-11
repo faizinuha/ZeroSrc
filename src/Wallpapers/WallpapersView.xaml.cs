@@ -234,7 +234,7 @@ namespace ZeroMix.Wallpapers
                 {
                     StatusLabel.Text = "🎬 Memuat Video Wallpaper...";
                     LaunchVideoWallpaper(_selectedImagePath);
-                    StatusLabel.Text = "✅ Video Wallpaper Aktif!";
+                    StatusLabel.Text = "✅ Video Wallpaper Aktif! (Optimizing in background...)";
                 }
                 else
                 {

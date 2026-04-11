@@ -9,6 +9,7 @@
         xmlns:battery="clr-namespace:ZeroMix.Plugins.Battery"
         xmlns:weather="clr-namespace:ZeroMix.Plugins.Weather"
         xmlns:translate="clr-namespace:ZeroMix.Plugins.Translate"
+        xmlns:chargernotif="clr-namespace:ZeroMix.Plugins.ChargerNotif"
         Title="ZeroMix"
         Icon="../Assets/Icons/zeromix.ico"
         Height="750"
@@ -390,6 +391,8 @@
                                     <ComboBoxItem Content="English" Tag="en-US"/>
                                     <ComboBoxItem Content="Indonesia" Tag="id-ID"/>
                                     <ComboBoxItem Content="日本語" Tag="ja-JP"/>
+                                    <ComboBoxItem Content="中文" Tag="zh-CN"/>
+                                    <ComboBoxItem Content="한국어" Tag="ko-KR"/>
                                 </ComboBox>
                             </StackPanel>
                         </Grid>
@@ -884,7 +887,7 @@
                                                                Margin="0,0,0,6"/>
                                                     <StackPanel Orientation="Horizontal">
                                                         <TextBlock x:Name="VersionText"
-                                                                   Text="5.4.0"
+                                                                   Text="5.5.0"
                                                                    FontSize="18"
                                                                    FontWeight="Bold"
                                                                    Foreground="White"
@@ -1019,6 +1022,7 @@
                                     <weather:WeatherPluginUI/>
                                     <battery:BatteryPluginUI/>
                                     <translate:TranslatePluginUI/>
+                                    <chargernotif:ChargerNotifUI/>
                                     <StackPanel x:Name="UserPluginsContainer" Margin="0,12,0,0"/>
                                 </StackPanel>
                             </StackPanel>

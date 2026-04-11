@@ -4,43 +4,18 @@
     <meta charset="UTF-8" />
     <title>Live2D Viewer</title>
     <style>
-      * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-      }
-      html,
-      body {
-        width: 100%;
-        height: 100%;
-        overflow: hidden;
-        background: transparent; /* Dark background to prevent white flicker */
-      }
-      #canvas {
-        width: 100%;
-        height: 100%;
-        cursor: pointer;
-        opacity: 0;
-        transition: opacity 0.4s ease;
-      }
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: 100%; height: 100%; overflow: hidden; background: transparent; }
+      #canvas { width: 100%; height: 100%; cursor: pointer; opacity: 0; transition: opacity 0.5s ease; }
       #loading {
-        position: absolute;
-        top: 50%;
-        left: 50%;
+        position: absolute; top: 50%; left: 50%;
         transform: translate(-50%, -50%);
-        text-align: center;
-        color: #00d68f; /* Neon Blue instead of pink */
+        text-align: center; color: #00d68f;
         font-family: "Segoe UI", sans-serif;
+        pointer-events: none;
       }
-      #loading .emoji {
-        font-size: 48px;
-        margin-bottom: 10px;
-      }
-      #loading .text {
-        font-size: 14px;
-        opacity: 0.8;
-      }
-
+      #loading .emoji { font-size: 40px; margin-bottom: 8px; }
+      #loading .text { font-size: 13px; opacity: 0.8; }
     </style>
   </head>
   <body>
@@ -50,7 +25,7 @@
     </div>
     <canvas id="canvas"></canvas>
 
-    <!-- PIXI.js -->
+    <!-- PIXI.js — pinned version for stability -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pixi.js/7.3.2/pixi.min.js"></script>
     <!-- Live2D Cubism Core -->
     <script src="https://cubism.live2d.com/sdk-web/cubismcore/live2dcubismcore.min.js"></script>
@@ -58,57 +33,34 @@
     <script src="https://cdn.jsdelivr.net/npm/pixi-live2d-display@0.4.0/dist/cubism4.min.js"></script>
 
     <script>
-      // Configuration
+      // ── State ──────────────────────────────────────────────────────────────
       let MODEL_PATH = "";
-
-      // Global state
       let app = null;
       let model = null;
-      let targetEyeX = 0,
-        targetEyeY = 0;
-      let currentEyeX = 0,
-        currentEyeY = 0;
+      let targetEyeX = 0, targetEyeY = 0;
+      let currentEyeX = 0, currentEyeY = 0;
       let isModelLoaded = false;
+      let isMotionPlaying = false;
       let autoMotionTimer = null;
+      let idleMotionTimer = null;
+      let mouthOpenTimer = null;
+      let isLoadingModel = false;   // guard against concurrent loads
 
-      // Log Proxy to WPF Terminal
-      const originalLog = console.log;
-      const originalWarn = console.warn;
-      const originalError = console.error;
-
+      // ── WPF log proxy ──────────────────────────────────────────────────────
       function sendToWPF(type, args) {
         if (window.chrome && window.chrome.webview) {
-          const msg = Array.from(args)
-            .map((a) => (typeof a === "object" ? JSON.stringify(a) : a))
-            .join(" ");
-          window.chrome.webview.postMessage({
-            type: "log",
-            level: type,
-            content: msg,
-          });
+          const msg = Array.from(args).map(a => typeof a === "object" ? JSON.stringify(a) : a).join(" ");
+          window.chrome.webview.postMessage({ type: "log", level: type, content: msg });
         }
       }
+      const _log = console.log; console.log = function() { _log.apply(console, arguments); sendToWPF("info", arguments); };
+      const _err = console.error; console.error = function() { _err.apply(console, arguments); sendToWPF("error", arguments); };
 
-      console.log = function () {
-        originalLog.apply(console, arguments);
-        sendToWPF("info", arguments);
-      };
-      console.warn = function () {
-        originalWarn.apply(console, arguments);
-        sendToWPF("warn", arguments);
-      };
-      console.error = function () {
-        originalError.apply(console, arguments);
-        sendToWPF("error", arguments);
-      };
-
-      // Initialize
+      // ── Init ───────────────────────────────────────────────────────────────
       async function init() {
-        console.log("[Live2D] Initializing PIXI...");
         const canvas = document.getElementById("canvas");
         const loading = document.getElementById("loading");
 
-        // Check for model path in URL
         const urlParams = new URLSearchParams(window.location.search);
         const modelParam = urlParams.get("model");
         if (modelParam) MODEL_PATH = modelParam;
@@ -118,240 +70,201 @@
             view: canvas,
             backgroundAlpha: 0,
             resizeTo: window,
-            antialias: false, // Turned off antialias for better performance
-            powerPreference: "high-performance", // Changed to high-performance for Huohuo
+            antialias: false,
+            powerPreference: "low-power",   // save GPU on low-spec
             autoDensity: true,
+            resolution: Math.min(window.devicePixelRatio || 1, 1.5),
           });
 
+          // Cap FPS — 30 is enough for a desktop companion
           app.ticker.maxFPS = 30;
-          console.log("[Live2D] PIXI App created at 30 FPS");
-
-          if (MODEL_PATH) {
-            console.log("[Live2D] Loading initial model:", MODEL_PATH);
-            await loadModel(MODEL_PATH);
-          } else {
-            console.log("[Live2D] Ready. Waiting for model from WPF...");
-            loading.style.display = "none"; // Hide loading if no initial model
-          }
 
           app.ticker.add(updateLoop);
 
-          // RAM Optimization: Throttle when window is not active or minimized
-          window.addEventListener("blur", () => {
-            app.ticker.maxFPS = 15;
-            // Free GPU memory suggest
-            if (typeof PIXI.utils.clearTextureCache === 'function') PIXI.utils.clearTextureCache();
-          });
-          window.addEventListener("focus", () => {
-            app.ticker.maxFPS = 30;
-          });
+          // Throttle when window loses focus
+          window.addEventListener("blur",  () => { app.ticker.maxFPS = 10; });
+          window.addEventListener("focus", () => { app.ticker.maxFPS = 30; });
 
-          // Auto-Motion every 5-10 seconds (random interval for natural feel)
-          if (autoMotionTimer) clearInterval(autoMotionTimer);
-          autoMotionTimer = setInterval(() => {
-            if (isModelLoaded) playIdleMotion();
-          }, 5000 + Math.random() * 5000); // 5-10 seconds
+          if (MODEL_PATH) {
+            await loadModel(MODEL_PATH);
+          } else {
+            loading.style.display = "none";
+          }
+
+          // Auto-expression every 6–12 s for natural idle feel
+          startAutoMotion();
 
           console.log("[Live2D] Initialized");
-        } catch (error) {
-          console.error("[Live2D] Init error:", error);
+        } catch (err) {
+          console.error("[Live2D] Init error:", err);
           showError();
         }
       }
 
+      // ── Load model ─────────────────────────────────────────────────────────
       async function loadModel(path) {
-        if (!path) {
-          isModelLoaded = false;
-          return;
-        }
-        const canvas = document.getElementById("canvas");
+        if (!path || isLoadingModel) return;
+        isLoadingModel = true;
+
         const loading = document.getElementById("loading");
-        loading.style.display = "block";
-        loading.querySelector(".text").textContent = "Loading model...";
+        const canvas  = document.getElementById("canvas");
 
+        loading.querySelector(".emoji").textContent = "🎭";
+        loading.querySelector(".text").textContent  = "Loading model...";
+        loading.style.display = "block";
+        canvas.style.opacity  = "0";
         isModelLoaded = false;
+
+        // Destroy previous model
         if (model) {
+          stopAutoMotion();
           app.stage.removeChild(model);
-          // Standard PIXI + Live2D cleanup
-          model.destroy({ children: true, texture: true, baseTexture: true });
-          model = null; 
-          // Suggest browser to garbage collect
-          if (typeof PIXI.utils.clearTextureCache === 'function') PIXI.utils.clearTextureCache();
+          try { model.destroy({ children: true, texture: true, baseTexture: true }); } catch(e) {}
+          model = null;
+          if (typeof PIXI.utils.clearTextureCache === "function") PIXI.utils.clearTextureCache();
+          // Small pause so GC can breathe before loading next model
+          await new Promise(r => setTimeout(r, 80));
         }
 
-        // Clear any cached resources for this path
-        const cacheBuster = '?t=' + Date.now();
-        const cacheBustedPath = path + cacheBuster;
+        MODEL_PATH = path;
 
         try {
-          model = await PIXI.live2d.Live2DModel.from(cacheBustedPath, {
+          // Cache-bust so stale files don't block reload
+          const loadPath = path + "?t=" + Date.now();
+
+          model = await PIXI.live2d.Live2DModel.from(loadPath, {
             autoInteract: true,
             autoUpdate: true,
+            // onError is called per-resource; don't abort the whole load
+            onError: (e) => console.error("[Live2D] Resource error:", e),
           });
 
+          // Scale to fit window height with padding
           model.anchor.set(0.5, 1);
-
-          // AUTO SCALE: Calculate scale to fit window height (with 20px padding)
-          const targetHeight = app.screen.height - 40;
-          const currentHeight = model.height;
-          const autoScale = (targetHeight / currentHeight) * model.scale.x;
-          model.scale.set(autoScale);
-
-          model.x = app.screen.width / 2;
+          const scale = (app.screen.height - 40) / model.height * model.scale.x;
+          model.scale.set(scale);
+          model.x = app.screen.width  / 2;
           model.y = app.screen.height;
 
           app.stage.addChild(model);
-          loading.style.display = "none";
+
+          // Hide watermark parts if any
+          try {
+            model.internalModel.coreModel._partIds.forEach((id, i) => {
+              if (id.toLowerCase().includes("illust") || id.toLowerCase().includes("text"))
+                model.internalModel.coreModel.setPartOpacityByIndex(i, 0);
+            });
+          } catch(e) {}
+
+          // Fade in
           canvas.style.opacity = "1";
+          loading.style.display = "none";
           isModelLoaded = true;
 
-          // Try to hide watermark parts if found
-          try {
-            const parts = model.internalModel.coreModel._partIds;
-            parts.forEach((id, index) => {
-              if (
-                id.toLowerCase().includes("illust") ||
-                id.toLowerCase().includes("text")
-              ) {
-                model.internalModel.coreModel.setPartOpacityByIndex(index, 0);
-              }
-            });
-          } catch (e) {}
-
-          if (window.chrome && window.chrome.webview) {
+          // Notify WPF
+          if (window.chrome && window.chrome.webview)
             window.chrome.webview.postMessage({ type: "model_loaded" });
-          }
 
           model.on("pointerdown", onModelClick);
           model.interactive = true;
           model.cursor = "pointer";
 
-          // Re-adjust on next frame to be sure
-          setTimeout(() => {
-            const finalRatio = (app.screen.height - 40) / model.height;
-            model.scale.set(model.scale.x * finalRatio);
-            model.y = app.screen.height;
-          }, 100);
-        } catch (e) {
-          console.error("[Live2D] Load error:", e);
+          // Start idle motions immediately
+          startAutoMotion();
+          // Play first idle right away so user sees animation instantly
+          setTimeout(() => playIdleMotion(), 300);
+
+        } catch (err) {
+          console.error("[Live2D] Load error:", err);
           showError();
+        } finally {
+          isLoadingModel = false;
         }
       }
 
-      function showError() {
-        const loading = document.getElementById("loading");
-        loading.style.display = "block";
-        loading.querySelector(".emoji").textContent = "😢";
-        loading.querySelector(".text").textContent =
-          "Model tidak ditemukan atau rusak";
+      // ── Auto-motion (idle loop) ────────────────────────────────────────────
+      function startAutoMotion() {
+        stopAutoMotion();
+        // Expression cycle: random interval 5–10 s
+        autoMotionTimer = setInterval(() => {
+          if (isModelLoaded) playIdleMotion();
+        }, 5000 + Math.random() * 5000);
+
+        // Body motion cycle: every 8–15 s (plays the motion3.json animations)
+        idleMotionTimer = setInterval(() => {
+          if (isModelLoaded) playBodyMotion();
+        }, 8000 + Math.random() * 7000);
       }
 
+      function stopAutoMotion() {
+        if (autoMotionTimer) { clearInterval(autoMotionTimer); autoMotionTimer = null; }
+        if (idleMotionTimer) { clearInterval(idleMotionTimer); idleMotionTimer = null; }
+      }
+
+      // ── Play expression (face) ─────────────────────────────────────────────
+      async function playIdleMotion() {
+        if (!model || !model.internalModel || isMotionPlaying) return;
+        try {
+          isMotionPlaying = true;
+          const name = MODEL_PATH.toLowerCase();
+          let expressions = [];
+
+          if (name.includes("frieren")) {
+            expressions = ["anya","anya2","yy","ku","han","mmy","d","lks","wh","zx","W","erd"];
+          } else if (name.includes("fern")) {
+            expressions = ["lh","sq","sy"];
+          } else if (name.includes("huohuo")) {
+            expressions = ["angry","baozhen","cry","qizi1","qizi2","white eyes"];
+          }
+
+          if (expressions.length > 0) {
+            const exp = expressions[Math.floor(Math.random() * expressions.length)];
+            model.expression(exp);
+          }
+        } catch(e) { console.error("[Live2D] Expression error:", e); }
+        finally { setTimeout(() => { isMotionPlaying = false; }, 3000); }
+      }
+
+      // ── Play body motion (motion3.json) ────────────────────────────────────
+      async function playBodyMotion() {
+        if (!model || !model.internalModel) return;
+        try {
+          const name = MODEL_PATH.toLowerCase();
+          // All models have motions registered under the "" (default) group
+          // pixi-live2d-display: model.motion(group, index)
+          const motionManager = model.internalModel.motionManager;
+          if (!motionManager) return;
+
+          if (name.includes("frieren")) {
+            // 2 motions: index 0 = daiji, 1 = zs1
+            const idx = Math.floor(Math.random() * 2);
+            model.motion("", idx);
+          } else if (name.includes("fern")) {
+            // 1 motion: Scene1
+            model.motion("", 0);
+          } else if (name.includes("huohuo")) {
+            // 7 motions: haoqi, keshui, linghun, qizi, Scene1, yaotou, zhentou
+            const idx = Math.floor(Math.random() * 7);
+            model.motion("", idx);
+          }
+        } catch(e) { /* motion may not be ready yet, ignore */ }
+      }
+
+      // ── Model click ────────────────────────────────────────────────────────
+      function onModelClick() {
+        if (window.chrome && window.chrome.webview)
+          window.chrome.webview.postMessage({ type: "click" });
+        playIdleMotion();
+        playBodyMotion();
+      }
+
+      // ── changeModel (called from WPF) ──────────────────────────────────────
       async function changeModel(path) {
         console.log("[Live2D] Changing model to:", path);
         await loadModel(path);
       }
 
-      // Dragging support from JS to WPF
-      let isDragging = false;
-      let startX, startY;
-
-      window.addEventListener("mousedown", (e) => {
-        isDragging = true;
-        startX = e.screenX;
-        startY = e.screenY;
-      });
-
-      window.addEventListener("mousemove", (e) => {
-        if (isDragging && window.chrome && window.chrome.webview) {
-          const deltaX = e.screenX - startX;
-          const deltaY = e.screenY - startY;
-
-          if (Math.abs(deltaX) > 2 || Math.abs(deltaY) > 2) {
-            window.chrome.webview.postMessage({
-              type: "drag",
-              deltaX: deltaX,
-              deltaY: deltaY,
-            });
-            startX = e.screenX;
-            startY = e.screenY;
-          }
-        }
-      });
-
-      window.addEventListener("mouseup", () => {
-        isDragging = false;
-      });
-
-      let isMotionPlaying = false;
-
-      function onModelClick() {
-        if (window.chrome && window.chrome.webview) {
-          window.chrome.webview.postMessage({ type: "click" });
-        }
-
-        if (!isMotionPlaying) {
-          playIdleMotion();
-        }
-      }
-
-      async function playIdleMotion() {
-        if (!model || !model.internalModel || isMotionPlaying) return;
-
-        try {
-          isMotionPlaying = true;
-          let expressions = [];
-
-          if (MODEL_PATH.toLowerCase().includes("frieren")) {
-            expressions = [
-              "anya",
-              "anya2",
-              "yy",
-              "ku",
-              "han",
-              "mmy",
-              "d",
-              "lks",
-              "wh",
-              "zx",
-              "W",
-              "erd",
-            ];
-            // Play a random motion from any available group
-            model.motion("Idle");
-          } else if (MODEL_PATH.toLowerCase().includes("fern")) {
-            expressions = ["lh", "sq", "sy"];
-            model.motion("Idle");
-          } else if (MODEL_PATH.toLowerCase().includes("huohuo")) {
-            expressions = [
-              "angry",
-              "baozhen",
-              "cry",
-              "qizi1",
-              "qizi2",
-              "white eyes",
-            ];
-            // For Huohuo, we use direct motion names from his json if known,
-            // or just let PIXI handle expressions which is lighter.
-            // Avoiding model.motion("") as it might be unstable on this model.
-          }
-
-          if (expressions.length > 0) {
-            const randomExp =
-              expressions[Math.floor(Math.random() * expressions.length)];
-            model.expression(randomExp);
-            console.log("[Live2D] Playing expression:", randomExp);
-          }
-
-          // Reset motion flag after 3 seconds
-          setTimeout(() => {
-            isMotionPlaying = false;
-          }, 3000);
-        } catch (e) {
-          console.error("[Live2D] Error playing motion:", e);
-          isMotionPlaying = false;
-        }
-      }
-
+      // ── Eye tracking ───────────────────────────────────────────────────────
       function updateEyeTracking(x, y) {
         targetEyeX = x;
         targetEyeY = y;
@@ -359,146 +272,111 @@
 
       function updateLoop() {
         if (!isModelLoaded || !model || !model.internalModel) return;
-
         currentEyeX += (targetEyeX - currentEyeX) * 0.1;
         currentEyeY += (targetEyeY - currentEyeY) * 0.1;
-
-        const coreModel = model.internalModel.coreModel;
-        if (!coreModel) return;
-
+        const core = model.internalModel.coreModel;
+        if (!core) return;
         try {
-          // Support multiple parameter naming conventions
-          const paramMap = {
-            ParamEyeBallX: currentEyeX,
-            ParamEyeBallY: currentEyeY, // Di-balik agar ke atas ya ke atas
-            ParamAngleX: currentEyeX * 15,
-            ParamAngleY: currentEyeY * 10,
+          const params = {
+            ParamEyeBallX: currentEyeX, ParamEyeBallY: currentEyeY,
+            ParamAngleX: currentEyeX * 15, ParamAngleY: currentEyeY * 10,
             ParamBodyAngleX: currentEyeX * 5,
-            ParamEyeBallX01: currentEyeX,
-            ParamEyeBallY01: currentEyeY,
-            ParamEyeX: currentEyeX,
-            ParamEyeY: currentEyeY,
+            ParamEyeBallX01: currentEyeX, ParamEyeBallY01: currentEyeY,
+            ParamEyeX: currentEyeX, ParamEyeY: currentEyeY,
           };
-
-          for (const [key, val] of Object.entries(paramMap)) {
-            const index = coreModel.getParameterIndex(key);
-            if (index >= 0) coreModel.setParameterValueByIndex(index, val);
+          for (const [k, v] of Object.entries(params)) {
+            const i = core.getParameterIndex(k);
+            if (i >= 0) core.setParameterValueByIndex(i, v);
           }
-        } catch (e) {}
+        } catch(e) {}
       }
 
+      // ── Resize ─────────────────────────────────────────────────────────────
       window.addEventListener("resize", () => {
         if (app && model) {
-          model.x = app.screen.width / 2;
+          model.x = app.screen.width  / 2;
           model.y = app.screen.height;
         }
       });
 
-      // SPEECH RECOGNITION (STT)
-      let recognition = null;
-      if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
-        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-        recognition = new SpeechRecognition();
-        recognition.continuous = false;
-        recognition.interimResults = false;
-        recognition.lang = 'id-ID'; 
-        
-        recognition.onresult = (event) => {
-          const text = event.results[0][0].transcript;
-          console.log("[STT] Result:", text);
-          if (window.chrome && window.chrome.webview) {
-            window.chrome.webview.postMessage({ type: "speech_result", text: text });
-          }
-        };
+      // ── Drag support ───────────────────────────────────────────────────────
+      let isDragging = false, startX, startY;
+      window.addEventListener("mousedown", e => { isDragging = true; startX = e.screenX; startY = e.screenY; });
+      window.addEventListener("mousemove", e => {
+        if (!isDragging || !window.chrome?.webview) return;
+        const dx = e.screenX - startX, dy = e.screenY - startY;
+        if (Math.abs(dx) > 2 || Math.abs(dy) > 2) {
+          window.chrome.webview.postMessage({ type: "drag", deltaX: dx, deltaY: dy });
+          startX = e.screenX; startY = e.screenY;
+        }
+      });
+      window.addEventListener("mouseup", () => { isDragging = false; });
 
-        recognition.onerror = (event) => {
-          console.error("[STT] Error:", event.error);
-          if (window.chrome && window.chrome.webview) {
-            window.chrome.webview.postMessage({ type: "speech_error", error: event.error });
-          }
-        };
-
-        recognition.onend = () => {
-          if (window.chrome && window.chrome.webview) {
-            window.chrome.webview.postMessage({ type: "speech_end" });
-          }
-        };
+      // ── Error display ──────────────────────────────────────────────────────
+      function showError() {
+        const loading = document.getElementById("loading");
+        loading.style.display = "block";
+        loading.querySelector(".emoji").textContent = "😢";
+        loading.querySelector(".text").textContent  = "Model tidak ditemukan atau rusak";
       }
 
-      // SPEECH SYNTHESIS (TTS)
-      let synthesis = window.speechSynthesis;
-      let mouthOpenTimer = null;
+      // ── TTS / Lip-sync ─────────────────────────────────────────────────────
+      const synthesis = window.speechSynthesis;
 
-      function speakText(text, lang = 'id-ID') {
+      function speakText(text, lang = "id-ID") {
         if (!synthesis) return;
-        
-        // Stop any current speech
         synthesis.cancel();
-        
-        const utterance = new SpeechSynthesisUtterance(text);
-        utterance.lang = lang;
-        utterance.rate = 1.0;
-        utterance.pitch = 1.1; // Slightly higher for anime vibe
-
-        utterance.onstart = () => {
-             startLipSync();
-             if (window.chrome && window.chrome.webview) {
-                 window.chrome.webview.postMessage({ type: "speech_start" });
-             }
-        };
-
-        utterance.onend = () => {
-            stopLipSync();
-            if (window.chrome && window.chrome.webview) {
-                 window.chrome.webview.postMessage({ type: "speech_finished" });
-             }
-        };
-
-        synthesis.speak(utterance);
+        const utt = new SpeechSynthesisUtterance(text);
+        utt.lang = lang; utt.rate = 1.0; utt.pitch = 1.1;
+        utt.onstart  = () => { startLipSync(); if (window.chrome?.webview) window.chrome.webview.postMessage({ type: "speech_start" }); };
+        utt.onend    = () => { stopLipSync();  if (window.chrome?.webview) window.chrome.webview.postMessage({ type: "speech_finished" }); };
+        synthesis.speak(utt);
       }
 
       function startLipSync() {
-          if (mouthOpenTimer) clearInterval(mouthOpenTimer);
-          mouthOpenTimer = setInterval(() => {
-              if (isModelLoaded && model && model.internalModel) {
-                  const coreModel = model.internalModel.coreModel;
-                  const index = coreModel.getParameterIndex("ParamMouthOpenY");
-                  if (index >= 0) {
-                      // Simple random mouth movement
-                      const val = Math.random() * 0.8;
-                      coreModel.setParameterValueByIndex(index, val);
-                  }
-              }
-          }, 100);
+        if (mouthOpenTimer) clearInterval(mouthOpenTimer);
+        mouthOpenTimer = setInterval(() => {
+          if (!isModelLoaded || !model?.internalModel) return;
+          const i = model.internalModel.coreModel.getParameterIndex("ParamMouthOpenY");
+          if (i >= 0) model.internalModel.coreModel.setParameterValueByIndex(i, Math.random() * 0.8);
+        }, 100);
       }
 
       function stopLipSync() {
-          if (mouthOpenTimer) {
-              clearInterval(mouthOpenTimer);
-              mouthOpenTimer = null;
-          }
-          // Close mouth
-          if (isModelLoaded && model && model.internalModel) {
-              const coreModel = model.internalModel.coreModel;
-              const index = coreModel.getParameterIndex("ParamMouthOpenY");
-              if (index >= 0) coreModel.setParameterValueByIndex(index, 0);
-          }
-      }
-
-      function startSpeech(lang = 'id-ID') {
-        if (recognition) {
-          recognition.lang = lang;
-          try { recognition.start(); } catch(e) { console.error(e); }
+        if (mouthOpenTimer) { clearInterval(mouthOpenTimer); mouthOpenTimer = null; }
+        if (isModelLoaded && model?.internalModel) {
+          const i = model.internalModel.coreModel.getParameterIndex("ParamMouthOpenY");
+          if (i >= 0) model.internalModel.coreModel.setParameterValueByIndex(i, 0);
         }
       }
 
-      function stopSpeech() {
-        if (recognition) {
-          try { recognition.stop(); } catch(e) {}
-        }
+      // ── STT ────────────────────────────────────────────────────────────────
+      let recognition = null;
+      if ("webkitSpeechRecognition" in window || "SpeechRecognition" in window) {
+        const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+        recognition = new SR();
+        recognition.continuous = false; recognition.interimResults = false; recognition.lang = "id-ID";
+        recognition.onresult = e => {
+          const text = e.results[0][0].transcript;
+          if (window.chrome?.webview) window.chrome.webview.postMessage({ type: "speech_result", text });
+        };
+        recognition.onerror = e => { if (window.chrome?.webview) window.chrome.webview.postMessage({ type: "speech_error", error: e.error }); };
+        recognition.onend   = () => { if (window.chrome?.webview) window.chrome.webview.postMessage({ type: "speech_end" }); };
       }
 
-      // Start
+      function startSpeech(lang = "id-ID") { if (recognition) { recognition.lang = lang; try { recognition.start(); } catch(e) {} } }
+      function stopSpeech()                 { if (recognition) { try { recognition.stop();  } catch(e) {} } }
+
+      // ── WebMessage from WPF ────────────────────────────────────────────────
+      if (window.chrome && window.chrome.webview) {
+        window.chrome.webview.addEventListener("message", e => {
+          try {
+            const msg = typeof e.data === "string" ? JSON.parse(e.data) : e.data;
+            if (msg.type === "changeModel") changeModel(msg.path);
+          } catch(err) {}
+        });
+      }
+
       document.addEventListener("DOMContentLoaded", init);
     </script>
   </body>

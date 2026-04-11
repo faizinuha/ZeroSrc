@@ -83,26 +83,18 @@ namespace ZeroMix.Wallpapers
             {
                 System.Diagnostics.Debug.WriteLine("=== VideoWallpaperWindow.Window_Loaded ===");
 
-                // 1. PENTING: Set window styles SEBELUM move ke background
                 SetWindowStyles();
-
-                // 2. Register shell hook untuk monitor desktop events
                 RegisterForShellEvents();
-
-                // 3. Pindahkan ke Background (WorkerW)
                 SendWindowToBackground();
-
-                // 4. PAKSA UKURAN FULLSCREEN SETELAH PINDAH
                 ForceFullScreen();
 
-                // 5. Load dan Play Video
                 if (!string.IsNullOrEmpty(_videoPath) && System.IO.File.Exists(_videoPath))
                 {
-                    string fullPath = System.IO.Path.GetFullPath(_videoPath);
-                    VideoPlayer.Source = new Uri(fullPath);
-                    VideoPlayer.Volume = _volume; // Set requested volume
-                    VideoPlayer.Play();
-                    System.Diagnostics.Debug.WriteLine($"Video started playing: {fullPath} with volume {_volume}");
+                    // Start playback immediately with original file, then swap to optimized if available
+                    PlayVideo(_videoPath);
+
+                    // Try to optimize in background (non-blocking)
+                    _ = OptimizeAndSwapAsync(_videoPath);
                 }
                 else
                 {
@@ -112,6 +104,94 @@ namespace ZeroMix.Wallpapers
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"Error in Window_Loaded: {ex.Message}\n{ex.StackTrace}");
+            }
+        }
+
+        private void PlayVideo(string path)
+        {
+            try
+            {
+                string fullPath = System.IO.Path.GetFullPath(path);
+                VideoPlayer.Source = new Uri(fullPath);
+                VideoPlayer.Volume = _volume;
+                VideoPlayer.Play();
+                System.Diagnostics.Debug.WriteLine($"Video playing: {fullPath}");
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"PlayVideo error: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Optimizes the video with FFmpeg in the background.
+        /// If optimization succeeds and the window is still open, swaps to the optimized file seamlessly.
+        /// </summary>
+        private async System.Threading.Tasks.Task OptimizeAndSwapAsync(string originalPath)
+        {
+            try
+            {
+                string? ffmpeg = WallpaperManager.FindFFmpeg();
+                if (ffmpeg == null) return;
+
+                string cacheDir = System.IO.Path.Combine(
+                    Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+                    "ZeroMix", "WallpaperCache");
+                System.IO.Directory.CreateDirectory(cacheDir);
+
+                string hash = Math.Abs(originalPath.GetHashCode()).ToString("X8");
+                string optimizedPath = System.IO.Path.Combine(cacheDir, $"{hash}_opt.mp4");
+
+                // Skip if already cached
+                if (!System.IO.File.Exists(optimizedPath))
+                {
+                    System.Diagnostics.Debug.WriteLine($"[Wallpaper] Optimizing video in background: {originalPath}");
+
+                    // Re-encode: scale to 1280x720 max, CRF 28 (good quality/size balance), 30fps, no audio
+                    string args = $"-i \"{originalPath}\" -vf \"scale=1280:720:force_original_aspect_ratio=decrease,pad=1280:720:(ow-iw)/2:(oh-ih)/2,fps=30\" -c:v libx264 -preset veryfast -crf 28 -an -movflags +faststart -y \"{optimizedPath}\"";
+
+                    var psi = new System.Diagnostics.ProcessStartInfo
+                    {
+                        FileName = ffmpeg,
+                        Arguments = args,
+                        UseShellExecute = false,
+                        CreateNoWindow = true,
+                        RedirectStandardError = true,
+                    };
+
+                    using var proc = System.Diagnostics.Process.Start(psi);
+                    if (proc != null)
+                    {
+                        // Wait up to 3 minutes
+                        bool finished = await System.Threading.Tasks.Task.Run(() => proc.WaitForExit(180_000));
+                        if (!finished) { proc.Kill(); return; }
+                        if (proc.ExitCode != 0 || !System.IO.File.Exists(optimizedPath)) return;
+                    }
+                }
+
+                // Swap to optimized file if window is still alive
+                if (!this.IsLoaded) return;
+                await this.Dispatcher.InvokeAsync(() =>
+                {
+                    try
+                    {
+                        var pos = VideoPlayer.Position;
+                        VideoPlayer.Stop();
+                        VideoPlayer.Source = new Uri(optimizedPath);
+                        VideoPlayer.Volume = _volume;
+                        VideoPlayer.Position = pos;
+                        VideoPlayer.Play();
+                        System.Diagnostics.Debug.WriteLine("[Wallpaper] Swapped to optimized video.");
+                    }
+                    catch (Exception ex2)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"[Wallpaper] Swap error: {ex2.Message}");
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[Wallpaper] OptimizeAndSwap error: {ex.Message}");
             }
         }
 
