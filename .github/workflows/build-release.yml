@@ -235,32 +235,49 @@ jobs:
     - name: 📋 Extract Release Notes from CHANGELOG
       shell: pwsh
       run: |
-        $VER = "${{ steps.version.outputs.tag }}"
-        $VERNUM = "${{ steps.version.outputs.version }}" -replace '^v', ''
-        $REPO = "${{ github.repository }}"
-        $changelog = Get-Content "Docs/CHANGELOG.md" -Raw
-
-        # Match dengan atau tanpa prefix v: [v5.4.1] atau [5.4.1]
-        $pattern = "(?s)## \[v?$([regex]::Escape($VERNUM))\].*?(?=\n## \[|\z)"
-        $match = [regex]::Match($changelog, $pattern)
-        $notes = if ($match.Success) { $match.Value.Trim() } else { "See full changelog for details." }
-
+        $VER     = "${{ steps.version.outputs.tag }}"
+        $VERNUM  = "${{ steps.version.outputs.version }}" -replace '^v', ''
+        $REPO    = "${{ github.repository }}"
         $changelogUrl = "https://github.com/$REPO/blob/main/Docs/CHANGELOG.md"
+        $changelog    = Get-Content "Docs/CHANGELOG.md" -Raw
 
-        $body  = "🎉 **ZeroMix $VER is here!**`n`n$notes`n`n---`n`n"
+        # Ambil section versi ini dari CHANGELOG
+        $pattern = "(?s)## \[v?$([regex]::Escape($VERNUM))\].*?(?=\n## \[|\z)"
+        $match   = [regex]::Match($changelog, $pattern)
+
+        $top4 = ""
+        if ($match.Success) {
+            $section = $match.Value
+
+            # Kumpulkan semua bullet points (✨ 🐛 🔧)
+            $bullets = [regex]::Matches($section, '(?m)^- .+') | ForEach-Object { $_.Value.Trim() }
+
+            # Ambil max 4 poin pertama
+            $picked = $bullets | Select-Object -First 4
+            $top4   = ($picked -join "`n")
+        }
+
+        if ([string]::IsNullOrWhiteSpace($top4)) {
+            $top4 = "- See full changelog for details."
+        }
+
+        $body  = "## 🚀 ZeroMix $VER`n`n"
+        $body += "### Highlights`n"
+        $body += "$top4`n`n"
+        $body += "> 📄 **[View full changelog →]($changelogUrl)**`n`n"
+        $body += "---`n`n"
         $body += "### 📥 Downloads`n"
         $body += "| File | Keterangan |`n"
         $body += "|------|------------|`n"
-        $body += "| ``ZeroMix-v$VERNUM-Installer.exe`` | ⭐ **Bootstrap** — kecil, download otomatis saat install |`n"
-        $body += "| ``ZeroMix-v$VERNUM-Setup.exe`` | Setup lengkap (offline installer) |`n"
-        $body += "| ``ZeroMix-v$VERNUM-Portable.zip`` | Portable, tanpa install |`n`n"
+        $body += "| \`\`ZeroMix-v$VERNUM-Installer.exe\`\` | ⭐ Bootstrap — kecil, download otomatis |`n"
+        $body += "| \`\`ZeroMix-v$VERNUM-Setup.exe\`\` | Setup lengkap (offline) |`n"
+        $body += "| \`\`ZeroMix-v$VERNUM-Portable.zip\`\` | Portable, tanpa install |`n`n"
         $body += "### 🖥️ Requirements`n"
         $body += "- Windows 10/11 x64`n"
-        $body += "- .NET 9.0 Desktop Runtime`n`n"
-        $body += "📄 [Full Changelog]($changelogUrl)"
+        $body += "- .NET 9.0 Desktop Runtime"
 
         $body | Out-File -FilePath "RELEASE_NOTES.md" -Encoding utf8
-        Write-Host "✅ Release notes generated for $VER"
+        Write-Host "✅ Release notes generated (top 4 highlights + changelog link)"
 
     # ─── STEP 9: Buat Release entry dulu (selalu jalan, meski build gagal) ──
     # Release dibuat lebih awal agar tag tetap terdaftar sebagai "latest"

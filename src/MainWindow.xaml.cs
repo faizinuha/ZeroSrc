@@ -43,7 +43,7 @@ namespace ZeroMix
     
     public partial class MainWindow : Window, ZeroMix.Plugins.IZeroMixHost
     {
-        private const string CURRENT_VERSION = "5.5.0";
+        private const string CURRENT_VERSION = "5.6.0";
         
         // Windows API for Taskbar transparency
         [DllImport("user32.dll", SetLastError = true)]
@@ -370,6 +370,9 @@ namespace ZeroMix
             // Set initial view after the window has loaded
             HomeButton_Click(this, new RoutedEventArgs());
             _initialWallpaperPath = GetSystemWallpaperPath();
+
+            // Welcome screen — hanya muncul saat fresh boot, tidak saat Windows+L
+            ZeroMix.Plugins.Welcome.WelcomePlugin.TryShowWelcome();
 
             // Initialize Language Selector
             InitializeLanguageSelector();

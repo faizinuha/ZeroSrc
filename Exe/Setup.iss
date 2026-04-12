@@ -5,7 +5,7 @@
 ; --- App Identity ---
 AppId={{ZeroMix-v2-ZeroMix-identifier}}
 AppName=ZeroMix
-#define AppVersion "5.5.0"
+#define AppVersion "5.6.0"
 AppVersion={#AppVersion}
 VersionInfoVersion={#AppVersion}.0
 VersionInfoCompany=Frieren
@@ -70,8 +70,9 @@ Source: "..\Assets\Data\Images\**"; DestDir: "{app}\Assets\Data\Images"; Flags: 
 Source: "..\Assets\Data\Video\**"; DestDir: "{app}\Assets\Data\Video"
 Source: "..\Assets\zeromix-high-resolution-logo-transparent.png"; DestDir: "{app}\Assets"; Flags: ignoreversion
 
-; Plugins (termasuk sounds & json dari ChargerBatterynotif.core)
-Source: "..\Tools\Plugins\**"; DestDir: "{app}\Tools\Plugins"; Flags: ignoreversion recursesubdirs createallsubdirs
+; Plugins — hanya folder plugin (asset runtime), source .cs/.xaml tidak ikut
+; Source files sudah di-exclude oleh csproj, publish output sudah bersih
+Source: "..\publish\win-x64\Tools\Plugins\**"; DestDir: "{app}\Tools\Plugins"; Flags: ignoreversion recursesubdirs createallsubdirs
 
 ; FFmpeg
 Source: "..\Tools\FFMPEG\ffmpeg.exe"; DestDir: "{app}\Tools\FFMPEG"; Flags: ignoreversion
@@ -80,10 +81,8 @@ Source: "..\Tools\FFMPEG\ffmpeg.exe"; DestDir: "{app}\Tools\FFMPEG"; Flags: igno
 Source: "..\Scripts\zeromix-update.bat"; DestDir: "{app}"; Flags: ignoreversion skipifsourcedoesntexist
 Source: "..\Scripts\zeromix-update.ps1"; DestDir: "{app}"; Flags: ignoreversion skipifsourcedoesntexist
 
-; Documentation
-Source: "Privacy.txt"; DestDir: "{app}"; Flags: ignoreversion
+; Documentation — hanya LICENSE, tidak perlu Privacy.txt dan Readme di install dir
 Source: "..\LICENSE.txt"; DestDir: "{app}"; Flags: ignoreversion
-Source: "..\Readme.md"; DestDir: "{app}"; Flags: ignoreversion
 
 [Icons]
 Name: "{group}\ZeroMix"; Filename: "{app}\ZeroMix.exe"; IconFilename: "{app}\zeromix.ico"

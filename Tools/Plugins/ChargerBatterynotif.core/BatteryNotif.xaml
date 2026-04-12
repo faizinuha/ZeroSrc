@@ -1,7 +1,7 @@
 <Window x:Class="ZeroMix.Plugins.ChargerNotif.BatteryNotifWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:lottie="clr-namespace:LottieSharp;assembly=LottieSharp"
+        xmlns:gif="clr-namespace:WpfAnimatedGif;assembly=WpfAnimatedGif"
         Title="Battery Notif"
         Height="130" Width="420"
         WindowStyle="None"
@@ -70,15 +70,14 @@
                     BorderBrush="#1A2030"
                     BorderThickness="0,0,1,0">
                 <Grid>
-                    <!-- Lottie animation (dicolok/dicabut) -->
-                    <lottie:LottieAnimationView x:Name="LottieView"
-                                                FileName=""
-                                                AutoPlay="True"
-                                                RepeatCount="-1"
-                                                Width="90" Height="90"
-                                                HorizontalAlignment="Center"
-                                                VerticalAlignment="Center"/>
-                    <!-- PNG maskot dari zeromix.Battery (fallback jika Lottie tidak ada) -->
+                    <!-- Animated GIF (Welcome.gif / Loader cat.gif) -->
+                    <Image x:Name="GifImage"
+                           Width="90" Height="90"
+                           HorizontalAlignment="Center"
+                           VerticalAlignment="Center"
+                           Visibility="Collapsed"
+                           gif:ImageBehavior.RepeatBehavior="Forever"/>
+                    <!-- PNG maskot fallback jika GIF tidak ada -->
                     <Image x:Name="MaskotImage"
                            Stretch="Uniform"
                            Width="80" Height="80"

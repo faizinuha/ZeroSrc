@@ -54,39 +54,5 @@
                      DefaultBackgroundColor="Transparent"
                      IsHitTestVisible="True"
                      Cursor="Hand"/>
-
-        <!-- WPF Virtual Control Grid -->
-        <Border VerticalAlignment="Bottom" 
-                HorizontalAlignment="Center" 
-                Margin="0,0,0,20"
-                Padding="10"
-                CornerRadius="25"
-                Background="#B0101010"
-                IsHitTestVisible="True">
-            <Border.Effect>
-                <DropShadowEffect Color="Black" BlurRadius="15" ShadowDepth="0" Opacity="0.4"/>
-            </Border.Effect>
-            <StackPanel Orientation="Horizontal">
-                <!-- Language Button (WPF) -->
-                <Button x:Name="LanguageBtn"
-                        Width="45" Height="45"
-                        Margin="5,0"
-                        Style="{StaticResource {x:Static ToolBar.ButtonStyleKey}}"
-                        Click="Language_Click">
-                    <Button.Template>
-                        <ControlTemplate TargetType="Button">
-                            <Border x:Name="border" Background="#20FFFFFF" CornerRadius="22.5">
-                                <TextBlock x:Name="LangText" Text="🇮🇩" FontSize="20" VerticalAlignment="Center" HorizontalAlignment="Center"/>
-                            </Border>
-                            <ControlTemplate.Triggers>
-                                <Trigger Property="IsMouseOver" Value="True">
-                                    <Setter TargetName="border" Property="Background" Value="#40FFFFFF"/>
-                                </Trigger>
-                            </ControlTemplate.Triggers>
-                        </ControlTemplate>
-                    </Button.Template>
-                </Button>
-            </StackPanel>
-        </Border>
     </Grid>
 </Window>
