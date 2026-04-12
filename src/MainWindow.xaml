@@ -768,7 +768,7 @@
                                                 <TextBlock Text="DEFAULT MIC STATUS" FontSize="10" FontWeight="Bold" Foreground="{StaticResource TextMutedBrush}" Margin="0,0,0,8"/>
                                                 <StackPanel Orientation="Horizontal">
                                                     <CheckBox x:Name="AssistantMicPreload" IsChecked="True" Style="{StaticResource ModernCheckBox}"/>
-                                                    <TextBlock Text="Auto-Enable Voice Mode" FontSize="12" Foreground="White" Margin="10,0,0,0" VerticalAlignment="Center"/>
+                                                    <TextBlock Text="Auto-Enable Voice Mode( Error Voice )" FontSize="12" Foreground="White" Margin="10,0,0,0" VerticalAlignment="Center"/>
                                                 </StackPanel>
                                             </StackPanel>
                                         </StackPanel>
@@ -887,7 +887,7 @@
                                                                Margin="0,0,0,6"/>
                                                     <StackPanel Orientation="Horizontal">
                                                         <TextBlock x:Name="VersionText"
-                                                                   Text="5.5.0"
+                                                                   Text="5.6.0"
                                                                    FontSize="18"
                                                                    FontWeight="Bold"
                                                                    Foreground="White"

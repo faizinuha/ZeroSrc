@@ -5,7 +5,50 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) | [Semantic Ver
 
 ---
 
-## [v5.5.0] - 2026-04-11
+## [v5.6.0] - 2026-04-12
+
+### ✨ Features
+
+- **Welcome Screen Plugin** (`zeromix.Welcome`): Muncul otomatis saat fresh boot/restart seperti macOS. Deteksi via `Environment.TickCount64` — tidak muncul saat Windows+L (lock screen). Auto-close 5 detik, klik untuk dismiss, greeting berubah sesuai waktu.
+- **Huohuo Texture Optimization**: Resize texture dari ~46MB → ~4MB (8192px → 2048px). Load time drastis berkurang, tidak crash di spek rendah.
+- **Fern Texture Optimization**: Resize texture dari ~16MB → ~4MB (4096px → 1024px).
+- **GIF Animation Support** (`WpfAnimatedGif`): Ganti LottieSharp yang crash → GIF animasi di ChargerNotif. Taruh `Welcome.gif` / `Loader cat.gif` di folder `gif/`.
+- **Release Notes Ringkas**: GitHub Release hanya tampilkan 4 highlight teratas + link ke `Docs/CHANGELOG.md`.
+- **Makefile Auto-Version**: Versi otomatis dibaca dari `Docs/CHANGELOG.md`, tidak perlu update manual.
+
+### 🐛 Bug Fixes
+
+- Fix idle animation hanya jalan saat alt+tab — `app.ticker.stop()` diganti throttle 8 FPS saat blur.
+- Fix `isMotionPlaying` flag stuck — pisah jadi `isMotionPlaying` (expression) dan `isBodyMotionPlaying` (body motion), masing-masing punya timeout sendiri.
+- Fix watermark/credit text Fern muncul di tengah model — perluas hide logic ke keyword `credit`, `watermark`, `logo`, `copy`, juga via drawable IDs.
+- Fix tombol ID (LanguageBtn) muncul di atas model Virtual Assistant — dihapus dari XAML dan code-behind.
+- Fix `CoreWebView2 disposed` crash saat window ditutup — tambah flag `_isWebViewDisposed`, cek sebelum `TrySuspendAsync()` dan `Resume()`.
+- Fix `_visionTimer` dan `_autoTalkTimer` start di constructor sebelum WebView siap — pindah ke setelah `NavigationCompleted`.
+- Fix `LottieSharp NullReferenceException` di `KeyPath.IsContainer` — ganti ke GIF via `WpfAnimatedGif`.
+- Fix `LottieAnimationView` crash empty string — hapus `FileName=""` dari XAML, set hanya dari code setelah path valid.
+- Fix Plugin ChargerNotif test Not Responding — `SoundPlayer.Play()` pindah ke `Task.Run()` background thread.
+- Fix `NETSDK1022 Duplicate Compile/Page items` — hapus manual `<Compile>` dan `<Page>` dari csproj.
+- Fix `CS0579 Duplicate TargetFrameworkAttribute` di `dotnet watch` — tambah `GenerateTargetFrameworkAttribute=false`.
+- Fix `src` folder muncul di install directory — semua `<Content>` pakai `<Link>` dengan path yang benar.
+- Fix source `.cs`/`.xaml` ikut ke `Tools\Plugins\` di install dir — csproj hanya copy `.png`, `.wav`, `.gif`, `Styles.xaml`.
+- Fix `Privacy.txt` dan `Readme.md` ikut ke install directory — dihapus dari `Setup.iss [Files]`.
+- Fix `ResizeTexture` tool ikut ter-compile sebagai entry point — folder dihapus setelah dipakai.
+
+### 🔧 Changes
+
+- **Ganti Lottie → GIF**: hapus `LottieSharp`, hapus folder `json/`, tambah `WpfAnimatedGif 2.0.2`.
+- Virtual Assistant PIXI: `resolution: 1`, `autoDensity: false`, FPS 24 (Huohuo 18 FPS), ticker throttle 8 FPS saat blur (tidak stop total).
+- Virtual Assistant: hapus tombol Language (ID/EN/JP) dari overlay UI.
+- `live2d-viewer.html`: loading guard `isLoadingModel`, GC cleanup agresif (`destroyTextureCache`), auto-motion loop dengan flag terpisah, reset flags saat ganti model.
+- `SetCharacter()`: stop eye tracking timer saat ganti model, resume setelah model dikirim.
+- `Setup.iss`: tambah bahasa Korea (`Korean.isl`), `language.ini` disimpan ke `%AppData%\ZeroMix\`, hapus WebView2 check, fix uninstall buka `Feedback.html`.
+- `Makefile`: auto-detect versi dari CHANGELOG, hapus `BUILD_DIR` yang tidak dipakai, tambah target `version` dan `help`.
+- GitHub Actions: release notes 4 highlight + link CHANGELOG (bukan dump full changelog).
+- `csproj`: tambah `GenerateAssemblyInfo=false` dan `GenerateTargetFrameworkAttribute=false` untuk fix `dotnet watch` bug.
+
+---
+
+## [v5.5.0] - 2026-04-11 
 
 ### ✨ Features
 
@@ -30,17 +73,31 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) | [Semantic Ver
 - Fix `--disable-gpu-vsync` dan `--disable-plugins` di WebView args yang menyebabkan Live2D rendering rusak pada beberapa GPU.
 - Fix video wallpaper berat tanpa optimasi — sekarang optimize async di background tanpa block UI.
 - Fix `Loader cat.json` duplikat root JSON object — file dipotong ke 6374 baris yang valid.
+- Fix `LottieAnimationView` crash `Unable to parse composition` — `Loader cat.json` tidak kompatibel dengan LottieSharp 1.1.0 (`NullReferenceException` di `KeyPath.IsContainer`). Solusi: ganti ke GIF via `WpfAnimatedGif`.
+- Fix `LottieAnimationView` crash `empty string path` — `FileName=""` di XAML trigger callback sebelum path valid. Solusi: hapus `FileName` dari XAML, set hanya dari code.
+- Fix `CoreWebView2 members cannot be accessed after WebView2 is disposed` — `TrySuspendAsync()` dipanggil setelah window ditutup. Fix: tambah flag `_isWebViewDisposed` manual.
+- Fix `_visionTimer` dan `_autoTalkTimer` start di constructor sebelum WebView siap — pindah start ke setelah `NavigationCompleted`.
+- Fix Plugin ChargerNotif test button Not Responding — `SoundPlayer.Play()` di UI thread. Fix: pindah ke `Task.Run()`.
+- Fix `NETSDK1022 Duplicate Compile items` — hapus `<Compile>` manual dari csproj, SDK sudah auto-include.
+- Fix `NETSDK1022 Duplicate Page items` — hapus `<Page>` manual dari csproj, SDK sudah auto-include.
+- Fix `src` folder muncul di install directory — `src\ZeroShell\**\*.png` dan `src\Virtual_Assisten\**\*` tidak pakai `<Link>`, sekarang semua pakai `<Link>` agar output ke folder yang benar.
+- Fix source `.cs`/`.xaml` ikut ke `Tools\Plugins\` di install dir — csproj sekarang hanya copy `.png`, `.wav`, `.gif`, `Styles.xaml`.
+- Fix `Privacy.txt` dan `Readme.md` ikut ke install directory — dihapus dari `Setup.iss [Files]`.
 
 ### 🔧 Changes
 
 - `ChargerBatterynotif.core` scope dipersempit: hanya handle Charging, Unplugged, Full. Low & Critical tetap di `zeromix.Battery`.
-- Built-in WAV sounds untuk Charger Notif: `charging.wav` (chime naik E5→G5), `unplug.wav` (chime turun), `full.wav` (triple chime C5→E5→G5), `low.wav` (440Hz), `critical.wav` (double beep 300Hz).
-- `zeromix.Battery/Maskot/` PNG direferensi langsung dari `ChargerBatterynotif.core` — tidak duplikat file.
-- Virtual Assistant WebView: hapus `--disable-gpu-vsync` dan `--disable-plugins` dari browser args, tambah `--js-flags=--max-old-space-size=128`.
-- Virtual Assistant `powerPreference` diubah ke `"low-power"` untuk spek rendah, resolusi di-cap `Math.min(devicePixelRatio, 1.5)`.
+- **Ganti Lottie → GIF**: hapus `LottieSharp` package, hapus folder `json/`, tambah `WpfAnimatedGif` NuGet. Animasi kini dari `gif/Welcome.gif` dan `gif/Loader cat.gif`.
+- Built-in WAV sounds: `charging.wav`, `unplug.wav`, `full.wav` (hapus `low.wav` dan `critical.wav` karena scope dipersempit).
+- `zeromix.Battery/Maskot/` PNG direferensi langsung sebagai fallback jika GIF tidak ada.
+- Virtual Assistant WebView: hapus `--disable-gpu-vsync` dan `--disable-plugins`, tambah `--js-flags=--max-old-space-size=128`.
+- Virtual Assistant PIXI: `resolution: 1`, `autoDensity: false`, FPS cap 24, ticker stop sepenuhnya saat window blur.
+- Virtual Assistant GC: pause 300ms antar model load, tambah `destroyTextureCache()`.
 - `live2d-viewer.html` di-rewrite: loading guard, GC pause, auto-motion loop, body motion per karakter.
-- `ZeroMix.csproj`: tambah `LottieSharp` NuGet, copy `*.json` dan `*.wav` dari `Tools\Plugins\**` ke output.
-- Language ComboBox di MainWindow.xaml: tambah opsi `中文` dan `한국어`.
+- `ZeroMix.csproj`: hapus `LottieSharp`, tambah `WpfAnimatedGif 2.0.2`, copy `*.gif` dari `Tools\Plugins\**`.
+- `csproj` Virtual_Assisten: ganti wildcard broad ke explicit per-extension (`.png`, `.jpg`, `.html`, `.moc3`, `.model3.json`, dll) dengan `<Link>` agar tidak ada folder `src\` di output.
+- `Setup.iss`: tambah bahasa Korea, `language.ini` disimpan ke `%AppData%\ZeroMix\`, hapus WebView2 check, tambah `zeromix-update.ps1`, fix uninstall buka `Feedback.html`.
+- `Exe/Languages/Korean.isl` — file bahasa Korea baru untuk installer.
 
 ---
 

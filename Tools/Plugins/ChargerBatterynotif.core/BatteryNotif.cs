@@ -89,88 +89,74 @@ namespace ZeroMix.Plugins.ChargerNotif
             }
         }
 
-        // ── Visual: Lottie JSON → fallback PNG maskot dari zeromix.Battery ─
-        private void SetupVisual(NotifType type, string? customJsonPath)
+        // ── Visual: GIF animasi → fallback PNG maskot ──────────────────────
+        private void SetupVisual(NotifType type, string? customLottieJson)
         {
-            // 1. Coba Lottie dulu
-            if (TrySetLottie(type, customJsonPath)) return;
-
-            // 2. Fallback: tampilkan PNG maskot dari zeromix.Battery/Maskot/
-            // Sembunyikan LottieView, tampilkan Image fallback
-            LottieView.Visibility    = Visibility.Collapsed;
-            MaskotImage.Visibility   = Visibility.Visible;
-
-            string pngFile = type switch
+            string gifDir = Path.Combine(PluginDir, "gif");
+            // Pilih GIF per event
+            string gifFile = type switch
             {
-                NotifType.Charging  => "Say_1.png",   // maskot senang saat dicolok
-                NotifType.Unplugged => "Say.png",      // maskot biasa saat dicabut
-                NotifType.Full      => "70%.png",      // maskot baterai penuh
-                _                   => "Say_1.png"
+                NotifType.Charging  => "Welcome.gif",
+                NotifType.Unplugged => "Loader cat.gif",
+                NotifType.Full      => "Welcome.gif",
+                _                   => "Welcome.gif"
             };
 
-            string pngPath = Path.Combine(MaskotDir, pngFile);
-            if (File.Exists(pngPath))
+            string gifPath = Path.Combine(gifDir, gifFile);
+
+            // Fallback ke gif lain jika tidak ada
+            if (!File.Exists(gifPath))
+                gifPath = Path.Combine(gifDir, "Loader cat.gif");
+            if (!File.Exists(gifPath))
+                gifPath = Path.Combine(gifDir, "Welcome.gif");
+
+            if (File.Exists(gifPath))
             {
                 try
                 {
                     var bmp = new BitmapImage();
                     bmp.BeginInit();
-                    bmp.UriSource   = new Uri(pngPath, UriKind.Absolute);
+                    bmp.UriSource   = new Uri(gifPath, UriKind.Absolute);
                     bmp.CacheOption = BitmapCacheOption.OnLoad;
                     bmp.EndInit();
                     bmp.Freeze();
-                    MaskotImage.Source = bmp;
+
+                    WpfAnimatedGif.ImageBehavior.SetAnimatedSource(GifImage, bmp);
+                    GifImage.Visibility    = Visibility.Visible;
+                    MaskotImage.Visibility = Visibility.Collapsed;
+                    return;
                 }
                 catch { }
             }
-        }
 
-        private bool TrySetLottie(NotifType type, string? customJsonPath)
-        {
+            // Fallback PNG maskot dari zeromix.Battery
+            string pngFile = type switch
+            {
+                NotifType.Charging  => "Say_1.png",
+                NotifType.Unplugged => "Say.png",
+                NotifType.Full      => "70%.png",
+                _                   => "Say_1.png"
+            };
+
+            string pngPath = Path.Combine(MaskotDir, pngFile);
+            if (!File.Exists(pngPath))
+                pngPath = Path.Combine(MaskotDir, "Say_1.png");
+
+            if (!File.Exists(pngPath)) return;
+
             try
             {
-                string jsonDir = Path.Combine(PluginDir, "json");
-
-                // Priority 1: custom JSON dari user
-                if (!string.IsNullOrEmpty(customJsonPath) && File.Exists(customJsonPath))
-                {
-                    LottieView.FileName   = customJsonPath;
-                    LottieView.Visibility = Visibility.Visible;
-                    MaskotImage.Visibility = Visibility.Collapsed;
-                    return true;
-                }
-
-                // Priority 2: JSON spesifik per event
-                string specific = type switch
-                {
-                    NotifType.Charging  => Path.Combine(jsonDir, "charging.json"),
-                    NotifType.Unplugged => Path.Combine(jsonDir, "unplugged.json"),
-                    NotifType.Full      => Path.Combine(jsonDir, "full.json"),
-                    _                   => ""
-                };
-                if (!string.IsNullOrEmpty(specific) && File.Exists(specific))
-                {
-                    LottieView.FileName   = specific;
-                    LottieView.Visibility = Visibility.Visible;
-                    MaskotImage.Visibility = Visibility.Collapsed;
-                    return true;
-                }
-
-                // Priority 3: Loader cat.json (animasi kucing bawaan)
-                string catJson = Path.Combine(jsonDir, "Loader cat.json");
-                if (File.Exists(catJson))
-                {
-                    LottieView.FileName   = catJson;
-                    LottieView.Visibility = Visibility.Visible;
-                    MaskotImage.Visibility = Visibility.Collapsed;
-                    return true;
-                }
+                var bmp = new BitmapImage();
+                bmp.BeginInit();
+                bmp.UriSource   = new Uri(pngPath, UriKind.Absolute);
+                bmp.CacheOption = BitmapCacheOption.OnLoad;
+                bmp.EndInit();
+                bmp.Freeze();
+                MaskotImage.Source     = bmp;
+                MaskotImage.Visibility = Visibility.Visible;
+                GifImage.Visibility    = Visibility.Collapsed;
             }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"[ChargerNotif] Lottie error: {ex.Message}");
-            }
-            return false;
+            catch { }
         }
 
         // ── Battery bar ────────────────────────────────────────────────────

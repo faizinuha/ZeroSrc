@@ -76,6 +76,22 @@ dotnet add package ZeroMix.PluginSDK
 
 ---
 
+## 🎥 Windows present  Preview
+
+<div align="center">
+  <video src="src/Web/assets/ZeroRecord_20260411_211121.mp4" width="1000" autoplay muted loop></video>
+</div>
+
+---
+
+## 🎥 Select Area  Preview
+
+<div align="center">
+  <video src="src/Web/assets/ZeroRecord_20260411_211722.mp4" width="1000" autoplay muted loop></video>
+</div>
+
+---
+
 ## 🌍 Nexus Translator Core v2.0
 
 - **✨ Pure Magic Mode** — Translates automatically as you type

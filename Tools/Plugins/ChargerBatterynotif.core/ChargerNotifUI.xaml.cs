@@ -148,29 +148,40 @@ namespace ZeroMix.Plugins.ChargerNotif
 
         private static void PlayPreview(string key, string? customPath)
         {
-            try
+            // Jalankan di background thread agar tidak block UI
+            Task.Run(() =>
             {
-                if (!string.IsNullOrEmpty(customPath) && File.Exists(customPath))
+                try
                 {
-                    new System.Media.SoundPlayer(customPath).Play();
-                    return;
+                    if (!string.IsNullOrEmpty(customPath) && File.Exists(customPath))
+                    {
+                        using var p = new System.Media.SoundPlayer(customPath);
+                        p.PlaySync();
+                        return;
+                    }
+
+                    string wavFile = key switch
+                    {
+                        "Charging" => "charging.wav",
+                        "Unplug"   => "unplug.wav",
+                        "Full"     => "full.wav",
+                        _          => ""
+                    };
+
+                    string wavPath = Path.Combine(BuiltInSoundDir, wavFile);
+                    if (File.Exists(wavPath))
+                    {
+                        using var p = new System.Media.SoundPlayer(wavPath);
+                        p.PlaySync();
+                    }
+                    else
+                    {
+                        System.Windows.Application.Current.Dispatcher.Invoke(
+                            () => System.Media.SystemSounds.Asterisk.Play());
+                    }
                 }
-
-                string wavFile = key switch
-                {
-                    "Charging" => "charging.wav",
-                    "Unplug"   => "unplug.wav",
-                    "Full"     => "full.wav",
-                    _          => ""
-                };
-
-                string wavPath = Path.Combine(BuiltInSoundDir, wavFile);
-                if (File.Exists(wavPath))
-                    new System.Media.SoundPlayer(wavPath).Play();
-                else
-                    System.Media.SystemSounds.Asterisk.Play();
-            }
-            catch { }
+                catch { }
+            });
         }
 
         // ── Persist config ─────────────────────────────────────────────────

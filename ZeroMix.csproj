@@ -9,7 +9,7 @@
     <UseWindowsForms>true</UseWindowsForms>
     <ApplicationIcon>Assets\Icons\zeromix.ico</ApplicationIcon>
     <EnableWindowsTargeting>true</EnableWindowsTargeting>
-    <Version>5.5.0</Version>
+    <Version>5.6.0</Version>
     
     <!-- Optimasi Ukuran & Portabilitas (Self-Contained & Kompresi) -->
     <PublishSingleFile>true</PublishSingleFile>
@@ -17,6 +17,8 @@
     <RuntimeIdentifier>win-x64</RuntimeIdentifier>
     <PublishTrimmed>false</PublishTrimmed>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <GenerateTargetFrameworkAttribute>false</GenerateTargetFrameworkAttribute>
   </PropertyGroup>
 
   <ItemGroup>
@@ -66,7 +68,7 @@
     <PackageReference Include="Vortice.DXGI" Version="3.8.2" />
     <PackageReference Include="Vortice.Mathematics" Version="2.1.0" />
     <PackageReference Include="System.Management" Version="9.0.0" />
-    <PackageReference Include="LottieSharp" Version="1.1.0" />
+    <PackageReference Include="WpfAnimatedGif" Version="2.0.2" />
   </ItemGroup>
 
   <ItemGroup>
@@ -83,50 +85,87 @@
     <Resource Include="Tools\Plugins\Styles.xaml" />
   </ItemGroup>
 
+  <!-- ── Runtime assets: hanya file yang dibutuhkan saat runtime ── -->
 
+  <!-- Wallpaper & anim assets -->
   <ItemGroup>
     <Content Include="Assets\Data\**">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
 
+  <!-- FFmpeg -->
   <ItemGroup>
     <Content Include="Tools\FFMPEG\**">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
 
+  <!-- Plugins: hanya asset runtime (png, wav, gif) — BUKAN source code -->
   <ItemGroup>
-    <Content Include="Tools\Plugins\**\*.png">
+    <Content Include="Tools\Plugins\**\*.png" Exclude="Tools\Plugins\**\*.cs;Tools\Plugins\**\*.xaml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-  </ItemGroup>
-
-  <ItemGroup>
-    <Content Include="Tools\Plugins\**\*.json">
+    <Content Include="Tools\Plugins\**\*.gif">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-  </ItemGroup>
-  <ItemGroup>
     <Content Include="Tools\Plugins\**\*.wav">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-  </ItemGroup>
-
-  <ItemGroup>
-    <Content Include="src\ZeroShell\**\*.png">
+    <Content Include="Tools\Plugins\**\*.gif">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <!-- Styles.xaml dibutuhkan runtime sebagai resource -->
+    <Content Include="Tools\Plugins\Styles.xaml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
-  <!-- Virtual Assistant assets: copy to output as Virtual_Assisten\... (strip src\ prefix) --> 
+
+  <!-- ZeroShell assets — output ke ZeroShell\, bukan src\ZeroShell\ -->
   <ItemGroup>
-   <Content Include="src\Virtual_Assisten\**\*.png">
+    <Content Include="src\ZeroShell\**\*.png">
+      <Link>ZeroShell\%(RecursiveDir)%(Filename)%(Extension)</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <!-- Virtual Assistant: model files, thumbnails, html viewer — output ke Virtual_Assisten\ -->
+  <!-- TIDAK include .cs, .xaml, .md (source code sensitif) -->
+  <ItemGroup>
+    <Content Include="src\Virtual_Assisten\**\*.png">
+      <Link>Virtual_Assisten\%(RecursiveDir)%(Filename)%(Extension)</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="src\Virtual_Assisten\**\*.jpg">
+      <Link>Virtual_Assisten\%(RecursiveDir)%(Filename)%(Extension)</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="src\Virtual_Assisten\**\*" Exclude="**\*.cs;**\*.xaml;**\*.xaml.cs;**\*.user;**\*.vspscc;**\*.dll;**\*.exe">
+    <Content Include="src\Virtual_Assisten\**\*.html">
+      <Link>Virtual_Assisten\%(RecursiveDir)%(Filename)%(Extension)</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="src\Virtual_Assisten\**\*.json" Exclude="src\Virtual_Assisten\**\*.model3.json">
+      <Link>Virtual_Assisten\%(RecursiveDir)%(Filename)%(Extension)</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <!-- Model files Live2D -->
+    <Content Include="src\Virtual_Assisten\**\*.model3.json">
+      <Link>Virtual_Assisten\%(RecursiveDir)%(Filename)%(Extension)</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="src\Virtual_Assisten\**\*.moc3">
+      <Link>Virtual_Assisten\%(RecursiveDir)%(Filename)%(Extension)</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="src\Virtual_Assisten\**\*.physics3.json">
+      <Link>Virtual_Assisten\%(RecursiveDir)%(Filename)%(Extension)</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="src\Virtual_Assisten\**\*.exp3.json">
+      <Link>Virtual_Assisten\%(RecursiveDir)%(Filename)%(Extension)</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="src\Virtual_Assisten\**\*.motion3.json">
       <Link>Virtual_Assisten\%(RecursiveDir)%(Filename)%(Extension)</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>

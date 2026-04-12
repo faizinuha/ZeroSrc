@@ -21,6 +21,7 @@ namespace ZeroMix.Virtual_Assisten
         private DispatcherTimer? _autoTalkTimer;
         private DispatcherTimer? _eyeTrackingTimer;
         private string _currentCharacter = "Frieren";
+        private bool _isWebViewDisposed = false;
         private bool _isWebViewInitialized = false;
         private bool _isScriptRunning = false;
         private AiVisionService? _visionService;
@@ -57,16 +58,16 @@ namespace ZeroMix.Virtual_Assisten
 
             _autoTalkTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(60) };
             _autoTalkTimer.Tick += (s, e) => ShowNextChatMessage();
+            // Jangan start dulu — tunggu WebView siap
 
             _eyeTrackingTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(300) };
             _eyeTrackingTimer.Tick += UpdateEyeTracking;
             _eyeTrackingTimer.Start();
 
             _visionService = new AiVisionService(_apiKey);
-            // Vision timer lebih jarang — hemat RAM & CPU
+            // Vision timer — jangan start dulu, tunggu WebView siap
             _visionTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(60) };
             _visionTimer.Tick += async (s, e) => await PerformAiObservation();
-            _visionTimer.Start();
         }
 
         private async void OnWindowLoaded(object sender, RoutedEventArgs e)
@@ -113,6 +114,10 @@ namespace ZeroMix.Virtual_Assisten
 
                 _isWebViewInitialized = true;
 
+                // Start timers hanya setelah WebView siap
+                _visionTimer?.Start();
+                _autoTalkTimer?.Start();
+
                 // Now safe to send the model path
                 await SendModelToWebView(_currentCharacter);
             }
@@ -121,7 +126,7 @@ namespace ZeroMix.Virtual_Assisten
 
         private async Task SendModelToWebView(string characterName)
         {
-            if (!_isWebViewInitialized) return;
+            if (!_isWebViewInitialized || _isWebViewDisposed) return;
             string modelPath = GetModelPath(characterName);
             string appBase = AppDomain.CurrentDomain.BaseDirectory.TrimEnd('\\', '/');
             string webPath = "https://zeromix.vercel.app/" + modelPath.Replace(appBase, "").TrimStart('\\', '/').Replace("\\", "/");
@@ -151,8 +156,15 @@ namespace ZeroMix.Virtual_Assisten
         public async void SetCharacter(string characterName)
         {
             _currentCharacter = characterName;
-            if (!_isWebViewInitialized) return;
+            if (!_isWebViewInitialized || _isWebViewDisposed) return;
+
+            // Stop eye tracking saat ganti model — cegah script conflict & freeze
+            _eyeTrackingTimer?.Stop();
+
             await SendModelToWebView(characterName);
+
+            // Resume setelah model dikirim ke WebView
+            _eyeTrackingTimer?.Start();
         }
 
         private string GetModelPath(string characterName)
@@ -204,16 +216,6 @@ namespace ZeroMix.Virtual_Assisten
             _hideChatTimer?.Stop(); _hideChatTimer?.Start();
         }
 
-        private void Language_Click(object sender, RoutedEventArgs e)
-        {
-            var langText = LanguageBtn.Template.FindName("LangText", LanguageBtn) as TextBlock;
-            if (langText == null) return;
-            if (_currentLang == "id-ID") { _currentLang = "en-US"; langText.Text = "🇺🇸"; }
-            else if (_currentLang == "en-US") { _currentLang = "ja-JP"; langText.Text = "🇯🇵"; }
-            else { _currentLang = "id-ID"; langText.Text = "🇮🇩"; }
-            ShowNotification($"Lang: {_currentLang}");
-        }
-
         private void ShowNotification(string msg) { ChatText.Text = msg; ChatBubble.Visibility = Visibility.Visible; _hideChatTimer?.Stop(); _hideChatTimer?.Start(); }
         public void PreConfigure(string lang, bool enableMic)
         {
@@ -252,22 +254,26 @@ namespace ZeroMix.Virtual_Assisten
         private void OnMouseLeftButtonDown(object sender, MouseButtonEventArgs e) { _isDragging = true; _dragOffset = e.GetPosition(this); CaptureMouse(); }
         private void OnMouseLeftButtonUp(object sender, MouseButtonEventArgs e) { _isDragging = false; ReleaseMouseCapture(); }
         private void OnMouseMove(object sender, System.Windows.Input.MouseEventArgs e) { if (_isDragging) { var pos = e.GetPosition(this); this.Left += pos.X - _dragOffset.X; this.Top += pos.Y - _dragOffset.Y; } }
-        protected override void OnClosed(EventArgs e) { _eyeTrackingTimer?.Stop(); _autoTalkTimer?.Stop(); _visionTimer?.Stop(); _hideChatTimer?.Stop(); WebView?.Dispose(); base.OnClosed(e); App.OptimizeMemory(); }
+        protected override void OnClosed(EventArgs e) { _eyeTrackingTimer?.Stop(); _autoTalkTimer?.Stop(); _visionTimer?.Stop(); _hideChatTimer?.Stop(); _isWebViewDisposed = true; WebView?.Dispose(); base.OnClosed(e); App.OptimizeMemory(); }
 
         private async void OnWindowDeactivated(object sender, EventArgs e)
         {
-            if (WebView?.CoreWebView2 != null)
+            try
             {
-                await WebView.CoreWebView2.TrySuspendAsync();
+                if (!_isWebViewDisposed && WebView?.CoreWebView2 != null)
+                    await WebView.CoreWebView2.TrySuspendAsync();
             }
+            catch { }
         }
 
         private void OnWindowActivated(object sender, EventArgs e)
         {
-            if (WebView?.CoreWebView2 != null)
+            try
             {
-                WebView.CoreWebView2.Resume();
+                if (!_isWebViewDisposed && WebView?.CoreWebView2 != null)
+                    WebView.CoreWebView2.Resume();
             }
+            catch { }
         }
     }
 }
