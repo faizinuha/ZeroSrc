@@ -71,7 +71,9 @@
                             <ComboBoxItem Content="English" Tag="en"/>
                             <ComboBoxItem Content="Japanese" Tag="ja"/>
                             <ComboBoxItem Content="Korean" Tag="ko"/>
+                            <ComboBoxItem Content="Spanish" Tag="es"/>
                             <ComboBoxItem Content="Chinese" Tag="zh-CN"/>
+                            <ComboBoxItem Content="Auto Detect" Tag="auto"/>
                         </ComboBox>
                     </StackPanel>
 
@@ -86,6 +88,7 @@
                             <ComboBoxItem Content="Indonesian" Tag="id"/>
                             <ComboBoxItem Content="Japanese" Tag="ja"/>
                             <ComboBoxItem Content="Korean" Tag="ko"/>
+                            <ComboBoxItem Content="Spanish" Tag="es"/>
                             <ComboBoxItem Content="Chinese" Tag="zh-CN"/>
                         </ComboBox>
                     </StackPanel>

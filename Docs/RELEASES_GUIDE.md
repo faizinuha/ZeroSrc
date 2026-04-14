@@ -3,6 +3,11 @@
 Panduan lengkap untuk merilis versi baru ZeroMix ke GitHub Releases.
 
 ## 📋 Quick Start
+git -C . add ZeroMix.Installer/MainWindow.xaml ZeroMix.Installer/MainWindow.xaml.cs ZeroMix.Installer/ZeroMix.Installer.csproj 2>&1
+
+git -C . commit -m "feat(installer): redesign UI with Load.gif animation and improved layout
+
+git -C . push origin HEAD 2>&1
 
 ### Cara Paling Mudah (Otomatis)
 

@@ -207,35 +207,89 @@ namespace ZeroMix.Plugins.Translate
         {
             try
             {
-                // Jalur Utama (GTX)
+                // ── Jalur 1: Google Translate (GTX) dengan parsing JSON yang benar ──
                 string urlGTX = $"https://translate.googleapis.com/translate_a/single?client=gtx&sl={from}&tl={to}&dt=t&q={Uri.EscapeDataString(input)}";
-                
                 var resp = await _httpClient.GetAsync(urlGTX);
                 if (resp.IsSuccessStatusCode)
                 {
                     string json = await resp.Content.ReadAsStringAsync();
-                    if (!json.Contains("<html")) // Anti Captcha HTML Block
+                    if (!json.Contains("<html"))
                     {
-                        var matches = Regex.Matches(json, "\"(.*?)\"");
-                        if (matches.Count > 0) return matches[0].Groups[1].Value;
+                        // Format: [[[\"translated\",\"original\",...],...],...] 
+                        // Ambil semua segmen terjemahan dari array pertama
+                        var result = ParseGoogleTranslateJson(json);
+                        if (!string.IsNullOrWhiteSpace(result) && result != input)
+                            return result;
                     }
                 }
 
-                // API Cadangan Darurat (MyMemory Bebas Captcha & Bebas Blokir Limit)
-                string urlMM = $"https://api.mymemory.translated.net/get?q={Uri.EscapeDataString(input)}&langpair={from}|{to}";
+                // ── Jalur 2: Google Translate Web API (client=dict-chrome-ex) ──
+                string urlGT2 = $"https://translate.googleapis.com/translate_a/single?client=dict-chrome-ex&sl={from}&tl={to}&dt=t&q={Uri.EscapeDataString(input)}";
+                var resp2 = await _httpClient.GetAsync(urlGT2);
+                if (resp2.IsSuccessStatusCode)
+                {
+                    string json2 = await resp2.Content.ReadAsStringAsync();
+                    if (!json2.Contains("<html"))
+                    {
+                        var result2 = ParseGoogleTranslateJson(json2);
+                        if (!string.IsNullOrWhiteSpace(result2) && result2 != input)
+                            return result2;
+                    }
+                }
+
+                // ── Jalur 3: MyMemory (bebas captcha, 5000 kata/hari gratis) ──
+                string urlMM = $"https://api.mymemory.translated.net/get?q={Uri.EscapeDataString(input)}&langpair={from}|{to}&de=zeromix@translate.app";
                 var respMM = await _httpClient.GetAsync(urlMM);
                 if (respMM.IsSuccessStatusCode)
                 {
-                    string json = await respMM.Content.ReadAsStringAsync();
-                    var match = Regex.Match(json, "\"translatedText\":\"(.*?)\"");
-                    if (match.Success) return Regex.Unescape(match.Groups[1].Value);
+                    string jsonMM = await respMM.Content.ReadAsStringAsync();
+                    var matchMM = Regex.Match(jsonMM, "\"translatedText\"\\s*:\\s*\"((?:[^\"\\\\]|\\\\.)*)\"");
+                    if (matchMM.Success)
+                    {
+                        string translated = Regex.Unescape(matchMM.Groups[1].Value);
+                        // MyMemory kadang return "QUERY LENGTH LIMIT..." jika gagal
+                        if (!translated.StartsWith("QUERY") && translated != input)
+                            return translated;
+                    }
                 }
 
-                return "[ERROR] Akses Publik Google Sedang Dibatasi IP-nya.";
+                return "[ERROR] Semua API tidak dapat dijangkau. Cek koneksi internet.";
+            }
+            catch (TaskCanceledException)
+            {
+                return "[ERROR] Timeout — koneksi terlalu lambat.";
             }
             catch (Exception ex)
             {
-                return $"[ERROR] C-Engine: {ex.Message}";
+                return $"[ERROR] {ex.Message}";
+            }
+        }
+
+        /// <summary>
+        /// Parse format JSON Google Translate:
+        /// [[[seg1_translated, seg1_original], [seg2_translated, seg2_original], ...], ...]
+        /// Gabungkan semua segmen terjemahan menjadi satu string.
+        /// </summary>
+        private static string ParseGoogleTranslateJson(string json)
+        {
+            try
+            {
+                var sb = new StringBuilder();
+                // Setiap segmen terjemahan ada di posisi index 0 dari sub-array dalam array pertama
+                // Contoh: [["Good morning","Selamat pagi",null,null,10],[...]]
+                // Pattern: cari pasangan ["terjemahan","asli"
+                var segments = Regex.Matches(json, @"\[""((?:[^""\\]|\\.)*)""(?:,""(?:[^""\\]|\\.)*"")");
+                foreach (Match m in segments)
+                {
+                    string seg = Regex.Unescape(m.Groups[1].Value);
+                    if (!string.IsNullOrWhiteSpace(seg))
+                        sb.Append(seg);
+                }
+                return sb.ToString().Trim();
+            }
+            catch
+            {
+                return string.Empty;
             }
         }
 
