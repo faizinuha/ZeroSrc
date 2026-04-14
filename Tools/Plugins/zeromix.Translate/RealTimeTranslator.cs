@@ -296,7 +296,10 @@ namespace ZeroMix.Plugins.Translate
                                 {
                                     string text = translated.GetString() ?? "";
                                     if (!string.IsNullOrWhiteSpace(text))
+                                    {
+                                        if (sb.Length > 0) sb.Append(" "); // Tambah spasi antar segmen
                                         sb.Append(text);
+                                    }
                                 }
                             }
                         }
