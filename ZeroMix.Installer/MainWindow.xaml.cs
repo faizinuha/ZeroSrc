@@ -2,22 +2,23 @@ using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
 using System.Net.Http;
+using System.Windows;
 using System.Windows.Input;
+using System.Windows.Media.Imaging;
+using WpfAnimatedGif;
 
-// Alias eksplisit untuk menghindari konflik dengan System.Windows.Forms
 using WpfApp = System.Windows.Application;
 using WpfMsgBox = System.Windows.MessageBox;
 using WpfMsgBoxButton = System.Windows.MessageBoxButton;
 using WpfMsgBoxImage = System.Windows.MessageBoxImage;
 using WpfMsgBoxResult = System.Windows.MessageBoxResult;
-using WpfWindow = System.Windows.Window;
-using WpfRoutedEventArgs = System.Windows.RoutedEventArgs;
 
 namespace ZeroMix.Installer;
 
-public partial class MainWindow : WpfWindow
+public partial class MainWindow : Window
 {
-    private const string DownloadUrl = "https://github.com/faizinuha/ZeroMix/releases/latest/download/ZeroMix-Setup.zip";
+    private const string DownloadUrl =
+        "https://github.com/faizinuha/ZeroMix/releases/latest/download/ZeroMix-Setup.zip";
 
     private CancellationTokenSource? _cts;
     private bool _isRunning = false;
@@ -25,15 +26,28 @@ public partial class MainWindow : WpfWindow
     public MainWindow()
     {
         InitializeComponent();
+
+        // Load GIF from embedded resource
+        var gifUri = new Uri("pack://application:,,,/Load.gif");
+        var gifImage = new BitmapImage(gifUri);
+        ImageBehavior.SetAnimatedSource(LoadingGif, gifImage);
+        ImageBehavior.SetRepeatBehavior(LoadingGif, System.Windows.Media.Animation.RepeatBehavior.Forever);
+
+        SizeChanged += (_, _) =>
+        {
+            var parent = (System.Windows.Controls.Border)ProgressFill.Parent;
+            UpdateProgressFill(ProgressFill.Width == 0 ? 0 :
+                ProgressFill.Width / parent.ActualWidth * 100);
+        };
     }
 
-    private void Window_MouseDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
+    private void Window_MouseDown(object sender, MouseButtonEventArgs e)
     {
         if (e.ChangedButton == MouseButton.Left)
             DragMove();
     }
 
-    private void CloseButton_Click(object sender, WpfRoutedEventArgs e)
+    private void CloseButton_Click(object sender, RoutedEventArgs e)
     {
         if (_isRunning)
         {
@@ -46,15 +60,19 @@ public partial class MainWindow : WpfWindow
         WpfApp.Current.Shutdown();
     }
 
-    private void CancelButton_Click(object sender, WpfRoutedEventArgs e)
+    private void CancelButton_Click(object sender, RoutedEventArgs e)
         => CloseButton_Click(sender, e);
 
-    private async void InstallButton_Click(object sender, WpfRoutedEventArgs e)
+    private async void InstallButton_Click(object sender, RoutedEventArgs e)
     {
         _cts = new CancellationTokenSource();
         _isRunning = true;
         InstallButton.IsEnabled = false;
         CancelButton.Content = "Batalkan";
+
+        // Show GIF, hide static icon
+        LoadingGif.Visibility = Visibility.Visible;
+        LogoIcon.Visibility = Visibility.Collapsed;
 
         var tempDir = Path.Combine(Path.GetTempPath(), "ZeroMixInstaller");
         var zipPath = Path.Combine(tempDir, "ZeroMix-Setup.zip");
@@ -69,10 +87,10 @@ public partial class MainWindow : WpfWindow
             await DownloadFileAsync(DownloadUrl, zipPath, _cts.Token);
             if (_cts.Token.IsCancellationRequested) return;
 
-            SetStatus("Mengekstrak file...", 92);
+            SetStatus("Mengekstrak file...", 92, "Extracting...");
             await Task.Run(() => ZipFile.ExtractToDirectory(zipPath, extractDir), _cts.Token);
 
-            SetStatus("Memulai installer...", 98);
+            SetStatus("Memulai installer...", 98, "Launching...");
             var installerPath = FindInstaller(extractDir);
 
             if (installerPath == null)
@@ -89,13 +107,13 @@ public partial class MainWindow : WpfWindow
                 UseShellExecute = true
             });
 
-            SetStatus("Installer diluncurkan!", 100);
+            SetStatus("Installer diluncurkan! ✓", 100, "Done");
             await Task.Delay(1500);
             WpfApp.Current.Shutdown();
         }
         catch (OperationCanceledException)
         {
-            SetStatus("Instalasi dibatalkan.", 0);
+            SetStatus("Instalasi dibatalkan.", 0, "");
             ResetUI();
         }
         catch (Exception ex)
@@ -135,26 +153,39 @@ public partial class MainWindow : WpfWindow
             if (totalBytes > 0)
             {
                 var percent = (double)downloadedBytes / totalBytes * 90.0;
-                SetStatus($"Mengunduh... {FormatBytes(downloadedBytes)} / {FormatBytes(totalBytes)}", percent);
+                SetStatus(
+                    $"Mengunduh ZeroMix... {FormatBytes(downloadedBytes)} / {FormatBytes(totalBytes)}",
+                    percent,
+                    $"Downloading  {FormatBytes(downloadedBytes)} / {FormatBytes(totalBytes)}");
             }
             else
             {
-                SetStatus($"Mengunduh... {FormatBytes(downloadedBytes)}", -1);
+                SetStatus($"Mengunduh... {FormatBytes(downloadedBytes)}", -1, "Downloading...");
             }
         }
     }
 
-    private void SetStatus(string message, double progressPercent)
+    private void SetStatus(string message, double progressPercent, string stepLabel)
     {
         Dispatcher.Invoke(() =>
         {
             StatusText.Text = message;
+            StepText.Text = stepLabel;
+
             if (progressPercent >= 0)
             {
-                ProgressBar.Value = progressPercent;
                 ProgressText.Text = $"{progressPercent:F0}%";
+                UpdateProgressFill(progressPercent);
             }
         });
+    }
+
+    private void UpdateProgressFill(double percent)
+    {
+        var parent = (System.Windows.Controls.Border)ProgressFill.Parent;
+        var containerWidth = parent.ActualWidth;
+        if (containerWidth > 0)
+            ProgressFill.Width = containerWidth * (percent / 100.0);
     }
 
     private void ResetUI()
@@ -164,6 +195,11 @@ public partial class MainWindow : WpfWindow
             InstallButton.IsEnabled = true;
             CancelButton.Content = "Batal";
             _isRunning = false;
+            LoadingGif.Visibility = Visibility.Collapsed;
+            LogoIcon.Visibility = Visibility.Visible;
+            ProgressFill.Width = 0;
+            ProgressText.Text = "";
+            StepText.Text = "";
         });
     }
 
