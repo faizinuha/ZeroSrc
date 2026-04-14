@@ -269,45 +269,55 @@ namespace ZeroMix.Plugins.Translate
         }
 
         /// <summary>
-        /// Parse format JSON Google Translate:
-        /// [[[seg1_translated, seg1_original], [seg2_translated, seg2_original], ...], ...]
-        /// Contoh: [[["Good morning","selamat pagi",null,null,10]],null,"id",...]
-        /// Ambil HANYA dari array pertama (index 0), abaikan metadata di belakang.
+        /// Parse format JSON Google Translate dengan JSON parser yang benar.
+        /// Format: [[[translated, original, ...], ...], metadata...]
+        /// Ambil hanya elemen pertama dari setiap sub-array di array pertama.
         /// </summary>
         private static string ParseGoogleTranslateJson(string json)
         {
             try
             {
-                // Cari array pertama: [[[...]]]
-                // Ambil konten antara [[[ dan ]]]
-                int start = json.IndexOf("[[[");
-                if (start == -1) return string.Empty;
+                // Fallback 1: Coba parse dengan System.Text.Json
+                using var doc = System.Text.Json.JsonDocument.Parse(json);
+                var root = doc.RootElement;
                 
-                int end = json.IndexOf("]]]", start);
-                if (end == -1) return string.Empty;
-
-                string firstArray = json.Substring(start + 3, end - start - 3);
-                
-                var sb = new StringBuilder();
-                // Sekarang parse segmen: ["translated","original",...]
-                // Ambil string pertama dari setiap sub-array
-                var segments = Regex.Matches(firstArray, @"\[""((?:[^""\\]|\\.)*?)""");
-                foreach (Match m in segments)
+                if (root.ValueKind == System.Text.Json.JsonValueKind.Array && root.GetArrayLength() > 0)
                 {
-                    string seg = m.Groups[1].Value
-                        .Replace("\\n", "\n")
-                        .Replace("\\t", "\t")
-                        .Replace("\\\"", "\"")
-                        .Replace("\\\\", "\\");
-                    if (!string.IsNullOrWhiteSpace(seg))
-                        sb.Append(seg);
+                    var firstElement = root[0];
+                    if (firstElement.ValueKind == System.Text.Json.JsonValueKind.Array)
+                    {
+                        var sb = new StringBuilder();
+                        foreach (var segment in firstElement.EnumerateArray())
+                        {
+                            if (segment.ValueKind == System.Text.Json.JsonValueKind.Array && segment.GetArrayLength() > 0)
+                            {
+                                var translated = segment[0];
+                                if (translated.ValueKind == System.Text.Json.JsonValueKind.String)
+                                {
+                                    string text = translated.GetString() ?? "";
+                                    if (!string.IsNullOrWhiteSpace(text))
+                                        sb.Append(text);
+                                }
+                            }
+                        }
+                        return sb.ToString().Trim();
+                    }
                 }
-                return sb.ToString().Trim();
             }
             catch
             {
-                return string.Empty;
+                // Fallback 2: Regex sederhana untuk emergency
+                try
+                {
+                    // Ambil hanya string pertama setelah [[[
+                    var match = Regex.Match(json, @"\[\[\[""((?:[^""\\]|\\.)*?)""");
+                    if (match.Success)
+                        return match.Groups[1].Value.Replace("\\\"", "\"").Replace("\\\\", "\\");
+                }
+                catch { }
             }
+            
+            return string.Empty;
         }
 
         private char ConvertToChar(int vkCode)
