@@ -43,7 +43,7 @@ namespace ZeroMix
     
     public partial class MainWindow : Window, ZeroMix.Plugins.IZeroMixHost
     {
-        private const string CURRENT_VERSION = "5.6.0";
+        private const string CURRENT_VERSION = "5.7.0";
         
         // Windows API for Taskbar transparency
         [DllImport("user32.dll", SetLastError = true)]

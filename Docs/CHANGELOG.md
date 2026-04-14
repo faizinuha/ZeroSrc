@@ -5,6 +5,33 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) | [Semantic Ver
 
 ---
 
+## [v5.7.0] - 2026-04-14
+
+### ✨ Features
+
+- **OCR Snip Feature** (`zeromix.Translate`): Screen capture + OCR + Translation dalam satu fitur. User bisa drag-select area layar untuk extract text dari gambar/video, lalu otomatis diterjemahkan. Berguna dan multifungsi untuk konten visual apapun.
+- **Dual OCR Engine Support**: OCR.space API dengan fallback engine (Engine 2 → Engine 1) untuk akurasi maksimal text extraction.
+- **Visual Selection Overlay**: Full-screen overlay dengan crosshair cursor dan visual feedback saat memilih area capture.
+- **OCR Result Window**: Popup window yang menampilkan extracted text dan hasil terjemahan dalam UI yang clean dan readable.
+- **Selection Bubble Enhancement**: Perbaikan namespace conflicts yang menyebabkan build errors pada fitur highlight + Ctrl+C.
+
+### 🐛 Bug Fixes
+
+- Fix namespace conflicts di `SelectionBubble.cs` — ambiguous references antara `System.Windows.Forms` dan `System.Windows` namespace.
+- Fix namespace conflicts di `OcrSnip.cs` — ambiguous references untuk `TextBox`, `Button`, `Cursors`, `MouseEventArgs`, dan `KeyEventArgs`.
+- Fix `Clipboard` ambiguous reference — gunakan fully qualified `System.Windows.Clipboard` untuk konsistensi WPF.
+- Fix build errors yang mencegah kompilasi translate plugin — semua namespace conflicts resolved.
+
+### 🔧 Changes
+
+- **OCR Snip UI Integration**: Tambah tombol "📷 SNIP" di translate plugin UI dengan deskripsi yang jelas.
+- **Language Settings Sync**: OCR Snip otomatis menggunakan source/target language yang sama dengan translate engine.
+- **Error Handling & Logging**: Comprehensive error handling dengan pesan yang informatif di live terminal log.
+- **Resource Management**: Proper disposal pattern untuk screen overlay dan OCR components.
+- **API Optimization**: Base64 image conversion dan HTTP client dengan timeout 30 detik untuk stabilitas.
+
+---
+
 ## [v5.6.0] - 2026-04-12
 
 ### ✨ Features
