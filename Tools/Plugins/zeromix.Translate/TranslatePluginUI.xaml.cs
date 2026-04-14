@@ -8,6 +8,7 @@ namespace ZeroMix.Plugins.Translate
     public partial class TranslatePluginUI : System.Windows.Controls.UserControl
     {
         private RealTimeTranslator? _coreEngine;
+        private SelectionBubble? _bubbleEngine;
 
         public TranslatePluginUI()
         {
@@ -36,6 +37,8 @@ namespace ZeroMix.Plugins.Translate
                 // Engine Stop
                 _coreEngine?.Dispose();
                 _coreEngine = null;
+                _bubbleEngine?.Dispose();
+                _bubbleEngine = null;
                 CoreSettings.Visibility = Visibility.Collapsed;
                 LogMsg("[STOP] Engine DIMATIKAN.");
             }
@@ -70,6 +73,11 @@ namespace ZeroMix.Plugins.Translate
         private void Langs_Changed(object sender, SelectionChangedEventArgs e)
         {
             UpdateEngineConfig();
+            if (_bubbleEngine != null)
+            {
+                _bubbleEngine.SourceLang = (ComboSource?.SelectedItem as ComboBoxItem)?.Tag?.ToString() ?? "auto";
+                _bubbleEngine.TargetLang = (ComboTarget?.SelectedItem as ComboBoxItem)?.Tag?.ToString() ?? "en";
+            }
         }
 
         private void SpeedSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
@@ -116,6 +124,27 @@ namespace ZeroMix.Plugins.Translate
         {
             _coreEngine?.ForceClear();
             LogMsg("[PURGE] Memory Buffer telah dikosongkan.");
+        }
+
+        private void BubbleModeSwitch_Click(object sender, RoutedEventArgs e)
+        {
+            if (_coreEngine == null) return;
+            
+            if (BubbleModeSwitch.IsChecked == true)
+            {
+                _bubbleEngine?.Dispose();
+                _bubbleEngine = new SelectionBubble(_coreEngine);
+                _bubbleEngine.SourceLang = (ComboSource?.SelectedItem as ComboBoxItem)?.Tag?.ToString() ?? "auto";
+                _bubbleEngine.TargetLang = (ComboTarget?.SelectedItem as ComboBoxItem)?.Tag?.ToString() ?? "en";
+                _bubbleEngine.OnLog += (msg) => Dispatcher.Invoke(() => LogMsg(msg));
+                LogMsg("[BUBBLE] Selection Bubble AKTIF — highlight + Ctrl+C untuk translate.");
+            }
+            else
+            {
+                _bubbleEngine?.Dispose();
+                _bubbleEngine = null;
+                LogMsg("[BUBBLE] Selection Bubble NONAKTIF.");
+            }
         }
     }
 }
