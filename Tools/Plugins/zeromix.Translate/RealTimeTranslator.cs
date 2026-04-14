@@ -238,18 +238,21 @@ namespace ZeroMix.Plugins.Translate
                 }
 
                 // ── Jalur 3: MyMemory (bebas captcha, 5000 kata/hari gratis) ──
-                string urlMM = $"https://api.mymemory.translated.net/get?q={Uri.EscapeDataString(input)}&langpair={from}|{to}&de=zeromix@translate.app";
-                var respMM = await _httpClient.GetAsync(urlMM);
-                if (respMM.IsSuccessStatusCode)
+                // MyMemory tidak support "auto" — skip jika source lang auto
+                if (from != "auto")
                 {
-                    string jsonMM = await respMM.Content.ReadAsStringAsync();
-                    var matchMM = Regex.Match(jsonMM, "\"translatedText\"\\s*:\\s*\"((?:[^\"\\\\]|\\\\.)*)\"");
-                    if (matchMM.Success)
+                    string urlMM = $"https://api.mymemory.translated.net/get?q={Uri.EscapeDataString(input)}&langpair={from}|{to}&de=zeromix@translate.app";
+                    var respMM = await _httpClient.GetAsync(urlMM);
+                    if (respMM.IsSuccessStatusCode)
                     {
-                        string translated = Regex.Unescape(matchMM.Groups[1].Value);
-                        // MyMemory kadang return "QUERY LENGTH LIMIT..." jika gagal
-                        if (!translated.StartsWith("QUERY") && translated != input)
-                            return translated;
+                        string jsonMM = await respMM.Content.ReadAsStringAsync();
+                        var matchMM = Regex.Match(jsonMM, "\"translatedText\"\\s*:\\s*\"((?:[^\"\\\\]|\\\\.)*)\"");
+                        if (matchMM.Success)
+                        {
+                            string translated = Regex.Unescape(matchMM.Groups[1].Value);
+                            if (!translated.StartsWith("QUERY") && translated != input)
+                                return translated;
+                        }
                     }
                 }
 
@@ -268,20 +271,34 @@ namespace ZeroMix.Plugins.Translate
         /// <summary>
         /// Parse format JSON Google Translate:
         /// [[[seg1_translated, seg1_original], [seg2_translated, seg2_original], ...], ...]
-        /// Gabungkan semua segmen terjemahan menjadi satu string.
+        /// Contoh: [[["Good morning","selamat pagi",null,null,10]],null,"id",...]
+        /// Ambil HANYA dari array pertama (index 0), abaikan metadata di belakang.
         /// </summary>
         private static string ParseGoogleTranslateJson(string json)
         {
             try
             {
+                // Cari array pertama: [[[...]]]
+                // Ambil konten antara [[[ dan ]]]
+                int start = json.IndexOf("[[[");
+                if (start == -1) return string.Empty;
+                
+                int end = json.IndexOf("]]]", start);
+                if (end == -1) return string.Empty;
+
+                string firstArray = json.Substring(start + 3, end - start - 3);
+                
                 var sb = new StringBuilder();
-                // Setiap segmen terjemahan ada di posisi index 0 dari sub-array dalam array pertama
-                // Contoh: [["Good morning","Selamat pagi",null,null,10],[...]]
-                // Pattern: cari pasangan ["terjemahan","asli"
-                var segments = Regex.Matches(json, @"\[""((?:[^""\\]|\\.)*)""(?:,""(?:[^""\\]|\\.)*"")");
+                // Sekarang parse segmen: ["translated","original",...]
+                // Ambil string pertama dari setiap sub-array
+                var segments = Regex.Matches(firstArray, @"\[""((?:[^""\\]|\\.)*?)""");
                 foreach (Match m in segments)
                 {
-                    string seg = Regex.Unescape(m.Groups[1].Value);
+                    string seg = m.Groups[1].Value
+                        .Replace("\\n", "\n")
+                        .Replace("\\t", "\t")
+                        .Replace("\\\"", "\"")
+                        .Replace("\\\\", "\\");
                     if (!string.IsNullOrWhiteSpace(seg))
                         sb.Append(seg);
                 }
