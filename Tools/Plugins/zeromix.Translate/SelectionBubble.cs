@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using System.Windows;
@@ -6,6 +7,9 @@ using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
 using System.Windows.Media.Effects;
+using WpfApp = System.Windows.Application;
+using WpfBrushes = System.Windows.Media.Brushes;
+using WpfColor = System.Windows.Media.Color;
 
 namespace ZeroMix.Plugins.Translate
 {
@@ -45,12 +49,12 @@ namespace ZeroMix.Plugins.Translate
             try
             {
                 string current = "";
-                Application.Current.Dispatcher.Invoke(() =>
+                System.Windows.Application.Current.Dispatcher.Invoke(() =>
                 {
                     try
                     {
-                        if (Clipboard.ContainsText())
-                            current = Clipboard.GetText();
+                        if (System.Windows.Clipboard.ContainsText())
+                            current = System.Windows.Clipboard.GetText();
                     }
                     catch { }
                 });
@@ -72,7 +76,7 @@ namespace ZeroMix.Plugins.Translate
                 }
 
                 // Tampilkan bubble di posisi mouse
-                Application.Current.Dispatcher.Invoke(() =>
+                System.Windows.Application.Current.Dispatcher.Invoke(() =>
                 {
                     _currentBubble?.Close();
                     
@@ -94,7 +98,7 @@ namespace ZeroMix.Plugins.Translate
 
         public void Dispose()
         {
-            Application.Current?.Dispatcher.Invoke(() => _currentBubble?.Close());
+            System.Windows.Application.Current?.Dispatcher.Invoke(() => _currentBubble?.Close());
         }
     }
 
@@ -107,7 +111,7 @@ namespace ZeroMix.Plugins.Translate
         {
             WindowStyle = WindowStyle.None;
             AllowsTransparency = true;
-            Background = Brushes.Transparent;
+            Background = System.Windows.Media.Brushes.Transparent;
             Topmost = true;
             ShowInTaskbar = false;
             ResizeMode = ResizeMode.NoResize;
@@ -119,7 +123,7 @@ namespace ZeroMix.Plugins.Translate
 
             var border = new Border
             {
-                Background = new SolidColorBrush(Color.FromArgb(240, 15, 15, 30)),
+                Background = new SolidColorBrush(System.Windows.Media.Color.FromArgb(240, 15, 15, 30)),
                 CornerRadius = new CornerRadius(12),
                 Padding = new Thickness(14, 10, 14, 10),
                 MaxWidth = 320,
@@ -138,7 +142,7 @@ namespace ZeroMix.Plugins.Translate
             panel.Children.Add(new TextBlock
             {
                 Text = original.Length > 60 ? original.Substring(0, 60) + "…" : original,
-                Foreground = new SolidColorBrush(Color.FromRgb(107, 114, 128)),
+                Foreground = new SolidColorBrush(System.Windows.Media.Color.FromRgb(107, 114, 128)),
                 FontSize = 10,
                 TextWrapping = TextWrapping.Wrap,
                 Margin = new Thickness(0, 0, 0, 4)
@@ -148,7 +152,7 @@ namespace ZeroMix.Plugins.Translate
             panel.Children.Add(new System.Windows.Shapes.Rectangle
             {
                 Height = 1,
-                Fill = new SolidColorBrush(Color.FromArgb(60, 255, 255, 255)),
+                Fill = new SolidColorBrush(System.Windows.Media.Color.FromArgb(60, 255, 255, 255)),
                 Margin = new Thickness(0, 0, 0, 6)
             });
 
@@ -156,7 +160,7 @@ namespace ZeroMix.Plugins.Translate
             panel.Children.Add(new TextBlock
             {
                 Text = translated,
-                Foreground = Brushes.White,
+                Foreground = System.Windows.Media.Brushes.White,
                 FontSize = 13,
                 FontWeight = FontWeights.SemiBold,
                 TextWrapping = TextWrapping.Wrap
@@ -166,10 +170,10 @@ namespace ZeroMix.Plugins.Translate
             panel.Children.Add(new TextBlock
             {
                 Text = "⚡ ZeroMix Translate",
-                Foreground = new SolidColorBrush(Color.FromRgb(124, 58, 237)),
+                Foreground = new SolidColorBrush(System.Windows.Media.Color.FromRgb(124, 58, 237)),
                 FontSize = 9,
                 Margin = new Thickness(0, 6, 0, 0),
-                HorizontalAlignment = HorizontalAlignment.Right
+                HorizontalAlignment = System.Windows.HorizontalAlignment.Right
             });
 
             border.Child = panel;

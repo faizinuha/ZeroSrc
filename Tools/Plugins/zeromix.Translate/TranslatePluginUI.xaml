@@ -136,6 +136,31 @@
                     </Grid>
                 </Border>
 
+                <!-- OCR Snip Mode -->
+                <Border Background="#0D1117" CornerRadius="8" Padding="12" Margin="0,0,0,12" BorderThickness="1" BorderBrush="{StaticResource BorderSubtleBrush}">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Grid.Column="0">
+                            <TextBlock Text="🔍 OCR Snip" Foreground="White" FontSize="12" FontWeight="Bold"/>
+                            <TextBlock Text="Screen capture → extract text → translate. Berguna untuk gambar &amp; video" 
+                                       Foreground="{StaticResource SubTextBrush}" FontSize="10" TextWrapping="Wrap" Margin="0,3,0,0"/>
+                        </StackPanel>
+                        <Button x:Name="OcrSnipButton" Grid.Column="1" VerticalAlignment="Center"
+                                Content="📷 SNIP" Background="{StaticResource NeonBlueBrush}" Foreground="White"
+                                BorderThickness="0" Padding="8,4" FontSize="10" FontWeight="Bold"
+                                Click="OcrSnipButton_Click" Margin="10,0,0,0" Cursor="Hand">
+                            <Button.Resources>
+                                <Style TargetType="Border">
+                                    <Setter Property="CornerRadius" Value="4"/>
+                                </Style>
+                            </Button.Resources>
+                        </Button>
+                    </Grid>
+                </Border>
+
                 <Button Content="PURGE MEMORY BUFFER (RESET)" Background="{StaticResource DangerBrush}" Foreground="White" 
                         FontWeight="Bold" BorderThickness="0" Padding="0,10" Cursor="Hand" Click="PurgeBtn_Click">
                     <Button.Resources>

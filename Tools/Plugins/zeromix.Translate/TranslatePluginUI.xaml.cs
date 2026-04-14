@@ -9,6 +9,7 @@ namespace ZeroMix.Plugins.Translate
     {
         private RealTimeTranslator? _coreEngine;
         private SelectionBubble? _bubbleEngine;
+        private OcrSnip? _ocrSnip;
 
         public TranslatePluginUI()
         {
@@ -39,6 +40,8 @@ namespace ZeroMix.Plugins.Translate
                 _coreEngine = null;
                 _bubbleEngine?.Dispose();
                 _bubbleEngine = null;
+                _ocrSnip?.Dispose();
+                _ocrSnip = null;
                 CoreSettings.Visibility = Visibility.Collapsed;
                 LogMsg("[STOP] Engine DIMATIKAN.");
             }
@@ -144,6 +147,39 @@ namespace ZeroMix.Plugins.Translate
                 _bubbleEngine?.Dispose();
                 _bubbleEngine = null;
                 LogMsg("[BUBBLE] Selection Bubble NONAKTIF.");
+            }
+        }
+
+        private void OcrSnipButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (_coreEngine == null)
+            {
+                LogMsg("[OCR ERROR] Engine harus diaktifkan terlebih dahulu!");
+                return;
+            }
+
+            try
+            {
+                // Initialize OCR Snip if not exists
+                if (_ocrSnip == null)
+                {
+                    _ocrSnip = new OcrSnip(_coreEngine);
+                    _ocrSnip.SourceLang = (ComboSource?.SelectedItem as ComboBoxItem)?.Tag?.ToString() ?? "auto";
+                    _ocrSnip.TargetLang = (ComboTarget?.SelectedItem as ComboBoxItem)?.Tag?.ToString() ?? "en";
+                    _ocrSnip.OnLog += (msg) => Dispatcher.Invoke(() => LogMsg(msg));
+                }
+
+                // Update language settings
+                _ocrSnip.SourceLang = (ComboSource?.SelectedItem as ComboBoxItem)?.Tag?.ToString() ?? "auto";
+                _ocrSnip.TargetLang = (ComboTarget?.SelectedItem as ComboBoxItem)?.Tag?.ToString() ?? "en";
+
+                // Start screen capture
+                _ocrSnip.StartSnip();
+                LogMsg("[OCR SNIP] Mulai screen capture — pilih area untuk extract text!");
+            }
+            catch (Exception ex)
+            {
+                LogMsg($"[OCR ERROR] {ex.Message}");
             }
         }
     }
