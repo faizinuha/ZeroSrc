@@ -5,6 +5,39 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) | [Semantic Ver
 
 ---
 
+## [v5.8.0] - 2026-04-17
+
+### ✨ Features
+
+- **Collapsible Plugin UI Design**: Semua plugin kini menggunakan desain collapsible yang konsisten dengan header kompak dan panel settings yang bisa dibuka/tutup. Menghemat ruang UI dan memberikan pengalaman yang lebih bersih.
+- **Welcome Plugin Redesign**: Interface Welcome plugin dibuat collapsible dengan header yang menampilkan status mode dan uptime sistem. Tombol test untuk preview Welcome screen dan pengaturan mode yang lebih intuitif.
+- **Nexus Translator Feature Toggles**: Tambah tombol gear dan sistem toggle individual untuk 3 fitur utama: Keyboard Translate, Game Mode, dan Drag Bubble. Setiap fitur memiliki card tersendiri dengan icon dan deskripsi yang jelas.
+- **Welcome Window Enhancement**: Redesign complete Welcome Window dengan gradient background (bukan hitam), display Welcome.gif dengan fallback handling, greeting dinamis berdasarkan waktu, dan countdown timer otomatis.
+- **Drag-to-Translate Bubble**: Ganti mekanisme Bubble dari polling Ctrl+C ke global mouse hook — cukup drag/highlight teks, bubble terjemahan muncul otomatis saat mouse dilepas tanpa perlu tekan Ctrl+C. Jauh lebih cepat dan responsif.
+- **Charger Notif UI Redesign**: Tampilan settings Charger Notif dirombak total — gradient accent bar per section, message fields dengan bordered container, tombol Browse/Play/Reset dengan hover state, gradient Save button.
+- **Battery Assistant UI Redesign**: Tampilan settings Battery Assistant dirombak total — greeting cards 2x2 color-coded per waktu (pagi/siang/sore/malam), battery warning section dengan warna oranye/merah, gradient progress bar dan Save button.
+- **ComboBox Dark Theme Fix**: ComboBox FROM/TO di Nexus Translator kini menggunakan full ControlTemplate override sehingga dropdown tidak lagi berwarna putih.
+
+### 🐛 Bug Fixes
+
+- **Fix OCR Snip Hotkey Tidak Respons**: Perbaikan bug di mana Shift → ESC → Shift tidak memicu capture ulang. Implementasi rising-edge detection dan tunggu Shift dilepas sebelum re-arm hotkey.
+- **Fix Build Compilation Errors**: Resolved syntax errors dan Color ambiguity issues yang mencegah successful build. Fixed extra closing braces dan namespace conflicts.
+- **Fix RotateTransform Missing**: Added proper using statements untuk System.Windows.Media di plugin code-behind files untuk mengatasi RotateTransform errors.
+- **Fix Plugin UI Thread Safety**: Improved thread safety untuk semua plugin UI updates menggunakan Dispatcher.Invoke pattern yang konsisten.
+- **Fix NativeMethods.POINT Type Mismatch**: Resolved CS0029/CS1503 build error di SelectionBubble.cs akibat implicit conversion dari `NativeMethods.POINT` ke `System.Drawing.Point`.
+- **Fix Duplicate BubbleModeSwitch**: Resolved CS0102 build error akibat nama control duplikat di TranslatePluginUI.xaml setelah refactor OCR Snip.
+
+### 🔧 Changes
+
+- **Hapus OCR Snip**: Fitur OCR Snip dihapus dari Nexus Translator karena tidak stabil dan sering error. Feature count diupdate dari 4 → 3.
+- **Bubble: Ctrl+C → Drag Auto-Copy**: SelectionBubble kini menggunakan global `WH_MOUSE_LL` hook. Saat drag selesai, Ctrl+C dikirim otomatis via `SendInput`, clipboard diambil, lalu langsung ditranslate — tidak ada polling 500ms lagi.
+- **Consistent Design Pattern**: Semua plugin (Welcome, Nexus Translator, Charger Notif, Battery Assistant) kini mengikuti design pattern yang sama dengan collapsible interface, smooth animations, dan visual consistency.
+- **Feature Management System**: User sekarang bisa mengaktifkan/nonaktifkan fitur translator secara individual melalui checkbox toggles dengan live status indicators dan feature counter.
+- **Code Quality Improvements**: Better error handling, proper resource disposal, dan improved namespace management across all plugin components.
+- **Thread Safety Enhancements**: Proper dispatcher usage untuk UI updates, safer hotkey detection, dan improved cleanup mechanisms untuk prevent crashes.
+
+---
+
 ## [v5.7.0] - 2026-04-14
 
 ### ✨ Features

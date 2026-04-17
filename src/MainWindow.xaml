@@ -10,6 +10,7 @@
         xmlns:weather="clr-namespace:ZeroMix.Plugins.Weather"
         xmlns:translate="clr-namespace:ZeroMix.Plugins.Translate"
         xmlns:chargernotif="clr-namespace:ZeroMix.Plugins.ChargerNotif"
+        xmlns:welcome="clr-namespace:ZeroMix.Plugins.Welcome"
         Title="ZeroMix"
         Icon="../Assets/Icons/zeromix.ico"
         Height="750"
@@ -887,7 +888,7 @@
                                                                Margin="0,0,0,6"/>
                                                     <StackPanel Orientation="Horizontal">
                                                         <TextBlock x:Name="VersionText"
-                                                                   Text="5.6.0"
+                                                                   Text="5.7.0"
                                                                    FontSize="18"
                                                                    FontWeight="Bold"
                                                                    Foreground="White"
@@ -1019,6 +1020,7 @@
                                                FontSize="10"
                                                Margin="0,0,0,14"/>
                                     <!-- Built-in -->
+                                    <welcome:WelcomePluginUI/>
                                     <weather:WeatherPluginUI/>
                                     <battery:BatteryPluginUI/>
                                     <translate:TranslatePluginUI/>

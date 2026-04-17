@@ -1,0 +1,226 @@
+<UserControl x:Class="ZeroMix.Plugins.Welcome.WelcomePluginUI"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             Background="Transparent">
+
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="../Styles.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+            <Storyboard x:Key="ExpandAnim">
+                <DoubleAnimation Storyboard.TargetName="SettingsPanel"
+                                 Storyboard.TargetProperty="Height"
+                                 From="0" To="280" Duration="0:0:0.25">
+                    <DoubleAnimation.EasingFunction><QuadraticEase EasingMode="EaseOut"/></DoubleAnimation.EasingFunction>
+                </DoubleAnimation>
+                <DoubleAnimation Storyboard.TargetName="SettingsPanel"
+                                 Storyboard.TargetProperty="Opacity"
+                                 From="0" To="1" Duration="0:0:0.25"/>
+            </Storyboard>
+            <Storyboard x:Key="CollapseAnim">
+                <DoubleAnimation Storyboard.TargetName="SettingsPanel"
+                                 Storyboard.TargetProperty="Height"
+                                 From="280" To="0" Duration="0:0:0.2">
+                    <DoubleAnimation.EasingFunction><QuadraticEase EasingMode="EaseIn"/></DoubleAnimation.EasingFunction>
+                </DoubleAnimation>
+                <DoubleAnimation Storyboard.TargetName="SettingsPanel"
+                                 Storyboard.TargetProperty="Opacity"
+                                 From="1" To="0" Duration="0:0:0.2"/>
+            </Storyboard>
+        </ResourceDictionary>
+    </UserControl.Resources>
+
+    <Border Style="{StaticResource CompactCardBorder}">
+        <StackPanel>
+
+            <!-- ── HEADER ROW ── -->
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="40"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="36"/>
+                    <ColumnDefinition Width="36"/>
+                </Grid.ColumnDefinitions>
+
+                <!-- Icon -->
+                <Border Grid.Column="0" Width="34" Height="34" CornerRadius="10"
+                        VerticalAlignment="Center">
+                    <Border.Background>
+                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                            <GradientStop Color="#004D40" Offset="0"/>
+                            <GradientStop Color="#00251A" Offset="1"/>
+                        </LinearGradientBrush>
+                    </Border.Background>
+                    <TextBlock Text="👋" FontSize="16" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </Border>
+
+                <!-- Title + Status -->
+                <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="12,0,0,0">
+                    <TextBlock Text="Welcome Screen" Foreground="White" FontSize="13" FontWeight="SemiBold"/>
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock x:Name="StatusLabel" Text="Fresh Boot Only"
+                                   Foreground="{StaticResource NeonBlueBrush}" FontSize="10"/>
+                        <TextBlock Text="  ·  " Foreground="{StaticResource TextMutedBrush}" FontSize="10"/>
+                        <TextBlock x:Name="UptimeLabel" Text="–"
+                                   Foreground="{StaticResource SubTextBrush}" FontSize="10"/>
+                    </StackPanel>
+                </StackPanel>
+
+                <!-- Test / Preview Button -->
+                <Button x:Name="TestButton" Grid.Column="3"
+                        Width="28" Height="28" ToolTip="Preview Welcome Screen"
+                        Click="TestButton_Click" Cursor="Hand"
+                        Background="#1A3A2F" Foreground="{StaticResource NeonBlueBrush}"
+                        BorderThickness="1" BorderBrush="#1F5040"
+                        FontFamily="Segoe MDL2 Assets" FontSize="13">
+                    <Button.Template>
+                        <ControlTemplate TargetType="Button">
+                            <Border x:Name="b" Background="{TemplateBinding Background}"
+                                    BorderBrush="{TemplateBinding BorderBrush}"
+                                    BorderThickness="{TemplateBinding BorderThickness}"
+                                    CornerRadius="8">
+                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter TargetName="b" Property="Background" Value="#224D3A"/>
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Button.Template>
+                    <TextBlock Text="&#xE786;" FontFamily="Segoe MDL2 Assets" FontSize="12"
+                               Foreground="{StaticResource NeonBlueBrush}"
+                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </Button>
+
+                <!-- Gear Toggle -->
+                <Button x:Name="GearBtn" Grid.Column="4"
+                        Width="28" Height="28" ToolTip="Settings"
+                        Click="ToggleButton_Click" Cursor="Hand"
+                        Background="#1A1A1A" Foreground="{StaticResource SubTextBrush}"
+                        BorderThickness="1" BorderBrush="#2A2A2A">
+                    <Button.Template>
+                        <ControlTemplate TargetType="Button">
+                            <Border x:Name="b" Background="{TemplateBinding Background}"
+                                    BorderBrush="{TemplateBinding BorderBrush}"
+                                    BorderThickness="{TemplateBinding BorderThickness}"
+                                    CornerRadius="8">
+                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter TargetName="b" Property="Background" Value="#252525"/>
+                                    <Setter TargetName="b" Property="BorderBrush" Value="{StaticResource NeonBlueBrush}"/>
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Button.Template>
+                    <TextBlock x:Name="GearIcon" Text="&#xE713;" FontFamily="Segoe MDL2 Assets" FontSize="13"
+                               Foreground="{StaticResource SubTextBrush}"
+                               HorizontalAlignment="Center" VerticalAlignment="Center"
+                               RenderTransformOrigin="0.5,0.5">
+                        <TextBlock.RenderTransform>
+                            <RotateTransform x:Name="IconRotation" Angle="0"/>
+                        </TextBlock.RenderTransform>
+                    </TextBlock>
+                </Button>
+            </Grid>
+
+            <!-- ── SETTINGS PANEL (collapsible) ── -->
+            <Border x:Name="SettingsPanel" Height="0" Opacity="0" ClipToBounds="True" Margin="0,0,0,0">
+                <StackPanel Margin="0,14,0,0">
+
+                    <!-- Divider -->
+                    <Border Height="1" Background="#1A2030" Margin="0,0,0,14"/>
+
+                    <!-- Trigger Mode -->
+                    <TextBlock Text="SHOW ON STARTUP" Foreground="{StaticResource TextMutedBrush}"
+                               FontSize="9" FontWeight="Bold" Margin="0,0,0,10"/>
+
+                    <!-- Option rows -->
+                    <Grid Margin="0,0,0,8">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <!-- Fresh Boot -->
+                        <Border Grid.Column="0" x:Name="CardFreshBoot"
+                                Background="#111620" CornerRadius="8" Padding="10,8"
+                                Margin="0,0,5,0" BorderThickness="1.5" Cursor="Hand"
+                                BorderBrush="{StaticResource NeonBlueBrush}"
+                                MouseLeftButtonDown="FreshBootCard_Click">
+                            <StackPanel>
+                                <TextBlock Text="&#xE777;" FontFamily="Segoe MDL2 Assets" FontSize="16"
+                                           Foreground="{StaticResource NeonBlueBrush}" Margin="0,0,0,4"/>
+                                <TextBlock Text="Fresh Boot" Foreground="White" FontSize="11" FontWeight="SemiBold"/>
+                                <TextBlock Text="Only on restart" Foreground="{StaticResource SubTextBrush}" FontSize="9"/>
+                                <RadioButton x:Name="FreshBootRadio" GroupName="WelcomeMode"
+                                             Checked="ModeRadio_Checked" Visibility="Collapsed"/>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Every Start -->
+                        <Border Grid.Column="1" x:Name="CardEveryStart"
+                                Background="#111620" CornerRadius="8" Padding="10,8"
+                                Margin="0,0,5,0" BorderThickness="1" Cursor="Hand"
+                                BorderBrush="{StaticResource BorderSubtleBrush}"
+                                MouseLeftButtonDown="EveryStartCard_Click">
+                            <StackPanel>
+                                <TextBlock Text="&#xE8BD;" FontFamily="Segoe MDL2 Assets" FontSize="16"
+                                           Foreground="{StaticResource SubTextBrush}" Margin="0,0,0,4"/>
+                                <TextBlock Text="Every Start" Foreground="White" FontSize="11" FontWeight="SemiBold"/>
+                                <TextBlock Text="Each app open" Foreground="{StaticResource SubTextBrush}" FontSize="9"/>
+                                <RadioButton x:Name="EveryStartRadio" GroupName="WelcomeMode"
+                                             Checked="ModeRadio_Checked" Visibility="Collapsed"/>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Disabled -->
+                        <Border Grid.Column="2" x:Name="CardDisabled"
+                                Background="#111620" CornerRadius="8" Padding="10,8"
+                                BorderThickness="1" Cursor="Hand"
+                                BorderBrush="{StaticResource BorderSubtleBrush}"
+                                MouseLeftButtonDown="DisabledCard_Click">
+                            <StackPanel>
+                                <TextBlock Text="&#xEBE8;" FontFamily="Segoe MDL2 Assets" FontSize="16"
+                                           Foreground="{StaticResource SubTextBrush}" Margin="0,0,0,4"/>
+                                <TextBlock Text="Disabled" Foreground="White" FontSize="11" FontWeight="SemiBold"/>
+                                <TextBlock Text="Never show" Foreground="{StaticResource SubTextBrush}" FontSize="9"/>
+                                <RadioButton x:Name="DisabledRadio" GroupName="WelcomeMode"
+                                             Checked="ModeRadio_Checked" Visibility="Collapsed"/>
+                            </StackPanel>
+                        </Border>
+                    </Grid>
+
+                    <!-- Auto-Start row -->
+                    <Border Background="#111620" CornerRadius="8" Padding="12,8"
+                            BorderThickness="1" BorderBrush="{StaticResource BorderSubtleBrush}">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" Text="&#xE7E8;" FontFamily="Segoe MDL2 Assets"
+                                       FontSize="14" Foreground="{StaticResource SubTextBrush}"
+                                       VerticalAlignment="Center" Margin="0,0,10,0"/>
+                            <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                <TextBlock Text="Auto-Start with Windows" Foreground="White" FontSize="11" FontWeight="SemiBold"/>
+                                <TextBlock Text="Launch ZeroMix on Windows boot" Foreground="{StaticResource SubTextBrush}" FontSize="9"/>
+                            </StackPanel>
+                            <CheckBox x:Name="AutoStartCheckbox" Grid.Column="2" VerticalAlignment="Center"
+                                      Checked="AutoStartCheckbox_Changed" Unchecked="AutoStartCheckbox_Changed"
+                                      Style="{StaticResource ModernCheckBox}"/>
+                        </Grid>
+                    </Border>
+
+                </StackPanel>
+            </Border>
+
+        </StackPanel>
+    </Border>
+</UserControl>

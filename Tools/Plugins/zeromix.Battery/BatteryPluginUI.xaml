@@ -11,6 +11,7 @@
     </UserControl.Resources>
 
     <StackPanel>
+        <!-- ── Plugin Card ── -->
         <Border x:Name="BatteryCard"
                 Style="{StaticResource CompactCardBorder}"
                 MouseDown="BatteryCard_MouseDown"
@@ -22,33 +23,80 @@
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
 
-                <!-- Icon -->
-                <Border Grid.Column="0" Width="42" Height="42" CornerRadius="10" Background="#141922" Margin="0,0,14,0">
+                <!-- Gradient Icon -->
+                <Border Grid.Column="0" Width="42" Height="42" CornerRadius="11"
+                        Margin="0,0,14,0">
+                    <Border.Background>
+                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                            <GradientStop Color="#0D2A1A" Offset="0"/>
+                            <GradientStop Color="#0A1A2D" Offset="1"/>
+                        </LinearGradientBrush>
+                    </Border.Background>
                     <TextBlock Text="&#xEBA7;" FontFamily="Segoe MDL2 Assets" FontSize="20"
                                Foreground="#00D68F"
                                HorizontalAlignment="Center" VerticalAlignment="Center"/>
                 </Border>
 
                 <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                    <TextBlock Text="Battery Assistant" Foreground="White" FontSize="14" FontWeight="Bold" Margin="0,0,0,3"/>
-                    <TextBlock Text="Cute mascot notifications when battery is low." Foreground="{StaticResource SubTextBrush}" FontSize="11"/>
+                    <TextBlock Text="Battery Assistant" Foreground="White" FontSize="14" FontWeight="Bold" Margin="0,0,0,2"/>
+                    <TextBlock Text="Mascot notifications for battery status, greetings, and warnings."
+                               Foreground="{StaticResource SubTextBrush}" FontSize="11"/>
 
-                    <!-- Progress -->
-                    <StackPanel x:Name="PluginProgressPanel" Visibility="Collapsed" Margin="0,10,0,0">
-                        <TextBlock x:Name="PluginStatusText" Text="Processing Plugin... 0%" Foreground="{StaticResource NeonBlueBrush}" FontSize="11" Margin="0,0,0,5"/>
-                        <ProgressBar x:Name="PluginProgressBar" Height="4" Maximum="100" Foreground="{StaticResource NeonBlueBrush}" Background="#141922" BorderThickness="0"/>
+                    <!-- Progress Bar -->
+                    <StackPanel x:Name="PluginProgressPanel" Visibility="Collapsed" Margin="0,8,0,0">
+                        <Grid Margin="0,0,0,4">
+                            <TextBlock x:Name="PluginStatusText" Text="Processing... 0%"
+                                       Foreground="{StaticResource NeonBlueBrush}" FontSize="10"/>
+                        </Grid>
+                        <Border Background="#0D1117" CornerRadius="3" Height="4">
+                            <ProgressBar x:Name="PluginProgressBar" Height="4" Maximum="100"
+                                         Background="Transparent" BorderThickness="0">
+                                <ProgressBar.Foreground>
+                                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                        <GradientStop Color="#00D68F" Offset="0"/>
+                                        <GradientStop Color="#0066FF" Offset="1"/>
+                                    </LinearGradientBrush>
+                                </ProgressBar.Foreground>
+                                <ProgressBar.Template>
+                                    <ControlTemplate TargetType="ProgressBar">
+                                        <Border CornerRadius="3" Background="Transparent">
+                                            <Border x:Name="PART_Track" CornerRadius="3" Background="Transparent">
+                                                <Border x:Name="PART_Indicator" CornerRadius="3"
+                                                        HorizontalAlignment="Left"
+                                                        Background="{TemplateBinding Foreground}"/>
+                                            </Border>
+                                        </Border>
+                                    </ControlTemplate>
+                                </ProgressBar.Template>
+                            </ProgressBar>
+                        </Border>
                     </StackPanel>
                 </StackPanel>
 
                 <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
-                    <Button x:Name="SetupBatteryBtn" Content="&#xE713;"
-                            FontFamily="Segoe MDL2 Assets"
-                            Style="{StaticResource ActionButton}"
-                            Padding="10"
-                            FontSize="14"
-                            Margin="0,0,10,0"
-                            Click="SetupBatteryBtn_Click"
-                            VerticalAlignment="Center"/>
+                    <Button x:Name="SetupBatteryBtn"
+                            Width="30" Height="30" Cursor="Hand"
+                            Margin="0,0,10,0" Click="SetupBatteryBtn_Click"
+                            Background="#111620" BorderThickness="1" BorderBrush="#1E2633">
+                        <Button.Template>
+                            <ControlTemplate TargetType="Button">
+                                <Border x:Name="b" Background="{TemplateBinding Background}"
+                                        BorderBrush="{TemplateBinding BorderBrush}"
+                                        BorderThickness="{TemplateBinding BorderThickness}"
+                                        CornerRadius="8">
+                                    <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                </Border>
+                                <ControlTemplate.Triggers>
+                                    <Trigger Property="IsMouseOver" Value="True">
+                                        <Setter TargetName="b" Property="Background" Value="#1A2233"/>
+                                        <Setter TargetName="b" Property="BorderBrush" Value="#00D68F"/>
+                                    </Trigger>
+                                </ControlTemplate.Triggers>
+                            </ControlTemplate>
+                        </Button.Template>
+                        <TextBlock Text="&#xE713;" FontFamily="Segoe MDL2 Assets" FontSize="14"
+                                   Foreground="{StaticResource SubTextBrush}"/>
+                    </Button>
                     <CheckBox x:Name="BatteryPluginToggle" VerticalAlignment="Center"
                               Click="BatteryPluginToggle_Click"
                               Style="{StaticResource ModernCheckBox}"/>
@@ -56,54 +104,255 @@
             </Grid>
         </Border>
 
-        <!-- Settings Panel (Expanded) -->
+        <!-- ── Settings Panel ── -->
         <Border x:Name="BatterySettingsBorder"
-                Style="{StaticResource CardBorder}"
                 Visibility="Collapsed"
-                Margin="0,0,0,0">
+                Background="#0B0E14" CornerRadius="0,0,12,12"
+                BorderThickness="1,0,1,1" BorderBrush="#161C2A"
+                Padding="20,16,20,20" Margin="0,-2,0,0">
+
             <StackPanel>
-                <TextBlock Text="CUSTOMIZE MASCOT DIALOG"
-                        FontWeight="Bold"
-                        Foreground="{StaticResource NeonBlueBrush}"
-                        FontSize="10"
-                        Margin="0,0,0,16"/>
 
-                <UniformGrid Columns="2">
-                    <StackPanel Margin="0,0,8,10">
-                        <TextBlock Text="🌅 Pagi" Foreground="{StaticResource SubTextBrush}" FontSize="11" Margin="0,0,0,5"/>
-                        <TextBox x:Name="TxtMorning" Background="#141922" Foreground="White" Padding="10,8" BorderThickness="1" BorderBrush="{StaticResource BorderBrush}">
-                            <TextBox.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="8"/></Style></TextBox.Resources>
-                        </TextBox>
+                <!-- Section: Mascot Greetings -->
+                <Grid Margin="0,0,0,14">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <Border Grid.Column="0" Width="3" CornerRadius="2" Margin="0,0,10,0">
+                        <Border.Background>
+                            <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                                <GradientStop Color="#00D68F" Offset="0"/>
+                                <GradientStop Color="#0066FF" Offset="1"/>
+                            </LinearGradientBrush>
+                        </Border.Background>
+                    </Border>
+                    <StackPanel Grid.Column="1">
+                        <TextBlock Text="MASCOT GREETINGS"
+                                   Foreground="#00D68F" FontSize="10" FontWeight="Bold"
+                                   Margin="0,0,0,2"/>
+                        <TextBlock Text="Messages shown by the mascot throughout the day."
+                                   Foreground="{StaticResource TextMutedBrush}" FontSize="10"/>
                     </StackPanel>
-                    <StackPanel Margin="0,0,0,10">
-                        <TextBlock Text="☀️ Siang" Foreground="{StaticResource SubTextBrush}" FontSize="11" Margin="0,0,0,5"/>
-                        <TextBox x:Name="TxtAfternoon" Background="#141922" Foreground="White" Padding="10,8" BorderThickness="1" BorderBrush="{StaticResource BorderBrush}">
-                            <TextBox.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="8"/></Style></TextBox.Resources>
-                        </TextBox>
-                    </StackPanel>
-                    <StackPanel Margin="0,0,8,10">
-                        <TextBlock Text="🌇 Sore" Foreground="{StaticResource SubTextBrush}" FontSize="11" Margin="0,0,0,5"/>
-                        <TextBox x:Name="TxtEvening" Background="#141922" Foreground="White" Padding="10,8" BorderThickness="1" BorderBrush="{StaticResource BorderBrush}">
-                            <TextBox.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="8"/></Style></TextBox.Resources>
-                        </TextBox>
-                    </StackPanel>
-                    <StackPanel Margin="0,0,0,10">
-                        <TextBlock Text="🌙 Malam" Foreground="{StaticResource SubTextBrush}" FontSize="11" Margin="0,0,0,5"/>
-                        <TextBox x:Name="TxtNight" Background="#141922" Foreground="White" Padding="10,8" BorderThickness="1" BorderBrush="{StaticResource BorderBrush}">
-                            <TextBox.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="8"/></Style></TextBox.Resources>
-                        </TextBox>
-                    </StackPanel>
-                </UniformGrid>
+                </Grid>
 
-                <TextBlock Text="⚠️ Battery Warnings" Foreground="{StaticResource SubTextBrush}" FontSize="11" Margin="0,10,0,6"/>
-                <TextBox x:Name="TxtBattWarn" Background="#141922" Foreground="White" Padding="10,8" Margin="0,0,0,8" BorderThickness="1" BorderBrush="{StaticResource BorderBrush}">
-                    <TextBox.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="8"/></Style></TextBox.Resources>
-                </TextBox>
-                <TextBox x:Name="TxtBattCrit" Background="#141922" Foreground="White" Padding="10,8" BorderThickness="1" BorderBrush="{StaticResource BorderBrush}">
-                    <TextBox.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="8"/></Style></TextBox.Resources>
-                </TextBox>
+                <!-- 2x2 Time-based greetings -->
+                <Grid Margin="0,0,0,16">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="10"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="10"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
 
-                <Button Content="Save Dialog" Style="{StaticResource ActionButton}" Margin="0,16,0,0" Click="SaveDialog_Click" HorizontalAlignment="Left" Padding="24,10"/>
+                    <!-- Morning -->
+                    <Border Grid.Column="0" Grid.Row="0"
+                            Background="#111620" CornerRadius="10"
+                            BorderThickness="1" BorderBrush="#1E2633"
+                            Padding="12,10">
+                        <StackPanel>
+                            <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
+                                <Border Width="20" Height="20" CornerRadius="5"
+                                        Background="#1A2D0A" Margin="0,0,8,0">
+                                    <TextBlock Text="🌅" FontSize="10"
+                                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                </Border>
+                                <TextBlock Text="Morning" Foreground="#8899AA"
+                                           FontSize="10" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                            </StackPanel>
+                            <TextBox x:Name="TxtMorning" Background="#0D1117"
+                                     Foreground="White" BorderThickness="1" BorderBrush="#1E2633"
+                                     Padding="8,6" FontSize="11" CaretBrush="White" TextWrapping="Wrap">
+                                <TextBox.Resources>
+                                    <Style TargetType="Border"><Setter Property="CornerRadius" Value="7"/></Style>
+                                </TextBox.Resources>
+                            </TextBox>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Afternoon -->
+                    <Border Grid.Column="2" Grid.Row="0"
+                            Background="#111620" CornerRadius="10"
+                            BorderThickness="1" BorderBrush="#1E2633"
+                            Padding="12,10">
+                        <StackPanel>
+                            <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
+                                <Border Width="20" Height="20" CornerRadius="5"
+                                        Background="#2D2A0A" Margin="0,0,8,0">
+                                    <TextBlock Text="☀️" FontSize="10"
+                                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                </Border>
+                                <TextBlock Text="Afternoon" Foreground="#8899AA"
+                                           FontSize="10" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                            </StackPanel>
+                            <TextBox x:Name="TxtAfternoon" Background="#0D1117"
+                                     Foreground="White" BorderThickness="1" BorderBrush="#1E2633"
+                                     Padding="8,6" FontSize="11" CaretBrush="White" TextWrapping="Wrap">
+                                <TextBox.Resources>
+                                    <Style TargetType="Border"><Setter Property="CornerRadius" Value="7"/></Style>
+                                </TextBox.Resources>
+                            </TextBox>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Evening -->
+                    <Border Grid.Column="0" Grid.Row="2"
+                            Background="#111620" CornerRadius="10"
+                            BorderThickness="1" BorderBrush="#1E2633"
+                            Padding="12,10">
+                        <StackPanel>
+                            <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
+                                <Border Width="20" Height="20" CornerRadius="5"
+                                        Background="#2D1A0A" Margin="0,0,8,0">
+                                    <TextBlock Text="🌇" FontSize="10"
+                                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                </Border>
+                                <TextBlock Text="Evening" Foreground="#8899AA"
+                                           FontSize="10" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                            </StackPanel>
+                            <TextBox x:Name="TxtEvening" Background="#0D1117"
+                                     Foreground="White" BorderThickness="1" BorderBrush="#1E2633"
+                                     Padding="8,6" FontSize="11" CaretBrush="White" TextWrapping="Wrap">
+                                <TextBox.Resources>
+                                    <Style TargetType="Border"><Setter Property="CornerRadius" Value="7"/></Style>
+                                </TextBox.Resources>
+                            </TextBox>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Night -->
+                    <Border Grid.Column="2" Grid.Row="2"
+                            Background="#111620" CornerRadius="10"
+                            BorderThickness="1" BorderBrush="#1E2633"
+                            Padding="12,10">
+                        <StackPanel>
+                            <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
+                                <Border Width="20" Height="20" CornerRadius="5"
+                                        Background="#0A0D2D" Margin="0,0,8,0">
+                                    <TextBlock Text="🌙" FontSize="10"
+                                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                </Border>
+                                <TextBlock Text="Night" Foreground="#8899AA"
+                                           FontSize="10" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                            </StackPanel>
+                            <TextBox x:Name="TxtNight" Background="#0D1117"
+                                     Foreground="White" BorderThickness="1" BorderBrush="#1E2633"
+                                     Padding="8,6" FontSize="11" CaretBrush="White" TextWrapping="Wrap">
+                                <TextBox.Resources>
+                                    <Style TargetType="Border"><Setter Property="CornerRadius" Value="7"/></Style>
+                                </TextBox.Resources>
+                            </TextBox>
+                        </StackPanel>
+                    </Border>
+                </Grid>
+
+                <!-- Divider -->
+                <Border Height="1" Background="#161C2A" Margin="0,0,0,16"/>
+
+                <!-- Section: Battery Warnings -->
+                <Grid Margin="0,0,0,12">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <Border Grid.Column="0" Width="3" CornerRadius="2" Margin="0,0,10,0">
+                        <Border.Background>
+                            <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                                <GradientStop Color="#FFAA00" Offset="0"/>
+                                <GradientStop Color="#FF5500" Offset="1"/>
+                            </LinearGradientBrush>
+                        </Border.Background>
+                    </Border>
+                    <StackPanel Grid.Column="1">
+                        <TextBlock Text="BATTERY WARNINGS"
+                                   Foreground="#FFAA00" FontSize="10" FontWeight="Bold"
+                                   Margin="0,0,0,2"/>
+                        <TextBlock Text="Dialog shown when battery reaches low or critical levels."
+                                   Foreground="{StaticResource TextMutedBrush}" FontSize="10"/>
+                    </StackPanel>
+                </Grid>
+
+                <Grid Margin="0,0,0,8">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="26"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <Border Grid.Column="0" Width="22" Height="22" CornerRadius="6"
+                            Background="#2D1E00" VerticalAlignment="Top" Margin="0,2,0,0">
+                        <TextBlock Text="⚠️" FontSize="11" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Border>
+                    <StackPanel Grid.Column="1" Margin="10,0,0,0">
+                        <TextBlock Text="Low Battery Warning" Foreground="{StaticResource SubTextBrush}"
+                                   FontSize="10" Margin="0,0,0,4"/>
+                        <Border Background="#111620" CornerRadius="8" BorderThickness="1" BorderBrush="#1E2633">
+                            <TextBox x:Name="TxtBattWarn" Background="Transparent"
+                                     Foreground="White" BorderThickness="0"
+                                     Padding="12,8" FontSize="12" CaretBrush="White"/>
+                        </Border>
+                    </StackPanel>
+                </Grid>
+
+                <Grid Margin="0,0,0,20">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="26"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <Border Grid.Column="0" Width="22" Height="22" CornerRadius="6"
+                            Background="#2D0A0A" VerticalAlignment="Top" Margin="0,2,0,0">
+                        <TextBlock Text="🔴" FontSize="11" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Border>
+                    <StackPanel Grid.Column="1" Margin="10,0,0,0">
+                        <TextBlock Text="Critical Battery" Foreground="{StaticResource SubTextBrush}"
+                                   FontSize="10" Margin="0,0,0,4"/>
+                        <Border Background="#111620" CornerRadius="8" BorderThickness="1" BorderBrush="#1E2633">
+                            <TextBox x:Name="TxtBattCrit" Background="Transparent"
+                                     Foreground="White" BorderThickness="0"
+                                     Padding="12,8" FontSize="12" CaretBrush="White"/>
+                        </Border>
+                    </StackPanel>
+                </Grid>
+
+                <!-- Save Button -->
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Grid.Column="0" Text="Double-click the card to uninstall."
+                               Foreground="{StaticResource TextMutedBrush}" FontSize="10"
+                               VerticalAlignment="Center"/>
+                    <Button Grid.Column="1" Height="36" Padding="28,0"
+                            Cursor="Hand" Click="SaveDialog_Click">
+                        <Button.Template>
+                            <ControlTemplate TargetType="Button">
+                                <Border x:Name="b" CornerRadius="9">
+                                    <Border.Background>
+                                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                            <GradientStop Color="#00A37A" Offset="0"/>
+                                            <GradientStop Color="#0066CC" Offset="1"/>
+                                        </LinearGradientBrush>
+                                    </Border.Background>
+                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                        <TextBlock Text="&#xE74E;" FontFamily="Segoe MDL2 Assets" FontSize="12"
+                                                   Foreground="White" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="Save Dialog" Foreground="White" FontSize="12"
+                                                   FontWeight="SemiBold" VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                </Border>
+                                <ControlTemplate.Triggers>
+                                    <Trigger Property="IsMouseOver" Value="True">
+                                        <Setter TargetName="b" Property="Opacity" Value="0.85"/>
+                                    </Trigger>
+                                </ControlTemplate.Triggers>
+                            </ControlTemplate>
+                        </Button.Template>
+                    </Button>
+                </Grid>
+
             </StackPanel>
         </Border>
     </StackPanel>

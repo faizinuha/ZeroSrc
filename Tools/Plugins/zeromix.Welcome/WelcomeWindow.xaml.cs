@@ -16,11 +16,9 @@ namespace ZeroMix.Plugins.Welcome
             InitializeComponent();
 
             LoadGif();
-            SetGreeting();
-            PositionCenter();
 
-            // Auto-close setelah 5 detik
-            _autoCloseTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(5) };
+            // Auto-close setelah 4 detik
+            _autoCloseTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(4) };
             _autoCloseTimer.Tick += (s, e) => BeginClose();
             _autoCloseTimer.Start();
 
@@ -34,48 +32,48 @@ namespace ZeroMix.Plugins.Welcome
         {
             try
             {
-                string gifDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory,
-                    "Tools", "Plugins", "zeromix.Welcome");
+                string baseDir = AppDomain.CurrentDomain.BaseDirectory;
+                string[] candidates =
+                {
+                    Path.Combine(baseDir, "Tools", "Plugins", "zeromix.Welcome", "Welcome.gif"),
+                    Path.Combine(baseDir, "Tools", "Plugins", "zeromix.Welcome", "welcome.gif"),
+                    Path.Combine(baseDir, "Tools", "Plugins", "zeromix.Welcome", "gif", "Welcome.gif"),
+                };
 
-                string gifPath = Path.Combine(gifDir, "Welcome.gif");
-                if (!File.Exists(gifPath))
-                    gifPath = Path.Combine(gifDir, "welcome.gif");
-                if (!File.Exists(gifPath)) return;
+                string? gifPath = null;
+                foreach (var c in candidates)
+                {
+                    if (File.Exists(c)) { gifPath = c; break; }
+                }
 
-                var bmp = new BitmapImage();
-                bmp.BeginInit();
-                bmp.UriSource   = new Uri(gifPath, UriKind.Absolute);
-                bmp.CacheOption = BitmapCacheOption.OnLoad;
-                bmp.EndInit();
-                bmp.Freeze();
-
-                WpfAnimatedGif.ImageBehavior.SetAnimatedSource(WelcomeGif, bmp);
+                if (gifPath != null)
+                {
+                    var bmp = new BitmapImage();
+                    bmp.BeginInit();
+                    bmp.UriSource = new Uri(gifPath, UriKind.Absolute);
+                    bmp.CacheOption = BitmapCacheOption.OnLoad;
+                    bmp.EndInit();
+                    bmp.Freeze();
+                    WpfAnimatedGif.ImageBehavior.SetAnimatedSource(WelcomeGif, bmp);
+                }
+                else
+                {
+                    // Kalau GIF tidak ada, langsung tutup
+                    Loaded += (_, _) => BeginClose();
+                }
             }
-            catch { }
-        }
-
-        private void SetGreeting()
-        {
-            int hour = DateTime.Now.Hour;
-            WelcomeTitle.Text = hour switch
+            catch
             {
-                >= 5  and < 11 => "Selamat Pagi! ☀️",
-                >= 11 and < 15 => "Selamat Siang! 🌤️",
-                >= 15 and < 18 => "Selamat Sore! 🌆",
-                _              => "Selamat Malam! 🌙"
-            };
-            WelcomeSubtitle.Text = "ZeroMix siap menemanimu~";
+                Loaded += (_, _) => BeginClose();
+            }
         }
 
-        private void PositionCenter()
-        {
-            var screen = SystemParameters.WorkArea;
-            Left = (screen.Width  - Width)  / 2;
-            Top  = (screen.Height - Height) / 2;
-        }
+        private bool _closing = false;
 
         private void BeginClose()
         {
+            if (_closing) return;
+            _closing = true;
             _autoCloseTimer.Stop();
             ((Storyboard)FindResource("FadeOut")).Begin(this);
         }

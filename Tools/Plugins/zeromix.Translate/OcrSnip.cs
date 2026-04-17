@@ -10,43 +10,174 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Windows.Media.Effects;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
+using System.Windows.Forms; // For hotkey detection
 
 namespace ZeroMix.Plugins.Translate
 {
     /// <summary>
     /// OCR Snip: Screen capture + OCR + Translation
-    /// Berguna dan multifungsi: capture area → extract text → translate
+    /// Berguna dan multifungsi: toggle mode → Shift+Drag untuk capture area → extract text → translate
     /// </summary>
     public class OcrSnip : IDisposable
     {
         private readonly RealTimeTranslator _translator;
         private SnipOverlayWindow? _overlayWindow;
+        private bool _isSnipModeActive = false;
+        private System.Windows.Threading.DispatcherTimer? _hotkeyTimer;
 
         public string SourceLang { get; set; } = "auto";
         public string TargetLang { get; set; } = "en";
         public event Action<string>? OnLog;
+        public event Action<bool>? OnModeChanged; // Event untuk update UI button state
+
+        public bool IsSnipModeActive => _isSnipModeActive;
 
         public OcrSnip(RealTimeTranslator translator)
         {
             _translator = translator;
         }
 
-        public void StartSnip()
+        public void ToggleSnipMode()
+        {
+            if (_isSnipModeActive)
+            {
+                DeactivateSnipMode();
+            }
+            else
+            {
+                ActivateSnipMode();
+            }
+        }
+
+        private void ActivateSnipMode()
+        {
+            try
+            {
+                _isSnipModeActive = true;
+                OnModeChanged?.Invoke(true);
+                OnLog?.Invoke("[OCR SNIP] Mode AKTIF — Tekan Shift+Drag untuk capture area!");
+                
+                // Setup global hotkey listener untuk Shift+Drag
+                SetupGlobalHotkey();
+            }
+            catch (Exception ex)
+            {
+                OnLog?.Invoke($"[OCR ERROR] {ex.Message}");
+                _isSnipModeActive = false;
+                OnModeChanged?.Invoke(false);
+            }
+        }
+
+        private void DeactivateSnipMode()
+        {
+            _isSnipModeActive = false;
+            OnModeChanged?.Invoke(false);
+            OnLog?.Invoke("[OCR SNIP] Mode NONAKTIF");
+            
+            // Cleanup hotkey listener
+            CleanupGlobalHotkey();
+            _overlayWindow?.Close();
+        }
+
+        private bool _shiftWasPressed = false;
+
+        private void SetupGlobalHotkey()
+        {
+            // Cleanup timer lama jika ada
+            _hotkeyTimer?.Stop();
+            _shiftWasPressed = false;
+
+            // Deteksi rising edge: Shift ditekan (bukan dipegang terus)
+            _hotkeyTimer = new System.Windows.Threading.DispatcherTimer
+            {
+                Interval = TimeSpan.FromMilliseconds(80)
+            };
+            _hotkeyTimer.Tick += (_, _) =>
+            {
+                if (!_isSnipModeActive) { _hotkeyTimer?.Stop(); return; }
+
+                bool shiftNow = IsShiftPressed();
+
+                // Hanya trigger saat Shift baru ditekan (rising edge)
+                if (shiftNow && !_shiftWasPressed)
+                {
+                    _shiftWasPressed = true;
+                    _hotkeyTimer?.Stop();
+                    System.Windows.Application.Current.Dispatcher.BeginInvoke(() =>
+                    {
+                        if (_isSnipModeActive) StartSnipCapture();
+                    });
+                }
+                else if (!shiftNow)
+                {
+                    _shiftWasPressed = false;
+                }
+            };
+            _hotkeyTimer.Start();
+        }
+
+        private void CleanupGlobalHotkey()
+        {
+            _hotkeyTimer?.Stop();
+            _hotkeyTimer = null;
+        }
+
+        private bool IsShiftPressed()
+        {
+            try
+            {
+                return (System.Windows.Forms.Control.ModifierKeys & System.Windows.Forms.Keys.Shift) != 0;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        public void StartSnipCapture()
         {
             try
             {
                 OnLog?.Invoke("[OCR SNIP] Starting screen capture...");
                 
+                // Cleanup overlay lama jika ada
+                _overlayWindow?.Close();
+                
                 // Buat overlay untuk selection
                 _overlayWindow = new SnipOverlayWindow();
                 _overlayWindow.OnAreaSelected += async (rect) => await ProcessSnipAsync(rect);
+                _overlayWindow.OnCancelled += () => {
+                    OnLog?.Invoke("[OCR SNIP] Capture cancelled");
+                    // Restart hotkey monitoring setelah ESC — tunggu Shift dilepas dulu
+                    if (_isSnipModeActive)
+                    {
+                        System.Windows.Application.Current.Dispatcher.BeginInvoke(async () =>
+                        {
+                            // Tunggu sampai Shift benar-benar dilepas sebelum re-arm
+                            for (int i = 0; i < 20 && IsShiftPressed(); i++)
+                                await System.Threading.Tasks.Task.Delay(50);
+                            await System.Threading.Tasks.Task.Delay(150);
+                            if (_isSnipModeActive) SetupGlobalHotkey();
+                        });
+                    }
+                };
                 _overlayWindow.Show();
             }
             catch (Exception ex)
             {
                 OnLog?.Invoke($"[OCR ERROR] {ex.Message}");
+                // Restart hotkey monitoring jika error — on UI thread
+                if (_isSnipModeActive)
+                {
+                    System.Windows.Application.Current.Dispatcher.BeginInvoke(async () =>
+                    {
+                        await System.Threading.Tasks.Task.Delay(500);
+                        if (_isSnipModeActive) SetupGlobalHotkey();
+                    });
+                }
             }
         }
 
@@ -92,10 +223,30 @@ namespace ZeroMix.Plugins.Translate
                     resultWindow.Show();
                     OnLog?.Invoke($"[OCR SUCCESS] {extractedText.Length} chars → translated");
                 });
+
+                // Restart hotkey monitoring untuk penggunaan berikutnya
+                if (_isSnipModeActive)
+                {
+                    await Task.Delay(800);
+                    System.Windows.Application.Current.Dispatcher.Invoke(() =>
+                    {
+                        if (_isSnipModeActive) SetupGlobalHotkey();
+                    });
+                }
             }
             catch (Exception ex)
             {
                 OnLog?.Invoke($"[OCR ERROR] {ex.Message}");
+                
+                // Restart hotkey monitoring jika error — on UI thread
+                if (_isSnipModeActive)
+                {
+                    await Task.Delay(500);
+                    System.Windows.Application.Current.Dispatcher.Invoke(() =>
+                    {
+                        if (_isSnipModeActive) SetupGlobalHotkey();
+                    });
+                }
             }
         }
 
@@ -188,6 +339,7 @@ namespace ZeroMix.Plugins.Translate
 
         public void Dispose()
         {
+            DeactivateSnipMode();
             _overlayWindow?.Close();
         }
     }
@@ -202,6 +354,7 @@ namespace ZeroMix.Plugins.Translate
         private System.Windows.Shapes.Rectangle? _selectionRect;
 
         public event Action<System.Drawing.Rectangle>? OnAreaSelected;
+        public event Action? OnCancelled;
 
         public SnipOverlayWindow()
         {
@@ -217,6 +370,35 @@ namespace ZeroMix.Plugins.Translate
             MouseMove += OnMouseMove;
             MouseUp += OnMouseUp;
             KeyDown += OnKeyDown;
+
+            // Tampilkan instruksi
+            ShowInstructions();
+        }
+
+        private void ShowInstructions()
+        {
+            var instructionText = new TextBlock
+            {
+                Text = "Drag untuk pilih area • ESC untuk cancel",
+                Foreground = System.Windows.Media.Brushes.White,
+                FontSize = 16,
+                HorizontalAlignment = System.Windows.HorizontalAlignment.Center,
+                VerticalAlignment = System.Windows.VerticalAlignment.Top,
+                Margin = new Thickness(0, 50, 0, 0),
+                Effect = new DropShadowEffect
+                {
+                    BlurRadius = 10,
+                    ShadowDepth = 2,
+                    Color = Colors.Black,
+                    Opacity = 0.8
+                }
+            };
+
+            var canvas = new Canvas();
+            canvas.Children.Add(instructionText);
+            Canvas.SetLeft(instructionText, (SystemParameters.PrimaryScreenWidth - 300) / 2);
+            
+            Content = canvas;
         }
 
         private void OnMouseDown(object sender, MouseButtonEventArgs e)
@@ -291,6 +473,7 @@ namespace ZeroMix.Plugins.Translate
         {
             if (e.Key == Key.Escape)
             {
+                OnCancelled?.Invoke();
                 Close();
             }
         }

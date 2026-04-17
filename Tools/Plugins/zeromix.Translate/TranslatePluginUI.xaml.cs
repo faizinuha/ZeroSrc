@@ -1,6 +1,7 @@
 using System;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Media;
 using System.Windows.Media.Animation;
 
 namespace ZeroMix.Plugins.Translate
@@ -9,11 +10,12 @@ namespace ZeroMix.Plugins.Translate
     {
         private RealTimeTranslator? _coreEngine;
         private SelectionBubble? _bubbleEngine;
-        private OcrSnip? _ocrSnip;
+        private bool _isExpanded = false;
 
         public TranslatePluginUI()
         {
             InitializeComponent();
+            UpdateFeatureCount();
         }
 
         private void PowerSwitch_Click(object sender, RoutedEventArgs e)
@@ -26,11 +28,8 @@ namespace ZeroMix.Plugins.Translate
                 _coreEngine.OnError += CoreEngine_OnError;
                 
                 UpdateEngineConfig();
+                UpdateStatus();
                 
-                CoreSettings.Visibility = Visibility.Visible;
-                Storyboard sb = (Storyboard)this.Resources["FadeIn"];
-                sb?.Begin(CoreSettings);
-
                 LogMsg("[OK] Engine V2 STARTED. Proteksi tabrakan ketikan AKTIF.");
             }
             else
@@ -40,10 +39,65 @@ namespace ZeroMix.Plugins.Translate
                 _coreEngine = null;
                 _bubbleEngine?.Dispose();
                 _bubbleEngine = null;
-                _ocrSnip?.Dispose();
-                _ocrSnip = null;
-                CoreSettings.Visibility = Visibility.Collapsed;
+                UpdateStatus();
                 LogMsg("[STOP] Engine DIMATIKAN.");
+            }
+        }
+
+        private void ToggleButton_Click(object sender, RoutedEventArgs e)
+        {
+            _isExpanded = !_isExpanded;
+            if (_isExpanded)
+            {
+                ((Storyboard)Resources["ExpandAnim"]).Begin();
+                IconRotation.BeginAnimation(RotateTransform.AngleProperty,
+                    new DoubleAnimation(0, 180, TimeSpan.FromMilliseconds(250)));
+            }
+            else
+            {
+                ((Storyboard)Resources["CollapseAnim"]).Begin();
+                IconRotation.BeginAnimation(RotateTransform.AngleProperty,
+                    new DoubleAnimation(180, 0, TimeSpan.FromMilliseconds(200)));
+            }
+        }
+
+        private void FeatureToggle_Changed(object sender, RoutedEventArgs e)
+        {
+            UpdateFeatureCount();
+            UpdateStatus();
+            
+            // Update bubble time panel visibility
+            if (BubbleModeSwitch.IsChecked == true)
+            {
+                BubbleTimePanel.Visibility = Visibility.Visible;
+            }
+            else
+            {
+                BubbleTimePanel.Visibility = Visibility.Collapsed;
+            }
+        }
+
+        private void UpdateFeatureCount()
+        {
+            int activeCount = 0;
+            if (KeyboardTranslateToggle?.IsChecked == true) activeCount++;
+            if (GameModeSwitch?.IsChecked == true) activeCount++;
+            if (BubbleModeSwitch?.IsChecked == true) activeCount++;
+            
+            FeatureCount.Text = $"{activeCount}/3 features active";
+        }
+
+        private void UpdateStatus()
+        {
+            if (PowerSwitch.IsChecked == true)
+            {
+                StatusText.Text = "Engine Active";
+                StatusText.Foreground = new SolidColorBrush(System.Windows.Media.Color.FromRgb(0, 255, 136)); // Green
+            }
+            else
+            {
+                StatusText.Text = "Standby";
+                StatusText.Foreground = new SolidColorBrush(System.Windows.Media.Color.FromRgb(107, 114, 128)); // Gray
             }
         }
 
@@ -139,48 +193,39 @@ namespace ZeroMix.Plugins.Translate
                 _bubbleEngine = new SelectionBubble(_coreEngine);
                 _bubbleEngine.SourceLang = (ComboSource?.SelectedItem as ComboBoxItem)?.Tag?.ToString() ?? "auto";
                 _bubbleEngine.TargetLang = (ComboTarget?.SelectedItem as ComboBoxItem)?.Tag?.ToString() ?? "en";
+                _bubbleEngine.BubbleDisplaySeconds = (int)(BubbleTimeSlider?.Value ?? 4);
                 _bubbleEngine.OnLog += (msg) => Dispatcher.Invoke(() => LogMsg(msg));
+                
+                // Show bubble time slider
+                BubbleTimePanel.Visibility = Visibility.Visible;
+                
                 LogMsg("[BUBBLE] Selection Bubble AKTIF — highlight + Ctrl+C untuk translate.");
             }
             else
             {
                 _bubbleEngine?.Dispose();
                 _bubbleEngine = null;
+                
+                // Hide bubble time slider
+                BubbleTimePanel.Visibility = Visibility.Collapsed;
+                
                 LogMsg("[BUBBLE] Selection Bubble NONAKTIF.");
             }
         }
 
-        private void OcrSnipButton_Click(object sender, RoutedEventArgs e)
+        private void BubbleTimeSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
         {
-            if (_coreEngine == null)
+            if (BubbleTimeLabel != null)
             {
-                LogMsg("[OCR ERROR] Engine harus diaktifkan terlebih dahulu!");
-                return;
-            }
-
-            try
-            {
-                // Initialize OCR Snip if not exists
-                if (_ocrSnip == null)
+                int seconds = (int)e.NewValue;
+                BubbleTimeLabel.Text = $"{seconds} detik";
+                
+                if (_bubbleEngine != null)
                 {
-                    _ocrSnip = new OcrSnip(_coreEngine);
-                    _ocrSnip.SourceLang = (ComboSource?.SelectedItem as ComboBoxItem)?.Tag?.ToString() ?? "auto";
-                    _ocrSnip.TargetLang = (ComboTarget?.SelectedItem as ComboBoxItem)?.Tag?.ToString() ?? "en";
-                    _ocrSnip.OnLog += (msg) => Dispatcher.Invoke(() => LogMsg(msg));
+                    _bubbleEngine.BubbleDisplaySeconds = seconds;
                 }
-
-                // Update language settings
-                _ocrSnip.SourceLang = (ComboSource?.SelectedItem as ComboBoxItem)?.Tag?.ToString() ?? "auto";
-                _ocrSnip.TargetLang = (ComboTarget?.SelectedItem as ComboBoxItem)?.Tag?.ToString() ?? "en";
-
-                // Start screen capture
-                _ocrSnip.StartSnip();
-                LogMsg("[OCR SNIP] Mulai screen capture — pilih area untuk extract text!");
-            }
-            catch (Exception ex)
-            {
-                LogMsg($"[OCR ERROR] {ex.Message}");
             }
         }
+
     }
 }
