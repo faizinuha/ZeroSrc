@@ -6,7 +6,8 @@ param(
     [Parameter(Mandatory=$true)]
     [string]$Version,
 
-    [switch]$DryRun   # Preview saja, tidak commit/push
+    [switch]$DryRun,      # Preview saja, tidak commit/push
+    [switch]$ForceBuild   # Re-release tag yang sama (hapus tag lama, push ulang)
 )
 
 $ErrorActionPreference = "Stop"
@@ -21,7 +22,8 @@ $Tag = "v$Version"
 
 Write-Host ""
 Write-Host "  ZeroMix Release — $Tag" -ForegroundColor Cyan
-if ($DryRun) { Write-Host "  [DRY RUN — tidak ada yang di-commit/push]" -ForegroundColor Yellow }
+if ($DryRun)    { Write-Host "  [DRY RUN — tidak ada yang di-commit/push]" -ForegroundColor Yellow }
+if ($ForceBuild){ Write-Host "  [FORCE BUILD — tag lama akan dihapus dan di-push ulang]" -ForegroundColor Magenta }
 Write-Host ""
 
 # ── Step 1: Update versi di file ───────────────────────────────────────────
@@ -106,8 +108,15 @@ Write-Host "4. Tagging..." -ForegroundColor Yellow
 if (-not $DryRun) {
     $existing = git tag -l $Tag
     if ($existing) {
-        Write-Host "   tag $Tag already exists, deleting..." -ForegroundColor Yellow
-        git tag -d $Tag | Out-Null
+        if ($ForceBuild) {
+            Write-Host "   [ForceBuild] deleting local tag $Tag..." -ForegroundColor Magenta
+            git tag -d $Tag | Out-Null
+            Write-Host "   [ForceBuild] deleting remote tag $Tag..." -ForegroundColor Magenta
+            git push origin ":refs/tags/$Tag" 2>$null
+        } else {
+            Write-Host "   tag $Tag already exists, deleting..." -ForegroundColor Yellow
+            git tag -d $Tag | Out-Null
+        }
     }
     git tag -a $Tag -m "Release $Version"
     Write-Host "   created: $Tag" -ForegroundColor Green
@@ -123,9 +132,14 @@ if (-not $DryRun) {
     $branch = git branch --show-current
     git pull --rebase origin $branch
     git push origin $branch
-    git push origin $Tag
+    if ($ForceBuild) {
+        git push origin $Tag --force
+        Write-Host "   force pushed tag: $Tag" -ForegroundColor Magenta
+    } else {
+        git push origin $Tag
+        Write-Host "   pushed tag:    $Tag" -ForegroundColor Green
+    }
     Write-Host "   pushed branch: $branch" -ForegroundColor Green
-    Write-Host "   pushed tag:    $Tag" -ForegroundColor Green
 } else {
     Write-Host "   [dry run] would push branch + tag $Tag" -ForegroundColor Gray
 }
