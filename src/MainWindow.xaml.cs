@@ -367,49 +367,54 @@ namespace ZeroMix
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
+            // Fade in window setelah render selesai — cegah white flash
+            this.Opacity = 0;
+            var fadeIn = new DoubleAnimation(0, 1, TimeSpan.FromMilliseconds(200));
+            this.BeginAnimation(OpacityProperty, fadeIn);
+
             // Set initial view after the window has loaded
             HomeButton_Click(this, new RoutedEventArgs());
             _initialWallpaperPath = GetSystemWallpaperPath();
 
-            // Welcome screen — hanya muncul saat fresh boot, tidak saat Windows+L
-            ZeroMix.Plugins.Welcome.WelcomePlugin.TryShowWelcome();
-
             // Initialize Language Selector
             InitializeLanguageSelector();
 
-            // Load VA thumbnails via absolute path (reliable di semua environment)
-            LoadVAThumbnails();
-
-            // Initialize Lua Engine di background agar tidak block UI
-            Task.Run(() =>
+            // Tunda semua operasi berat agar window selesai render dulu
+            Dispatcher.BeginInvoke(async () =>
             {
-                try
-                {
-                    var engine = new Plugins.PluginEngine(this);
-                    engine.Start();
-                    Dispatcher.Invoke(() => _pluginEngine = engine);
-                }
-                catch { }
-            });
+                // Welcome screen — delay sedikit agar window sudah visible
+                await Task.Delay(300);
+                ZeroMix.Plugins.Welcome.WelcomePlugin.TryShowWelcome();
 
-            // Silent update check di background
-            _ = CheckUpdateSilentAsync();
+                // Load VA thumbnails
+                LoadVAThumbnails();
 
-            // Handle Startup Args (Toggle Plugins via Shortcut)
-            if (_startupArgs != null && _startupArgs.Length >= 2 && _startupArgs[0] == "--plugin")
-            {
-                // Tunda sampai plugin engine selesai load
-                Task.Run(async () =>
+                // Initialize Lua Engine di background
+                await Task.Run(() =>
                 {
-                    await Task.Delay(2000);
-                    Dispatcher.Invoke(() =>
+                    try
                     {
-                        string targetPlugin = _startupArgs[1];
-                        var plugin = _pluginEngine?.GetPlugins().FirstOrDefault(p => p.Name == targetPlugin);
-                        if (plugin != null) _pluginEngine?.TogglePlugin(plugin);
-                    });
+                        var engine = new Plugins.PluginEngine(this);
+                        engine.Start();
+                        Dispatcher.Invoke(() => _pluginEngine = engine);
+                    }
+                    catch { }
                 });
-            }
+
+                // Silent update check — paling terakhir, tidak urgent
+                await Task.Delay(2000);
+                _ = CheckUpdateSilentAsync();
+
+                // Handle Startup Args
+                if (_startupArgs != null && _startupArgs.Length >= 2 && _startupArgs[0] == "--plugin")
+                {
+                    await Task.Delay(500);
+                    string targetPlugin = _startupArgs[1];
+                    var plugin = _pluginEngine?.GetPlugins().FirstOrDefault(p => p.Name == targetPlugin);
+                    if (plugin != null) _pluginEngine?.TogglePlugin(plugin);
+                }
+
+            }, System.Windows.Threading.DispatcherPriority.Background);
         }
 
         private void LoadVAThumbnails()
