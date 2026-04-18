@@ -28,6 +28,34 @@ namespace ZeroMix
         [DllImport("kernel32.dll", EntryPoint = "SetProcessWorkingSetSize")]
         internal static extern int SetProcessWorkingSetSize(IntPtr process, int minimumWorkingSetSize, int maximumWorkingSetSize);
 
+        // EnumWindows untuk cari window handle saat MainWindowHandle = zero
+        private delegate bool EnumWindowsProc(IntPtr hWnd, IntPtr lParam);
+
+        [DllImport("user32.dll")]
+        private static extern bool EnumWindows(EnumWindowsProc lpEnumFunc, IntPtr lParam);
+
+        [DllImport("user32.dll")]
+        private static extern uint GetWindowThreadProcessId(IntPtr hWnd, out uint lpdwProcessId);
+
+        [DllImport("user32.dll")]
+        private static extern bool IsWindowVisible(IntPtr hWnd);
+
+        private static IntPtr FindMainWindowByPid(int pid)
+        {
+            IntPtr found = IntPtr.Zero;
+            EnumWindows((hWnd, _) =>
+            {
+                GetWindowThreadProcessId(hWnd, out uint winPid);
+                if (winPid == (uint)pid && IsWindowVisible(hWnd))
+                {
+                    found = hWnd;
+                    return false; // stop enum
+                }
+                return true;
+            }, IntPtr.Zero);
+            return found;
+        }
+
         private static readonly string ConfigPath = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "ZeroMix", "config.json");
 
@@ -38,18 +66,34 @@ namespace ZeroMix
             _mutexOwned = isNewInstance;
             if (!isNewInstance)
             {
-                // Sudah ada instance yang jalan — bring to front lalu exit
-                var existing = Process.GetProcessesByName(
-                    Path.GetFileNameWithoutExtension(Process.GetCurrentProcess().MainModule?.FileName ?? "ZeroMix"));
-                foreach (var p in existing)
+                // Sudah ada instance — cari via named pipe / window message
+                // Cari semua proses ZeroMix selain diri sendiri
+                string procName = Path.GetFileNameWithoutExtension(
+                    Process.GetCurrentProcess().MainModule?.FileName ?? "ZeroMix");
+
+                var existing = Process.GetProcessesByName(procName)
+                    .Where(p => p.Id != Environment.ProcessId)
+                    .OrderBy(p => p.StartTime)
+                    .FirstOrDefault();
+
+                if (existing != null)
                 {
-                    if (p.Id != Process.GetCurrentProcess().Id)
+                    // Coba bring to front — handle bisa zero kalau window belum ready
+                    IntPtr hwnd = existing.MainWindowHandle;
+
+                    // Kalau handle zero, cari via EnumWindows
+                    if (hwnd == IntPtr.Zero)
                     {
-                        ShowWindow(p.MainWindowHandle, 9); // SW_RESTORE
-                        SetForegroundWindow(p.MainWindowHandle);
-                        break;
+                        hwnd = FindMainWindowByPid(existing.Id);
+                    }
+
+                    if (hwnd != IntPtr.Zero)
+                    {
+                        ShowWindow(hwnd, 9); // SW_RESTORE
+                        SetForegroundWindow(hwnd);
                     }
                 }
+
                 Shutdown();
                 return;
             }
