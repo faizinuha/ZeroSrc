@@ -137,7 +137,7 @@
                         Background="#1A1A35" CornerRadius="20" Padding="14,5">
                     <StackPanel Orientation="Horizontal">
                         <Ellipse Width="7" Height="7" Fill="#10B981" VerticalAlignment="Center" Margin="0,0,6,0"/>
-                        <TextBlock Text="v5.6.0  ·  28 MB  ·  Windows x64"
+                        <TextBlock x:Name="VersionBadge" Text="Checking...  ·  Windows x64"
                                    Foreground="#9CA3AF" FontSize="11"/>
                     </StackPanel>
                 </Border>

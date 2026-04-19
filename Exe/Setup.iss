@@ -59,32 +59,34 @@ Name: "{userappdata}\ZeroMix"; Permissions: users-modify
 
 [Files]
 ; Main Core - dari folder publish hasil dotnet publish
-Source: "..\publish\win-x64\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+; Exclude file-file yang tidak perlu di root install dir
+Source: "..\publish\win-x64\ZeroMix.exe";        DestDir: "{app}"; Flags: ignoreversion
+Source: "..\publish\win-x64\*.dll";               DestDir: "{app}"; Flags: ignoreversion
+Source: "..\publish\win-x64\*.json";              DestDir: "{app}"; Flags: ignoreversion skipifsourcedoesntexist
+Source: "..\publish\win-x64\runtimes\*";          DestDir: "{app}\runtimes"; Flags: ignoreversion recursesubdirs createallsubdirs skipifsourcedoesntexist
 
 ; Assets & Resources
 Source: "zeromix.ico"; DestDir: "{app}"; Flags: ignoreversion
-Source: "..\Assets\Icons\**"; DestDir: "{app}\Assets\Icons"; Flags: ignoreversion recursesubdirs createallsubdirs
-Source: "..\Assets\Resources\**"; DestDir: "{app}\Assets\Resources"; Flags: ignoreversion recursesubdirs createallsubdirs
-Source: "..\Assets\Data\anim\**"; DestDir: "{app}\Assets\Data\anim"; Flags: ignoreversion recursesubdirs createallsubdirs
-Source: "..\Assets\Data\Images\**"; DestDir: "{app}\Assets\Data\Images"; Flags: ignoreversion
-Source: "..\Assets\Data\Video\**"; DestDir: "{app}\Assets\Data\Video"
+Source: "..\Assets\Icons\**";                     DestDir: "{app}\Assets\Icons"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "..\Assets\Resources\**";                 DestDir: "{app}\Assets\Resources"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "..\Assets\Data\anim\**";                 DestDir: "{app}\Assets\Data\anim"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "..\Assets\Data\Images\**";               DestDir: "{app}\Assets\Data\Images"; Flags: ignoreversion
+Source: "..\Assets\Data\Video\**";                DestDir: "{app}\Assets\Data\Video"
 Source: "..\Assets\zeromix-high-resolution-logo-transparent.png"; DestDir: "{app}\Assets"; Flags: ignoreversion
 
-; Plugins — hanya folder plugin (asset runtime), source .cs/.xaml tidak ikut
-; Source files sudah di-exclude oleh csproj, publish output sudah bersih
-Source: "..\publish\win-x64\Tools\Plugins\**"; DestDir: "{app}\Tools\Plugins"; Flags: ignoreversion recursesubdirs createallsubdirs
+; Plugins
+Source: "..\publish\win-x64\Tools\Plugins\**";   DestDir: "{app}\Tools\Plugins"; Flags: ignoreversion recursesubdirs createallsubdirs skipifsourcedoesntexist
 
 ; FFmpeg
-Source: "..\Tools\FFMPEG\ffmpeg.exe"; DestDir: "{app}\Tools\FFMPEG"; Flags: ignoreversion
+Source: "..\Tools\FFMPEG\ffmpeg.exe";             DestDir: "{app}\Tools\FFMPEG"; Flags: ignoreversion
 
-; Updater — bundled, tidak perlu download terpisah
+; Updater
 Source: "..\publish\win-x64\Tools\Updater\ZeroMix-Updater.exe"; DestDir: "{app}\Tools\Updater"; Flags: ignoreversion skipifsourcedoesntexist
 
-; Scripts
-Source: "..\Scripts\zeromix-update.bat"; DestDir: "{app}"; Flags: ignoreversion skipifsourcedoesntexist
-Source: "..\Scripts\zeromix-update.ps1"; DestDir: "{app}"; Flags: ignoreversion skipifsourcedoesntexist
+; Virtual Assistant — model Live2D, thumbnails, html viewer
+Source: "..\src\Virtual_Assisten\*";              DestDir: "{app}\Virtual_Assisten"; Flags: ignoreversion recursesubdirs createallsubdirs skipifsourcedoesntexist
 
-; Documentation — hanya LICENSE, tidak perlu Privacy.txt dan Readme di install dir
+; Documentation
 Source: "..\LICENSE.txt"; DestDir: "{app}"; Flags: ignoreversion
 
 [Icons]
