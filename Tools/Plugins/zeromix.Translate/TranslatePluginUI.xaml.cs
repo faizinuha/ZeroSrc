@@ -22,19 +22,20 @@ namespace ZeroMix.Plugins.Translate
         {
             if (PowerSwitch.IsChecked == true)
             {
-                // Engine Start
                 _coreEngine = new RealTimeTranslator();
                 _coreEngine.OnTranslated += CoreEngine_OnTranslated;
                 _coreEngine.OnError += CoreEngine_OnError;
-                
                 UpdateEngineConfig();
                 UpdateStatus();
-                
-                LogMsg("[OK] Engine V2 STARTED. Proteksi tabrakan ketikan AKTIF.");
+                LogMsg("[OK] Engine V2 STARTED.");
+
+                // Aktifkan keyboard hook hanya jika toggle keyboard ON
+                if (KeyboardTranslateToggle?.IsChecked == true)
+                    _coreEngine.EnableKeyboardHook();
             }
             else
             {
-                // Engine Stop
+                _coreEngine?.DisableKeyboardHook();
                 _coreEngine?.Dispose();
                 _coreEngine = null;
                 _bubbleEngine?.Dispose();
@@ -65,15 +66,27 @@ namespace ZeroMix.Plugins.Translate
         {
             UpdateFeatureCount();
             UpdateStatus();
-            
-            // Update bubble time panel visibility
-            if (BubbleModeSwitch.IsChecked == true)
+
+            // Keyboard toggle — install/uninstall hook sesuai state
+            if (sender == KeyboardTranslateToggle && _coreEngine != null)
             {
-                BubbleTimePanel.Visibility = Visibility.Visible;
+                if (KeyboardTranslateToggle.IsChecked == true)
+                {
+                    _coreEngine.EnableKeyboardHook();
+                    LogMsg("[KEYBOARD] Keyboard translate AKTIF.");
+                }
+                else
+                {
+                    _coreEngine.DisableKeyboardHook();
+                    LogMsg("[KEYBOARD] Keyboard translate NONAKTIF.");
+                }
             }
-            else
+
+            // Bubble toggle
+            if (BubbleModeSwitch != null)
             {
-                BubbleTimePanel.Visibility = Visibility.Collapsed;
+                BubbleTimePanel.Visibility = BubbleModeSwitch.IsChecked == true
+                    ? Visibility.Visible : Visibility.Collapsed;
             }
         }
 
@@ -171,10 +184,32 @@ namespace ZeroMix.Plugins.Translate
 
         private void SwapBtn_Click(object sender, RoutedEventArgs e)
         {
-            int s = ComboSource.SelectedIndex;
-            int t = ComboTarget.SelectedIndex;
-            ComboSource.SelectedIndex = t;
-            ComboTarget.SelectedIndex = s;
+            // Ambil tag (language code) dari item yang sedang dipilih
+            string srcTag = (ComboSource.SelectedItem as ComboBoxItem)?.Tag?.ToString() ?? "id";
+            string tgtTag = (ComboTarget.SelectedItem as ComboBoxItem)?.Tag?.ToString() ?? "en";
+
+            // Cari item di ComboSource yang tag-nya = tgtTag, set sebagai selected
+            foreach (ComboBoxItem item in ComboSource.Items)
+            {
+                if (item.Tag?.ToString() == tgtTag)
+                {
+                    ComboSource.SelectedItem = item;
+                    break;
+                }
+            }
+
+            // Cari item di ComboTarget yang tag-nya = srcTag
+            foreach (ComboBoxItem item in ComboTarget.Items)
+            {
+                if (item.Tag?.ToString() == srcTag)
+                {
+                    ComboTarget.SelectedItem = item;
+                    break;
+                }
+            }
+
+            UpdateEngineConfig();
+            LogMsg($"[SWAP] {srcTag} ⇄ {tgtTag}");
         }
 
         private void PurgeBtn_Click(object sender, RoutedEventArgs e)
@@ -185,32 +220,32 @@ namespace ZeroMix.Plugins.Translate
 
         private void BubbleModeSwitch_Click(object sender, RoutedEventArgs e)
         {
-            if (_coreEngine == null) return;
-            
             if (BubbleModeSwitch.IsChecked == true)
             {
+                if (_coreEngine == null)
+                {
+                    LogMsg("[BUBBLE] Aktifkan Engine terlebih dahulu!");
+                    BubbleModeSwitch.IsChecked = false;
+                    return;
+                }
+
                 _bubbleEngine?.Dispose();
                 _bubbleEngine = new SelectionBubble(_coreEngine);
                 _bubbleEngine.SourceLang = (ComboSource?.SelectedItem as ComboBoxItem)?.Tag?.ToString() ?? "auto";
                 _bubbleEngine.TargetLang = (ComboTarget?.SelectedItem as ComboBoxItem)?.Tag?.ToString() ?? "en";
                 _bubbleEngine.BubbleDisplaySeconds = (int)(BubbleTimeSlider?.Value ?? 4);
                 _bubbleEngine.OnLog += (msg) => Dispatcher.Invoke(() => LogMsg(msg));
-                
-                // Show bubble time slider
                 BubbleTimePanel.Visibility = Visibility.Visible;
-                
-                LogMsg("[BUBBLE] Selection Bubble AKTIF — highlight + Ctrl+C untuk translate.");
+                LogMsg("[BUBBLE] AKTIF — drag teks untuk translate.");
             }
             else
             {
                 _bubbleEngine?.Dispose();
                 _bubbleEngine = null;
-                
-                // Hide bubble time slider
                 BubbleTimePanel.Visibility = Visibility.Collapsed;
-                
-                LogMsg("[BUBBLE] Selection Bubble NONAKTIF.");
+                LogMsg("[BUBBLE] NONAKTIF.");
             }
+            UpdateFeatureCount();
         }
 
         private void BubbleTimeSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)

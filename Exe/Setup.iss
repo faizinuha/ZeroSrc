@@ -5,7 +5,7 @@
 ; --- App Identity ---
 AppId={{ZeroMix-v2-ZeroMix-identifier}}
 AppName=ZeroMix
-#define AppVersion "5.8.0"
+#define AppVersion "6.0.0"
 AppVersion={#AppVersion}
 VersionInfoVersion={#AppVersion}.0
 VersionInfoCompany=Frieren
@@ -76,6 +76,9 @@ Source: "..\publish\win-x64\Tools\Plugins\**"; DestDir: "{app}\Tools\Plugins"; F
 
 ; FFmpeg
 Source: "..\Tools\FFMPEG\ffmpeg.exe"; DestDir: "{app}\Tools\FFMPEG"; Flags: ignoreversion
+
+; Updater — bundled, tidak perlu download terpisah
+Source: "..\publish\win-x64\Tools\Updater\ZeroMix-Updater.exe"; DestDir: "{app}\Tools\Updater"; Flags: ignoreversion skipifsourcedoesntexist
 
 ; Scripts
 Source: "..\Scripts\zeromix-update.bat"; DestDir: "{app}"; Flags: ignoreversion skipifsourcedoesntexist

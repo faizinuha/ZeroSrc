@@ -14,7 +14,7 @@
         Title="ZeroMix"
         Icon="../Assets/Icons/zeromix.ico"
         Height="750"
-        Width="1150"
+        Width="900"
         MinHeight="600"
         MinWidth="900"
         WindowStartupLocation="CenterScreen"
@@ -888,7 +888,7 @@
                                                                Margin="0,0,0,6"/>
                                                     <StackPanel Orientation="Horizontal">
                                                         <TextBlock x:Name="VersionText"
-                                                                   Text="5.8.0"
+                                                                   Text="6.0.0"
                                                                    FontSize="18"
                                                                    FontWeight="Bold"
                                                                    Foreground="White"

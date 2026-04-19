@@ -285,12 +285,12 @@
                                 <StackPanel Grid.Column="0">
                                     <TextBlock Text="�️" FontSize="14" Margin="0,0,0,3"/>
                                     <TextBlock Text="Bubble" Foreground="White" FontSize="11" FontWeight="SemiBold"/>
-                                    <TextBlock Text="Drag to translate" Foreground="{StaticResource SubTextBrush}" FontSize="9"/>
+                                    <TextBlock Text="Shift+Drag to translate" Foreground="{StaticResource SubTextBrush}" FontSize="9"/>
                                 </StackPanel>
                                 <CheckBox x:Name="BubbleModeSwitch" Grid.Column="1"
                                           VerticalAlignment="Top" Margin="0,2,0,0"
                                           Style="{StaticResource ModernCheckBox}"
-                                          Checked="FeatureToggle_Changed" Unchecked="FeatureToggle_Changed"/>
+                                          Checked="BubbleModeSwitch_Click" Unchecked="BubbleModeSwitch_Click"/>
                             </Grid>
                         </Border>
 

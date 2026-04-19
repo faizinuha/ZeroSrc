@@ -47,11 +47,28 @@ namespace ZeroMix.Plugins.Translate
         public RealTimeTranslator()
         {
             _proc = HookCallback;
-            _hookID = SetHook(_proc);
+            // Hook TIDAK dipasang di constructor — dipasang manual via EnableKeyboardHook()
+            // agar bisa dikontrol dari UI toggle
 
             _debounceTimer = new System.Timers.Timer(DebounceMs);
             _debounceTimer.AutoReset = false;
             _debounceTimer.Elapsed += async (s, e) => await TriggerTranslationAsync();
+        }
+
+        /// <summary>Pasang keyboard hook — panggil saat toggle Keyboard diaktifkan</summary>
+        public void EnableKeyboardHook()
+        {
+            if (_hookID != IntPtr.Zero) return; // sudah terpasang
+            _hookID = SetHook(_proc);
+        }
+
+        /// <summary>Lepas keyboard hook — panggil saat toggle Keyboard dinonaktifkan</summary>
+        public void DisableKeyboardHook()
+        {
+            if (_hookID == IntPtr.Zero) return;
+            UnhookWindowsHookEx(_hookID);
+            _hookID = IntPtr.Zero;
+            ClearBuffer();
         }
 
         private IntPtr SetHook(LowLevelKeyboardProc proc)

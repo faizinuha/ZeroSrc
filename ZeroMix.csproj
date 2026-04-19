@@ -9,7 +9,7 @@
     <UseWindowsForms>true</UseWindowsForms>
     <ApplicationIcon>Assets\Icons\zeromix.ico</ApplicationIcon>
     <EnableWindowsTargeting>true</EnableWindowsTargeting>
-    <Version>5.8.0</Version>
+    <Version>6.0.0</Version>
     
     <!-- Optimasi Ukuran & Portabilitas (Self-Contained & Kompresi) -->
     <PublishSingleFile>true</PublishSingleFile>
@@ -27,6 +27,15 @@
     <None Remove="ZeroMix.Installer\**" />
     <Page Remove="ZeroMix.Installer\**" />
     <Content Remove="ZeroMix.Installer\**" />
+  </ItemGroup>
+
+  <!-- Exclude Tools/Updater source dari compile ZeroMix utama -->
+  <ItemGroup>
+    <Compile Remove="Tools\Updater\**" />
+    <EmbeddedResource Remove="Tools\Updater\**" />
+    <None Remove="Tools\Updater\**" />
+    <Page Remove="Tools\Updater\**" />
+    <Content Remove="Tools\Updater\**" />
   </ItemGroup>
 
   <!-- Mode Debug: Simbol Aktif untuk mempermudah perbaikan -->
