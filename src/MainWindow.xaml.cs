@@ -43,7 +43,7 @@ namespace ZeroMix
     
     public partial class MainWindow : Window, ZeroMix.Plugins.IZeroMixHost
     {
-        private const string CURRENT_VERSION = "5.8.0";
+        private const string CURRENT_VERSION = "6.0.0";
         
         // Windows API for Taskbar transparency
         [DllImport("user32.dll", SetLastError = true)]
@@ -2113,108 +2113,26 @@ end";
 
         private async void CheckUpdateBtn_Click(object sender, RoutedEventArgs e)
         {
-            CheckUpdateBtn.IsEnabled = false;
-            CheckUpdateBtn.Content = "Checking...";
-            
-            try
+            // Launch ZeroMix-Updater.exe yang sudah di-bundle dalam app
+            string updaterExe = System.IO.Path.Combine(
+                AppDomain.CurrentDomain.BaseDirectory, "Tools", "Updater", "ZeroMix-Updater.exe");
+
+            if (System.IO.File.Exists(updaterExe))
             {
-                using (HttpClient client = new HttpClient())
+                Process.Start(new ProcessStartInfo
                 {
-                    // GitHub API requires User-Agent
-                    client.DefaultRequestHeaders.Add("User-Agent", "ZeroMix-Updater");
-                    
-                    // Ganti URL ini dengan URL repo Kakak jika sudah ada
-                    string url = "https://api.github.com/repos/faizinuha/ZeroMix/releases/latest";
-                    var response = await client.GetStringAsync(url);
-                    
-                    using (JsonDocument doc = JsonDocument.Parse(response))
-                    {
-                        string latestVersion = doc.RootElement.GetProperty("tag_name").GetString()?.Replace("v", "") ?? "0.0.0";
-                        string downloadUrl = doc.RootElement.GetProperty("assets")[0].GetProperty("browser_download_url").GetString() ?? "";
-                        
-                        if (IsNewerVersion(latestVersion, CURRENT_VERSION))
-                        {
-                            UpdateBadge.Visibility = Visibility.Visible;
-                            // Tampilkan badge di sidebar
-                            if (SidebarUpdateDot != null) SidebarUpdateDot.Visibility = Visibility.Visible;
-                            if (SidebarUpdateBadge != null) SidebarUpdateBadge.Visibility = Visibility.Visible;
-                            var result = System.Windows.MessageBox.Show(
-                                $"Versi baru tersedia: v{latestVersion}\n\nApakah Kakak ingin download sekarang?", 
-                                "ZeroMix Update", 
-                                MessageBoxButton.YesNo, 
-                                MessageBoxImage.Information);
-
-                        if (result == MessageBoxResult.Yes)
-                            {
-                                // Jalankan updater script di terminal
-                                string updaterScript = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "zeromix-update.bat");
-                                
-                                if (System.IO.File.Exists(updaterScript))
-                                {
-                                    var processInfo = new ProcessStartInfo
-                                    {
-                                        FileName = "cmd.exe",
-                                        Arguments = $"/c \"{updaterScript}\"",
-                                        UseShellExecute = true,
-                                        CreateNoWindow = false,
-                                        WindowStyle = ProcessWindowStyle.Normal
-                                    };
-                                    
-                                    try
-                                    {
-                                        Process.Start(processInfo);
-                                        System.Windows.MessageBox.Show(
-                                            "Updater dimulai! Proses update akan berjalan di terminal.\n\n" +
-                                            "ZeroMix akan restart otomatis setelah instalasi selesai.",
-                                            "Update Started",
-                                            MessageBoxButton.OK,
-                                            MessageBoxImage.Information);
-                                    }
-                                    catch (Exception ex)
-                                    {
-                                        System.Windows.MessageBox.Show(
-                                            $"Gagal menjalankan updater: {ex.Message}\n\nCoba download manual dari GitHub.",
-                                            "Update Error",
-                                            MessageBoxButton.OK,
-                                            MessageBoxImage.Error);
-                                    }
-                                }
-                                else
-                                {
-                                    // Fallback ke download manual
-                                    Process.Start(new ProcessStartInfo(downloadUrl) { UseShellExecute = true });
-                                }
-                            }
-                        }
-                        else
-                        {
-                            // Versi sama — tawarkan reinstall untuk perbaiki instalasi rusak
-                            var result = System.Windows.MessageBox.Show(
-                                $"ZeroMix sudah versi terbaru (v{latestVersion}) 😎\n\nIngin reinstall untuk memperbaiki instalasi yang rusak?",
-                                "Up to Date", MessageBoxButton.YesNo, MessageBoxImage.Information);
-
-                            if (result == MessageBoxResult.Yes)
-                            {
-                                string updaterScript = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "zeromix-update.bat");
-                                if (System.IO.File.Exists(updaterScript))
-                                    Process.Start(new ProcessStartInfo { FileName = "cmd.exe", Arguments = $"/c \"{updaterScript}\"", UseShellExecute = true });
-                                else
-                                    Process.Start(new ProcessStartInfo(downloadUrl) { UseShellExecute = true });
-                            }
-                        }
-                    }
-                }
+                    FileName        = updaterExe,
+                    UseShellExecute = true
+                });
             }
-            catch (Exception ex)
+            else
             {
-                System.Windows.MessageBox.Show("Gagal cek update. Pastikan internet Kakak nyala ya! 🌐", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-                Debug.WriteLine("[UPDATE] Error: " + ex.Message);
+                // Fallback: buka GitHub releases di browser
+                Process.Start(new ProcessStartInfo(
+                    "https://github.com/faizinuha/ZeroMix/releases/latest")
+                    { UseShellExecute = true });
             }
-            finally
-            {
-                CheckUpdateBtn.IsEnabled = true;
-                CheckUpdateBtn.Content = "Check for Updates";
-            }
+            await Task.CompletedTask;
         }
 
         private bool IsNewerVersion(string latest, string current)

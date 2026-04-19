@@ -182,7 +182,35 @@ jobs:
         Compress-Archive -Path $setupDst -DestinationPath "ZeroMix-Setup.zip" -Force
         Write-Host "✅ ZeroMix-Setup.zip ready ($([math]::Round((Get-Item 'ZeroMix-Setup.zip').Length / 1MB, 1)) MB)"
 
-    # ─── STEP 7: Build ZeroMix.Installer (bootstrap) ────────────────────────
+    # ─── STEP 7: Build ZeroMix.Updater dan bundle ke dalam app ─────────────
+    - name: 🔧 Build ZeroMix.Updater (bundled)
+      shell: pwsh
+      run: |
+        $VER = "${{ steps.version.outputs.version }}" -replace '^v', ''
+
+        # Update CurrentVer di source sebelum build
+        $csFile = "Tools/Updater/MainWindow.xaml.cs"
+        $content = Get-Content $csFile -Raw
+        $content = $content -replace 'private const string CurrentVer\s*=\s*"[\d\.]+"', "private const string CurrentVer  = `"$VER`""
+        Set-Content $csFile $content -Encoding UTF8
+
+        # Publish updater sebagai single exe
+        dotnet publish Tools/Updater/ZeroMix.Updater.csproj `
+          -c Release -r win-x64 --self-contained true `
+          -p:PublishSingleFile=true `
+          -p:Version=$VER `
+          -o updater_output
+
+        # Copy ke publish output agar ikut ter-bundle di installer
+        $exeSrc = "updater_output/ZeroMix-Updater.exe"
+        $destDir = "publish/win-x64/Tools/Updater"
+        if (Test-Path $exeSrc) {
+          New-Item -ItemType Directory -Force -Path $destDir | Out-Null
+          Copy-Item $exeSrc "$destDir/ZeroMix-Updater.exe" -Force
+          Write-Host "✅ Updater bundled ke publish output ($([math]::Round((Get-Item $exeSrc).Length / 1MB, 1)) MB)"
+        } else {
+          Write-Host "⚠️  Updater build output tidak ditemukan"
+        }
     # Bootstrap ini di-build setiap release agar versi di UI selalu update
     # Hasilnya di-upload ke Releases sebagai file terpisah yang kecil (~10MB)
     # CATATAN: ZeroMix.Installer harus ada di dalam repo di folder ZeroMix.Installer/

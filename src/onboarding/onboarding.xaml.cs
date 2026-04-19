@@ -18,14 +18,17 @@ namespace ZeroMix.Onboarding
         private int _currentSlideIndex = 0;
         private const int TotalSlides = 7;
         private List<Grid> _slides = new List<Grid>();
-        private static readonly HttpClient _httpClient = new HttpClient();
+        private static readonly HttpClient _httpClient = new HttpClient
+        {
+            Timeout = TimeSpan.FromSeconds(8) // batas waktu agar tidak hang lama
+        };
 
         public OnboardingWindow()
         {
             InitializeComponent();
             InitializeSlides();
-            LoadChangelog();
             UpdateUI();
+            // Changelog dimuat lazy — hanya saat user sampai slide 5
         }
 
         private void InitializeSlides()
@@ -46,6 +49,10 @@ namespace ZeroMix.Onboarding
                 _currentSlideIndex++;
                 UpdateUI();
                 PlayTransition();
+
+                // Load changelog lazy hanya saat slide 5 pertama kali dibuka
+                if (_currentSlideIndex == 5 && ReleasesParams.ItemsSource == null)
+                    _ = LoadChangelogAsync();
             }
             else
             {
@@ -77,12 +84,14 @@ namespace ZeroMix.Onboarding
             if (_currentSlideIndex == TotalSlides - 1)
             {
                 BtnNext.Content = "🚀 Get Started";
-                BtnNext.Background = System.Windows.Media.Brushes.DeepSkyBlue;
+                BtnNext.Background = new System.Windows.Media.SolidColorBrush(
+                    System.Windows.Media.Color.FromRgb(10, 132, 255));
             }
             else
             {
                 BtnNext.Content = "Next →";
-                BtnNext.Background = (System.Windows.Media.Brush)FindResource("NavSelectedBrush") ?? new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(10, 132, 255));
+                BtnNext.Background = new System.Windows.Media.SolidColorBrush(
+                    System.Windows.Media.Color.FromRgb(10, 132, 255));
             }
 
             SlideIndicator.Text = $"STEP {_currentSlideIndex + 1} OF {TotalSlides}";
@@ -108,7 +117,7 @@ namespace ZeroMix.Onboarding
             this.Close();
         }
 
-        private async void LoadChangelog()
+        private async Task LoadChangelogAsync()
         {
             try
             {
@@ -117,28 +126,22 @@ namespace ZeroMix.Onboarding
 
                 var url = "https://api.github.com/repos/faizinuha/ZeroMix/releases";
                 var response = await _httpClient.GetAsync(url);
-
                 if (!response.IsSuccessStatusCode) return;
 
                 var json = await response.Content.ReadAsStringAsync();
                 var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
                 var releases = JsonSerializer.Deserialize<List<GithubRelease>>(json, options);
-
                 if (releases == null || releases.Count == 0) return;
 
                 foreach (var release in releases)
                 {
                     if (!string.IsNullOrWhiteSpace(release.Body))
-                    {
                         release.Body = release.Body.Replace("### ", "").Replace("## ", "").Replace("**", "").Trim();
-                    }
                 }
 
-                Dispatcher.Invoke(() => {
-                    ReleasesParams.ItemsSource = releases.Take(5);
-                });
+                Dispatcher.Invoke(() => ReleasesParams.ItemsSource = releases.Take(5));
             }
-            catch { /* fail silently */ }
+            catch { /* fail silently — tidak block UI */ }
         }
     }
 

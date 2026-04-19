@@ -5,7 +5,84 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) | [Semantic Ver
 
 ---
 
-## [v5.8.0] - 2026-04-17
+## [v6.5.0] - TBA 🔒
+
+> **Non-publish release** — internal development only
+
+### ✨ Features (Planned)
+- TBA
+
+---
+
+## [v6.4.0] - TBA 🔒
+
+> **Non-publish release** — internal development only
+
+### ✨ Features (Planned)
+- TBA
+
+---
+
+## [v6.3.0] - TBA 🔒
+
+> **Non-publish release** — internal development only
+
+### ✨ Features (Planned)
+- TBA
+
+---
+
+## [v6.2.0] - TBA 🔒
+
+> **Non-publish release** — internal development only
+
+### ✨ Features (Planned)
+- TBA
+
+---
+
+## [v6.1.0] - TBA 🔒
+
+> **Non-publish release** — internal development only
+
+### ✨ Features (Planned)
+- **Custom Cursor System**: Ganti desain cursor secara instan langsung dari ZeroMix — upload file `.cur` / `.ani` atau pilih dari preset bawaan. Tidak perlu buka Mouse Properties Windows secara manual. Apply & revert dengan satu klik.
+
+---
+
+## [v6.0.0] - 2026-04-19
+
+### ✨ Features
+
+- **Bubble Translate (Ctrl+C)**: Fitur Selection Bubble kini stabil — highlight teks → Ctrl+C → bubble terjemahan muncul otomatis di posisi kursor. Polling clipboard 500ms, support semua aplikasi.
+- **Keyboard Translate Toggle**: Keyboard hook sekarang dikontrol penuh oleh toggle — tidak aktif jika checkbox tidak dicentang. Tidak ada lagi translate yang jalan diam-diam di background.
+- **Swap Language Button Fix**: Tombol `⇄` di Nexus Translator kini berfungsi dengan benar — swap via `Tag` matching bukan `SelectedIndex` yang tidak reliable di custom ComboBox template.
+- **Single Instance Fix (Mutex)**: Perbaikan race condition di Mutex guard — pakai `EnumWindows` untuk cari window handle saat `MainWindowHandle` = zero (proses suspended), mencegah multiple instance ZeroMix berjalan bersamaan.
+- **Onboarding Optimization**: Changelog di onboarding dimuat lazy — hanya saat user membuka slide 5, bukan saat startup. Mengurangi waktu buka onboarding secara signifikan.
+- **ZeroMix Updater (Built-in)**: Ganti `zeromix-update.ps1` + `.bat` dengan `ZeroMix-Updater.exe` — WPF window modern dengan progress bar, speed indicator, dan auto-launch installer. Di-bundle langsung di `Tools/Updater/`, tidak perlu download terpisah. Tombol "Check Update" di UI dan system tray langsung launch updater ini.
+- **Virtual Assistant Bundle Fix**: File model Live2D, thumbnail, dan HTML viewer kini selalu ikut ter-bundle di installer via `Setup.iss` — tidak lagi bergantung pada publish output yang bisa kosong.
+
+### 🐛 Bug Fixes
+
+- **Fix Bubble tidak muncul**: Root cause — `BubbleModeSwitch` di XAML terhubung ke `FeatureToggle_Changed` bukan `BubbleModeSwitch_Click`, sehingga `SelectionBubble` tidak pernah diinisialisasi. Fixed dengan wire event yang benar.
+- **Fix Bubble teks sama tidak bisa translate ulang**: `_lastClipboard` tidak di-reset setelah bubble ditampilkan. Sekarang di-reset agar teks yang sama bisa di-translate lagi.
+- **Fix Keyboard translate jalan walau tidak dicentang**: `RealTimeTranslator` memasang hook di constructor — sekarang hook hanya dipasang via `EnableKeyboardHook()` saat toggle aktif.
+- **Fix ZeroMix Suspended di Task Manager**: Multiple instance karena Mutex check gagal saat `MainWindowHandle` = zero. Ditambahkan `EnumWindows` fallback untuk cari visible window by PID.
+- **Fix Onboarding `FindResource` exception**: `FindResource("NavSelectedBrush")` bisa throw saat resource tidak ada — diganti hardcode warna langsung.
+- **Fix Virtual Assistant tidak ikut installer**: Folder `Virtual_Assisten` tidak ada di publish output — ditambahkan entry eksplisit di `Setup.iss` agar selalu ikut.
+
+### 🔧 Changes
+
+- **Bubble**: Kembali ke mekanisme polling clipboard (original) yang terbukti stabil — lebih reliable dibanding global mouse hook + `SendInput` yang konflik di berbagai aplikasi.
+- **Keyboard Hook**: Dipisah dari constructor ke `EnableKeyboardHook()` / `DisableKeyboardHook()` agar bisa dikontrol dari UI.
+- **Onboarding**: HTTP request changelog dipindah dari constructor ke lazy load, timeout 8 detik.
+- **`-ForceBuild` flag** ditambahkan ke `release-version.ps1` — untuk re-push tag yang sama saat ada hotfix tanpa bump versi.
+- **Hapus `zeromix-update.ps1` & `zeromix-update.bat`**: Digantikan sepenuhnya oleh `ZeroMix-Updater.exe`. Tidak ada terminal hitam lagi saat update.
+- **GitHub Actions**: Tambah step build `ZeroMix.Updater` dan copy ke `publish/win-x64/Tools/Updater/` agar ikut ter-bundle di setiap release.
+
+---
+
+## [v5.8.0]
 
 ### ✨ Features
 
