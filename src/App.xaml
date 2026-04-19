@@ -6,8 +6,8 @@
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
                 <!-- Central Design Tokens & Styles -->
-                <ResourceDictionary Source="../Tools/Plugins/Styles.xaml"/>
-                <ResourceDictionary Source="../Assets/Resources/Locales/en-US.xaml"/>
+                <ResourceDictionary Source="pack://application:,,,/Tools/Plugins/Styles.xaml"/>
+                <ResourceDictionary Source="pack://application:,,,/Assets/Resources/Locales/en-US.xaml"/>
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </Application.Resources>

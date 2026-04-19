@@ -27,7 +27,6 @@ public partial class MainWindow : Window
     {
         InitializeComponent();
 
-        // Load GIF from embedded resource
         var gifUri = new Uri("pack://application:,,,/Load.gif");
         var gifImage = new BitmapImage(gifUri);
         ImageBehavior.SetAnimatedSource(LoadingGif, gifImage);
@@ -39,6 +38,47 @@ public partial class MainWindow : Window
             UpdateProgressFill(ProgressFill.Width == 0 ? 0 :
                 ProgressFill.Width / parent.ActualWidth * 100);
         };
+
+        // Fetch versi & ukuran dari GitHub API
+        _ = FetchLatestVersionAsync();
+    }
+
+    private async Task FetchLatestVersionAsync()
+    {
+        try
+        {
+            using var client = new HttpClient();
+            client.DefaultRequestHeaders.Add("User-Agent", "ZeroMix-Bootstrap/1.0");
+            client.Timeout = TimeSpan.FromSeconds(8);
+
+            var json = await client.GetStringAsync(
+                "https://api.github.com/repos/faizinuha/ZeroMix/releases/latest");
+
+            using var doc = System.Text.Json.JsonDocument.Parse(json);
+            var root = doc.RootElement;
+
+            string tag = root.GetProperty("tag_name").GetString() ?? "";
+            long size = 0;
+
+            foreach (var asset in root.GetProperty("assets").EnumerateArray())
+            {
+                string name = asset.GetProperty("name").GetString() ?? "";
+                if (name.Contains("Setup") && name.EndsWith(".zip"))
+                {
+                    size = asset.GetProperty("size").GetInt64();
+                    break;
+                }
+            }
+
+            string sizeStr = size > 0 ? $"  ·  {size / 1_048_576.0:F0} MB" : "";
+            Dispatcher.Invoke(() =>
+                VersionBadge.Text = $"{tag}{sizeStr}  ·  Windows x64");
+        }
+        catch
+        {
+            Dispatcher.Invoke(() =>
+                VersionBadge.Text = "Latest  ·  Windows x64");
+        }
     }
 
     private void Window_MouseDown(object sender, MouseButtonEventArgs e)
