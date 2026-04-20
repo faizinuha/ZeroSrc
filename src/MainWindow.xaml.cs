@@ -308,13 +308,8 @@ namespace ZeroMix
                 } catch { }
             };
 
-            // Pre-load recording engine to prevent lag with robust FFmpeg path detection
-            Task.Run(() => {
-                try {
-                    string ffmpegPath = ResolveFFmpegPath();
-                    _recordingManager = new RecordingManager(ffmpegPath);
-                } catch { }
-            });
+            // RecordingManager di-init lazy saat user buka halaman Capture
+            // Tidak pre-load di startup agar hemat RAM ~20-30 MB
         }
 
         private string ResolveFFmpegPath()
@@ -1090,7 +1085,18 @@ namespace ZeroMix
             var recorderContent = FindName("RecorderContent") as UIElement;
             if (recorderContent != null) recorderContent.Visibility = Visibility.Visible;
             RecorderButton.Background = (System.Windows.Media.SolidColorBrush)FindResource("NavSelectedBrush");
-            
+
+            // Lazy-init RecordingManager hanya saat halaman Capture dibuka
+            if (_recordingManager == null)
+            {
+                Task.Run(() => {
+                    try {
+                        string ffmpegPath = ResolveFFmpegPath();
+                        _recordingManager = new RecordingManager(ffmpegPath);
+                    } catch { }
+                });
+            }
+
             // Load audio devices & history
             LoadAudioDevices();
             LoadRecordingHistory();
