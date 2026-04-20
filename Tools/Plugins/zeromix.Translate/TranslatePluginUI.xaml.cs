@@ -16,6 +16,62 @@ namespace ZeroMix.Plugins.Translate
         {
             InitializeComponent();
             UpdateFeatureCount();
+
+            // Restore state setelah UI loaded
+            this.Loaded += (s, e) => RestoreState();
+        }
+
+        private void RestoreState()
+        {
+            var state = PluginStateManager.Load();
+            if (!state.TranslateEngine) return;
+
+            // Restore engine
+            PowerSwitch.IsChecked = true;
+            _coreEngine = new RealTimeTranslator();
+            _coreEngine.OnTranslated += CoreEngine_OnTranslated;
+            _coreEngine.OnError += CoreEngine_OnError;
+            UpdateEngineConfig();
+            UpdateStatus();
+            LogMsg("[RESTORE] Engine dipulihkan dari sesi sebelumnya.");
+
+            // Restore keyboard
+            if (state.TranslateKeyboard)
+            {
+                KeyboardTranslateToggle.IsChecked = true;
+                _coreEngine.EnableKeyboardHook();
+            }
+
+            // Restore game mode
+            if (state.TranslateGameMode)
+            {
+                GameModeSwitch.IsChecked = true;
+                _coreEngine.GameMode = true;
+            }
+
+            // Restore bubble
+            if (state.TranslateBubble)
+            {
+                BubbleModeSwitch.IsChecked = true;
+                _bubbleEngine = new SelectionBubble(_coreEngine);
+                _bubbleEngine.SourceLang = (ComboSource?.SelectedItem as ComboBoxItem)?.Tag?.ToString() ?? "auto";
+                _bubbleEngine.TargetLang = (ComboTarget?.SelectedItem as ComboBoxItem)?.Tag?.ToString() ?? "en";
+                _bubbleEngine.BubbleDisplaySeconds = (int)(BubbleTimeSlider?.Value ?? 4);
+                _bubbleEngine.OnLog += (msg) => Dispatcher.Invoke(() => LogMsg(msg));
+                BubbleTimePanel.Visibility = Visibility.Visible;
+            }
+
+            UpdateFeatureCount();
+        }
+
+        private void SaveState()
+        {
+            var state = PluginStateManager.Load();
+            state.TranslateEngine   = PowerSwitch.IsChecked == true;
+            state.TranslateKeyboard = KeyboardTranslateToggle?.IsChecked == true;
+            state.TranslateGameMode = GameModeSwitch?.IsChecked == true;
+            state.TranslateBubble   = BubbleModeSwitch?.IsChecked == true;
+            PluginStateManager.Save(state);
         }
 
         private void PowerSwitch_Click(object sender, RoutedEventArgs e)
@@ -29,7 +85,6 @@ namespace ZeroMix.Plugins.Translate
                 UpdateStatus();
                 LogMsg("[OK] Engine V2 STARTED.");
 
-                // Aktifkan keyboard hook hanya jika toggle keyboard ON
                 if (KeyboardTranslateToggle?.IsChecked == true)
                     _coreEngine.EnableKeyboardHook();
             }
@@ -43,6 +98,7 @@ namespace ZeroMix.Plugins.Translate
                 UpdateStatus();
                 LogMsg("[STOP] Engine DIMATIKAN.");
             }
+            SaveState();
         }
 
         private void ToggleButton_Click(object sender, RoutedEventArgs e)
@@ -67,7 +123,6 @@ namespace ZeroMix.Plugins.Translate
             UpdateFeatureCount();
             UpdateStatus();
 
-            // Keyboard toggle — install/uninstall hook sesuai state
             if (sender == KeyboardTranslateToggle && _coreEngine != null)
             {
                 if (KeyboardTranslateToggle.IsChecked == true)
@@ -82,12 +137,13 @@ namespace ZeroMix.Plugins.Translate
                 }
             }
 
-            // Bubble toggle
             if (BubbleModeSwitch != null)
             {
                 BubbleTimePanel.Visibility = BubbleModeSwitch.IsChecked == true
                     ? Visibility.Visible : Visibility.Collapsed;
             }
+
+            SaveState();
         }
 
         private void UpdateFeatureCount()
@@ -246,6 +302,7 @@ namespace ZeroMix.Plugins.Translate
                 LogMsg("[BUBBLE] NONAKTIF.");
             }
             UpdateFeatureCount();
+            SaveState();
         }
 
         private void BubbleTimeSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
