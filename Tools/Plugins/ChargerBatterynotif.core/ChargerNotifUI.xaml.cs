@@ -38,18 +38,27 @@ namespace ZeroMix.Plugins.ChargerNotif
                 ["Full"]     = SndFull,
             };
 
-            // Default messages
             TxtCharging.Text  = _plugin.MsgCharging;
             TxtUnplugged.Text = _plugin.MsgUnplugged;
             TxtFull.Text      = _plugin.MsgFull;
 
             LoadConfig();
+
+            // Restore toggle state
+            var state = PluginStateManager.Load();
+            ToggleSwitch.IsChecked = state.ChargerNotif;
+            if (state.ChargerNotif) _plugin.Start();
         }
 
         private void ToggleSwitch_Click(object sender, RoutedEventArgs e)
         {
             if (ToggleSwitch.IsChecked == true) _plugin.Start();
             else _plugin.Stop();
+
+            // Simpan state
+            var state = PluginStateManager.Load();
+            state.ChargerNotif = ToggleSwitch.IsChecked == true;
+            PluginStateManager.Save(state);
         }
 
         private void SettingsBtn_Click(object sender, RoutedEventArgs e)

@@ -13,20 +13,23 @@ namespace ZeroMix.Plugins.Battery
             InitializeComponent();
             _plugin.OnBatteryStatusChanged += (percent, isCharging, isGreeting, isPeriodic) => ShowNotification(percent, isCharging, isGreeting, isPeriodic);
             
-            // Fill initial values
-            TxtMorning.Text = _plugin.TextMorning;
+            TxtMorning.Text   = _plugin.TextMorning;
             TxtAfternoon.Text = _plugin.TextAfternoon;
-            TxtEvening.Text = _plugin.TextEvening;
-            TxtNight.Text = _plugin.TextNight;
-            TxtBattWarn.Text = _plugin.TextBatteryWarn;
-            TxtBattCrit.Text = _plugin.TextBatteryCritical;
+            TxtEvening.Text   = _plugin.TextEvening;
+            TxtNight.Text     = _plugin.TextNight;
+            TxtBattWarn.Text  = _plugin.TextBatteryWarn;
+            TxtBattCrit.Text  = _plugin.TextBatteryCritical;
+
+            // Restore toggle state
+            var state = PluginStateManager.Load();
+            BatteryPluginToggle.IsChecked = state.BatteryAssistant;
 
             this.Loaded += async (s, e) => {
                 await System.Threading.Tasks.Task.Delay(800);
-                
                 if (BatteryPluginToggle.IsChecked == true)
                 {
-                    ShowNotification(0, false, true, false); 
+                    _plugin.Start();
+                    ShowNotification(0, false, true, false);
                 }
             };
         }
@@ -38,12 +41,17 @@ namespace ZeroMix.Plugins.Battery
                 await RunPluginProcess("Downloading Mascot Assets...");
                 _plugin.Start();
                 await System.Threading.Tasks.Task.Delay(200);
-                ShowNotification(0, false, true, false); 
+                ShowNotification(0, false, true, false);
             }
             else
             {
                 _plugin.Stop();
             }
+
+            // Simpan state
+            var state = PluginStateManager.Load();
+            state.BatteryAssistant = BatteryPluginToggle.IsChecked == true;
+            PluginStateManager.Save(state);
         }
 
         private void SetupBatteryBtn_Click(object sender, RoutedEventArgs e)
