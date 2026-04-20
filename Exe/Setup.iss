@@ -83,8 +83,8 @@ Source: "..\Tools\FFMPEG\ffmpeg.exe";             DestDir: "{app}\Tools\FFMPEG";
 ; Updater
 Source: "..\publish\win-x64\Tools\Updater\ZeroMix-Updater.exe"; DestDir: "{app}\Tools\Updater"; Flags: ignoreversion skipifsourcedoesntexist
 
-; Virtual Assistant — model Live2D, thumbnails, html viewer
-Source: "..\src\Virtual_Assisten\*";              DestDir: "{app}\Virtual_Assisten"; Flags: ignoreversion recursesubdirs createallsubdirs skipifsourcedoesntexist
+; Virtual Assistant — model Live2D, thumbnails, html viewer (exclude source code)
+Source: "..\src\Virtual_Assisten\*";              DestDir: "{app}\Virtual_Assisten"; Flags: ignoreversion recursesubdirs createallsubdirs skipifsourcedoesntexist; Excludes: "*.cs,*.xaml,*.md,*.txt,*.bak,*.vtube.json,*.cdi3.json"
 
 ; Documentation
 Source: "..\LICENSE.txt"; DestDir: "{app}"; Flags: ignoreversion
