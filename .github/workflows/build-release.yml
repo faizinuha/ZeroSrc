@@ -212,6 +212,7 @@ jobs:
         Write-Host "✅ ZeroMix-Setup.zip ready ($([math]::Round((Get-Item 'ZeroMix-Setup.zip').Length / 1MB, 1)) MB)"
 
     # ─── STEP 7: Build ZeroMix.Installer (Bootstrap) ───────────────────────
+    - name: 🔧 Build ZeroMix.Installer (Bootstrap)
       shell: pwsh
       run: |
         $VER = "${{ steps.version.outputs.version }}"
