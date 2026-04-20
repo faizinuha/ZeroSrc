@@ -299,12 +299,13 @@
         if (!assets) return;
 
         const assetsListDiv = document.getElementById("assets-list");
-        assetsListDiv.innerHTML = ""; // Clear previous assets
+        assetsListDiv.innerHTML = "";
 
         assets.forEach((asset) => {
           const sizeInMB = (asset.size / 1024 / 1024).toFixed(2);
           const assetLink = document.createElement("a");
-          assetLink.href = asset.browser_download_url;
+          // Redirect ke ThanksYou page, bawa download URL sebagai query param
+          assetLink.href = `ThanksYouForDownload.html?url=${encodeURIComponent(asset.browser_download_url)}&name=${encodeURIComponent(asset.name)}`;
           assetLink.target = "_blank";
           assetLink.rel = "noopener noreferrer";
           assetLink.classList.add("asset-link");
@@ -382,7 +383,7 @@
             let downloadHtml = "";
             if (release.assets && release.assets.length > 0) {
               if (release.assets.length === 1) {
-                downloadHtml = `<a href="${release.assets[0].browser_download_url}" target="_blank" rel="noopener noreferrer" class="btn">Download</a>`;
+                downloadHtml = `<a href="ThanksYouForDownload.html?url=${encodeURIComponent(release.assets[0].browser_download_url)}&name=${encodeURIComponent(release.assets[0].name)}" target="_blank" rel="noopener noreferrer" class="btn">Download</a>`;
               } else {
                 downloadHtml = `<button class="btn" onclick="showAssetsSidebar('${release.id}')">View Downloads</button>`;
               }

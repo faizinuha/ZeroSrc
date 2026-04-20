@@ -68,10 +68,12 @@ jobs:
         Write-Host "⏳ Publishing application..."
         dotnet publish ZeroMix.csproj -c Release -o publish/win-x64 `
           -p:Version=$VER `
+          -p:PublishSingleFile=false `
+          -p:PublishReadyToRun=true `
           --self-contained true -r win-x64
         Write-Host "✅ Publish complete"
 
-    # ─── STEP 3: Download FFMPEG (dibutuhkan oleh ZeroMix) ──────────────────
+    # ─── STEP 3: Download FFMPEG ────────────────────────────────────────────
     - name: 🎬 Download FFMPEG
       shell: pwsh
       run: |
@@ -86,7 +88,34 @@ jobs:
         Remove-Item "ffmpeg.zip" -Force
         Write-Host "✅ FFMPEG ready"
 
-    # ─── STEP 4: Build Inno Setup installer (Setup.exe besar) ───────────────
+    # ─── STEP 4: Build ZeroMix.Updater — HARUS sebelum Inno Setup ──────────
+    - name: 🔧 Build ZeroMix.Updater (bundled)
+      shell: pwsh
+      run: |
+        $VER = "${{ steps.version.outputs.version }}" -replace '^v', ''
+
+        $csFile = "Tools/Updater/MainWindow.xaml.cs"
+        $content = Get-Content $csFile -Raw
+        $content = $content -replace 'private const string CurrentVer\s*=\s*"[\d\.]+"', "private const string CurrentVer  = `"$VER`""
+        Set-Content $csFile $content -Encoding UTF8
+
+        dotnet publish Tools/Updater/ZeroMix.Updater.csproj `
+          -c Release -r win-x64 --self-contained true `
+          -p:PublishSingleFile=true `
+          -p:Version=$VER `
+          -o updater_output
+
+        $exeSrc = "updater_output/ZeroMix-Updater.exe"
+        $destDir = "publish/win-x64/Tools/Updater"
+        if (Test-Path $exeSrc) {
+          New-Item -ItemType Directory -Force -Path $destDir | Out-Null
+          Copy-Item $exeSrc "$destDir/ZeroMix-Updater.exe" -Force
+          Write-Host "✅ Updater bundled ($([math]::Round((Get-Item $exeSrc).Length / 1MB, 1)) MB) → $destDir"
+        } else {
+          Write-Host "⚠️  Updater build output tidak ditemukan"
+        }
+
+    # ─── STEP 5: Build Inno Setup installer ─────────────────────────────────
     - name: 🛠️ Build Inno Setup Installer
       uses: Minionguyjpro/Inno-Setup-Action@v1.2.7
       with:
@@ -182,39 +211,7 @@ jobs:
         Compress-Archive -Path $setupDst -DestinationPath "ZeroMix-Setup.zip" -Force
         Write-Host "✅ ZeroMix-Setup.zip ready ($([math]::Round((Get-Item 'ZeroMix-Setup.zip').Length / 1MB, 1)) MB)"
 
-    # ─── STEP 7: Build ZeroMix.Updater dan bundle ke dalam app ─────────────
-    - name: 🔧 Build ZeroMix.Updater (bundled)
-      shell: pwsh
-      run: |
-        $VER = "${{ steps.version.outputs.version }}" -replace '^v', ''
-
-        # Update CurrentVer di source sebelum build
-        $csFile = "Tools/Updater/MainWindow.xaml.cs"
-        $content = Get-Content $csFile -Raw
-        $content = $content -replace 'private const string CurrentVer\s*=\s*"[\d\.]+"', "private const string CurrentVer  = `"$VER`""
-        Set-Content $csFile $content -Encoding UTF8
-
-        # Publish updater sebagai single exe
-        dotnet publish Tools/Updater/ZeroMix.Updater.csproj `
-          -c Release -r win-x64 --self-contained true `
-          -p:PublishSingleFile=true `
-          -p:Version=$VER `
-          -o updater_output
-
-        # Copy ke publish output agar ikut ter-bundle di installer
-        $exeSrc = "updater_output/ZeroMix-Updater.exe"
-        $destDir = "publish/win-x64/Tools/Updater"
-        if (Test-Path $exeSrc) {
-          New-Item -ItemType Directory -Force -Path $destDir | Out-Null
-          Copy-Item $exeSrc "$destDir/ZeroMix-Updater.exe" -Force
-          Write-Host "✅ Updater bundled ke publish output ($([math]::Round((Get-Item $exeSrc).Length / 1MB, 1)) MB)"
-        } else {
-          Write-Host "⚠️  Updater build output tidak ditemukan"
-        }
-    # Bootstrap ini di-build setiap release agar versi di UI selalu update
-    # Hasilnya di-upload ke Releases sebagai file terpisah yang kecil (~10MB)
-    # CATATAN: ZeroMix.Installer harus ada di dalam repo di folder ZeroMix.Installer/
-    - name: 🔧 Build ZeroMix.Installer (Bootstrap)
+    # ─── STEP 7: Build ZeroMix.Installer (Bootstrap) ───────────────────────
       shell: pwsh
       run: |
         $VER = "${{ steps.version.outputs.version }}"

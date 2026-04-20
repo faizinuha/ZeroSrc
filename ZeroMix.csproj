@@ -12,7 +12,8 @@
     <Version>6.0.0</Version>
     
     <!-- Optimasi Ukuran & Portabilitas (Self-Contained & Kompresi) -->
-    <PublishSingleFile>true</PublishSingleFile>
+    <PublishSingleFile>false</PublishSingleFile>
+    <PublishReadyToRun>true</PublishReadyToRun>
     <SelfContained>true</SelfContained>
     <RuntimeIdentifier>win-x64</RuntimeIdentifier>
     <PublishTrimmed>false</PublishTrimmed>
