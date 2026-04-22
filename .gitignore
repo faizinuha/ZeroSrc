@@ -35,3 +35,5 @@ ffmpeg.zip
 ffmpeg_temp/
 cert.pfx
 config.json
+.kiro
+kiro

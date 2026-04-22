@@ -96,26 +96,19 @@ namespace ZeroMix.ZeroShell
         private static readonly string[] LaravelVersions = { "10", "11", "12" };
         private static readonly string[] PathOptions = { "Current Directory", "Desktop", "Documents", "Custom Path..." };
 
-        // WDM Mode
-        private bool _isSelectingWDM = false;
-        private static readonly string[] WDMOptions = {
-            "Glass Explorer",
-            "Glass Taskbar",
-            "Glass Start Menu",
-            "Glass Notification Panel",
-            "Hide Desktop Icons",
-            "Minimalist Ultimate (Apply All)",
-            "Restore to Normal"
-        };
+        private WdmWindow? _wdmWindow;
+        private ZeroMix.Widgets.DesktopWidget? _desktopWidget;
+        private readonly StartMenuInterceptor _startMenuInterceptor = new();
 
-        // WDM State Persistence
-        private bool _isExplorerWdmEnabled = false;
-        private bool _isTaskbarWdmEnabled = false;
-        private bool _isStartMenuWdmEnabled = false;
-        private bool _isNotifWdmEnabled = false;
-        private bool _isIconsHidden = false;
-        private System.Windows.Threading.DispatcherTimer? _wdmPulseTimer;
-        private readonly string _wdmFilePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "ZeroShell", "wdm.json");
+        public void EnableStartMenuInterceptor()
+        {
+            if (!_startMenuInterceptor.IsEnabled)
+            {
+                _startMenuInterceptor.Enable();
+                if (_activeTab != null)
+                    AppendToTab(_activeTab, "\n  🍎 ZeroLaunchpad enabled via macOS Dock preset.\n\n", "#00D4FF");
+            }
+        }
 
         public string? AutoRunCommand { get; set; }
 
@@ -224,7 +217,6 @@ namespace ZeroMix.ZeroShell
                     _currentLayout = JsonSerializer.Deserialize<int>(json);
                 }
             } catch { }
-            LoadWdmState();
         }
 
         private void SaveSettings()
@@ -237,40 +229,6 @@ namespace ZeroMix.ZeroShell
             } catch { }
         }
         #endregion
-
-        private void SaveWdmState()
-        {
-            try {
-                string dir = Path.GetDirectoryName(_wdmFilePath) ?? "";
-                if (!Directory.Exists(dir)) Directory.CreateDirectory(dir);
-                var state = new Dictionary<string, bool> {
-                    ["explorer"] = _isExplorerWdmEnabled,
-                    ["taskbar"]  = _isTaskbarWdmEnabled,
-                    ["startmenu"] = _isStartMenuWdmEnabled,
-                    ["notif"]    = _isNotifWdmEnabled,
-                    ["icons"]    = _isIconsHidden
-                };
-                File.WriteAllText(_wdmFilePath, JsonSerializer.Serialize(state));
-            } catch { }
-        }
-
-        private void LoadWdmState()
-        {
-            try {
-                if (!File.Exists(_wdmFilePath)) return;
-                var state = JsonSerializer.Deserialize<Dictionary<string, bool>>(File.ReadAllText(_wdmFilePath));
-                if (state == null) return;
-
-                if (state.TryGetValue("explorer",  out bool exp)  && exp) { _isExplorerWdmEnabled  = true; ShellHelper.ApplyExplorerTransparency(); }
-                if (state.TryGetValue("taskbar",   out bool tb)   && tb)  { _isTaskbarWdmEnabled   = true; ShellHelper.ApplyTaskbarTransparency(); }
-                if (state.TryGetValue("startmenu", out bool sm)   && sm)  { _isStartMenuWdmEnabled = true; ShellHelper.ApplyStartMenuGlass(); }
-                if (state.TryGetValue("notif",     out bool nf)   && nf)  { _isNotifWdmEnabled     = true; ShellHelper.ApplyNotificationPanelGlass(); }
-                if (state.TryGetValue("icons",     out bool ico)  && ico) { _isIconsHidden         = true; ShellHelper.HideDesktopIcons(); }
-
-                if (_isExplorerWdmEnabled || _isTaskbarWdmEnabled) StartWdmPulse();
-            } catch { }
-        }
-      
 
         #region Alias Storage
         private void LoadAliases()
@@ -585,7 +543,7 @@ Clear-Host
                 }
 
         if (string.IsNullOrEmpty(prefix) && toComplete.StartsWith("!")) {
-            string[] cmds = { "!help", "!wifi", "!sys", "!ip", "!battery", "!disk", "!apps", "!startup", "!font", "!layout", "!tab", "!close", "!alias", "!unalias", "!install", "!glass", "!dlayer", "!hidico", "!exit", "!wdm" };
+            string[] cmds = { "!help", "!wifi", "!sys", "!ip", "!battery", "!disk", "!apps", "!startup", "!font", "!layout", "!tab", "!close", "!alias", "!unalias", "!install", "!exit", "!wdm", "!desktop", "!clock", "!startmenu", "!restore" };
             _tabResults.AddRange(cmds.Where(c => c.StartsWith(toComplete, StringComparison.OrdinalIgnoreCase)));
         }
 
@@ -601,7 +559,7 @@ Clear-Host
         #region Input Handling
         private void TerminalInput_PreviewKeyDown(object sender, System.Windows.Input.KeyEventArgs e)
         {
-            if (_isSelectingFont || _isSelectingLayout || _isSelectingFramework || _isSelectingLaravelVersion || _isSelectingPath || _isEnteringFolderName || _isSelectingWDM)
+            if (_isSelectingFont || _isSelectingLayout || _isSelectingFramework || _isSelectingLaravelVersion || _isSelectingPath || _isEnteringFolderName)
             {
                 if (_isEnteringFolderName)
                 {
@@ -637,7 +595,6 @@ Clear-Host
                 else if (_isSelectingFramework) max = FrameworkNames.Length;
                 else if (_isSelectingLaravelVersion) max = LaravelVersions.Length;
                 else if (_isSelectingPath) max = PathOptions.Length;
-                else if (_isSelectingWDM) max = WDMOptions.Length;
 
                 if (e.Key == Key.Up) { 
                     _tempSelectionIndex = (_tempSelectionIndex - 1 + max) % max; 
@@ -683,67 +640,10 @@ Clear-Host
                             FinalizeInstall();
                         }
                     }
-                    else if (_isSelectingWDM) {
-                        int choice = _tempSelectionIndex;
-                        var handle = new WindowInteropHelper(this).Handle;
-                        
-                        _isSelectingWDM = false; 
-                        SelectionOverlay.Visibility = Visibility.Collapsed;
-                        
-                        AppendToTab(_activeTab!, $"\n  🚀 Menjalankan WDM: {WDMOptions[choice]}...\n", "#FF6BDDFF");
-
-                        switch (choice)
-                        {
-                            case 0: // Crystal Glass Explorer
-                                _isExplorerWdmEnabled = true;
-                                ShellHelper.ApplyExplorerTransparency();
-                                AppendToTab(_activeTab!, "  ✨ Windows Explorer sekarang mode Crystal Clear!\n\n", "#CCCCCC");
-                                break;
-                            case 1: // Glass Taskbar
-                                _isTaskbarWdmEnabled = true;
-                                ShellHelper.ApplyTaskbarTransparency();
-                                AppendToTab(_activeTab!, "  ✨ Taskbar sekarang transparan (Blur Bar)!\n\n", "#CCCCCC");
-                                break;
-                            case 2: // Glass Start Menu
-                                _isStartMenuWdmEnabled = true;
-                                ShellHelper.ApplyStartMenuGlass();
-                                AppendToTab(_activeTab!, "  ✨ Start Menu glass applied! (Buka Start Menu dulu agar efek aktif)\n\n", "#CCCCCC");
-                                break;
-                            case 3: // Glass Notification Panel
-                                _isNotifWdmEnabled = true;
-                                ShellHelper.ApplyNotificationPanelGlass();
-                                AppendToTab(_activeTab!, "  ✨ Notification Panel glass applied! (Buka notif panel dulu agar efek aktif)\n\n", "#CCCCCC");
-                                break;
-                            case 4: // Hide Icons
-                                _isIconsHidden = true;
-                                ShellHelper.HideDesktopIcons();
-                                AppendToTab(_activeTab!, "  🙈 Ikon Desktop disembunyikan.\n\n", "#CCCCCC");
-                                break;
-                            case 5: // Ultimate
-                                _isExplorerWdmEnabled = _isTaskbarWdmEnabled = _isStartMenuWdmEnabled = _isNotifWdmEnabled = _isIconsHidden = true;
-                                ShellHelper.ApplyExplorerTransparency();
-                                ShellHelper.ApplyTaskbarTransparency();
-                                ShellHelper.ApplyStartMenuGlass();
-                                ShellHelper.ApplyNotificationPanelGlass();
-                                ShellHelper.HideDesktopIcons();
-                                _currentLayout = 7; ApplyLayout();
-                                AppendToTab(_activeTab!, "  💎 Mode Minimalis Ultimate Aktif!\n\n", "#FF6BDDFF");
-                                break;
-                            case 6: // Restore
-                                _isExplorerWdmEnabled = _isTaskbarWdmEnabled = _isStartMenuWdmEnabled = _isNotifWdmEnabled = _isIconsHidden = false;
-                                StopWdmPulse();
-                                ShellHelper.RestoreAllWDM();
-                                ShellHelper.ShowDesktopIcons();
-                                AppendToTab(_activeTab!, "  🔄 Tampilan Desktop dikembalikan normal.\n\n", "#CCCCCC");
-                                break;
-                        }
-                        SaveWdmState();
-                        StartWdmPulse();
-                    }
                     e.Handled = true;
                 }
                 else if (e.Key == Key.Escape) { 
-                    _isSelectingFont = _isSelectingLayout = _isSelectingFramework = _isSelectingLaravelVersion = _isSelectingPath = _isEnteringFolderName = _isSelectingWDM = false; 
+                    _isSelectingFont = _isSelectingLayout = _isSelectingFramework = _isSelectingLaravelVersion = _isSelectingPath = _isEnteringFolderName = false; 
                     SelectionOverlay.Visibility = Visibility.Collapsed;
                     AppendToTab(_activeTab!, "\n  ❌ Selection cancelled.\n\n", "#FFFF6B6B"); 
                     e.Handled = true; 
@@ -818,29 +718,6 @@ Clear-Host
             }
         }
 
-        private void StartWdmPulse()
-        {
-            if (_wdmPulseTimer != null) return; // sudah jalan
-
-            _wdmPulseTimer = new System.Windows.Threading.DispatcherTimer { 
-            // Timer 2 -> 0 
-                Interval = TimeSpan.FromSeconds(0) 
-            };
-            _wdmPulseTimer.Tick += (s, e) => {
-                if (_isExplorerWdmEnabled)  ShellHelper.ApplyExplorerTransparency();
-                if (_isTaskbarWdmEnabled)   ShellHelper.ApplyTaskbarTransparency();
-                if (_isStartMenuWdmEnabled) ShellHelper.ApplyStartMenuGlass();
-                if (_isNotifWdmEnabled)     ShellHelper.ApplyNotificationPanelGlass();
-            };
-            _wdmPulseTimer.Start();
-        }
-
-        private void StopWdmPulse()
-        {
-            _wdmPulseTimer?.Stop();
-            _wdmPulseTimer = null;
-        }
-
         private void StartClock()
         {
             _clockTimer = new System.Windows.Threading.DispatcherTimer();
@@ -865,7 +742,6 @@ Clear-Host
             else if (_isSelectingFramework) { title = "SELECT FRAMEWORK"; items = FrameworkNames; }
             else if (_isSelectingLaravelVersion) { title = "SELECT LARAVEL VERSION"; items = LaravelVersions; }
             else if (_isSelectingPath) { title = "SELECT PATH / LOCATION"; items = PathOptions; }
-            else if (_isSelectingWDM) { title = "WINDOW DESKTOP MINIMALIS (WDM)"; items = WDMOptions; }
             else if (_isEnteringFolderName) {
                 title = "ENTER FOLDER NAME";
                 SelectionTitle.Text = title;
@@ -941,7 +817,7 @@ Clear-Host
                 AppendToTab(_activeTab, "  !exit      Keluar Terminal\n", "#FFFF6B6B");
 
                 AppendToTab(_activeTab, "\n  [ 🌌 ZERO SHELL CORE ]\n", "#FFFFDA6B");
-                AppendToTab(_activeTab, "  !WDM       Window Desktop Minimalis\n", "#FF6BDDFF");
+                AppendToTab(_activeTab, "  !wdm      Open WDM Window\n", "#FF6BDDFF");
                 
                 AppendToTab(_activeTab, "\n  💬 Tips: Gunakan Tanda Panah ↑ ↓ buat milih font/layout.\n\n", "#888888");
                 return;
@@ -1210,10 +1086,58 @@ Clear-Host
 
             // ZERO SHELL CORE COMMANDS
             if (low == "!wdm") {
-                _isSelectingWDM = true;
-                _isSelectingFont = _isSelectingLayout = _isSelectingFramework = false;
-                _tempSelectionIndex = 0;
-                ShowSelectionMenu();
+                Dispatcher.Invoke(() => {
+                    if (_wdmWindow == null || !_wdmWindow.IsVisible) {
+                        _wdmWindow = new WdmWindow();
+                        _wdmWindow.Show();
+                    } else {
+                        _wdmWindow.Activate();
+                    }
+                });
+                AppendToTab(_activeTab!, "\n  ⚡ WDM Window opened.\n\n", "#00D4FF");
+                return;
+            }
+
+            if (low == "!startmenu") {
+                Dispatcher.Invoke(() => {
+                    if (_startMenuInterceptor.IsEnabled) {
+                        _startMenuInterceptor.Disable();
+                        AppendToTab(_activeTab!, "\n  ⊞ Start Menu interceptor disabled — Windows Start Menu restored.\n\n", "#888888");
+                    } else {
+                        _startMenuInterceptor.Enable();
+                        AppendToTab(_activeTab!, "\n  🍎 Start Menu interceptor enabled — click Start to open ZeroLaunchpad.\n\n", "#00D4FF");
+                    }
+                });
+                return;
+            }
+
+            if (low == "!restore") {
+                Dispatcher.Invoke(() => {
+                    // Restore all WDM styles silently
+                    ShellHelper.EnumAllWindows((hwnd, cls) => {
+                        switch (cls) {
+                            case "Shell_TrayWnd":
+                            case "Shell_SecondaryTrayWnd":
+                            case "CabinetWClass":
+                            case "ExplorerWClass":
+                                ShellHelper.DisableAccent(hwnd);
+                                break;
+                        }
+                    });
+                    ShellHelper.ApplyNotificationStyle(new WdmEntry { Style = WdmStyle.None });
+                    ShellHelper.ApplyStartMenuStyle(new WdmEntry { Style = WdmStyle.None });
+                    ShellHelper.StopWatcher();
+                    _startMenuInterceptor.Disable();
+                    _desktopWidget?.Shutdown();
+                    _desktopWidget = null;
+
+                    // Clear saved state
+                    try {
+                        string wdmPath = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "ZeroShell", "wdm.json");
+                        if (System.IO.File.Exists(wdmPath)) System.IO.File.Delete(wdmPath);
+                    } catch { }
+                });
+                AppendToTab(_activeTab!, "\n  ✅ All styles restored to Windows default. System is back to normal.\n\n", "#4EC94E");
                 return;
             }
 
@@ -1237,6 +1161,21 @@ Clear-Host
                 return;
             }
 
+            if (low == "!desktop") {
+                Dispatcher.Invoke(() => {
+                    if (_desktopWidget == null || !_desktopWidget.IsVisible) {
+                        _desktopWidget = new ZeroMix.Widgets.DesktopWidget();
+                        _desktopWidget.Show();
+                        AppendToTab(_activeTab!, "\n  🖥 Desktop Widget launched.\n\n", "#00D4FF");
+                    } else {
+                        _desktopWidget.Shutdown();
+                        _desktopWidget = null;
+                        AppendToTab(_activeTab!, "\n  🖥 Desktop Widget closed.\n\n", "#888888");
+                    }
+                });
+                return;
+            }
+
             if (low == "!notepad") {
                 Process.Start("notepad.exe");
                 AppendToTab(_activeTab!, "\n  📝 Notepad diluncurkan.\n\n", "#FF00D4FF");
@@ -1244,8 +1183,12 @@ Clear-Host
             }
 
             if (low == "!everglass") {
-                ShellHelper.ApplyExplorerTransparency();
-                ShellHelper.ApplyTaskbarTransparency();
+                var taskbarEntry = new WdmEntry { Style = WdmStyle.AcrylicDark, Alpha = 0xDD, ColorHex = "#000000", AutoApply = false };
+                var explorerEntry = new WdmEntry { Style = WdmStyle.AcrylicDark, Alpha = 0xBB, ColorHex = "#000000", AutoApply = false };
+                ShellHelper.EnumAllWindows((hwnd, cls) => {
+                    if (cls == "Shell_TrayWnd" || cls == "Shell_SecondaryTrayWnd") ShellHelper.ApplyStyle(hwnd, taskbarEntry);
+                    else if (cls == "CabinetWClass" || cls == "ExplorerWClass") ShellHelper.ApplyStyle(hwnd, explorerEntry);
+                });
                 AppendToTab(_activeTab!, "\n  💎 Glass applied to Explorer and Taskbar.\n\n", "#FF00D4FF");
                 return;
             }
@@ -1410,11 +1353,37 @@ Clear-Host
                 await Task.Delay(800); 
                 ProcessCommand(AutoRunCommand);
             }
+
+            // Auto-restore WDM state on startup
+            Task.Run(() => {
+                try {
+                    string wdmPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "ZeroShell", "wdm.json");
+                    if (File.Exists(wdmPath)) {
+                        var state = JsonSerializer.Deserialize<WdmState>(File.ReadAllText(wdmPath));
+                        if (state?.Entries != null) {
+                            ShellHelper.EnumAllWindows((hwnd, cls) => {
+                                if (state.Entries.TryGetValue(cls, out var entry))
+                                    ShellHelper.ApplyStyle(hwnd, entry);
+                            });
+                            bool anyAuto = state.Entries.Values.Any(e => e.AutoApply);
+                            if (anyAuto) {
+                                ShellHelper.StartWatcher((hwnd, cls) => {
+                                    Dispatcher.Invoke(() => {
+                                        if (state.Entries.TryGetValue(cls, out var entry) && entry.AutoApply)
+                                            ShellHelper.ApplyStyle(hwnd, entry);
+                                    });
+                                });
+                            }
+                        }
+                    }
+                } catch { }
+            });
         }
 
         protected override void OnClosed(EventArgs e)
         {
             _clockTimer?.Stop();
+            _startMenuInterceptor.Dispose();
             foreach (var t in _tabs) { try { if (t.Process != null && !t.Process.HasExited) t.Process.Kill(); } catch { } }
             base.OnClosed(e);
         }

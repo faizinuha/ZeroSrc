@@ -5,8 +5,8 @@
         WindowStyle="None"
         AllowsTransparency="True"
         Background="Transparent"
-        Width="600"
-        Height="400"
+        Width="520"
+        Height="320"
         Topmost="True"
         ShowInTaskbar="False"
         MouseLeftButtonDown="Window_MouseLeftButtonDown"
@@ -14,71 +14,83 @@
         Closing="Window_Closing">
 
     <Window.Resources>
-        <Color x:Key="AccentColor">#8BE9FD</Color>
-        <SolidColorBrush x:Key="AccentBrush" Color="{StaticResource AccentColor}"/>
-        
+        <SolidColorBrush x:Key="AccentBrush"  Color="#8BE9FD"/>
+        <SolidColorBrush x:Key="WeatherBrush" Color="#FFD580"/>
+        <SolidColorBrush x:Key="MutedBrush"   Color="#88FFFFFF"/>
+
         <Style x:Key="GlowText" TargetType="TextBlock">
             <Setter Property="Effect">
                 <Setter.Value>
-                    <DropShadowEffect Color="{StaticResource AccentColor}" BlurRadius="15" ShadowDepth="0" Opacity="0.5"/>
+                    <DropShadowEffect Color="#8BE9FD" BlurRadius="18" ShadowDepth="0" Opacity="0.45"/>
                 </Setter.Value>
             </Setter>
         </Style>
     </Window.Resources>
 
     <Grid x:Name="MainContainer">
+
+        <!-- Time -->
         <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
-            <!-- Time Display -->
-            <TextBlock Name="TimeDisplay"
-                       Text="00:00:00"
-                       FontSize="120"
-                       FontWeight="ExtraLight"
+
+            <TextBlock x:Name="TimeDisplay"
+                       Text="00:00"
+                       FontSize="96"
+                       FontWeight="Thin"
                        Foreground="White"
                        TextAlignment="Center"
                        Style="{StaticResource GlowText}"
-                       FontFamily="Segoe UI Variable Display"/>
+                       FontFamily="Segoe UI Variable Display, Segoe UI Light"/>
 
-            <!-- Date Display -->
-            <TextBlock Name="DateDisplay"
-                       Text="Loading Horizon..."
-                       FontSize="18"
+            <TextBlock x:Name="DateDisplay"
+                       Text="—"
+                       FontSize="15"
                        FontWeight="Light"
                        Foreground="{StaticResource AccentBrush}"
                        TextAlignment="Center"
-                       Opacity="0.8"
-                       Margin="0,-10,0,0"
-                       FontFamily="Segoe UI Variable Display"/>
+                       Opacity="0.85"
+                       Margin="0,-6,0,0"
+                       FontFamily="Segoe UI Variable Display, Segoe UI Light"/>
 
-            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,30,0,0" Opacity="0.4">
-                <TextBlock Name="DayOfWeekDisplay" Text="DAY 000" Foreground="White" FontSize="11" Margin="0,0,20,0"/>
-                <TextBlock Name="UtcDisplay" Text="UTC+00:00" Foreground="White" FontSize="11"/>
+            <!-- Weather + UTC row -->
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center"
+                        Margin="0,14,0,0" Opacity="0.7">
+
+                <TextBlock x:Name="WeatherDisplay"
+                           Text="⟳ Loading weather..."
+                           Foreground="{StaticResource WeatherBrush}"
+                           FontSize="12" Margin="0,0,18,0"
+                           VerticalAlignment="Center"/>
+
+                <TextBlock x:Name="UtcDisplay"
+                           Text="UTC+00:00"
+                           Foreground="{StaticResource MutedBrush}"
+                           FontSize="11" VerticalAlignment="Center"/>
             </StackPanel>
+
         </StackPanel>
 
-        <!-- Tooltip for exiting -->
-        <TextBlock Text="Double-click or Right-click to close" 
-                   VerticalAlignment="Bottom" 
-                   HorizontalAlignment="Center" 
-                   Foreground="White" 
-                   Opacity="0.1" 
-                   FontSize="10" 
-                   Margin="0,0,0,20">
+        <!-- Hint -->
+        <TextBlock Text="Double-click to close"
+                   VerticalAlignment="Bottom" HorizontalAlignment="Center"
+                   Foreground="White" Opacity="0.08" FontSize="10"
+                   Margin="0,0,0,14">
             <TextBlock.Triggers>
                 <EventTrigger RoutedEvent="MouseEnter">
                     <BeginStoryboard>
                         <Storyboard>
-                            <DoubleAnimation Storyboard.TargetProperty="Opacity" To="0.5" Duration="0:0:0.3"/>
+                            <DoubleAnimation Storyboard.TargetProperty="Opacity" To="0.45" Duration="0:0:0.25"/>
                         </Storyboard>
                     </BeginStoryboard>
                 </EventTrigger>
                 <EventTrigger RoutedEvent="MouseLeave">
                     <BeginStoryboard>
                         <Storyboard>
-                            <DoubleAnimation Storyboard.TargetProperty="Opacity" To="0.1" Duration="0:0:0.3"/>
+                            <DoubleAnimation Storyboard.TargetProperty="Opacity" To="0.08" Duration="0:0:0.25"/>
                         </Storyboard>
                     </BeginStoryboard>
                 </EventTrigger>
             </TextBlock.Triggers>
         </TextBlock>
+
     </Grid>
 </Window>

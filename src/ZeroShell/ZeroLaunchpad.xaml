@@ -1,0 +1,85 @@
+<Window x:Class="ZeroMix.ZeroShell.ZeroLaunchpad"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="ZeroLaunchpad"
+        WindowStyle="None"
+        AllowsTransparency="True"
+        Background="Transparent"
+        ShowInTaskbar="False"
+        Topmost="True"
+        WindowStartupLocation="Manual"
+        Deactivated="Window_Deactivated"
+        Loaded="Window_Loaded"
+        KeyDown="Window_KeyDown">
+
+    <Grid>
+        <!-- Full screen blur backdrop -->
+        <Border x:Name="Backdrop" Background="#CC000000">
+            <Border.Effect>
+                <BlurEffect Radius="0"/>
+            </Border.Effect>
+        </Border>
+
+        <!-- Main content -->
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+
+            <!-- Search bar (macOS Spotlight style) -->
+            <StackPanel Grid.Row="0" VerticalAlignment="Bottom" Margin="0,0,0,30">
+                <Border HorizontalAlignment="Center"
+                        Width="520" Height="48"
+                        CornerRadius="12"
+                        Background="#33FFFFFF"
+                        BorderBrush="#44FFFFFF"
+                        BorderThickness="1">
+                    <Border.Effect>
+                        <DropShadowEffect BlurRadius="20" ShadowDepth="0" Color="#000000" Opacity="0.4"/>
+                    </Border.Effect>
+                    <Grid Margin="16,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Text="⌕" FontSize="18" Foreground="#88FFFFFF"
+                                   VerticalAlignment="Center" Margin="0,0,10,0"/>
+                        <TextBox x:Name="SearchBox"
+                                 Grid.Column="1"
+                                 Background="Transparent"
+                                 BorderThickness="0"
+                                 Foreground="White"
+                                 FontSize="16"
+                                 FontFamily="Segoe UI"
+                                 CaretBrush="White"
+                                 VerticalContentAlignment="Center"
+                                 TextChanged="SearchBox_TextChanged"
+                                 KeyDown="SearchBox_KeyDown"/>
+                    </Grid>
+                </Border>
+                <TextBlock x:Name="SearchHint" Text="Search apps..."
+                           HorizontalAlignment="Center"
+                           Foreground="#44FFFFFF" FontSize="12"
+                           Margin="0,8,0,0"/>
+            </StackPanel>
+
+            <!-- App grid -->
+            <ScrollViewer Grid.Row="1" HorizontalScrollBarVisibility="Disabled"
+                          VerticalScrollBarVisibility="Hidden"
+                          MaxHeight="420">
+                <WrapPanel x:Name="AppGrid"
+                           HorizontalAlignment="Center"
+                           Margin="40,0"/>
+            </ScrollViewer>
+
+            <!-- Bottom hint -->
+            <StackPanel Grid.Row="2" VerticalAlignment="Top" Margin="0,20,0,0">
+                <TextBlock Text="Press Esc or click outside to close"
+                           HorizontalAlignment="Center"
+                           Foreground="#33FFFFFF" FontSize="11"/>
+            </StackPanel>
+        </Grid>
+    </Grid>
+</Window>
