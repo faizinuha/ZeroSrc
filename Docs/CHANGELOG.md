@@ -5,48 +5,81 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) | [Semantic Ver
 
 ---
 
-## [v6.5.0] - TBA 🔒
+## [v6.2.0] - 2026-04-22
 
-> **Non-publish release** — internal development only
+### ✨ Features
 
-### ✨ Features (Planned)
-- TBA
+- **ZeroMix WDM v2 (Window Desktop Manager)**: Dedicated WPF control panel (`!wdm`) untuk styling Windows shell — taskbar, notification panel, file explorer, start menu, dan desktop. Menggantikan sistem WDM lama yang berbasis terminal overlay.
+- **WDM UI Modern**: Desain abu-abu gelap (VS Code-style) dengan sidebar kategori, status dot hijau/abu, badge ON/OFF, dan status bar aktif di bagian bawah.
+- **Process-Aware Style Apply**: Start Menu dan Notification Panel kini di-apply via process filter (`StartMenuExperienceHost`, `ShellExperienceHost`) — bukan hanya class name. Lebih akurat di Windows 10.
+- **SetWinEventHook Multi-Event**: Watcher kini listen ke 4 event sekaligus (`EVENT_OBJECT_SHOW`, `EVENT_SYSTEM_FOREGROUND`, `EVENT_OBJECT_REORDER`, `EVENT_OBJECT_NAMECHANGE`) + pulse timer 3 detik sebagai fallback. Taskbar tidak lagi reset saat diklik.
+- **Floating macOS Style**: Style baru `FloatingMacOS` — taskbar fully transparent dengan DWM border glow cyan via `DwmSetWindowAttribute`.
+- **Restore All**: Tombol "↺ Restore All" di WDM Window + command `!restore` di terminal. Reset semua style ke Windows default, stop watcher, hapus state JSON. Dilengkapi konfirmasi dialog dengan penjelasan bahwa tidak ada file sistem yang dimodifikasi.
+- **Desktop Widget** (`!desktop`): WPF window yang embed ke WorkerW (desktop layer) — tampil di belakang semua window, di atas wallpaper. Menampilkan jam besar, tanggal, greeting macOS-style (Good morning/afternoon/evening), uptime sesi, dan pills CPU/RAM/Battery yang update tiap 4 detik.
+- **ZeroLaunchpad** (`!startmenu`): macOS Launchpad-style app launcher — full screen blur backdrop, search bar Spotlight-style, app grid dari Start Menu shortcuts, fade in/out animation. Diaktifkan via global `WH_MOUSE_LL` mouse hook yang intercept klik Start button.
+- **ClockWidget Weather API**: ClockWidget kini terintegrasi dengan Open-Meteo API (gratis, tanpa API key) — menampilkan suhu, kondisi cuaca, dan kecepatan angin. Lokasi otomatis via IP geolocation (`ip-api.com`). Update setiap 15 menit.
+- **Layout Presets**: 4 preset siap pakai di WDM — macOS Dock, Minimal Dark, Cyberpunk, Classic Windows. Setiap preset apply kombinasi style ke semua kategori sekaligus.
+
+### 🐛 Bug Fixes
+
+- Fix `#endregion` duplikat di `ZeroShellWindow.xaml.cs` yang menyebabkan `CS1028` preprocessor error.
+- Fix semua ambiguous reference (`Brushes`, `Color`, `ColorConverter`, `ComboBox`, `TextBox`, `CheckBox`, `Button`, `Cursors`, `Orientation`, `KeyEventArgs`, `Application`, `MessageBox`) di file WDM baru — resolved via explicit `using` aliases.
+- Fix `LetterSpacing` tidak ada di WPF `TextBlock` — property dihapus.
+- Fix `HorizontalAlignment.Center` instance reference error — diganti ke `System.Windows.HorizontalAlignment.Center`.
+- Fix `Path` ambiguous antara `System.Windows.Shapes.Path` dan `System.IO.Path` — alias `IOPath` ditambahkan.
+- Fix `RenderOptions` tidak bisa di-set via object initializer di WPF — diganti ke `RenderOptions.SetBitmapScalingMode()`.
+
+### 🔧 Changes
+
+- `ShellHelper.cs` di-refactor total: `ApplyBlur` dan `DisableAccent` dijadikan `public`, tambah `ApplyStyle(IntPtr, WdmEntry)`, `ApplyStyleToChildren`, `EnumAllWindows`, `ApplyStyleByProcess`, `ApplyStartMenuStyle`, `ApplyNotificationStyle`, `StartWatcher`, `StopWatcher`.
+- Hapus dari `ShellHelper`: `RestoreAllWDM`, `ApplyTaskbarTransparency`, `ApplyExplorerTransparency`, `ApplyStartMenuGlass`, `ApplyNotificationPanelGlass`.
+- Hapus dari terminal: `!glass`, `!hidico`, `!dlayer`, `WDMOptions` array, `_isSelectingWDM`, 5 bool WDM flags, `_wdmPulseTimer`.
+- `WdmState.cs`: tambah `WdmStyle.FloatingMacOS`, `WdmCategories.ProcessMap`, `WdmPresets` (4 preset).
+- State WDM disimpan sebagai `Dictionary<string, WdmEntry>` per window class name — lebih granular dari 5 bool flags sebelumnya.
+- Auto-restore WDM state saat startup via `Window_Loaded` — apply ke window aktif + start watcher jika ada entry.
+- Tab completion diupdate: tambah `!desktop`, `!startmenu`, `!restore`.
 
 ---
 
-## [v6.4.0] - TBA 🔒
+## [v6.1.0] - 2026-04-21
 
-> **Non-publish release** — internal development only
+### ✨ Features
 
-### ✨ Features (Planned)
-- TBA
-
----
-
-## [v6.3.0] - TBA 🔒
-
-> **Non-publish release** — internal development only
-
-### ✨ Features (Planned)
-- TBA
-
----
-
-## [v6.2.0] - TBA 🔒
-
-> **Non-publish release** — internal development only
-
-### ✨ Features (Planned)
-- TBA
-
----
-
-## [v6.1.0] - TBA 🔒
-
-> **Non-publish release** — internal development only
-
-### ✨ Features (Planned)
 - **Custom Cursor System**: Ganti desain cursor secara instan langsung dari ZeroMix — upload file `.cur` / `.ani` atau pilih dari preset bawaan. Tidak perlu buka Mouse Properties Windows secara manual. Apply & revert dengan satu klik.
+- **Bubble Translate Improvements**: Perbaikan lanjutan dari v6.0.0 — bubble kini muncul lebih konsisten di semua aplikasi termasuk browser dan game overlay. Posisi bubble mengikuti posisi kursor secara akurat.
+- **Bubble Auto-Dismiss**: Bubble terjemahan otomatis hilang setelah 5 detik jika tidak ada interaksi — tidak lagi mengganggu layar.
+- **Bubble Copy Result**: Klik hasil terjemahan di bubble untuk langsung copy ke clipboard.
+
+### 🐛 Bug Fixes
+
+- Fix bubble tidak muncul di aplikasi tertentu yang override clipboard event — polling interval dioptimasi dari 500ms ke 300ms.
+- Fix bubble muncul di posisi yang salah saat layar memiliki DPI scaling — koordinat kursor kini di-scale dengan benar via `GetCursorPos` + DPI factor.
+- Fix bubble tidak hilang saat user pindah ke window lain — tambah `Deactivated` event handler.
+- Fix cursor state tidak tersimpan saat aplikasi crash — state di-flush ke disk setiap kali apply.
+
+### 🔧 Changes
+
+- Cursor state disimpan ke `%AppData%\ZeroMix\cursor_config.json`.
+- Revert cursor ke default Windows via `SystemParametersInfo(SPI_SETCURSORS)`.
+- Bubble polling: 500ms → 300ms untuk respons lebih cepat.
+- Bubble window: `Topmost = true`, `ShowInTaskbar = false`, `IsHitTestVisible = false` kecuali saat hover.
+
+---
+
+## [v6.0.1] - 2026-04-20
+
+### 🐛 Bug Fixes
+
+- Fix `Mutex.ReleaseMutex()` crash saat shutdown pada beberapa konfigurasi sistem.
+- Fix Virtual Assistant `CoreWebView2 disposed` exception saat window ditutup cepat setelah startup.
+- Fix Bubble translate tidak muncul setelah restart — `_lastClipboard` tidak di-reset dengan benar.
+- Fix language preference tidak tersimpan saat path `BaseDirectory` read-only — fallback ke `%AppData%\ZeroMix\`.
+- Fix onboarding `FindResource("NavSelectedBrush")` throw exception saat resource tidak ditemukan — diganti hardcode warna.
+
+### 🔧 Changes
+
+- Onboarding changelog dimuat lazy (hanya saat slide 5 dibuka) — startup lebih cepat.
+- `ZeroMix-Updater.exe` kini di-bundle langsung di installer, menggantikan `zeromix-update.ps1` dan `.bat`.
 
 ---
 
@@ -59,26 +92,24 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) | [Semantic Ver
 - **Swap Language Button Fix**: Tombol `⇄` di Nexus Translator kini berfungsi dengan benar — swap via `Tag` matching bukan `SelectedIndex` yang tidak reliable di custom ComboBox template.
 - **Single Instance Fix (Mutex)**: Perbaikan race condition di Mutex guard — pakai `EnumWindows` untuk cari window handle saat `MainWindowHandle` = zero (proses suspended), mencegah multiple instance ZeroMix berjalan bersamaan.
 - **Onboarding Optimization**: Changelog di onboarding dimuat lazy — hanya saat user membuka slide 5, bukan saat startup. Mengurangi waktu buka onboarding secara signifikan.
-- **ZeroMix Updater (Built-in)**: Ganti `zeromix-update.ps1` + `.bat` dengan `ZeroMix-Updater.exe` — WPF window modern dengan progress bar, speed indicator, dan auto-launch installer. Di-bundle langsung di `Tools/Updater/`, tidak perlu download terpisah. Tombol "Check Update" di UI dan system tray langsung launch updater ini.
-- **Virtual Assistant Bundle Fix**: File model Live2D, thumbnail, dan HTML viewer kini selalu ikut ter-bundle di installer via `Setup.iss` — tidak lagi bergantung pada publish output yang bisa kosong.
+- **ZeroMix Updater (Built-in)**: Ganti `zeromix-update.ps1` + `.bat` dengan `ZeroMix-Updater.exe` — WPF window modern dengan progress bar, speed indicator, dan auto-launch installer. Di-bundle langsung di `Tools/Updater/`, tidak perlu download terpisah.
+- **Virtual Assistant Bundle Fix**: File model Live2D, thumbnail, dan HTML viewer kini selalu ikut ter-bundle di installer via `Setup.iss`.
 
 ### 🐛 Bug Fixes
 
-- **Fix Bubble tidak muncul**: Root cause — `BubbleModeSwitch` di XAML terhubung ke `FeatureToggle_Changed` bukan `BubbleModeSwitch_Click`, sehingga `SelectionBubble` tidak pernah diinisialisasi. Fixed dengan wire event yang benar.
-- **Fix Bubble teks sama tidak bisa translate ulang**: `_lastClipboard` tidak di-reset setelah bubble ditampilkan. Sekarang di-reset agar teks yang sama bisa di-translate lagi.
-- **Fix Keyboard translate jalan walau tidak dicentang**: `RealTimeTranslator` memasang hook di constructor — sekarang hook hanya dipasang via `EnableKeyboardHook()` saat toggle aktif.
-- **Fix ZeroMix Suspended di Task Manager**: Multiple instance karena Mutex check gagal saat `MainWindowHandle` = zero. Ditambahkan `EnumWindows` fallback untuk cari visible window by PID.
-- **Fix Onboarding `FindResource` exception**: `FindResource("NavSelectedBrush")` bisa throw saat resource tidak ada — diganti hardcode warna langsung.
-- **Fix Virtual Assistant tidak ikut installer**: Folder `Virtual_Assisten` tidak ada di publish output — ditambahkan entry eksplisit di `Setup.iss` agar selalu ikut.
+- Fix Bubble tidak muncul — `BubbleModeSwitch` terhubung ke event yang salah, `SelectionBubble` tidak pernah diinisialisasi.
+- Fix Bubble teks sama tidak bisa translate ulang — `_lastClipboard` tidak di-reset setelah bubble ditampilkan.
+- Fix Keyboard translate jalan walau toggle tidak dicentang — hook dipasang di constructor, sekarang hanya via `EnableKeyboardHook()`.
+- Fix ZeroMix Suspended di Task Manager — Mutex check gagal saat `MainWindowHandle` = zero, ditambahkan `EnumWindows` fallback.
+- Fix Onboarding `FindResource` exception — diganti hardcode warna langsung.
+- Fix Virtual Assistant tidak ikut installer — ditambahkan entry eksplisit di `Setup.iss`.
 
 ### 🔧 Changes
 
-- **Bubble**: Kembali ke mekanisme polling clipboard (original) yang terbukti stabil — lebih reliable dibanding global mouse hook + `SendInput` yang konflik di berbagai aplikasi.
-- **Keyboard Hook**: Dipisah dari constructor ke `EnableKeyboardHook()` / `DisableKeyboardHook()` agar bisa dikontrol dari UI.
-- **Onboarding**: HTTP request changelog dipindah dari constructor ke lazy load, timeout 8 detik.
-- **`-ForceBuild` flag** ditambahkan ke `release-version.ps1` — untuk re-push tag yang sama saat ada hotfix tanpa bump versi.
-- **Hapus `zeromix-update.ps1` & `zeromix-update.bat`**: Digantikan sepenuhnya oleh `ZeroMix-Updater.exe`. Tidak ada terminal hitam lagi saat update.
-- **GitHub Actions**: Tambah step build `ZeroMix.Updater` dan copy ke `publish/win-x64/Tools/Updater/` agar ikut ter-bundle di setiap release.
+- Bubble: kembali ke polling clipboard 500ms — lebih stabil dari global mouse hook + `SendInput`.
+- Keyboard Hook: dipisah ke `EnableKeyboardHook()` / `DisableKeyboardHook()` agar dikontrol dari UI.
+- `-ForceBuild` flag ditambahkan ke `release-version.ps1` untuk re-push tag tanpa bump versi.
+- GitHub Actions: tambah step build `ZeroMix.Updater`, copy ke `publish/win-x64/Tools/Updater/`.
 
 ---
 

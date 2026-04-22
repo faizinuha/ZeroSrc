@@ -9,7 +9,7 @@
     <UseWindowsForms>true</UseWindowsForms>
     <ApplicationIcon>Assets\Icons\zeromix.ico</ApplicationIcon>
     <EnableWindowsTargeting>true</EnableWindowsTargeting>
-    <Version>6.0.1</Version>
+    <Version>6.2.0</Version>
     
     <!-- Optimasi Ukuran & Portabilitas (Self-Contained & Kompresi) -->
     <PublishSingleFile>false</PublishSingleFile>
@@ -94,8 +94,6 @@
     <Resource Include="src\SleepMode\IMG\**" />
     <Resource Include="Tools\Plugins\Styles.xaml" />
   </ItemGroup>
-
-  <!-- ── Runtime assets: hanya file yang dibutuhkan saat runtime ── -->
 
   <!-- Wallpaper & anim assets -->
   <ItemGroup>
