@@ -35,7 +35,7 @@ namespace ZeroMix.ZeroShell
 
     public partial class ZeroShellWindow : Window
     {
-        private const string CURRENT_VERSION = "5.3.0";
+        private const string CURRENT_VERSION = "6.7.0";
         private List<TerminalTab> _tabs = new List<TerminalTab>();
         private TerminalTab? _activeTab;
 
