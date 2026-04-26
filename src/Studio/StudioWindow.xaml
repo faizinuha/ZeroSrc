@@ -158,6 +158,32 @@
                             <Button x:Name="FullscreenBtn" Content="⛶" Style="{StaticResource IconBtn}" Width="40" Height="40" 
                                     Click="Fullscreen_Click" ToolTip="Fullscreen (F11)" Opacity="0.7"/>
                         </StackPanel>
+                        
+                        <!-- Timeline Scrubber (Playhead) -->
+                        <Grid VerticalAlignment="Bottom" Margin="10,0,10,10">
+                            <Border Background="#33000000" Height="40" CornerRadius="6">
+                                <Grid Margin="10,5">
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="*"/>
+                                    </Grid.RowDefinitions>
+                                    
+                                    <!-- Time Display -->
+                                    <TextBlock x:Name="ScrubberTimeText" Text="00:00 / 00:00" 
+                                              Foreground="White" FontSize="10" HorizontalAlignment="Center" Margin="0,0,0,5"/>
+                                    
+                                    <!-- Scrubber Slider -->
+                                    <Slider x:Name="TimelineScrubber" Grid.Row="1" 
+                                           Minimum="0" Maximum="100" Value="0"
+                                           VerticalAlignment="Center"
+                                           ValueChanged="TimelineScrubber_ValueChanged"
+                                           PreviewMouseDown="TimelineScrubber_MouseDown"
+                                           PreviewMouseUp="TimelineScrubber_MouseUp"
+                                           Foreground="{StaticResource AccentCyan}"
+                                           Background="#333333"/>
+                                </Grid>
+                            </Border>
+                        </Grid>
                     </Grid>
                 </Border>
 
@@ -169,37 +195,28 @@
                             <!-- File Panel -->
                             <Grid x:Name="PanelFile" Visibility="Collapsed">
                                 <StackPanel>
-                                    <TextBlock Text="FILE" FontSize="10" FontWeight="Black" Foreground="{StaticResource AccentCyan}" Margin="0,0,0,15"/>
-                                    <Button Content="+ IMPORT VIDEO" Style="{StaticResource PrimaryBtn}" Height="35" Click="ImportVideo_Click" Margin="0,0,0,10"/>
-                                    <Button Content="+ IMPORT AUDIO" Style="{StaticResource PrimaryBtn}" Height="35" Click="SelectMusic_Click"/>
+                                    <TextBlock Text="IMPORT" FontSize="10" FontWeight="Black" Foreground="{StaticResource AccentCyan}" Margin="0,0,0,15"/>
+                                    <Button Content="📁 IMPORT VIDEO" Style="{StaticResource PrimaryBtn}" Height="40" Click="ImportVideo_Click" Margin="0,0,0,10"/>
+                                    <Button Content="🎵 IMPORT AUDIO" Style="{StaticResource PrimaryBtn}" Height="40" Click="SelectMusic_Click"/>
+                                    
+                                    <TextBlock Text="TIPS" FontSize="8" Foreground="{StaticResource TextGray}" Margin="0,20,0,5"/>
+                                    <TextBlock Text="• Video langsung masuk timeline" FontSize="8" Foreground="{StaticResource TextGray}" Margin="0,0,0,3" TextWrapping="Wrap"/>
+                                    <TextBlock Text="• Drag timeline untuk cut video" FontSize="8" Foreground="{StaticResource TextGray}" Margin="0,0,0,3" TextWrapping="Wrap"/>
+                                    <TextBlock Text="• Klik video card untuk edit" FontSize="8" Foreground="{StaticResource TextGray}" TextWrapping="Wrap"/>
                                 </StackPanel>
                             </Grid>
 
-                            <!-- Media Library Panel -->
+                            <!-- Media Library Panel - REMOVED, langsung ke timeline -->
                             <Grid x:Name="PanelMedia" Visibility="Collapsed">
                                 <StackPanel>
-                                    <TextBlock Text="MEDIA LIBRARY" FontSize="10" FontWeight="Black" Foreground="{StaticResource AccentCyan}" Margin="0,0,0,15"/>
-                                    <ListBox x:Name="LibraryList" Background="Transparent" BorderThickness="0" MaxHeight="400">
-                                        <ListBox.ItemTemplate>
-                                            <DataTemplate>
-                                                <Border Background="{StaticResource BgDark}" CornerRadius="6" Margin="0,0,0,8" Padding="8" BorderBrush="{StaticResource BorderDark}" BorderThickness="1">
-                                                    <Grid>
-                                                        <Grid.ColumnDefinitions>
-                                                            <ColumnDefinition Width="Auto"/>
-                                                            <ColumnDefinition Width="*"/>
-                                                        </Grid.ColumnDefinitions>
-                                                        <Image Source="{Binding Thumbnail}" Width="60" Height="35" Stretch="UniformToFill" Margin="0,0,10,0"/>
-                                                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                                                            <TextBlock Text="{Binding FileName}" FontSize="9" FontWeight="Bold" Foreground="White" TextTrimming="CharacterEllipsis"/>
-                                                            <Button Content="+ Add to Timeline" FontSize="7" Padding="6,2" HorizontalAlignment="Left" 
-                                                                    Click="AddToTimeline_Click" Tag="{Binding}" Margin="0,5,0,0" 
-                                                                    Background="{StaticResource AccentCyan}" Foreground="#000000" BorderThickness="0" Cursor="Hand"/>
-                                                        </StackPanel>
-                                                    </Grid>
-                                                </Border>
-                                            </DataTemplate>
-                                        </ListBox.ItemTemplate>
-                                    </ListBox>
+                                    <TextBlock Text="TIMELINE CLIPS" FontSize="10" FontWeight="Black" Foreground="{StaticResource AccentCyan}" Margin="0,0,0,15"/>
+                                    <TextBlock Text="Semua video yang di-import akan langsung muncul di timeline di bawah." 
+                                              FontSize="9" Foreground="{StaticResource TextGray}" TextWrapping="Wrap" Margin="0,0,0,15"/>
+                                    <TextBlock Text="Klik video card di timeline untuk:" FontSize="9" Foreground="White" Margin="0,0,0,10"/>
+                                    <TextBlock Text="• Edit fade effects" FontSize="8" Foreground="{StaticResource TextGray}" Margin="10,0,0,3"/>
+                                    <TextBlock Text="• Apply filters" FontSize="8" Foreground="{StaticResource TextGray}" Margin="10,0,0,3"/>
+                                    <TextBlock Text="• Cut/trim video" FontSize="8" Foreground="{StaticResource TextGray}" Margin="10,0,0,3"/>
+                                    <TextBlock Text="• Duplicate/remove" FontSize="8" Foreground="{StaticResource TextGray}" Margin="10,0,0,3"/>
                                 </StackPanel>
                             </Grid>
 
@@ -358,7 +375,7 @@
                                 </TextBlock>
                             </Border>
 
-                            <!-- Timeline Clips -->
+                            <!-- Timeline Clips - PANJANG untuk mudah cut -->
                             <ItemsControl x:Name="TimelineList">
                                 <ItemsControl.ItemsPanel>
                                     <ItemsPanelTemplate>
@@ -367,16 +384,57 @@
                                 </ItemsControl.ItemsPanel>
                                 <ItemsControl.ItemTemplate>
                                     <DataTemplate>
-                                        <Border Width="80" Height="45" Margin="0,0,2,0" Background="{StaticResource BgPanel}" 
-                                               CornerRadius="4" BorderBrush="#FFFFFF" BorderThickness="1" 
+                                        <!-- Card PANJANG: Width berdasarkan durasi video (min 200px, max 800px) -->
+                                        <Border x:Name="ClipCard" MinWidth="200" MaxWidth="800" Height="60" Margin="0,0,5,0" 
+                                               Background="{StaticResource BgPanel}" 
+                                               CornerRadius="6" BorderBrush="{StaticResource AccentCyan}" BorderThickness="2" 
                                                MouseLeftButtonDown="TimelineItem_MouseLeftButtonDown" 
-                                               ContextMenu="{StaticResource TimelineItemMenu}" ClipToBounds="True">
+                                               ContextMenu="{StaticResource TimelineItemMenu}" ClipToBounds="True"
+                                               ToolTip="{Binding FileName}">
                                             <Grid>
-                                                <Image Source="{Binding Thumbnail}" Stretch="UniformToFill" Opacity="0.6"/>
-                                                <Border Background="#AA000000" VerticalAlignment="Bottom" Padding="4,2">
-                                                    <TextBlock Text="{Binding DurationStr}" FontSize="7" Foreground="White" 
-                                                              FontWeight="Bold" HorizontalAlignment="Right"/>
+                                                <!-- Thumbnail Background -->
+                                                <Image Source="{Binding Thumbnail}" Stretch="UniformToFill" Opacity="0.3" HorizontalAlignment="Left"/>
+                                                
+                                                <!-- Gradient Overlay -->
+                                                <Border>
+                                                    <Border.Background>
+                                                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                                            <GradientStop Color="#AA000000" Offset="0"/>
+                                                            <GradientStop Color="#00000000" Offset="0.3"/>
+                                                            <GradientStop Color="#00000000" Offset="0.7"/>
+                                                            <GradientStop Color="#AA000000" Offset="1"/>
+                                                        </LinearGradientBrush>
+                                                    </Border.Background>
                                                 </Border>
+                                                
+                                                <!-- Content -->
+                                                <Grid Margin="10,5">
+                                                    <Grid.RowDefinitions>
+                                                        <RowDefinition Height="Auto"/>
+                                                        <RowDefinition Height="*"/>
+                                                        <RowDefinition Height="Auto"/>
+                                                    </Grid.RowDefinitions>
+                                                    
+                                                    <!-- File Name -->
+                                                    <TextBlock Text="{Binding FileName}" FontSize="9" FontWeight="Bold" 
+                                                              Foreground="White" TextTrimming="CharacterEllipsis" MaxWidth="180"/>
+                                                    
+                                                    <!-- Thumbnail Preview -->
+                                                    <Image Grid.Row="1" Source="{Binding Thumbnail}" Width="60" Height="35" 
+                                                          Stretch="UniformToFill" HorizontalAlignment="Left" Margin="0,3"/>
+                                                    
+                                                    <!-- Duration & Controls -->
+                                                    <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right">
+                                                        <TextBlock Text="{Binding DurationStr}" FontSize="8" Foreground="{StaticResource AccentCyan}" 
+                                                                  FontWeight="Bold" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                                                        <Button Content="◀" FontSize="8" Width="20" Height="20" 
+                                                               Style="{StaticResource IconBtn}" Click="MoveClipLeft_Click" Tag="{Binding}" 
+                                                               ToolTip="Move Left" Margin="0,0,2,0"/>
+                                                        <Button Content="▶" FontSize="8" Width="20" Height="20" 
+                                                               Style="{StaticResource IconBtn}" Click="MoveClipRight_Click" Tag="{Binding}" 
+                                                               ToolTip="Move Right"/>
+                                                    </StackPanel>
+                                                </Grid>
                                             </Grid>
                                         </Border>
                                     </DataTemplate>
