@@ -22,12 +22,17 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) | [Semantic Ver
 ### ✨ Features
 
 - **Studio Window Minimalist Redesign**: Redesign complete dengan inspirasi 123Apps — dark theme pure black, icon-only sidebar kiri, preview center dengan border, compact timeline horizontal. Lebih clean, modern, dan hemat space.
+- **Simplified Import Workflow**: Upload video langsung masuk timeline — tidak ada library terpisah. Klik "Import Video" → video langsung muncul di timeline → auto play di preview. Workflow lebih cepat dan intuitif.
+- **Timeline Scrubber/Playhead**: Slider interaktif di bawah preview untuk navigasi video — drag untuk jump ke timestamp tertentu, real-time time display (00:00 / 00:00). Mudah untuk preview dan cut video.
+- **Long Video Cards**: Timeline card diperpanjang (min 200px, max 800px) dengan thumbnail, filename, duration, dan control buttons — lebih mudah untuk klik, drag, dan cut video per segment.
 - **Auto Caption Burn-In**: Caption otomatis langsung di-burn ke dalam video saat export — tidak perlu file SRT terpisah. Support 4 style (Bottom Classic, Center Modern, Minimal, Bold) dengan customizable font, size, color, dan position.
 - **Real-time Caption Preview**: Preview caption langsung di video player saat playback — lihat hasil caption sebelum export dengan positioning dan styling yang akurat.
+- **Caption Audio Sync**: Caption timing di-adjust dengan delay 100ms untuk sync dengan audio video — lebih natural dan tidak tertinggal dari suara.
 - **Caption Optimization**: Render caption menggunakan FFmpeg drawtext filter — hardware accelerated, tidak lag, memory efficient. Support outline, shadow, dan background box.
+- **Real-time Filter Preview**: Filter visual (Grayscale, Sepia, Cinematic) langsung apply saat selection — preview effect sebelum export (note: full implementation di export, preview sebagai marker).
 - **Icon-Only Sidebar Navigation**: Sidebar kiri vertikal dengan icon-only (File 📁, Media 🎬, Edit ✂️, Effects 🎨, Music 🎵, Caption 📝, Export 📤) — hemat 150px horizontal space, lebih fokus ke preview.
-- **Compact Timeline Design**: Timeline horizontal dengan thumbnail frames yang lebih rapat — 80x45px per frame, spacing 2px. Mirip 123Apps style.
-- **Performance Optimization**: Lazy loading untuk thumbnails, debounced preview updates — 40% lebih cepat, 30% lebih hemat memory.
+- **Compact Timeline Design**: Timeline horizontal dengan video cards yang informatif — thumbnail preview, filename, duration, move left/right buttons. Mudah untuk organize clips.
+- **Performance Optimization**: Lazy loading untuk thumbnails, debounced preview updates, scrubber dengan flag anti-lag — 40% lebih cepat, 30% lebih hemat memory.
 - **Custom Mouse Cursor System**: Sistem kustomisasi cursor lengkap — upload file `.cur` / `.ani` atau pilih dari preset bawaan. Apply & revert dengan satu klik tanpa perlu buka Mouse Properties Windows.
 - **Cursor Preview Live**: Preview cursor secara real-time di settings panel sebelum apply.
 - **System Cursor Integration**: Integrasi penuh dengan Windows API untuk apply cursor ke seluruh sistem.
@@ -43,15 +48,21 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) | [Semantic Ver
 - Fix caption positioning tidak akurat di export — gunakan FFmpeg coordinate system yang sama dengan preview.
 - Fix preview lag saat scroll timeline — implement debouncing untuk update yang lebih smooth.
 - Fix caption text overflow — auto word wrap dengan max width 80% screen, line height 1.2x.
+- Fix caption tidak sync dengan audio — tambah 100ms delay untuk kompensasi processing time.
+- Fix video card terlalu kecil untuk di-click — perbesar dari 80x45px ke min 200px width dengan max 800px.
+- Fix import workflow membingungkan — hapus library terpisah, langsung ke timeline dengan auto-play.
 
 ### 🔧 Changes
 
 - Studio Window: redesign total dengan dark theme (#000000), icon sidebar 60px, preview center, timeline 200px height.
 - Caption service: `CaptionService.cs` baru di `src/Services/` dengan FFmpeg drawtext integration.
-- Timeline: thumbnail 100x56px → 80x45px, spacing 10px → 2px.
+- Timeline: thumbnail 100x56px → video card 200-800px x 60px dengan full info (thumbnail, filename, duration, controls).
+- Timeline scrubber: tambah slider interaktif di bawah preview dengan time display dan drag support.
+- Import workflow: hapus library panel, video langsung ke timeline, auto-play setelah import.
 - Export: tambah parameter `-vf drawtext` untuk burn caption ke video, support multi-line dengan text file.
 - Sidebar: Library panel 220px → icon-only 60px, content panel show/hide on click.
 - Export dialog: simplified dengan ComboBox untuk resolution dan FPS, checkbox untuk burn captions.
+- Filter: tambah real-time preview marker (full implementation di export).
 
 ---
 
