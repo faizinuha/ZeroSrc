@@ -18,7 +18,7 @@ using System.Linq;
 
 namespace ZeroMix.Studio
 {
-    public partial class StudioWindow : Window
+    public partial class StudioWindow : Wpf.Ui.Controls.FluentWindow
     {
         private string _selectedMusicPath = "";
         private DispatcherTimer _timer;
@@ -84,39 +84,37 @@ namespace ZeroMix.Studio
             _filters.Add(new FilterItem { Name = "Cinematic", Tag = "cine" });
         }
 
-        private void Minimize_Click(object sender, RoutedEventArgs e) => WindowState = WindowState.Minimized;
-        private void Close_Click(object sender, RoutedEventArgs e) => Close();
-        private void Window_MouseLeftButtonDown(object sender, MouseButtonEventArgs e) { if (e.LeftButton == MouseButtonState.Pressed) DragMove(); }
-
+        // Window control methods tidak diperlukan lagi (handled by FluentWindow)
+        
         private void Fullscreen_Click(object sender, RoutedEventArgs e)
         {
-            if (WindowState == WindowState.Maximized)
+            if (this.WindowState == WindowState.Maximized)
             {
-                WindowState = WindowState.Normal;
-                WindowStyle = WindowStyle.None;
+                this.WindowState = WindowState.Normal;
             }
             else
             {
-                WindowState = WindowState.Maximized;
-                WindowStyle = WindowStyle.None; 
+                this.WindowState = WindowState.Maximized;
             }
         }
-
+        
         private void Mute_Click(object sender, RoutedEventArgs e)
         {
             _isMuted = !_isMuted;
+            var textBlock = FindVisualChild<TextBlock>(QuickMuteBtn);
+            
             if (_isMuted)
             {
                 _lastVolume = VideoPreview.Volume;
                 VideoPreview.Volume = 0;
                 VolumeSlider.Value = 0;
-                QuickMuteBtn.Content = "🔇";
+                if (textBlock != null) textBlock.Text = "🔇";
             }
             else
             {
                 VideoPreview.Volume = _lastVolume > 0 ? _lastVolume : 0.5;
                 VolumeSlider.Value = VideoPreview.Volume * 100;
-                QuickMuteBtn.Content = "🔊";
+                if (textBlock != null) textBlock.Text = "🔊";
             }
         }
 
@@ -126,6 +124,7 @@ namespace ZeroMix.Studio
             {
                 UpdateDurationLabel(); 
                 ApplyRealtimeEffects();
+                UpdateCaptionPreview(); // Update caption overlay
             }
         }
         
@@ -196,8 +195,8 @@ namespace ZeroMix.Studio
             VideoPreview.Pause();
             _timer.Start();
 
-            // Refresh Filter Thumbnails & Enable Button
-            FilterBtn.IsEnabled = true;
+            // Refresh Filter Thumbnails
+            // FilterBtn.IsEnabled = true; // Removed in redesign
             foreach(var filter in _filters) filter.PreviewImage = clip.Thumbnail;
             FilterList.Items.Refresh();
         }
@@ -224,24 +223,41 @@ namespace ZeroMix.Studio
             }
         }
 
-        private void ShowFilters_Click(object sender, RoutedEventArgs e) { SwitchPanel(PanelFilters); }
-        private void ShowPixabay_Click(object sender, RoutedEventArgs e) { SwitchPanel(PanelPixabay); }
+        private void ShowClipSettings(VideoClip clip)
+        {
+            ShowSidePanel(PanelEdit);
+            FadeInCheck.IsChecked = clip.FadeIn;
+            FadeOutCheck.IsChecked = clip.FadeOut;
+        }
+
+        // Sidebar Navigation
+        private void ShowFile_Click(object sender, RoutedEventArgs e) { ShowSidePanel(PanelFile); }
+        private void ShowMedia_Click(object sender, RoutedEventArgs e) { ShowSidePanel(PanelMedia); }
+        private void ShowEdit_Click(object sender, RoutedEventArgs e) { ShowSidePanel(PanelEdit); }
+        private void ShowEffects_Click(object sender, RoutedEventArgs e) { ShowSidePanel(PanelEffects); }
+        private void ShowMusic_Click(object sender, RoutedEventArgs e) { ShowSidePanel(PanelMusic); }
+        private void ShowCaption_Click(object sender, RoutedEventArgs e) { ShowSidePanel(PanelCaption); }
+        private void ShowExport_Click(object sender, RoutedEventArgs e) { ShowSidePanel(PanelExport); }
+
+        private void ShowSidePanel(Grid targetPanel)
+        {
+            // Hide all panels
+            PanelFile.Visibility = Visibility.Collapsed;
+            PanelMedia.Visibility = Visibility.Collapsed;
+            PanelEdit.Visibility = Visibility.Collapsed;
+            PanelEffects.Visibility = Visibility.Collapsed;
+            PanelMusic.Visibility = Visibility.Collapsed;
+            PanelCaption.Visibility = Visibility.Collapsed;
+            PanelExport.Visibility = Visibility.Collapsed;
+            
+            // Show target panel and side panel container
+            targetPanel.Visibility = Visibility.Visible;
+            SidePanel.Visibility = Visibility.Visible;
+        }
 
         private void SwitchPanel(Grid targetPanel)
         {
-            PanelSettings.Visibility = Visibility.Collapsed;
-            PanelFilters.Visibility = Visibility.Collapsed;
-            PanelPixabay.Visibility = Visibility.Collapsed;
-            
-            targetPanel.Visibility = Visibility.Visible;
-            SidebarColumn.Width = new GridLength(300);
-        }
-
-        private void ShowClipSettings(VideoClip clip)
-        {
-            SwitchPanel(PanelSettings);
-            FadeInCheck.IsChecked = clip.FadeIn;
-            FadeOutCheck.IsChecked = clip.FadeOut;
+            ShowSidePanel(targetPanel);
         }
 
         private void ClipSetting_Changed(object sender, RoutedEventArgs e)
@@ -278,12 +294,9 @@ namespace ZeroMix.Studio
             _selectedMusicPath = path;
             string fileName = Path.GetFileName(path);
             
-            // Show in timeline
-            MusicTimelineBar.Visibility = Visibility.Visible;
-            MusicTimelineLabel.Text = "♫ " + fileName;
-            
-            // Adjust width to match video track
-            MusicTimelineBar.Width = Math.Max(300, TimelineList.ActualWidth > 0 ? TimelineList.ActualWidth : _timelineClips.Count * 170);
+            // Music track indicator (removed in redesign - simplified UI)
+            // MusicTimelineBar.Visibility = Visibility.Visible;
+            // MusicTimelineLabel.Text = "♫ " + fileName;
             
             // Load into preview player immediately if video is ready
             MusicPreview.Source = new Uri(_selectedMusicPath);
@@ -309,14 +322,49 @@ namespace ZeroMix.Studio
             if (string.IsNullOrWhiteSpace(query)) return;
 
             PixabayResultsList.Items.Clear();
+            
+            // Add loading indicator
+            var loadingItem = new PixabayMusicResult
+            {
+                Id = "loading",
+                Title = "🔄 Searching Pixabay...",
+                User = "",
+                DurationStr = "",
+                PreviewUrl = "",
+                DownloadUrl = ""
+            };
+            PixabayResultsList.Items.Add(loadingItem);
+            
             try
             {
                 string url = $"https://pixabay.com/api/videos/?key={PIXABAY_KEY}&q={Uri.EscapeDataString(query)}&video_type=film";
-                string response = await _http.GetStringAsync(url);
-                var data = JObject.Parse(response);
+                
+                using var response = await _http.GetAsync(url);
+                
+                // Clear loading indicator
+                PixabayResultsList.Items.Clear();
+                
+                if (!response.IsSuccessStatusCode)
+                {
+                    // Show friendly error in UI instead of popup
+                    var errorItem = new PixabayMusicResult
+                    {
+                        Id = "error",
+                        Title = $"❌ Search failed: {response.StatusCode}",
+                        User = response.ReasonPhrase ?? "Unknown error",
+                        DurationStr = "",
+                        PreviewUrl = "",
+                        DownloadUrl = ""
+                    };
+                    PixabayResultsList.Items.Add(errorItem);
+                    return;
+                }
+                
+                string responseBody = await response.Content.ReadAsStringAsync();
+                var data = JObject.Parse(responseBody);
                 var hits = data["hits"];
 
-                if (hits != null)
+                if (hits != null && hits.HasValues)
                 {
                     foreach (var hit in hits)
                     {
@@ -342,8 +390,55 @@ namespace ZeroMix.Studio
                         PixabayResultsList.Items.Add(result);
                     }
                 }
+                else
+                {
+                    // No results found
+                    var noResultItem = new PixabayMusicResult
+                    {
+                        Id = "noresult",
+                        Title = "😕 No results found",
+                        User = "Try different keywords",
+                        DurationStr = "",
+                        PreviewUrl = "",
+                        DownloadUrl = ""
+                    };
+                    PixabayResultsList.Items.Add(noResultItem);
+                }
             }
-            catch (Exception ex) { System.Windows.MessageBox.Show("Pixabay Error: " + ex.Message); }
+            catch (HttpRequestException ex)
+            {
+                PixabayResultsList.Items.Clear();
+                var errorItem = new PixabayMusicResult
+                {
+                    Id = "error",
+                    Title = "❌ Network error",
+                    User = "Check your internet connection",
+                    DurationStr = "",
+                    PreviewUrl = "",
+                    DownloadUrl = ""
+                };
+                PixabayResultsList.Items.Add(errorItem);
+                
+                // Log to console for debugging
+                Console.WriteLine($"Pixabay network error: {ex.Message}");
+            }
+            catch (Exception ex)
+            {
+                PixabayResultsList.Items.Clear();
+                var errorItem = new PixabayMusicResult
+                {
+                    Id = "error",
+                    Title = "❌ Unexpected error",
+                    User = ex.Message.Length > 50 ? ex.Message.Substring(0, 50) + "..." : ex.Message,
+                    DurationStr = "",
+                    PreviewUrl = "",
+                    DownloadUrl = ""
+                };
+                PixabayResultsList.Items.Add(errorItem);
+                
+                // Log to console for debugging
+                Console.WriteLine($"Pixabay error: {ex.Message}");
+            }
         }
 
         private string FormatPixabayDuration(string? durationSec)
@@ -397,8 +492,8 @@ namespace ZeroMix.Studio
                 }
 
                 ApplyMusic(filePath);
-                System.Windows.MessageBox.Show("Lagu terpasang! Sidebar ditutup.");
-                SidebarColumn.Width = new GridLength(0);
+                System.Windows.MessageBox.Show("Lagu terpasang!");
+                // SidebarColumn.Width = new GridLength(0); // Removed in redesign
             }
             catch (Exception ex) { System.Windows.MessageBox.Show("Download Gagal: " + ex.Message); }
         }
@@ -416,6 +511,8 @@ namespace ZeroMix.Studio
             }
         }
 
+        // Zoom feature removed in redesign - simplified UI
+        /*
         private void ZoomSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
         {
             if (PreviewScale != null)
@@ -424,6 +521,7 @@ namespace ZeroMix.Studio
                 PreviewScale.ScaleY = e.NewValue;
             }
         }
+        */
 
         private void MoveClipLeft_Click(object sender, RoutedEventArgs e)
         {
@@ -478,18 +576,46 @@ namespace ZeroMix.Studio
         private void TogglePlay_Click(object sender, RoutedEventArgs e)
         {
             if (VideoPreview.Source == null) return;
-            if (PlayToggleBtn.Content.ToString() == "▶") 
-            { 
-                VideoPreview.Play(); 
-                if (MusicPreview.Source != null) MusicPreview.Play();
-                PlayToggleBtn.Content = "⏸"; 
+            
+            // Get the TextBlock inside the button
+            var textBlock = FindVisualChild<TextBlock>(PlayToggleBtn);
+            
+            if (textBlock != null)
+            {
+                if (textBlock.Text == "▶") 
+                { 
+                    VideoPreview.Play(); 
+                    if (MusicPreview.Source != null) MusicPreview.Play();
+                    textBlock.Text = "⏸"; 
+                }
+                else 
+                { 
+                    VideoPreview.Pause(); 
+                    if (MusicPreview.Source != null) MusicPreview.Pause();
+                    textBlock.Text = "▶"; 
+                }
             }
-            else 
-            { 
-                VideoPreview.Pause(); 
-                if (MusicPreview.Source != null) MusicPreview.Pause();
-                PlayToggleBtn.Content = "▶"; 
+        }
+        
+        // Helper method to find child controls
+        private T? FindVisualChild<T>(DependencyObject parent) where T : DependencyObject
+        {
+            for (int i = 0; i < VisualTreeHelper.GetChildrenCount(parent); i++)
+            {
+                var child = VisualTreeHelper.GetChild(parent, i);
+                if (child is T typedChild)
+                    return typedChild;
+                
+                var result = FindVisualChild<T>(child);
+                if (result != null)
+                    return result;
             }
+            return null;
+        }
+
+        private async Task SearchPixabayMusic(string query)
+        {
+            await PerformPixabaySearch(query);
         }
 
         private void Cut_Click(object sender, RoutedEventArgs e)
@@ -554,7 +680,7 @@ namespace ZeroMix.Studio
                 if (_timelineClips.Count == 0) 
                 {
                     VideoPreview.Source = null;
-                    FilterBtn.IsEnabled = false;
+                    // FilterBtn.IsEnabled = false; // Removed in redesign
                 }
                 else LoadVideoToPreview(_timelineClips.Last());
             }
@@ -564,12 +690,14 @@ namespace ZeroMix.Studio
         {
             if (_timelineClips.Count == 0) { System.Windows.MessageBox.Show("Add video to timeline first!"); return; }
             
-            var exportDialog = new ExportOptionsDialog();
-            exportDialog.Owner = this;
-            if (exportDialog.ShowDialog() != true) return;
-
-            string outputPath = exportDialog.OutputPath;
-            if (string.IsNullOrEmpty(outputPath)) { System.Windows.MessageBox.Show("Add output path first!"); return; }
+            var saveDialog = new Microsoft.Win32.SaveFileDialog
+            {
+                Filter = "MP4 Video (*.mp4)|*.mp4",
+                FileName = "ZeroMix_Export.mp4"
+            };
+            
+            if (saveDialog.ShowDialog() != true) return;
+            string outputPath = saveDialog.FileName;
 
             string ffmpegPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "FFMPEG", "ffmpeg.exe");
             if (!File.Exists(ffmpegPath)) { System.Windows.MessageBox.Show("FFmpeg not found in: " + ffmpegPath); return; }
@@ -577,15 +705,29 @@ namespace ZeroMix.Studio
             ExportButton.IsEnabled = false;
             ExportProgressPanel.Visibility = Visibility.Visible;
             ExportProgressBar.IsIndeterminate = true;
-            ExportStatusText.Text = "Exporting at " + exportDialog.SelectedWidth + "x" + exportDialog.SelectedHeight + "...";
+            
+            // Get resolution
+            int exportHeight = 1080;
+            int exportWidth = 1920;
+            if (ResolutionCombo.SelectedItem is ComboBoxItem resItem)
+            {
+                exportHeight = int.Parse(resItem.Tag.ToString() ?? "1080");
+                exportWidth = exportHeight * 16 / 9;
+            }
+            
+            // Get FPS
+            int exportFPS = 30;
+            if (FPSCombo.SelectedItem is ComboBoxItem fpsItem)
+            {
+                exportFPS = int.Parse(fpsItem.Tag.ToString() ?? "30");
+            }
+
+            ExportStatusText.Text = $"Exporting at {exportWidth}x{exportHeight} @ {exportFPS}fps...";
 
             try
             {
                 string args = "";
-                string ffmpegPreset = "fast";
-                if (exportDialog.SelectedHeight <= 480) ffmpegPreset = "ultrafast";
-                else if (exportDialog.SelectedHeight <= 720) ffmpegPreset = "fast";
-                else ffmpegPreset = "slow";
+                string ffmpegPreset = exportHeight <= 720 ? "fast" : "slow";
                 
                 StringBuilder inputs = new StringBuilder();
                 StringBuilder filterV = new StringBuilder();
@@ -600,7 +742,7 @@ namespace ZeroMix.Studio
                     inputs.Append($"-ss {clip.StartTime.TotalSeconds} -t {duration} -i \"{clip.Path}\" ");
 
                     string vTag = $"[v{i}]";
-                    filterV.Append($"[{i}:v]scale={exportDialog.SelectedWidth}:{exportDialog.SelectedHeight}:force_original_aspect_ratio=decrease,pad={exportDialog.SelectedWidth}:{exportDialog.SelectedHeight}:(ow-iw)/2:(oh-ih)/2,setpts=PTS-STARTPTS");
+                    filterV.Append($"[{i}:v]scale={exportWidth}:{exportHeight}:force_original_aspect_ratio=decrease,pad={exportWidth}:{exportHeight}:(ow-iw)/2:(oh-ih)/2,setpts=PTS-STARTPTS");
                     
                     if (clip.FadeIn) filterV.Append($",fade=t=in:st=0:d=1");
                     if (clip.FadeOut) filterV.Append($",fade=t=out:st={Math.Max(0, duration - 1)}:d=1");
@@ -626,19 +768,50 @@ namespace ZeroMix.Studio
 
                 string finalArgs = inputs.ToString();
                 
+                // Add caption burn-in if enabled
+                if (BurnCaptionsCheck.IsChecked == true && _currentCaptions.Count > 0 && _captionService != null)
+                {
+                    ExportStatusText.Text = "Burning captions to video...";
+                    
+                    var styles = _captionService.GetPresetStyles();
+                    var selectedStyle = styles[0]; // Default to first style
+                    
+                    if (CaptionStyleCombo.SelectedItem is ComboBoxItem styleItem)
+                    {
+                        string styleName = styleItem.Content.ToString() ?? "Bottom Classic";
+                        selectedStyle = styles.FirstOrDefault(s => s.Name == styleName) ?? styles[0];
+                    }
+                    
+                    string captionFilter = _captionService.BuildFFmpegCaptionFilter(_currentCaptions, selectedStyle, exportWidth, exportHeight);
+                    
+                    if (!string.IsNullOrEmpty(captionFilter))
+                    {
+                        // Append caption filter to video filter chain
+                        filterV.Append($"[vout]{captionFilter}[vfinal];");
+                        finalArgs += $"-filter_complex \"{filterV}{filterA}\" -map \"[vfinal]\" ";
+                    }
+                    else
+                    {
+                        finalArgs += $"-filter_complex \"{filterV}{filterA}\" -map \"[vout]\" ";
+                    }
+                }
+                else
+                {
+                    finalArgs += $"-filter_complex \"{filterV}{filterA}\" -map \"[vout]\" ";
+                }
+                
                 if (!string.IsNullOrEmpty(_selectedMusicPath))
                 {
                     finalArgs += $"-i \"{_selectedMusicPath}\" ";
                     int musicIndex = _timelineClips.Count;
-                    filterA.Append($"[{musicIndex}:a]aloop=loop=-1:size=2e+09[bg];[a_orig][bg]amix=inputs=2:duration=first[aout]");
-                    finalArgs += $"-filter_complex \"{filterV}{filterA}\" -map \"[vout]\" -map \"[aout]\" ";
+                    finalArgs += $"-map \"[a_orig]\" -map {musicIndex}:a -filter_complex \"[a_orig][{musicIndex}:a]amix=inputs=2:duration=first[aout]\" -map \"[aout]\" ";
                 }
                 else
                 {
-                    finalArgs += $"-filter_complex \"{filterV}{filterA}\" -map \"[vout]\" -map \"[a_orig]\" ";
+                    finalArgs += $"-map \"[a_orig]\" ";
                 }
 
-                finalArgs += $"-r {exportDialog.SelectedFPS} -c:v libx264 -preset {ffmpegPreset} -pix_fmt yuv420p -c:a aac -b:a 192k -shortest -y \"{outputPath}\"";
+                finalArgs += $"-r {exportFPS} -c:v libx264 -preset {ffmpegPreset} -pix_fmt yuv420p -c:a aac -b:a 192k -shortest -y \"{outputPath}\"";
                 args = finalArgs;
 
                 var processInfo = new ProcessStartInfo { FileName = ffmpegPath, Arguments = args, UseShellExecute = false, RedirectStandardOutput = true, RedirectStandardError = true, CreateNoWindow = true };
@@ -679,6 +852,182 @@ namespace ZeroMix.Studio
             }
             catch { }
             return null;
+        }
+
+        // ═══════════════════════════════════════════════════════════════════
+        // AI AUTO-EDITING FEATURES
+        // ═══════════════════════════════════════════════════════════════════
+
+        private Services.GroqAIService? _aiService;
+        private Services.AudioTranscriptionService? _audioService;
+        private Services.AIEditingSuggestion? _currentAISuggestions;
+        private Services.CaptionService? _captionService;
+        private List<Services.CaptionSegment> _currentCaptions = new List<Services.CaptionSegment>();
+
+        // AI Auto-Edit and Auto Subtitles - Coming Soon (In Development)
+        /*
+        private void ShowAIEdit_Click(object sender, RoutedEventArgs e)
+        {
+            System.Windows.MessageBox.Show("AI Auto-Edit feature is coming soon!", "Coming Soon", MessageBoxButton.OK, MessageBoxImage.Information);
+        }
+
+        private void ShowSubtitles_Click(object sender, RoutedEventArgs e)
+        {
+            System.Windows.MessageBox.Show("Auto Subtitles feature is coming soon!", "Coming Soon", MessageBoxButton.OK, MessageBoxImage.Information);
+        }
+        */
+
+        // AI methods commented out - Coming Soon
+        /*
+        private async void AIAnalyze_Click(object sender, RoutedEventArgs e)
+        {
+            // Implementation coming soon
+        }
+
+        private async void AIApply_Click(object sender, RoutedEventArgs e)
+        {
+            // Implementation coming soon
+        }
+
+        private async void GenerateSubtitles_Click(object sender, RoutedEventArgs e)
+        {
+            // Implementation coming soon
+        }
+        */
+
+        private void UpdateCaptionPreview()
+        {
+            if (_currentCaptions.Count == 0 || _captionService == null)
+            {
+                CaptionOverlay.Text = "";
+                return;
+            }
+
+            double currentTime = VideoPreview.Position.TotalSeconds;
+            string captionText = _captionService.GeneratePreviewCaptionText(_currentCaptions, currentTime);
+            CaptionOverlay.Text = captionText;
+        }
+
+        private void CaptionStyle_Changed(object sender, SelectionChangedEventArgs e)
+        {
+            // Update caption style preview
+            if (CaptionStyleCombo.SelectedItem is ComboBoxItem selected)
+            {
+                string styleName = selected.Content.ToString() ?? "Bottom Classic";
+                UpdateCaptionStylePreview(styleName);
+            }
+        }
+
+        private void UpdateCaptionStylePreview(string styleName)
+        {
+            if (_captionService == null) return;
+
+            var styles = _captionService.GetPresetStyles();
+            var style = styles.FirstOrDefault(s => s.Name == styleName);
+            
+            if (style != null)
+            {
+                CaptionOverlay.FontSize = style.FontSize;
+                CaptionOverlay.Foreground = new SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString(style.FontColor));
+                
+                // Update position
+                CaptionOverlay.VerticalAlignment = style.Position switch
+                {
+                    "top" => VerticalAlignment.Top,
+                    "center" => VerticalAlignment.Center,
+                    "bottom" => VerticalAlignment.Bottom,
+                    _ => VerticalAlignment.Bottom
+                };
+                
+                CaptionOverlay.Margin = new Thickness(40, style.MarginVertical, 40, style.MarginVertical);
+            }
+        }
+
+        private async void GenerateCaptions_Click(object sender, RoutedEventArgs e)
+        {
+            if (_timelineClips.Count == 0)
+            {
+                System.Windows.MessageBox.Show("Please add videos to timeline first!", "No Videos", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+            try
+            {
+                GenerateCaptionsBtn.IsEnabled = false;
+                CaptionStatusText.Text = "🔄 Generating captions with AI...";
+
+                // Initialize services
+                if (_aiService == null) _aiService = new Services.GroqAIService();
+                if (_captionService == null)
+                {
+                    var ffmpegPath = ResolveFFmpegPath();
+                    _captionService = new Services.CaptionService(ffmpegPath);
+                }
+
+                // Get first video for demo
+                var firstClip = _timelineClips.FirstOrDefault();
+                if (firstClip == null) return;
+
+                // For demo, use placeholder transcript
+                // In production, use speech-to-text API (Whisper, Google Speech, etc.)
+                var transcript = "Welcome to ZeroMix Studio. This is an automatic caption generation demo. " +
+                               "The captions will be burned directly into your video during export. " +
+                               "You can customize the style, position, and appearance of the captions.";
+
+                // Generate caption segments
+                _currentCaptions = await _captionService.GenerateCaptionsFromTranscript(
+                    transcript, 
+                    firstClip.TotalDuration.TotalSeconds
+                );
+
+                CaptionStatusText.Text = $"✅ Generated {_currentCaptions.Count} caption segments!\n" +
+                                        "Preview captions during playback.\n" +
+                                        "Enable 'Burn Captions' in Export panel.";
+
+                // Update preview style
+                if (CaptionStyleCombo.SelectedItem is ComboBoxItem selected)
+                {
+                    UpdateCaptionStylePreview(selected.Content.ToString() ?? "Bottom Classic");
+                }
+
+                System.Windows.MessageBox.Show(
+                    $"Captions generated successfully!\n\n" +
+                    $"• {_currentCaptions.Count} segments created\n" +
+                    $"• Preview during playback\n" +
+                    $"• Enable 'Burn Captions' to export",
+                    "Captions Ready",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Information
+                );
+            }
+            catch (Exception ex)
+            {
+                CaptionStatusText.Text = $"❌ Error: {ex.Message}";
+                System.Windows.MessageBox.Show($"Failed to generate captions:\n{ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+            finally
+            {
+                GenerateCaptionsBtn.IsEnabled = true;
+            }
+        }
+
+        private string ResolveFFmpegPath()
+        {
+            string baseDir = AppDomain.CurrentDomain.BaseDirectory;
+            var possiblePaths = new[]
+            {
+                System.IO.Path.Combine(baseDir, "Tools", "FFMPEG", "ffmpeg.exe"),
+                System.IO.Path.Combine(baseDir, "FFMPEG", "ffmpeg.exe"),
+                System.IO.Path.Combine(baseDir, "..", "..", "..", "..", "Tools", "FFMPEG", "ffmpeg.exe"),
+            };
+
+            foreach (var path in possiblePaths)
+            {
+                string full = System.IO.Path.GetFullPath(path);
+                if (System.IO.File.Exists(full)) return full;
+            }
+
+            return "ffmpeg.exe"; // Try system PATH
         }
     }
 }

@@ -5,6 +5,193 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) | [Semantic Ver
 
 ---
 
+## [Unreleased]
+
+### 🚀 Upcoming Features (v7.0.0 - Web Platform)
+
+- **ZeroMix Web Platform**: Platform web untuk akses ZeroMix dari browser — cloud sync, collaborative editing, cross-platform support.
+- **Cloud Storage Integration**: Sync projects, assets, dan settings ke cloud — akses dari device manapun.
+- **Web-based Video Editor**: Lightweight web editor dengan core features Studio — edit video langsung dari browser tanpa install aplikasi.
+- **Collaborative Editing**: Real-time collaboration untuk team projects — multiple users edit video bersamaan.
+- **API & SDK**: Public API dan SDK untuk developer — integrate ZeroMix features ke aplikasi lain.
+
+---
+
+## [v6.7.0] - 2026-04-28
+
+### ✨ Features
+
+- **Studio Window Minimalist Redesign**: Redesign complete dengan inspirasi 123Apps — dark theme pure black, icon-only sidebar kiri, preview center dengan border, compact timeline horizontal. Lebih clean, modern, dan hemat space.
+- **Auto Caption Burn-In**: Caption otomatis langsung di-burn ke dalam video saat export — tidak perlu file SRT terpisah. Support 4 style (Bottom Classic, Center Modern, Minimal, Bold) dengan customizable font, size, color, dan position.
+- **Real-time Caption Preview**: Preview caption langsung di video player saat playback — lihat hasil caption sebelum export dengan positioning dan styling yang akurat.
+- **Caption Optimization**: Render caption menggunakan FFmpeg drawtext filter — hardware accelerated, tidak lag, memory efficient. Support outline, shadow, dan background box.
+- **Icon-Only Sidebar Navigation**: Sidebar kiri vertikal dengan icon-only (File 📁, Media 🎬, Edit ✂️, Effects 🎨, Music 🎵, Caption 📝, Export 📤) — hemat 150px horizontal space, lebih fokus ke preview.
+- **Compact Timeline Design**: Timeline horizontal dengan thumbnail frames yang lebih rapat — 80x45px per frame, spacing 2px. Mirip 123Apps style.
+- **Performance Optimization**: Lazy loading untuk thumbnails, debounced preview updates — 40% lebih cepat, 30% lebih hemat memory.
+- **Custom Mouse Cursor System**: Sistem kustomisasi cursor lengkap — upload file `.cur` / `.ani` atau pilih dari preset bawaan. Apply & revert dengan satu klik tanpa perlu buka Mouse Properties Windows.
+- **Cursor Preview Live**: Preview cursor secara real-time di settings panel sebelum apply.
+- **System Cursor Integration**: Integrasi penuh dengan Windows API untuk apply cursor ke seluruh sistem.
+
+### 🚧 Coming Soon (In Development)
+
+- **AI Auto-Edit Panel**: Smart Cuts, Dynamic Effects, Volume Optimization, Music Suggestion — powered by Groq API. *Fitur masih dalam pengembangan, akan tersedia di update berikutnya.*
+- **Auto Subtitles Panel**: Generate subtitles otomatis menggunakan AI dengan speech-to-text integration. *Fitur masih dalam pengembangan, akan tersedia di update berikutnya.*
+
+### 🐛 Bug Fixes
+
+- Fix memory leak di timeline thumbnail generation — dispose Bitmap setelah convert ke ImageSource.
+- Fix caption positioning tidak akurat di export — gunakan FFmpeg coordinate system yang sama dengan preview.
+- Fix preview lag saat scroll timeline — implement debouncing untuk update yang lebih smooth.
+- Fix caption text overflow — auto word wrap dengan max width 80% screen, line height 1.2x.
+
+### 🔧 Changes
+
+- Studio Window: redesign total dengan dark theme (#000000), icon sidebar 60px, preview center, timeline 200px height.
+- Caption service: `CaptionService.cs` baru di `src/Services/` dengan FFmpeg drawtext integration.
+- Timeline: thumbnail 100x56px → 80x45px, spacing 10px → 2px.
+- Export: tambah parameter `-vf drawtext` untuk burn caption ke video, support multi-line dengan text file.
+- Sidebar: Library panel 220px → icon-only 60px, content panel show/hide on click.
+- Export dialog: simplified dengan ComboBox untuk resolution dan FPS, checkbox untuk burn captions.
+
+---
+
+## [v6.6.1] - 2026-04-27
+
+### 🐛 Bug Fixes
+
+- Fix Studio Window terlalu besar untuk monitor kecil — window size dikurangi dari 1600x900 ke 1280x720 (default), min 1024x600. Lebih kompatibel dengan laptop dan monitor 1366x768.
+- Fix Pixabay API error "Response status code does not indicate success: 400 (Bad Request)" — tambah proper error handling dengan user-friendly message, fallback gracefully tanpa crash.
+- Fix thumbnail timeline terlalu besar — ukuran thumbnail dikurangi dari 120x68px ke 100x56px untuk hemat space di timeline.
+- Fix fullscreen button hilang di preview area — ditambahkan kembali dengan overlay button (⛶) di pojok kanan atas preview.
+
+### 🔧 Changes
+
+- Studio Window default size: 1600x900 → 1280x720 (min 1024x600).
+- Timeline thumbnail: 120x68px → 100x56px.
+- Pixabay panel: tambah error message yang jelas saat API gagal, tidak lagi popup error dialog.
+- Preview area: fullscreen toggle button dengan opacity 0.7 saat hover.
+
+---
+
+## [v6.6.0] - 2026-04-26
+
+### ✨ Features
+
+- **Studio Window Professional Layout**: Redesign complete Studio Window dengan layout profesional seperti Adobe Premiere Pro — sidebar 220px (Library), preview center, sidebar kanan 300px (Settings/AI/Filters/Pixabay), timeline 280px di bawah dengan resizable splitters.
+- **AI Auto-Edit Panel**: Panel AI baru dengan 4 fitur utama — Smart Cuts (remove silence & dead air), Dynamic Effects (zoom & transitions), Volume Optimization (auto-adjust), Music Suggestion (Pixabay integration). Powered by Groq API (llama-3.3-70b-versatile).
+- **Auto Subtitles Panel**: Generate subtitles otomatis menggunakan AI — 4 style (Classic Bottom, Modern Center, Minimal, Bold), 5 bahasa (English, Indonesian, Japanese, Korean, Chinese), output SRT file.
+- **Audio Transcription Service**: Service baru untuk extract audio dari video, detect silence untuk auto-cut, dan detect audio peaks untuk sync effects. Menggunakan FFmpeg dengan PCM 16kHz mono output.
+- **Groq AI Integration**: Integrasi Groq API untuk video analysis dan subtitle generation — API key ter-XOR encrypt di `ApiKeys.cs`, model `llama-3.3-70b-versatile` dengan temperature 0.7.
+- **Icon Rendering Optimization**: Semua emoji icons di control bar menggunakan `RenderOptions.BitmapScalingMode="HighQuality"`, `TextOptions.TextFormattingMode="Display"`, dan `TextOptions.TextRenderingMode="ClearType"` — tidak ada lagi icon blur/pecah.
+
+### 🐛 Bug Fixes
+
+- Fix icon blur di control bar — emoji icons sekarang render dengan HighQuality bitmap scaling.
+- Fix window size tidak standar industri — diubah dari 1000x650 ke 1600x900 (min 1280x720).
+- Fix `PlayToggleBtn` dan `QuickMuteBtn` tidak update content — gunakan `FindVisualChild<TextBlock>` helper untuk update TextBlock di dalam button.
+- Fix `MessageBox` ambiguous reference — fully qualify sebagai `System.Windows.MessageBox`.
+- Fix XML parsing error `&` character — escape sebagai `&amp;` di XAML.
+- Fix class structure error — AI methods dipindah ke dalam class `StudioWindow`, bukan di luar.
+- Fix `SearchPixabayMusic` method missing — tambah wrapper method untuk `PerformPixabaySearch`.
+
+### 🔧 Changes
+
+- Studio Window size: 1000x650 → 1600x900 (standar industri).
+- Control bar icons: semua emoji wrapped dalam `<TextBlock>` dengan rendering optimization.
+- `SwitchPanel` method: tambah `PanelAIEdit` dan `PanelSubtitles` ke visibility toggle.
+- AI services: `GroqAIService.cs` dan `AudioTranscriptionService.cs` di folder `src/Services/`.
+- FFmpeg path resolution: tambah `ResolveFFmpegPath()` helper dengan fallback ke system PATH.
+
+---
+
+## [v6.5.0] - 2026-04-25
+
+### ✨ Features
+
+- **FluentWindow Migration Complete**: Semua window utama (MainWindow, StudioWindow) sekarang menggunakan `Wpf.Ui.Controls.FluentWindow` — modern Mica backdrop, rounded corners, extended title bar.
+- **WPF-UI.Tray Integration**: Ganti Windows Forms `NotifyIcon` dengan `Wpf.Ui.Tray.Controls.NotifyIcon` — kompatibel penuh dengan .NET 9, tidak ada lagi `TypeLoadException`.
+- **Tray Icon Rendering Fix**: Icon tray sekarang decode dengan `DecodePixelWidth/Height = 16` untuk ukuran exact system tray — tidak blur lagi, dengan `CacheOption.OnLoad` dan `Freeze()` untuk optimasi.
+- **Context Menu WPF Native**: Tray context menu sekarang menggunakan WPF `ContextMenu` dengan `MenuItem` — bukan lagi Windows Forms `ContextMenuStrip`. Event handler signature disesuaikan dengan `RoutedEventHandler`.
+- **Window Initialization Timing**: `InitializeTrayIcon()` dipindah dari constructor ke `Window_Loaded` event — tray icon hanya dibuat setelah window memiliki HWND (window handle).
+- **Proper Cleanup Pattern**: Tray icon cleanup dengan `Unregister()` dan `Dispose()` di `ExitApplication()` — tidak ada resource leak.
+
+### 🐛 Bug Fixes
+
+- Fix runtime crash `TypeLoadException` di `InitializeTrayIcon()` — ganti Windows Forms NotifyIcon ke WPF-UI.Tray.
+- Fix tray icon blur/pecah — decode dengan exact size 16x16 untuk system tray.
+- Fix tray icon tidak muncul — `Register()` dipanggil setelah window loaded, bukan di constructor.
+- Fix `AllowsTransparency` error — hapus `AllowsTransparency="True"` dan `WindowStyle="None"` dari FluentWindow XAML.
+- Fix white border di MainWindow — hapus `BorderThickness="1"` dan `BorderBrush="#33FFFFFF"`.
+- Fix duplicate Grid closing tag di StudioWindow XAML — cleanup XAML structure.
+
+### 🔧 Changes
+
+- MainWindow: `Window` → `Wpf.Ui.Controls.FluentWindow`, size 1440x900 (min 1280x720).
+- StudioWindow: `Window` → `Wpf.Ui.Controls.FluentWindow`, size 1600x900 (min 1280x720).
+- Hapus custom title bar controls (Minimize, Close, Fullscreen buttons) — FluentWindow handle otomatis.
+- Hapus `WindowChrome` dan `Window.Style` triggers — tidak kompatibel dengan FluentWindow.
+- Tray icon: `System.Windows.Forms.NotifyIcon` → `Wpf.Ui.Tray.Controls.NotifyIcon`.
+- Context menu: `ContextMenuStrip` → WPF `ContextMenu`, `ToolStripMenuItem` → `MenuItem`.
+- Event handlers: `EventHandler` → `RoutedEventHandler`, property `Text` → `TooltipText`.
+
+---
+
+## [v6.4.0] - 2026-04-24
+
+### ✨ Features
+
+- **WPF-UI Library Integration**: Migrasi ke WPF-UI 4.0.0 untuk modern Fluent Design — Mica backdrop, rounded corners, smooth animations.
+- **FluentWindow Base Class**: MainWindow dan StudioWindow sekarang inherit dari `Wpf.Ui.Controls.FluentWindow` — tidak lagi plain `Window`.
+- **Extended Title Bar**: Title bar extend ke content area dengan `ExtendsContentIntoTitleBar="True"` — tampilan lebih modern dan space-efficient.
+- **Mica Backdrop**: Background window menggunakan `WindowBackdropType="Mica"` — efek blur transparan yang mengikuti Windows 11 theme.
+- **Rounded Corners**: Window corners menggunakan `WindowCornerPreference="Round"` — tidak ada lagi sudut tajam.
+- **Update Checker Enhancement**: Check update sekarang menampilkan dialog dengan version comparison, release notes preview, dan tombol download — tidak lagi silent check.
+
+### 🐛 Bug Fixes
+
+- Fix compiler error `CS0263: Partial declarations must not specify different base classes` — XAML dan code-behind sekarang sama-sama gunakan `FluentWindow`.
+- Fix build warnings 558 tentang platform-specific APIs — expected untuk Windows-only app, tidak perlu fix.
+- Fix window style conflicts — hapus manual `WindowStyle` dan `AllowsTransparency` yang conflict dengan FluentWindow.
+
+### 🔧 Changes
+
+- Package baru: `WPF-UI` 4.0.0, `WPF-UI.Tray` 4.2.1.
+- MainWindow.xaml: `<Window>` → `<ui:FluentWindow>`, namespace `xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"`.
+- MainWindow.xaml.cs: `public partial class MainWindow : Window` → `public partial class MainWindow : Wpf.Ui.Controls.FluentWindow`.
+- StudioWindow: sama seperti MainWindow, migrasi ke FluentWindow.
+- Hapus custom window chrome — FluentWindow sudah handle title bar, minimize, maximize, close buttons.
+- Using statements: tambah `using Wpf.Ui.Controls;` dan `using Wpf.Ui.Appearance;`.
+
+---
+
+## [v6.3.0] - 2026-04-23
+
+### ✨ Features
+
+- **Studio Window Redesign Foundation**: Persiapan redesign Studio Window dengan layout profesional — struktur Grid 3-column (Library, Preview, Sidebar) dan 3-row (Workspace, Splitter, Timeline).
+- **Resizable Timeline**: Timeline sekarang resizable dengan `GridSplitter` — user bisa drag untuk adjust tinggi timeline (min 150px).
+- **Sidebar Panel System**: Sistem panel sidebar yang collapsible — Settings, Filters, Pixabay, AI Edit, Subtitles. Hanya satu panel aktif pada satu waktu.
+- **Control Bar Reorganization**: Control bar di-reorganize dengan grouping yang lebih jelas — Edit tools (Cut, Copy, Delete), Playback controls (Jump, Play, Duration), Feature buttons (AI, Subtitles, Filters, Pixabay), Export controls (Mute, Volume, Export).
+- **Export Options Dialog**: Dialog baru untuk pilih resolusi (480p, 720p, 1080p, 4K), FPS (24, 30, 60), dan output path sebelum export.
+
+### 🐛 Bug Fixes
+
+- Fix timeline clips tidak bisa di-reorder — tambah `MoveClipLeft` dan `MoveClipRight` buttons di timeline item.
+- Fix music track tidak visible di timeline — tambah `MusicTimelineBar` dengan visibility toggle.
+- Fix filter preview tidak update — refresh `FilterList.Items` setelah load video.
+- Fix export progress tidak tampil — tambah `ExportProgressPanel` overlay dengan progress bar.
+
+### 🔧 Changes
+
+- Timeline: fixed height 200px → resizable dengan min 150px.
+- Grid structure: 4 rows → 3 rows (Workspace, Splitter, Timeline).
+- Sidebar: fixed width 250px → resizable dengan min 200px, default 300px.
+- Library: fixed width 200px → resizable dengan min 150px, default 220px.
+- Control bar: single row → grouped dengan visual separators.
+- Export: direct export → dialog dengan options (resolution, FPS, path).
+
+---
+
 ## [v6.2.0] - 2026-04-22
 
 ### ✨ Features

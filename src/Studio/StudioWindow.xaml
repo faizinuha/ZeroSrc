@@ -1,17 +1,85 @@
-<Window x:Class="ZeroMix.Studio.StudioWindow"
+<ui:FluentWindow x:Class="ZeroMix.Studio.StudioWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="ZeroMix Studio" Height="750" Width="1280"
-        WindowStyle="None" AllowsTransparency="True" Background="Transparent"
-        ResizeMode="CanResize" WindowStartupLocation="CenterScreen"
-        MouseLeftButtonDown="Window_MouseLeftButtonDown">
+        xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+        Title="ZeroMix Studio" 
+        Height="720" 
+        Width="1280"
+        MinHeight="600" 
+        MinWidth="1024"
+        WindowStartupLocation="CenterScreen"
+        ExtendsContentIntoTitleBar="True"
+        WindowBackdropType="None"
+        WindowCornerPreference="Round"
+        Background="#000000">
 
     <Window.Resources>
         <ResourceDictionary>
-            <SolidColorBrush x:Key="BgBrush" Color="#0B0E14"/>
-            <SolidColorBrush x:Key="AccentBrush" Color="#00FFA3"/>
-            <SolidColorBrush x:Key="BorderBrush" Color="#2D333F"/>
+            <!-- Pure Black Theme -->
+            <SolidColorBrush x:Key="BgPureBlack" Color="#000000"/>
+            <SolidColorBrush x:Key="BgDark" Color="#0A0A0A"/>
+            <SolidColorBrush x:Key="BgPanel" Color="#141414"/>
+            <SolidColorBrush x:Key="AccentCyan" Color="#00FFA3"/>
+            <SolidColorBrush x:Key="AccentYellow" Color="#FFD700"/>
+            <SolidColorBrush x:Key="BorderDark" Color="#1A1A1A"/>
+            <SolidColorBrush x:Key="TextWhite" Color="#FFFFFF"/>
+            <SolidColorBrush x:Key="TextGray" Color="#999999"/>
             
+            <!-- Icon Button Style -->
+            <Style x:Key="IconBtn" TargetType="Button">
+                <Setter Property="Background" Value="Transparent"/>
+                <Setter Property="Foreground" Value="{StaticResource TextGray}"/>
+                <Setter Property="BorderThickness" Value="0"/>
+                <Setter Property="FontSize" Value="20"/>
+                <Setter Property="Width" Value="50"/>
+                <Setter Property="Height" Value="50"/>
+                <Setter Property="Cursor" Value="Hand"/>
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="Button">
+                            <Border Background="{TemplateBinding Background}" CornerRadius="8">
+                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+                <Style.Triggers>
+                    <Trigger Property="IsMouseOver" Value="True">
+                        <Setter Property="Background" Value="#1A1A1A"/>
+                        <Setter Property="Foreground" Value="{StaticResource AccentCyan}"/>
+                    </Trigger>
+                </Style.Triggers>
+            </Style>
+
+            <!-- Primary Button Style -->
+            <Style x:Key="PrimaryBtn" TargetType="Button">
+                <Setter Property="Background" Value="{StaticResource AccentYellow}"/>
+                <Setter Property="Foreground" Value="#000000"/>
+                <Setter Property="BorderThickness" Value="0"/>
+                <Setter Property="FontWeight" Value="Bold"/>
+                <Setter Property="FontSize" Value="11"/>
+                <Setter Property="Padding" Value="20,8"/>
+                <Setter Property="Cursor" Value="Hand"/>
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="Button">
+                            <Border Background="{TemplateBinding Background}" CornerRadius="6" Padding="{TemplateBinding Padding}">
+                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+                <Style.Triggers>
+                    <Trigger Property="IsMouseOver" Value="True">
+                        <Setter Property="Background" Value="#FFC700"/>
+                    </Trigger>
+                    <Trigger Property="IsEnabled" Value="False">
+                        <Setter Property="Background" Value="#333333"/>
+                        <Setter Property="Foreground" Value="#666666"/>
+                    </Trigger>
+                </Style.Triggers>
+            </Style>
+
             <!-- Context Menu for Timeline Items -->
             <ContextMenu x:Key="TimelineItemMenu">
                 <MenuItem Header="Duplicate Clip" Click="Copy_Click"/>
@@ -21,242 +89,334 @@
         </ResourceDictionary>
     </Window.Resources>
 
-    <Border Background="{StaticResource BgBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" CornerRadius="12">
-        <Grid>
+    <Grid Background="{StaticResource BgPureBlack}">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="60"/>      <!-- Icon Sidebar -->
+            <ColumnDefinition Width="*"/>       <!-- Main Content -->
+        </Grid.ColumnDefinitions>
+
+        <!-- LEFT ICON SIDEBAR -->
+        <Border Grid.Column="0" Background="{StaticResource BgDark}" BorderBrush="{StaticResource BorderDark}" BorderThickness="0,0,1,0">
+            <StackPanel>
+                <Button x:Name="FileBtn" Content="📁" Style="{StaticResource IconBtn}" Click="ShowFile_Click" ToolTip="File"/>
+                <Button x:Name="MediaBtn" Content="🎬" Style="{StaticResource IconBtn}" Click="ShowMedia_Click" ToolTip="Media Library"/>
+                <Button x:Name="EditBtn" Content="✂️" Style="{StaticResource IconBtn}" Click="ShowEdit_Click" ToolTip="Edit Tools"/>
+                <Button x:Name="EffectsBtn" Content="🎨" Style="{StaticResource IconBtn}" Click="ShowEffects_Click" ToolTip="Effects and Filters"/>
+                <Button x:Name="MusicBtn" Content="🎵" Style="{StaticResource IconBtn}" Click="ShowMusic_Click" ToolTip="Music and Audio"/>
+                <Button x:Name="CaptionBtn" Content="📝" Style="{StaticResource IconBtn}" Click="ShowCaption_Click" ToolTip="Auto Captions"/>
+                <Button x:Name="ExportBtn" Content="📤" Style="{StaticResource IconBtn}" Click="ShowExport_Click" ToolTip="Export Settings"/>
+            </StackPanel>
+        </Border>
+
+        <!-- MAIN CONTENT AREA -->
+        <Grid Grid.Column="1">
             <Grid.RowDefinitions>
-                <RowDefinition Height="Auto"/> <!-- 0: Title -->
-                <RowDefinition Height="*"/>    <!-- 1: Workspace -->
-                <RowDefinition Height="5"/>    <!-- 2: TOP RESIZER (Drag Timeline Up/Down) -->
-                <RowDefinition x:Name="TimelineRow" Height="280" MinHeight="150"/> <!-- 3: Timeline Area -->
+                <RowDefinition Height="*"/>     <!-- Preview + Side Panel -->
+                <RowDefinition Height="5"/>     <!-- Splitter -->
+                <RowDefinition Height="200"/>   <!-- Timeline -->
             </Grid.RowDefinitions>
 
-            <!-- 1. TITLE BAR -->
-            <Border Grid.Row="0" Background="#05080A" Padding="15,10" CornerRadius="12,12,0,0">
-                <Grid>
-                    <StackPanel Orientation="Horizontal">
-                        <Ellipse Width="8" Height="8" Fill="{StaticResource AccentBrush}" Margin="0,0,10,0"/>
-                        <TextBlock Text="ZEROMIX STUDIO" FontSize="10" FontWeight="Black" Foreground="White" Opacity="0.5" VerticalAlignment="Center" Padding="1"/>
-                    </StackPanel>
-                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-                        <Button x:Name="FullscreenBtn" Content="⛶" Style="{StaticResource TitleBtn}" Click="Fullscreen_Click" Margin="0,0,5,0"/>
-                        <Button Content="−" Style="{StaticResource TitleBtn}" Click="Minimize_Click"/>
-                        <Button Content="✕" Style="{StaticResource TitleBtn}" Click="Close_Click"/>
-                    </StackPanel>
-                </Grid>
-            </Border>
-
-            <!-- 2. MAIN WORKSPACE -->
-            <Grid Grid.Row="1">
+            <!-- PREVIEW + SIDE PANEL -->
+            <Grid Grid.Row="0">
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="220" MinWidth="150"/>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition x:Name="SidebarColumn" Width="300" MinWidth="200"/>
+                    <ColumnDefinition Width="*"/>       <!-- Preview -->
+                    <ColumnDefinition Width="Auto"/>    <!-- Side Panel (collapsible) -->
                 </Grid.ColumnDefinitions>
 
-                <!-- LIBRARY -->
-                <Border Grid.Column="0" Background="#151921" BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,0,1,0">
+                <!-- PREVIEW AREA -->
+                <Border Grid.Column="0" Background="{StaticResource BgPureBlack}" Margin="20">
                     <Grid>
-                        <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
-                        <TextBlock Text="VIDEO LIBRARY" FontSize="9" FontWeight="Black" Foreground="{StaticResource AccentBrush}" Margin="15,15,15,10" Opacity="0.8"/>
-                        <ListBox x:Name="LibraryList" Grid.Row="1" Background="Transparent" BorderThickness="0" Padding="10">
-                            <ListBox.ItemTemplate>
-                                <DataTemplate>
-                                    <Border Background="#1E293B" CornerRadius="6" Margin="0,0,0,10" Padding="6" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1">
-                                        <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
-                                            <Image Source="{Binding Thumbnail}" Width="50" Height="30" Stretch="UniformToFill" Margin="0,0,8,0"/>
-                                            <StackPanel Grid.Column="1">
-                                                <TextBlock Text="{Binding FileName}" FontSize="9" FontWeight="Bold" Foreground="White" TextTrimming="CharacterEllipsis"/>
-                                                <Button Content="+ Add" Style="{StaticResource CasualBtn}" FontSize="7" Padding="4,1" HorizontalAlignment="Left" Click="AddToTimeline_Click" Tag="{Binding}"/>
-                                            </StackPanel>
-                                        </Grid>
-                                    </Border>
-                                </DataTemplate>
-                            </ListBox.ItemTemplate>
-                        </ListBox>
-                        <Button Grid.Row="2" Content="+ IMPORT VIDEO" Style="{StaticResource PrimaryBtn}" Margin="10" Height="30" Click="ImportVideo_Click"/>
+                        <!-- Video Preview with Border -->
+                        <Border BorderBrush="#FFFFFF" BorderThickness="1" CornerRadius="0" ClipToBounds="True">
+                            <Grid x:Name="PreviewContainer">
+                                <MediaElement x:Name="VideoPreview" LoadedBehavior="Manual" ScrubbingEnabled="True" Volume="0.5" 
+                                            MediaOpened="OnMediaOpened" MediaEnded="VideoPreview_MediaEnded" Stretch="Uniform"/>
+                                <MediaElement x:Name="MusicPreview" LoadedBehavior="Manual" Volume="0.5" Visibility="Collapsed"/>
+                                <MediaElement x:Name="PixabayPreviewInternal" LoadedBehavior="Manual" Volume="0.5" Visibility="Collapsed"/>
+                                
+                                <!-- Caption Overlay -->
+                                <TextBlock x:Name="CaptionOverlay" 
+                                          Text="" 
+                                          Foreground="White" 
+                                          FontSize="24" 
+                                          FontWeight="Bold"
+                                          TextAlignment="Center"
+                                          TextWrapping="Wrap"
+                                          VerticalAlignment="Bottom"
+                                          HorizontalAlignment="Center"
+                                          Margin="40,0,40,50"
+                                          MaxWidth="800">
+                                    <TextBlock.Effect>
+                                        <DropShadowEffect Color="Black" BlurRadius="8" ShadowDepth="2" Opacity="0.8"/>
+                                    </TextBlock.Effect>
+                                </TextBlock>
+                            </Grid>
+                        </Border>
+
+                        <!-- Floating Controls Overlay -->
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="15">
+                            <Button x:Name="FullscreenBtn" Content="⛶" Style="{StaticResource IconBtn}" Width="40" Height="40" 
+                                    Click="Fullscreen_Click" ToolTip="Fullscreen (F11)" Opacity="0.7"/>
+                        </StackPanel>
                     </Grid>
                 </Border>
 
-                <!-- PREVIEW -->
-                <Border Grid.Column="1" Background="Black" ClipToBounds="True">
-                    <Grid x:Name="PreviewContainer">
-                        <Grid.LayoutTransform><ScaleTransform x:Name="PreviewScale" ScaleX="1.0" ScaleY="1.0"/></Grid.LayoutTransform>
-                        <MediaElement x:Name="VideoPreview" LoadedBehavior="Manual" ScrubbingEnabled="True" Volume="0.5" MediaEnded="VideoPreview_MediaEnded"/>
-                        <MediaElement x:Name="MusicPreview" LoadedBehavior="Manual" Volume="0.5"/>
-                        <MediaElement x:Name="PixabayPreviewInternal" LoadedBehavior="Manual" Volume="0.5"/>
-                    </Grid>
-                </Border>
+                <!-- SIDE PANEL (Collapsible) -->
+                <Border x:Name="SidePanel" Grid.Column="1" Width="300" Background="{StaticResource BgPanel}" 
+                        BorderBrush="{StaticResource BorderDark}" BorderThickness="1,0,0,0" Visibility="Collapsed">
+                    <ScrollViewer VerticalScrollBarVisibility="Auto">
+                        <StackPanel Margin="15">
+                            <!-- File Panel -->
+                            <Grid x:Name="PanelFile" Visibility="Collapsed">
+                                <StackPanel>
+                                    <TextBlock Text="FILE" FontSize="10" FontWeight="Black" Foreground="{StaticResource AccentCyan}" Margin="0,0,0,15"/>
+                                    <Button Content="+ IMPORT VIDEO" Style="{StaticResource PrimaryBtn}" Height="35" Click="ImportVideo_Click" Margin="0,0,0,10"/>
+                                    <Button Content="+ IMPORT AUDIO" Style="{StaticResource PrimaryBtn}" Height="35" Click="SelectMusic_Click"/>
+                                </StackPanel>
+                            </Grid>
 
-                <!-- SIDEBAR -->
-                <GridSplitter Grid.Column="1" Width="4" HorizontalAlignment="Right" VerticalAlignment="Stretch" Background="#1A1F2B"/>
-                <Border Grid.Column="2" Background="#12161F" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1,0,0,0">
-                    <Grid Margin="15">
-                        <Grid x:Name="PanelSettings" Visibility="Visible">
-                            <StackPanel>
-                                <TextBlock Text="CLIP SETTINGS" FontSize="9" FontWeight="Black" Foreground="{StaticResource AccentBrush}" Margin="0,0,0,20"/>
-                                <TextBlock Text="FADE EFFECTS" FontSize="8" Opacity="0.5" Margin="0,0,0,10"/>
-                                <CheckBox x:Name="FadeInCheck" Content="Fade In (1s)" Style="{StaticResource ModernCheckBox}" Click="ClipSetting_Changed"/>
-                                <CheckBox x:Name="FadeOutCheck" Content="Fade Out (1s)" Style="{StaticResource ModernCheckBox}" Click="ClipSetting_Changed"/>
-                            </StackPanel>
-                        </Grid>
-                        
-                        <Grid x:Name="PanelFilters" Visibility="Collapsed">
-                             <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
-                             <TextBlock Text="VISUAL FILTERS" FontSize="9" FontWeight="Black" Foreground="{StaticResource AccentBrush}" Margin="0,0,0,15"/>
-                             <ListBox x:Name="FilterList" Grid.Row="1" Background="Transparent" BorderThickness="0" SelectionChanged="FilterList_SelectionChanged">
-                                <ListBox.ItemTemplate>
+                            <!-- Media Library Panel -->
+                            <Grid x:Name="PanelMedia" Visibility="Collapsed">
+                                <StackPanel>
+                                    <TextBlock Text="MEDIA LIBRARY" FontSize="10" FontWeight="Black" Foreground="{StaticResource AccentCyan}" Margin="0,0,0,15"/>
+                                    <ListBox x:Name="LibraryList" Background="Transparent" BorderThickness="0" MaxHeight="400">
+                                        <ListBox.ItemTemplate>
+                                            <DataTemplate>
+                                                <Border Background="{StaticResource BgDark}" CornerRadius="6" Margin="0,0,0,8" Padding="8" BorderBrush="{StaticResource BorderDark}" BorderThickness="1">
+                                                    <Grid>
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="Auto"/>
+                                                            <ColumnDefinition Width="*"/>
+                                                        </Grid.ColumnDefinitions>
+                                                        <Image Source="{Binding Thumbnail}" Width="60" Height="35" Stretch="UniformToFill" Margin="0,0,10,0"/>
+                                                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                                            <TextBlock Text="{Binding FileName}" FontSize="9" FontWeight="Bold" Foreground="White" TextTrimming="CharacterEllipsis"/>
+                                                            <Button Content="+ Add to Timeline" FontSize="7" Padding="6,2" HorizontalAlignment="Left" 
+                                                                    Click="AddToTimeline_Click" Tag="{Binding}" Margin="0,5,0,0" 
+                                                                    Background="{StaticResource AccentCyan}" Foreground="#000000" BorderThickness="0" Cursor="Hand"/>
+                                                        </StackPanel>
+                                                    </Grid>
+                                                </Border>
+                                            </DataTemplate>
+                                        </ListBox.ItemTemplate>
+                                    </ListBox>
+                                </StackPanel>
+                            </Grid>
+
+                            <!-- Edit Tools Panel -->
+                            <Grid x:Name="PanelEdit" Visibility="Collapsed">
+                                <StackPanel>
+                                    <TextBlock Text="EDIT TOOLS" FontSize="10" FontWeight="Black" Foreground="{StaticResource AccentCyan}" Margin="0,0,0,15"/>
+                                    <TextBlock Text="FADE EFFECTS" FontSize="8" Foreground="{StaticResource TextGray}" Margin="0,0,0,10"/>
+                                    <CheckBox x:Name="FadeInCheck" Content="Fade In (1s)" Foreground="White" Margin="0,0,0,8" Click="ClipSetting_Changed"/>
+                                    <CheckBox x:Name="FadeOutCheck" Content="Fade Out (1s)" Foreground="White" Click="ClipSetting_Changed"/>
+                                </StackPanel>
+                            </Grid>
+
+                            <!-- Effects Panel -->
+                            <Grid x:Name="PanelEffects" Visibility="Collapsed">
+                                <StackPanel>
+                                    <TextBlock Text="VISUAL FILTERS" FontSize="10" FontWeight="Black" Foreground="{StaticResource AccentCyan}" Margin="0,0,0,15"/>
+                                    <ListBox x:Name="FilterList" Background="Transparent" BorderThickness="0" SelectionChanged="FilterList_SelectionChanged">
+                                        <ListBox.ItemTemplate>
+                                            <DataTemplate>
+                                                <Border Background="{StaticResource BgDark}" CornerRadius="6" Margin="0,0,0,8" Padding="8" Cursor="Hand">
+                                                    <TextBlock Text="{Binding Name}" FontSize="10" Foreground="White" HorizontalAlignment="Center"/>
+                                                </Border>
+                                            </DataTemplate>
+                                        </ListBox.ItemTemplate>
+                                    </ListBox>
+                                </StackPanel>
+                            </Grid>
+
+                            <!-- Music Panel (Pixabay) -->
+                            <Grid x:Name="PanelMusic" Visibility="Collapsed">
+                                <StackPanel>
+                                    <TextBlock Text="PIXABAY MUSIC" FontSize="10" FontWeight="Black" Foreground="{StaticResource AccentCyan}" Margin="0,0,0,15"/>
+                                    <Grid Margin="0,0,0,10">
+                                        <TextBox x:Name="PixabaySearchBox" Height="32" Padding="10,0" VerticalContentAlignment="Center" 
+                                                Background="{StaticResource BgDark}" Foreground="White" BorderBrush="{StaticResource BorderDark}" 
+                                                KeyDown="PixabaySearchBox_KeyDown"/>
+                                        <Button Content="🔍" HorizontalAlignment="Right" Width="32" Height="32" Background="Transparent" 
+                                                BorderThickness="0" Click="PixabaySearch_Click" Foreground="{StaticResource TextGray}"/>
+                                    </Grid>
+                                    <WrapPanel Margin="0,0,0,10">
+                                        <Button Content="Lo-fi" FontSize="8" Padding="8,4" Margin="0,0,5,5" Click="PixabayCategory_Click" Tag="lofi chill" 
+                                                Background="{StaticResource BgDark}" Foreground="White" BorderThickness="0" Cursor="Hand"/>
+                                        <Button Content="Happy" FontSize="8" Padding="8,4" Margin="0,0,5,5" Click="PixabayCategory_Click" Tag="happy" 
+                                                Background="{StaticResource BgDark}" Foreground="White" BorderThickness="0" Cursor="Hand"/>
+                                        <Button Content="Jazz" FontSize="8" Padding="8,4" Margin="0,0,5,5" Click="PixabayCategory_Click" Tag="jazz" 
+                                                Background="{StaticResource BgDark}" Foreground="White" BorderThickness="0" Cursor="Hand"/>
+                                        <Button Content="Cinematic" FontSize="8" Padding="8,4" Margin="0,0,5,5" Click="PixabayCategory_Click" Tag="cinematic" 
+                                                Background="{StaticResource BgDark}" Foreground="White" BorderThickness="0" Cursor="Hand"/>
+                                    </WrapPanel>
+                                    <ListBox x:Name="PixabayResultsList" Background="Transparent" BorderThickness="0" MaxHeight="300">
+                                        <ListBox.ItemTemplate>
+                                            <DataTemplate>
+                                                <Border Background="{StaticResource BgDark}" CornerRadius="6" Margin="0,0,0,8" Padding="8">
+                                                    <Grid>
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="Auto"/>
+                                                            <ColumnDefinition Width="*"/>
+                                                        </Grid.ColumnDefinitions>
+                                                        <Button Content="▶" Width="24" Height="24" Background="Transparent" BorderThickness="0" 
+                                                                Click="PixabayPreview_Click" Tag="{Binding}" Foreground="{StaticResource AccentCyan}"/>
+                                                        <TextBlock Grid.Column="1" Text="{Binding Title}" FontSize="9" Foreground="White" 
+                                                                  Margin="10,0" TextTrimming="CharacterEllipsis" VerticalAlignment="Center"/>
+                                                    </Grid>
+                                                </Border>
+                                            </DataTemplate>
+                                        </ListBox.ItemTemplate>
+                                    </ListBox>
+                                    <Button Content="ADD TO TRACK" Style="{StaticResource PrimaryBtn}" Margin="0,10,0,0" Click="PixabayAdd_Click"/>
+                                </StackPanel>
+                            </Grid>
+
+                            <!-- Caption Panel -->
+                            <Grid x:Name="PanelCaption" Visibility="Collapsed">
+                                <StackPanel>
+                                    <TextBlock Text="AUTO CAPTIONS" FontSize="10" FontWeight="Black" Foreground="{StaticResource AccentCyan}" Margin="0,0,0,15"/>
+                                    
+                                    <TextBlock Text="CAPTION STYLE" FontSize="8" Foreground="{StaticResource TextGray}" Margin="0,0,0,10"/>
+                                    <ComboBox x:Name="CaptionStyleCombo" Height="32" Margin="0,0,0,15" SelectionChanged="CaptionStyle_Changed">
+                                        <ComboBoxItem Content="Bottom Classic" IsSelected="True"/>
+                                        <ComboBoxItem Content="Center Modern"/>
+                                        <ComboBoxItem Content="Minimal"/>
+                                        <ComboBoxItem Content="Bold"/>
+                                    </ComboBox>
+                                    
+                                    <TextBlock Text="LANGUAGE" FontSize="8" Foreground="{StaticResource TextGray}" Margin="0,0,0,10"/>
+                                    <ComboBox x:Name="CaptionLangCombo" Height="32" Margin="0,0,0,20">
+                                        <ComboBoxItem Content="English" Tag="en" IsSelected="True"/>
+                                        <ComboBoxItem Content="Indonesian" Tag="id"/>
+                                        <ComboBoxItem Content="Japanese" Tag="ja"/>
+                                        <ComboBoxItem Content="Korean" Tag="ko"/>
+                                        <ComboBoxItem Content="Chinese" Tag="zh"/>
+                                    </ComboBox>
+                                    
+                                    <Button x:Name="GenerateCaptionsBtn" Content="🎬 GENERATE CAPTIONS" Style="{StaticResource PrimaryBtn}" 
+                                            Height="35" Click="GenerateCaptions_Click"/>
+                                    
+                                    <TextBlock x:Name="CaptionStatusText" Text="" FontSize="8" Foreground="{StaticResource AccentCyan}" 
+                                              Margin="0,10,0,0" TextWrapping="Wrap"/>
+                                </StackPanel>
+                            </Grid>
+
+                            <!-- Export Panel -->
+                            <Grid x:Name="PanelExport" Visibility="Collapsed">
+                                <StackPanel>
+                                    <TextBlock Text="EXPORT SETTINGS" FontSize="10" FontWeight="Black" Foreground="{StaticResource AccentCyan}" Margin="0,0,0,15"/>
+                                    <TextBlock Text="RESOLUTION" FontSize="8" Foreground="{StaticResource TextGray}" Margin="0,0,0,10"/>
+                                    <ComboBox x:Name="ResolutionCombo" Height="32" Margin="0,0,0,15">
+                                        <ComboBoxItem Content="1920x1080 (Full HD)" Tag="1080" IsSelected="True"/>
+                                        <ComboBoxItem Content="1280x720 (HD)" Tag="720"/>
+                                        <ComboBoxItem Content="854x480 (SD)" Tag="480"/>
+                                        <ComboBoxItem Content="3840x2160 (4K)" Tag="2160"/>
+                                    </ComboBox>
+                                    
+                                    <TextBlock Text="FRAME RATE" FontSize="8" Foreground="{StaticResource TextGray}" Margin="0,0,0,10"/>
+                                    <ComboBox x:Name="FPSCombo" Height="32" Margin="0,0,0,20">
+                                        <ComboBoxItem Content="30 FPS" Tag="30" IsSelected="True"/>
+                                        <ComboBoxItem Content="60 FPS" Tag="60"/>
+                                        <ComboBoxItem Content="24 FPS (Cinematic)" Tag="24"/>
+                                    </ComboBox>
+                                    
+                                    <CheckBox x:Name="BurnCaptionsCheck" Content="Burn Captions to Video" Foreground="White" Margin="0,0,0,20"/>
+                                    
+                                    <Button x:Name="ExportButton" Content="EXPORT VIDEO" Style="{StaticResource PrimaryBtn}" 
+                                            Height="40" Click="ExportButton_Click"/>
+                                </StackPanel>
+                            </Grid>
+                        </StackPanel>
+                    </ScrollViewer>
+                </Border>
+            </Grid>
+
+            <!-- SPLITTER -->
+            <GridSplitter Grid.Row="1" Height="5" HorizontalAlignment="Stretch" Background="{StaticResource BgDark}" 
+                         ResizeDirection="Rows" ShowsPreview="True" Cursor="SizeNS"/>
+
+            <!-- TIMELINE AREA -->
+            <Border Grid.Row="2" Background="{StaticResource BgDark}" BorderBrush="{StaticResource BorderDark}" BorderThickness="0,1,0,0">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <!-- Timeline Tracks -->
+                    <ScrollViewer Grid.Row="0" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled" Margin="10">
+                        <StackPanel Orientation="Horizontal">
+                            <!-- Track Label -->
+                            <Border Width="50" Background="{StaticResource BgPanel}" CornerRadius="4" Margin="0,0,10,0" 
+                                   BorderBrush="{StaticResource BorderDark}" BorderThickness="1">
+                                <TextBlock Text="VIDEO" FontSize="8" FontWeight="Bold" Foreground="{StaticResource TextGray}" 
+                                          VerticalAlignment="Center" HorizontalAlignment="Center">
+                                    <TextBlock.LayoutTransform>
+                                        <RotateTransform Angle="-90"/>
+                                    </TextBlock.LayoutTransform>
+                                </TextBlock>
+                            </Border>
+
+                            <!-- Timeline Clips -->
+                            <ItemsControl x:Name="TimelineList">
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <StackPanel Orientation="Horizontal"/>
+                                    </ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+                                <ItemsControl.ItemTemplate>
                                     <DataTemplate>
-                                        <Border Background="#1E293B" CornerRadius="6" Margin="0,0,0,10" Padding="5" Cursor="Hand">
-                                            <Grid Height="60">
-                                                <Image Source="{Binding PreviewImage}" Stretch="UniformToFill"/>
-                                                <Border Background="#99000000" VerticalAlignment="Bottom" Padding="5,2">
-                                                    <TextBlock Text="{Binding Name}" FontSize="8" Foreground="White" HorizontalAlignment="Center"/>
+                                        <Border Width="80" Height="45" Margin="0,0,2,0" Background="{StaticResource BgPanel}" 
+                                               CornerRadius="4" BorderBrush="#FFFFFF" BorderThickness="1" 
+                                               MouseLeftButtonDown="TimelineItem_MouseLeftButtonDown" 
+                                               ContextMenu="{StaticResource TimelineItemMenu}" ClipToBounds="True">
+                                            <Grid>
+                                                <Image Source="{Binding Thumbnail}" Stretch="UniformToFill" Opacity="0.6"/>
+                                                <Border Background="#AA000000" VerticalAlignment="Bottom" Padding="4,2">
+                                                    <TextBlock Text="{Binding DurationStr}" FontSize="7" Foreground="White" 
+                                                              FontWeight="Bold" HorizontalAlignment="Right"/>
                                                 </Border>
                                             </Grid>
                                         </Border>
                                     </DataTemplate>
-                                </ListBox.ItemTemplate>
-                             </ListBox>
-                        </Grid>
-
-                        <Grid x:Name="PanelPixabay" Visibility="Collapsed">
-                            <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
-                            <TextBlock Text="PIXABAY MUSIC" FontSize="9" FontWeight="Black" Foreground="{StaticResource AccentBrush}" Margin="0,0,0,-10"/>
-                            <Grid Grid.Row="1" Margin="0,15,0,5">
-                                <TextBox x:Name="PixabaySearchBox" Height="28" Padding="10,0" VerticalContentAlignment="Center" Background="#0B0E14" Foreground="White" BorderBrush="{StaticResource BorderBrush}" KeyDown="PixabaySearchBox_KeyDown" Tag="Search music..."/>
-                                <Button Content="🔍" HorizontalAlignment="Right" Width="30" Height="28" Background="Transparent" BorderThickness="0" Click="PixabaySearch_Click"/>
-                            </Grid>
-                            <WrapPanel Grid.Row="2" Margin="0,5,0,10">
-                                <Button Content="Lo-fi" Style="{StaticResource CasualBtn}" FontSize="7" Margin="0,0,3,3" Click="PixabayCategory_Click" Tag="lofi chill"/>
-                                <Button Content="Happy" Style="{StaticResource CasualBtn}" FontSize="7" Margin="0,0,3,3" Click="PixabayCategory_Click" Tag="happy"/>
-                                <Button Content="Jazz" Style="{StaticResource CasualBtn}" FontSize="7" Margin="0,0,3,3" Click="PixabayCategory_Click" Tag="jazz"/>
-                                <Button Content="Rock" Style="{StaticResource CasualBtn}" FontSize="7" Margin="0,0,3,3" Click="PixabayCategory_Click" Tag="rock"/>
-                                <Button Content="Cinematic" Style="{StaticResource CasualBtn}" FontSize="7" Margin="0,0,3,3" Click="PixabayCategory_Click" Tag="cinematic"/>
-                                <Button Content="Ambient" Style="{StaticResource CasualBtn}" FontSize="7" Margin="0,0,3,3" Click="PixabayCategory_Click" Tag="ambient"/>
-                                <Button Content="Epic" Style="{StaticResource CasualBtn}" FontSize="7" Margin="0,0,3,3" Click="PixabayCategory_Click" Tag="epic"/>
-                                <Button Content="Chill" Style="{StaticResource CasualBtn}" FontSize="7" Margin="0,0,3,3" Click="PixabayCategory_Click" Tag="chill"/>
-                                <Button Content="Electronic" Style="{StaticResource CasualBtn}" FontSize="7" Margin="0,0,3,3" Click="PixabayCategory_Click" Tag="electronic"/>
-                                <Button Content="Nature" Style="{StaticResource CasualBtn}" FontSize="7" Margin="0,0,3,3" Click="PixabayCategory_Click" Tag="nature"/>
-                            </WrapPanel>
-                            <ListBox x:Name="PixabayResultsList" Grid.Row="3" Background="Transparent" BorderThickness="0">
-                                <ListBox.ItemTemplate>
-                                    <DataTemplate>
-                                        <Border Background="#1A1F2B" CornerRadius="6" Margin="0,0,0,8" Padding="8">
-                                            <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
-                                                <Button Content="▶" Width="24" Height="24" Style="{StaticResource TitleBtn}" Click="PixabayPreview_Click" Tag="{Binding}"/>
-                                                <TextBlock Grid.Column="1" Text="{Binding Title}" FontSize="9" Foreground="White" Margin="10,0" TextTrimming="CharacterEllipsis" VerticalAlignment="Center"/>
-                                            </Grid>
-                                        </Border>
-                                    </DataTemplate>
-                                </ListBox.ItemTemplate>
-                            </ListBox>
-                            <Button Grid.Row="4" Content="ADD TO TRACK" Style="{StaticResource PrimaryBtn}" Margin="0,10,0,0" Click="PixabayAdd_Click"/>
-                        </Grid>
-                    </Grid>
-                </Border>
-            </Grid>
-
-            <!-- 2. MAIN SPLITTER (Top of Timeline) -->
-            <GridSplitter Grid.Row="2" Height="5" HorizontalAlignment="Stretch" Background="#1A1F2B" ResizeDirection="Rows" ShowsPreview="True" Cursor="SizeNS"/>
-
-            <!-- 3. TIMELINE -->
-            <Border Grid.Row="3" Background="#0A0D14" BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,1,0,0">
-                <Grid>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="*"/> <!-- Tracks Area -->
-                        <RowDefinition Height="Auto"/> <!-- 2. BOTTOM RESIZER (Between Tracks & Controls) -->
-                        <RowDefinition Height="Auto"/> <!-- Playback Controls -->
-                    </Grid.RowDefinitions>
-                    
-                    <!-- TRACKS AREA -->
-                    <ScrollViewer Grid.Row="0" VerticalScrollBarVisibility="Auto">
-                        <Grid Margin="20,10">
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="Auto"/> <!-- Video Track -->
-                                <RowDefinition Height="5"/>    <!-- INTERNAL TRACK SPLITTER -->
-                                <RowDefinition Height="Auto"/> <!-- Audio Track -->
-                            </Grid.RowDefinitions>
-
-                            <!-- VIDEO TRACK -->
-                            <StackPanel Grid.Row="0" Orientation="Horizontal">
-                                <Border Width="45" Background="#151921" Margin="0,0,10,0" CornerRadius="4" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1">
-                                    <TextBlock Text="VIDEO" FontSize="7" FontWeight="Black" Margin="0" Foreground="White" Opacity="0.3" VerticalAlignment="Center" HorizontalAlignment="Center">
-                                        <TextBlock.LayoutTransform><RotateTransform Angle="-90"/></TextBlock.LayoutTransform>
-                                    </TextBlock>
-                                </Border>
-                                <ItemsControl x:Name="TimelineList">
-                                    <ItemsControl.ItemsPanel><ItemsPanelTemplate><StackPanel Orientation="Horizontal"/></ItemsPanelTemplate></ItemsControl.ItemsPanel>
-                                    <ItemsControl.ItemTemplate>
-                                        <DataTemplate>
-                                            <Border Width="160" Height="90" Margin="0,0,10,0" Background="#1E293B" CornerRadius="10" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1.5" MouseLeftButtonDown="TimelineItem_MouseLeftButtonDown" ContextMenu="{StaticResource TimelineItemMenu}" ClipToBounds="True">
-                                                <Grid>
-                                                    <Image Source="{Binding Thumbnail}" Stretch="UniformToFill" Opacity="0.7"/>
-                                                    <Border Background="#AA000000" VerticalAlignment="Bottom" Padding="8,4">
-                                                        <TextBlock Text="{Binding DurationStr}" FontSize="8" Foreground="White" FontWeight="Bold" HorizontalAlignment="Right"/>
-                                                    </Border>
-                                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Top" HorizontalAlignment="Right" Margin="8">
-                                                        <Button Content="" FontFamily="Segoe MDL2 Assets" FontSize="7" Width="20" Height="20" Style="{StaticResource TitleBtn}" Click="MoveClipLeft_Click" Tag="{Binding}"/>
-                                                        <Button Content="" FontFamily="Segoe MDL2 Assets" FontSize="7" Width="20" Height="20" Style="{StaticResource TitleBtn}" Click="MoveClipRight_Click" Tag="{Binding}"/>
-                                                    </StackPanel>
-                                                </Grid>
-                                            </Border>
-                                        </DataTemplate>
-                                    </ItemsControl.ItemTemplate>
-                                </ItemsControl>
-                            </StackPanel>
-
-                            <GridSplitter Grid.Row="1" Height="5" HorizontalAlignment="Stretch" Background="Transparent"/>
-
-                            <!-- AUDIO TRACK -->
-                            <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="0,10,0,0">
-                                <Border Width="45" Background="#151921" Margin="0,0,10,0" CornerRadius="4" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1">
-                                    <TextBlock Text="AUDIO" FontSize="7" FontWeight="Black" Foreground="White" Opacity="0.3" VerticalAlignment="Center" HorizontalAlignment="Center">
-                                        <TextBlock.LayoutTransform><RotateTransform Angle="-90"/></TextBlock.LayoutTransform>
-                                    </TextBlock>
-                                </Border>
-                                <Border x:Name="MusicTimelineBar" Height="35" Background="#1A2B21" CornerRadius="6" BorderBrush="#2D4D3D" BorderThickness="1" Visibility="Collapsed" Padding="20,0">
-                                    <TextBlock x:Name="MusicTimelineLabel" Text="♫ Selected Music" FontSize="9" Foreground="#00FF95" VerticalAlignment="Center" FontWeight="Bold"/>
-                                </Border>
-                            </StackPanel>
-                        </Grid>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </StackPanel>
                     </ScrollViewer>
 
-                    <!-- BOTTOM RESIZER (Between Tracks & Controls) -->
-                    <GridSplitter Grid.Row="1" Height="3" HorizontalAlignment="Stretch" Background="#1A1F2B" ResizeDirection="Rows"/>
-
-                    <!-- CONTROL BAR -->
-                    <Border Grid.Row="2" Background="#05080A" Padding="20,12" BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,1,0,0">
+                    <!-- Control Bar -->
+                    <Border Grid.Row="1" Background="{StaticResource BgPureBlack}" Padding="15,10" 
+                           BorderBrush="{StaticResource BorderDark}" BorderThickness="0,1,0,0">
                         <Grid>
-                            <StackPanel Orientation="Horizontal">
-                                <Button Content="✂️" ToolTip="Split Clip" Style="{StaticResource TitleBtn}" Width="40" Click="Cut_Click"/>
-                                <Button Content="📋" ToolTip="Duplicate" Style="{StaticResource TitleBtn}" Width="40" Click="Copy_Click"/>
-                                <Button Content="🗑️" ToolTip="Delete" Style="{StaticResource TitleBtn}" Width="40" Click="RemoveFromIcons_Click"/>
-                                <Border Width="1" Background="{StaticResource BorderBrush}" Margin="15,5"/>
-                                <Button Content="⏮" Style="{StaticResource TitleBtn}" Click="JumpStart_Click"/>
-                                <Button x:Name="PlayToggleBtn" Content="▶" Width="50" Height="32" Style="{StaticResource PrimaryBtn}" Margin="10,0" Click="TogglePlay_Click"/>
-                                <Button Content="⏭" Style="{StaticResource TitleBtn}" Click="JumpEnd_Click"/>
-                                <TextBlock x:Name="DurationText" Text="00:00 / 00:00" Foreground="White" VerticalAlignment="Center" Margin="15,0" FontSize="11" Opacity="0.6" FontWeight="Medium"/>
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
+                                <Button Content="⏮" Style="{StaticResource IconBtn}" Width="35" Height="35" Click="JumpStart_Click"/>
+                                <Button x:Name="PlayToggleBtn" Content="▶" Style="{StaticResource IconBtn}" Width="45" Height="35" 
+                                       Click="TogglePlay_Click" Margin="5,0"/>
+                                <Button Content="⏭" Style="{StaticResource IconBtn}" Width="35" Height="35" Click="JumpEnd_Click"/>
+                                <TextBlock x:Name="DurationText" Text="00:00 / 00:00" Foreground="{StaticResource TextGray}" 
+                                          VerticalAlignment="Center" Margin="15,0" FontSize="11"/>
                             </StackPanel>
 
                             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-                                <Button x:Name="FilterBtn" Content="✨ FILTERS" Style="{StaticResource CasualBtn}" FontSize="9" Padding="12,0" Margin="0,0,10,0" Click="ShowFilters_Click" IsEnabled="False"/>
-                                <Button Content="🌐 PIXABAY" Style="{StaticResource CasualBtn}" FontSize="9" Padding="12,0" Margin="0,0,20,0" Click="ShowPixabay_Click"/>
-                                <Button x:Name="QuickMuteBtn" Content="🔊" Style="{StaticResource TitleBtn}" Click="Mute_Click"/>
-                                <Slider x:Name="VolumeSlider" Width="100" VerticalAlignment="Center" Minimum="0" Maximum="100" Value="50" Margin="10,0,20,0" ValueChanged="Volume_Changed"/>
-                                <Button x:Name="ExportButton" Content="EXPORT" Style="{StaticResource PrimaryBtn}" Width="110" Height="32" Click="ExportButton_Click" FontWeight="Black"/>
+                                <Button x:Name="QuickMuteBtn" Content="🔊" Style="{StaticResource IconBtn}" Width="35" Height="35" Click="Mute_Click"/>
+                                <Slider x:Name="VolumeSlider" Width="100" VerticalAlignment="Center" Minimum="0" Maximum="100" 
+                                       Value="50" Margin="10,0,0,0" ValueChanged="Volume_Changed"/>
                             </StackPanel>
                         </Grid>
                     </Border>
                 </Grid>
             </Border>
 
-            <!-- EXPORT OVERLAY -->
-            <Border x:Name="ExportProgressPanel" Grid.RowSpan="4" Background="#CC000000" Visibility="Collapsed">
-                <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
-                    <TextBlock x:Name="ExportStatusText" Text="EXPORTING..." Foreground="{StaticResource AccentBrush}" FontSize="14" FontWeight="Black" Margin="0,0,0,25" HorizontalAlignment="Center"/>
-                    <ProgressBar x:Name="ExportProgressBar" Width="350" Height="5" Foreground="{StaticResource AccentBrush}" Background="#1E293B" BorderThickness="0"/>
+            <!-- EXPORT PROGRESS OVERLAY -->
+            <Border x:Name="ExportProgressPanel" Grid.RowSpan="3" Background="#DD000000" Visibility="Collapsed">
+                <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Width="400">
+                    <TextBlock x:Name="ExportStatusText" Text="EXPORTING..." Foreground="{StaticResource AccentYellow}" 
+                              FontSize="16" FontWeight="Black" Margin="0,0,0,20" HorizontalAlignment="Center"/>
+                    <ProgressBar x:Name="ExportProgressBar" Height="6" Foreground="{StaticResource AccentYellow}" 
+                                Background="{StaticResource BgPanel}" BorderThickness="0"/>
                 </StackPanel>
             </Border>
         </Grid>
-    </Border>
-</Window>
+    </Grid>
+</ui:FluentWindow>

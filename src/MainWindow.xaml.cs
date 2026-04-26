@@ -15,6 +15,7 @@ using System.Text.Json;
 using System.Threading;
 using System.Windows.Media;
 using System.Windows.Input;
+using System.Windows.Media.Imaging;
 using ZeroMix.Recorder;
 using ZeroMix.Widgets;
 using System.Windows.Documents;
@@ -23,6 +24,8 @@ using ZeroMix.ZeroShell;
 using ZeroMix.Hotkeys;
 using System.Windows.Media.Animation;
 using ZeroMix.SleepMode;
+using Wpf.Ui.Appearance;
+using Wpf.Ui.Tray.Controls;
 
 // using COmponene ZeroMixcreatePlugns
 using CheckBox = System.Windows.Controls.CheckBox;
@@ -41,9 +44,9 @@ namespace ZeroMix
 {
     using ZeroMix.zeromix.CreatePlugins;
     
-    public partial class MainWindow : Window, ZeroMix.Plugins.IZeroMixHost
+    public partial class MainWindow : Wpf.Ui.Controls.FluentWindow, ZeroMix.Plugins.IZeroMixHost
     {
-        private const string CURRENT_VERSION = "6.2.0";
+        private const string CURRENT_VERSION = "6.7.0";
         
         // Windows API for Taskbar transparency
         [DllImport("user32.dll", SetLastError = true)]
@@ -85,7 +88,8 @@ namespace ZeroMix
         }
 
         private bool _isTaskbarTransparent = false;
-        private NotifyIcon? _notifyIcon;
+        private Wpf.Ui.Tray.Controls.NotifyIcon? _notifyIcon;
+        private ContextMenu? _trayContextMenu;
         private PerformanceCounter? _cpuCounter;
         private PerformanceCounter? _ramCounter;
         private PerformanceCounter? _diskCounter;
@@ -281,8 +285,10 @@ namespace ZeroMix
             MoonSharp.Interpreter.UserData.RegisterType<Plugins.ZeroMixLuaApi>();
             
             InitializeComponent();
+            ApplicationThemeManager.Apply(this);
             StartGameDetection();
-            InitializeTrayIcon();
+            // Tray icon diinisialisasi via XAML (ui:FluentWindow.Tray)
+            // InitializeTrayIcon dipanggil di Window_Loaded setelah HWND tersedia
             // Initialize SleepMode
             _sleepManager = new SleepManager();
 
@@ -373,6 +379,9 @@ namespace ZeroMix
 
             // Initialize Language Selector
             InitializeLanguageSelector();
+
+            // Setup tray icon SETELAH window loaded (agar punya HWND)
+            InitializeTrayIcon();
 
             // Tunda semua operasi berat agar window selesai render dulu
             Dispatcher.BeginInvoke(async () =>
@@ -515,51 +524,104 @@ namespace ZeroMix
 
         private void InitializeTrayIcon()
         {
-            _notifyIcon = new NotifyIcon();
-
-            // Load icon from file system directly (more reliable than resource stream)
             try
             {
-                string iconPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Assets", "Icons", "zeromix.ico");
-                if (File.Exists(iconPath))
-                    _notifyIcon.Icon = new System.Drawing.Icon(iconPath);
-                else
+                _notifyIcon = new Wpf.Ui.Tray.Controls.NotifyIcon();
+
+                // Load icon dengan kualitas terbaik untuk system tray
+                try
                 {
-                    // Fallback: try resource stream
-                    var iconUri = new Uri("pack://application:,,,/Assets/Icons/zeromix.ico");
-                    var iconStream = System.Windows.Application.GetResourceStream(iconUri)?.Stream;
-                    if (iconStream != null)
-                        _notifyIcon.Icon = new System.Drawing.Icon(iconStream);
+                    string iconPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Assets", "Icons", "zeromix.ico");
+                    if (File.Exists(iconPath))
+                    {
+                        // Buat BitmapImage dengan DecodePixelWidth untuk hasil tajam
+                        var bitmap = new BitmapImage();
+                        bitmap.BeginInit();
+                        bitmap.UriSource = new Uri(iconPath, UriKind.Absolute);
+                        bitmap.DecodePixelWidth = 16; // Force decode ke 16px untuk tray icon
+                        bitmap.DecodePixelHeight = 16;
+                        bitmap.CacheOption = BitmapCacheOption.OnLoad;
+                        bitmap.EndInit();
+                        bitmap.Freeze();
+                        
+                        _notifyIcon.Icon = bitmap;
+                    }
+                    else
+                    {
+                        // Fallback ke pack URI
+                        var bitmap = new BitmapImage();
+                        bitmap.BeginInit();
+                        bitmap.UriSource = new Uri("pack://application:,,,/Assets/Icons/zeromix.ico");
+                        bitmap.DecodePixelWidth = 16;
+                        bitmap.DecodePixelHeight = 16;
+                        bitmap.CacheOption = BitmapCacheOption.OnLoad;
+                        bitmap.EndInit();
+                        bitmap.Freeze();
+                        
+                        _notifyIcon.Icon = bitmap;
+                    }
                 }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"Icon load error: {ex.Message}");
+                }
+
+                _notifyIcon.TooltipText = "ZeroMix - Desktop Enhancement Suite";
+                _notifyIcon.FocusOnLeftClick = true;
+                _notifyIcon.MenuOnRightClick = true;
+                
+                CreateTrayContextMenu();
+                _notifyIcon.Menu = _trayContextMenu;
+                
+                _notifyIcon.LeftClick += (sender, e) => Dispatcher.Invoke(() => ShowWindow());
+                
+                _notifyIcon.Register();
+                
+                UpdateTrayMenuState();
             }
-            catch { }
-
-            _notifyIcon.Visible = true;
-            _notifyIcon.DoubleClick += (s, args) => Dispatcher.Invoke(() => ShowWindow());
-
-            var contextMenu = new ContextMenuStrip();
-            contextMenu.Items.Add("Show Dashboard", null, (s, args) => Dispatcher.Invoke(() => ShowWindow()));
-            contextMenu.Items.Add("ZeroMix Studio (Editor)", null, (s, args) => Dispatcher.Invoke(() => OpenVideoEditor()));
-            contextMenu.Items.Add(new ToolStripSeparator());
-            
-            var shellItem = new ToolStripMenuItem("Enable ZeroShell");
-            // cek update
-            var UpdateZeromix = new ToolStripMenuItem("Check Update");
-            UpdateZeromix.Name = "CheckUpdateItem";
-            UpdateZeromix.Click += (s, args) => Dispatcher.Invoke(() => CheckUpdateBtn_Click(this, new RoutedEventArgs()));
-            
-            shellItem.Name = "EnableShellItem";
-            shellItem.Click += (s, args) => ToggleZeroShell();
-            contextMenu.Items.Add(shellItem);
-
-            contextMenu.Items.Add(new ToolStripSeparator());
-            contextMenu.Items.Add(UpdateZeromix);
-            contextMenu.Items.Add(new ToolStripSeparator());
-            contextMenu.Items.Add("Exit", null, (s, args) => ExitApplication());
-            _notifyIcon.ContextMenuStrip = contextMenu;
-            
-            UpdateTrayMenuState();
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Failed to initialize tray icon: {ex.Message}");
+                _notifyIcon = null;
+            }
         }
+
+        // ── Tray Icon Event Handlers ────────────────────────────────────────
+        // (Tidak digunakan karena tray dibuat programatik, bukan via XAML)
+        // ────────────────────────────────────────────────────────────────────
+
+        private void CreateTrayContextMenu()
+        {
+            _trayContextMenu = new ContextMenu();
+            
+            var showItem = new MenuItem { Header = "Show Dashboard" };
+            showItem.Click += (s, args) => Dispatcher.Invoke(() => ShowWindow());
+            _trayContextMenu.Items.Add(showItem);
+            
+            var studioItem = new MenuItem { Header = "ZeroMix Studio (Editor)" };
+            studioItem.Click += (s, args) => Dispatcher.Invoke(() => OpenVideoEditor());
+            _trayContextMenu.Items.Add(studioItem);
+            
+            _trayContextMenu.Items.Add(new Separator());
+            
+            var shellItem = new MenuItem { Header = "Enable ZeroShell", Name = "EnableShellItem" };
+            shellItem.Click += (s, args) => ToggleZeroShell();
+            _trayContextMenu.Items.Add(shellItem);
+
+            _trayContextMenu.Items.Add(new Separator());
+            
+            var updateItem = new MenuItem { Header = "Check Update", Name = "CheckUpdateItem" };
+            updateItem.Click += (s, args) => Dispatcher.Invoke(() => CheckUpdateBtn_Click(this, new RoutedEventArgs()));
+            _trayContextMenu.Items.Add(updateItem);
+            
+            _trayContextMenu.Items.Add(new Separator());
+            
+            var exitItem = new MenuItem { Header = "Exit" };
+            exitItem.Click += (s, args) => ExitApplication();
+            _trayContextMenu.Items.Add(exitItem);
+        }
+
+
 
         private void ToggleZeroShell()
         {
@@ -582,13 +644,13 @@ namespace ZeroMix
 
         private void UpdateTrayMenuState()
         {
-            if (_notifyIcon?.ContextMenuStrip != null)
+            if (_trayContextMenu != null)
             {
-                var enableItem = _notifyIcon.ContextMenuStrip.Items["EnableShellItem"] as ToolStripMenuItem;
+                var enableItem = _trayContextMenu.Items.OfType<MenuItem>().FirstOrDefault(x => x.Name == "EnableShellItem");
                 bool isEnabled = _zeroShellWindow != null;
                 if (enableItem != null) {
-                    enableItem.Checked = isEnabled;
-                    enableItem.Text = isEnabled ? "ZeroShell (Enabled)" : "Enable ZeroShell";
+                    enableItem.IsChecked = isEnabled;
+                    enableItem.Header = isEnabled ? "ZeroShell (Enabled)" : "Enable ZeroShell";
                 }
             }
         }
@@ -672,7 +734,10 @@ namespace ZeroMix
 
                 // Update tray icon tooltip
                 string trayTip = $"CPU: {cpuUsage:F1}% | RAM: {ramPercent:F1}% | Disk: {(float)(DiskProgressBar.Value):F1}%";
-                _notifyIcon!.Text = trayTip.Length > 63 ? trayTip.Substring(0, 63) : trayTip;
+                if (_notifyIcon != null)
+                {
+                    _notifyIcon.TooltipText = trayTip.Length > 63 ? trayTip.Substring(0, 63) : trayTip;
+                }
             }
             catch (Exception ex)
             {
@@ -792,7 +857,12 @@ namespace ZeroMix
         {
             if (_notifyIcon != null)
             {
+                _notifyIcon.Unregister();
                 _notifyIcon.Dispose();
+            }
+            if (_trayContextMenu != null)
+            {
+                _trayContextMenu = null;
             }
             System.Windows.Application.Current.Shutdown();
         }
@@ -2119,26 +2189,76 @@ end";
 
         private async void CheckUpdateBtn_Click(object sender, RoutedEventArgs e)
         {
-            // Launch ZeroMix-Updater.exe yang sudah di-bundle dalam app
-            string updaterExe = System.IO.Path.Combine(
-                AppDomain.CurrentDomain.BaseDirectory, "Tools", "Updater", "ZeroMix-Updater.exe");
-
-            if (System.IO.File.Exists(updaterExe))
+            try
             {
+                // Launch ZeroMix-Updater.exe
+                string updaterPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Tools", "Updater", "ZeroMix-Updater.exe");
+                
+                if (!File.Exists(updaterPath))
+                {
+                    // Fallback ke old method jika updater tidak ada
+                    StatusLabel.Text = "Checking for updates...";
+                    
+                    using (var client = new HttpClient())
+                    {
+                        client.DefaultRequestHeaders.Add("User-Agent", "ZeroMix-App");
+                        var response = await client.GetStringAsync("https://api.github.com/repos/faizinuha/ZeroMix/releases/latest");
+                        var json = JsonDocument.Parse(response);
+                        
+                        string latestVersion = json.RootElement.GetProperty("tag_name").GetString()?.TrimStart('v') ?? "";
+                        string downloadUrl = json.RootElement.GetProperty("html_url").GetString() ?? "";
+                        
+                        if (IsNewerVersion(latestVersion, CURRENT_VERSION))
+                        {
+                            var result = System.Windows.MessageBox.Show(
+                                $"New version available: v{latestVersion}\n\n" +
+                                $"Current version: v{CURRENT_VERSION}\n\n" +
+                                $"Do you want to open the download page?",
+                                "Update Available",
+                                MessageBoxButton.YesNo,
+                                MessageBoxImage.Information);
+                            
+                            if (result == MessageBoxResult.Yes)
+                            {
+                                Process.Start(new ProcessStartInfo(downloadUrl) { UseShellExecute = true });
+                            }
+                            
+                            StatusLabel.Text = $"Update available: v{latestVersion}";
+                        }
+                        else
+                        {
+                            System.Windows.MessageBox.Show(
+                                $"You are using the latest version (v{CURRENT_VERSION})",
+                                "No Updates",
+                                MessageBoxButton.OK,
+                                MessageBoxImage.Information);
+                            
+                            StatusLabel.Text = "You're up to date!";
+                        }
+                    }
+                    return;
+                }
+                
+                // Launch updater
                 Process.Start(new ProcessStartInfo
                 {
-                    FileName        = updaterExe,
-                    UseShellExecute = true
+                    FileName = updaterPath,
+                    UseShellExecute = true,
+                    WorkingDirectory = Path.GetDirectoryName(updaterPath)
                 });
+                
+                StatusLabel.Text = "Updater launched...";
             }
-            else
+            catch (Exception ex)
             {
-                // Fallback: buka GitHub releases di browser
-                Process.Start(new ProcessStartInfo(
-                    "https://github.com/faizinuha/ZeroMix/releases/latest")
-                    { UseShellExecute = true });
+                System.Windows.MessageBox.Show(
+                    $"Failed to launch updater:\n{ex.Message}\n\nPlease check manually at:\nhttps://github.com/faizinuha/ZeroMix/releases",
+                    "Update Check Failed",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Warning);
+                
+                StatusLabel.Text = "Update check failed";
             }
-            await Task.CompletedTask;
         }
 
         private bool IsNewerVersion(string latest, string current)

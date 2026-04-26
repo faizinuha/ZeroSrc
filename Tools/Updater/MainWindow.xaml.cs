@@ -14,7 +14,7 @@ namespace ZeroMix.Updater
     {
         private const string Repo        = "faizinuha/ZeroMix";
         private const string ApiUrl      = $"https://api.github.com/repos/{Repo}/releases/latest";
-        private const string CurrentVer  = "6.0.0"; // di-update tiap release via CI
+        private const string CurrentVer  = "6.7.0"; // di-update tiap release via CI
 
         private static readonly HttpClient Http = new HttpClient();
 
