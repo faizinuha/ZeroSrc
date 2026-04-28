@@ -1,0 +1,97 @@
+{
+	"Version": 3,
+	"FileReferences": {
+		"Moc": "Frieren.moc3",
+		"Textures": [
+			"Frieren.8192/texture_00.png"
+		],
+		"Physics": "Frieren.physics3.json",
+		"DisplayInfo": "Frieren.cdi3.json",
+		"Expressions": [
+			{
+				"Name": "ku",
+				"File": "ku.exp3.json"
+			},
+			{
+				"Name": "yy",
+				"File": "yy.exp3.json"
+			},
+			{
+				"Name": "han",
+				"File": "han.exp3.json"
+			},
+			{
+				"Name": "mmy",
+				"File": "mmy.exp3.json"
+			},
+			{
+				"Name": "d",
+				"File": "d.exp3.json"
+			},
+			{
+				"Name": "lks",
+				"File": "lks.exp3.json"
+			},
+			{
+				"Name": "bl",
+				"File": "bl.exp3.json"
+			},
+			{
+				"Name": "wh",
+				"File": "wh.exp3.json"
+			},
+			{
+				"Name": "zx",
+				"File": "zx.exp3.json"
+			},
+			{
+				"Name": "anya",
+				"File": "anya.exp3.json"
+			},
+			{
+				"Name": "anya2",
+				"File": "anya2.exp3.json"
+			},
+			{
+				"Name": "anyazZZ",
+				"File": "anyazZZ.exp3.json"
+			},
+			{
+				"Name": "W",
+				"File": "W.exp3.json"
+			},
+			{
+				"Name": "erd ",
+				"File": "erd.exp3.json"
+			}
+		],
+		"Motions": {
+			"": [
+				{
+					"File": "daiji.motion3.json"
+				},
+				{
+					"File": "zs1.motion3.json"
+				}
+			]
+		}
+	},
+	"Groups": [
+		{
+			"Target": "Parameter",
+			"Name": "EyeBlink",
+			"Ids": [
+				"ParamEyeLOpen",
+				"ParamEyeROpen"
+			]
+		},
+		{
+			"Target": "Parameter",
+			"Name": "LipSync",
+			"Ids": [
+				"ParamMouthOpenY"
+			]
+		}
+	],
+	"HitAreas": []
+}

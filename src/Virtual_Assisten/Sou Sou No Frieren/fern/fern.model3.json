@@ -9,28 +9,7 @@
 			"fern.4096/texture_03.png"
 		],
 		"Physics": "fern.physics3.json",
-		"DisplayInfo": "fern.cdi3.json",
-		"Expressions": [
-			{
-				"Name": "lh",
-				"File": "lh.exp3.json"
-			},
-			{
-				"Name": "sq",
-				"File": "sq.exp3.json"
-			},
-			{
-				"Name": "sy",
-				"File": "sy.exp3.json"
-			}
-		],
-		"Motions": {
-			"": [
-				{
-					"File": "Scene1.motion3.json"
-				}
-			]
-		}
+		"DisplayInfo": "fern.cdi3.json"
 	},
 	"Groups": [
 		{

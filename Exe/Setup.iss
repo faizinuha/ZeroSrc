@@ -5,7 +5,7 @@
 ; --- App Identity ---
 AppId={{ZeroMix-v2-ZeroMix-identifier}}
 AppName=ZeroMix
-#define AppVersion "6.7.0"
+#define AppVersion "6.9.0"
 AppVersion={#AppVersion}
 VersionInfoVersion={#AppVersion}.0
 VersionInfoCompany=Frieren
@@ -77,12 +77,17 @@ Source: "..\Assets\zeromix-high-resolution-logo-transparent.png"; DestDir: "{app
 ; Plugins
 Source: "..\publish\win-x64\Tools\Plugins\**";   DestDir: "{app}\Tools\Plugins"; Flags: ignoreversion recursesubdirs createallsubdirs skipifsourcedoesntexist
 
+; Cat Gatekeeper assets (webm videos)
+Source: "..\Tools\Plugins\zeromix.CatGatekeeper\assets\neko1.webm"; DestDir: "{app}\Tools\Plugins\zeromix.CatGatekeeper\assets"; Flags: ignoreversion skipifsourcedoesntexist
+Source: "..\Tools\Plugins\zeromix.CatGatekeeper\assets\neko2.webm"; DestDir: "{app}\Tools\Plugins\zeromix.CatGatekeeper\assets"; Flags: ignoreversion skipifsourcedoesntexist
+Source: "..\Tools\Plugins\zeromix.CatGatekeeper\assets\nekoicon128.png"; DestDir: "{app}\Tools\Plugins\zeromix.CatGatekeeper\assets"; Flags: ignoreversion skipifsourcedoesntexist
+
 ; FFmpeg
 Source: "..\Tools\FFMPEG\ffmpeg.exe";             DestDir: "{app}\Tools\FFMPEG"; Flags: ignoreversion
 
-; Updater
+; Updater — bundle ZeroMix-Updater.exe agar bisa auto-update
 Source: "..\publish\win-x64\Tools\Updater\ZeroMix-Updater.exe"; DestDir: "{app}\Tools\Updater"; Flags: ignoreversion skipifsourcedoesntexist
-Source: "..\publish\win-x64\Tools\Updater\*.dll"; DestDir: "{app}\Tools\Updater"; Flags: ignoreversion skipifsourcedoesntexist
+Source: "..\publish\win-x64\Tools\Updater\*.dll"; DestDir: "{app}\Tools\Updater"; Flags: ignoreversion recursesubdirs skipifsourcedoesntexist
 
 ; Virtual Assistant — model Live2D, thumbnails, html viewer (exclude source code)
 ;Source: "..\src\Virtual_Assisten\*";              DestDir: "{app}\Virtual_Assisten"; Flags: ignoreversion recursesubdirs createallsubdirs skipifsourcedoesntexist; Excludes: "*.cs,*.xaml,*.md,*.txt,*.bak,*.vtube.json,*.cdi3.json"
@@ -190,13 +195,12 @@ begin
 
   if CurStep = usPostUninstall then
   begin
+    // Hapus registry context menu
     RegDeleteKeyIncludingSubkeys(HKCR, 'Directory\Background\shell\ZeroMix');
+    // Hapus startup shortcut
     DeleteFile(ExpandConstant('{userstartup}\ZeroMix.lnk'));
-
-    if MsgBox('Hapus juga data pengaturan ZeroMix di AppData?',
-      mbConfirmation, MB_YESNO) = IDYES then
-      DelTree(ExpandConstant('{userappdata}\ZeroMix'), True, True, True);
-
+    // Hapus AppData & LocalAppData tanpa dialog konfirmasi
+    DelTree(ExpandConstant('{userappdata}\ZeroMix'), True, True, True);
     DelTree(ExpandConstant('{localappdata}\ZeroMix'), True, True, True);
 
     // Buka halaman feedback setelah uninstall selesai
