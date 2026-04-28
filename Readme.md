@@ -31,6 +31,7 @@
 | **🧩 Lua Plugin System** | Create and share plugins using simple Lua scripts |
 | **🎥 ZeroRecord** | **(HOT)** Screen recording with dynamic zoom based on cursor movement |
 | **🌍 Nexus Translate** | **(v2.0)** Real-time translation with Anti-Crash protection |
+| **🐱 Cat Gatekeeper** | **(NEW)** Cute cat that forces you to take breaks after screen time |
 | **🌙 Fake Sleep Mode** | Always-On Display with multi-trigger, idle detection & hotkey |
 | **🤖 Virtual Assistant** | AI Vision with Live2D characters (Mihoyo, Frieren) via Groq API |
 | **📊 System Monitor** | Real-time CPU, RAM, and Disk tracking from your dashboard |
@@ -52,6 +53,7 @@ ZeroMix features a powerful Lua-powered plugin ecosystem — extend functionalit
 - **zeromix.Battery** — Real-time battery monitoring
 - **zeromix.Translate** — Translation services
 - **zeromix.weather** — Weather data integration
+- **zeromix.CatGatekeeper** — Screen time tracker with cute cat enforcer
 
 ### Creating Plugins
 1. Use the built-in Plugin Creator tool in ZeroMix
@@ -172,6 +174,11 @@ The atmospheric experiences in ZeroMix are powered by beautiful visuals from the
 - **Nature & Garden Ambience** by [Nicky ❤️🌿🐞🌿❤️](https://pixabay.com/id/users/nickype-10327513/) from [Pixabay](https://pixabay.com/)
 - **Cinematic Scenery 1** by [Andreas](https://pixabay.com/id/users/adege-4994132/?content=257240) from [Pixabay](https://pixabay.com/)
 - **Cinematic Scenery 2** by [Andreas](https://pixabay.com/id/users/adege-4994132/?content=230317) from [Pixabay](https://pixabay.com/)
+
+### 🐱 Cat Gatekeeper
+
+- **Original Cat Videos** by [@konekone2026 (ZOKUZOKU)](https://x.com/konekone2026) — Cat Gatekeeper Chrome Extension
+- **Extraction & WPF Adaptation** by Zaki
 
 ### 🎭 Live2D Models
 
