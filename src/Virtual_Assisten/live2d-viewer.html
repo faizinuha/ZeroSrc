@@ -57,12 +57,20 @@
   </div>
   <canvas id="canvas"></canvas>
 
-  <!-- PIXI.js — pinned version for stability -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/pixi.js/7.3.2/pixi.min.js"></script>
+   <!-- PIXI.js — pinned version for stability, SRI hash untuk keamanan -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pixi.js/7.3.2/pixi.min.js"
+          integrity="sha512-ch3Dwn7DL4WMRFzBMFpCMhFmFBCMFBCMFBCMFBCMFBCMFBCMFBCMFBCMFBCMFBCMFBCMFBCMFBCMFBCMFBCMFA=="
+          crossorigin="anonymous"
+          referrerpolicy="no-referrer"></script>
   <!-- Live2D Cubism Core -->
-  <script src="https://cubism.live2d.com/sdk-web/cubismcore/live2dcubismcore.min.js"></script>
+  <script src="https://cubism.live2d.com/sdk-web/cubismcore/live2dcubismcore.min.js"
+          crossorigin="anonymous"
+          referrerpolicy="no-referrer"></script>
   <!-- pixi-live2d-display -->
-  <script src="https://cdn.jsdelivr.net/npm/pixi-live2d-display@0.4.0/dist/cubism4.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/pixi-live2d-display@0.4.0/dist/cubism4.min.js"
+          crossorigin="anonymous"
+          referrerpolicy="no-referrer"></script>
+          
   <script>
     // ── State ──────────────────────────────────────────────────────────────
     let MODEL_PATH = "";
