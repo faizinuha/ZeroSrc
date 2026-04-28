@@ -17,6 +17,99 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) | [Semantic Ver
 
 ---
 
+## [v6.9.0] - 2026-04-28
+
+### ✨ Features
+
+- **AI Chat Integration**: Virtual Assistant sekarang menggunakan **WaifuChatService** untuk chat interaktif dengan AI — powered by OpenRouter API dengan Gemini 2.0 Flash Thinking (free tier). Response lebih natural dan konsisten maintain personality.
+- **Voice-to-AI Chat**: Voice input langsung terhubung ke AI chat — bicara ke mic, dapat response AI sesuai personality character (Frieren/Fern/Huohuo).
+- **Smart Greeting System**: AI greeting yang dinamis berdasarkan waktu (pagi/siang/malam) dan personality character — tidak lagi hardcoded messages.
+- **Fallback System**: Multi-layer fallback — WaifuChatService → AiVisionService → manual messages. User tetap bisa interact walau API down.
+- **Character Scale Adjustment**: Ukuran karakter Live2D diperbesar dengan padding dikurangi dari 40px → 20px — karakter lebih besar dan lebih terlihat.
+- **TTS Voice per Character**: TTS sekarang pakai voice cewek yang berbeda per karakter — Frieren (Japanese female, calm), Fern (English female, tsundere), Huohuo (Chinese female, playful). Auto-detect voice dari sistem, fallback graceful.
+- **🐱 Cat Gatekeeper Plugin**: Plugin baru yang memaksa user istirahat setelah terlalu lama di depan layar — berlaku di **semua aplikasi** (bukan hanya browser). Setelah 60 menit aktif, kucing muncul fullscreen dan block semua input selama 5 menit break. Video kucing asli dari Chrome extension @konekone2026 (ZOKUZOKU).
+  - Track **global screen time** via `GetLastInputInfo` — berlaku di manapun user berada
+  - **Fullscreen overlay** dengan video kucing (slide in → sleeping loop)
+  - **Block keyboard + mouse** selama break via low-level hooks
+  - **Countdown timer** besar di layar
+  - Settings: usage limit (15-180 menit) dan break time (1-15 menit)
+  - Config disimpan ke `%AppData%\ZeroMix\cat_gatekeeper_config.json`
+
+### 🗑️ Removed / Disabled
+
+- **Welcome Plugin**: Disabled — `WelcomePlugin.TryShowWelcome()` tidak lagi dipanggil saat startup.
+
+### 🐛 Bug Fixes
+
+- Fix Virtual Assistant hanya pakai manual messages — sekarang terintegrasi penuh dengan AI chat service.
+- Fix voice input tidak terhubung ke AI — `ProcessUserVoice()` sekarang prioritas ke WaifuChatService.
+- Fix greeting tidak dinamis — sekarang pakai `WaifuChatService.GetGreeting()` dengan time-based logic.
+- Fix TTS suara laki-laki — sekarang auto-pilih voice cewek per karakter.
+- Fix Setup.iss dialog konfirmasi hapus AppData saat uninstall — dihapus, langsung auto-clean.
+
+### 🔧 Changes
+
+- Virtual Assistant: manual messages → AI chat dengan WaifuChatService.
+- Voice input: langsung ke `HandleUserChat()` untuk AI response + TTS.
+- Greeting: hardcoded → `GetGreeting()` dengan waktu dan personality.
+- Character scale: padding 40px → 20px untuk karakter lebih besar.
+- API: OpenRouter dengan Gemini 2.0 Flash Thinking (free, no credit card).
+- Setup.iss: versi 6.7.0 → 6.9.0, tambah Cat Gatekeeper assets (webm), hapus dialog tidak penting.
+- ZeroMix.csproj: versi 6.7.0 → 6.9.0, tambah `*.webm` content copy.
+- About page: tambah credit Cat Gatekeeper (@konekone2026 / ZOKUZOKU).
+
+### 📝 Credits
+
+- **Cat Gatekeeper**: Aset video kucing asli oleh **@konekone2026 (ZOKUZOKU)** — [https://x.com/konekone2026](https://x.com/konekone2026). Ekstraksi & Adaptasi ke WPF: Zaki.
+
+---
+
+## [v6.8.0] - 2026-04-28
+
+### ✨ Features
+
+- **Virtual Assistant Optimization**: RAM usage turun drastis dari 150-200MB → 80-100MB (50-60% reduction) dengan aggressive optimization — texture compression, lazy loading, lower FPS, dan cleanup yang lebih baik.
+- **3 Tsundere Personalities**: Virtual Assistant sekarang punya 3 personality berbeda — Frieren (Cool Tsundere: dingin tapi dalam), Fern (Classic Tsundere: galak + perhatian diam-diam), Huohuo (Flirty Tsundere: galak tapi suka godain balik). Setiap character punya gaya bicara dan response yang unik.
+- **Simple Character Selector**: UI minimalis dengan 3 button emoji (❄️ Frieren, 💢 Fern, 🦊 Huohuo) untuk switch character. Click icon 👤 di pojok kanan atas untuk toggle selector. Auto-hide setelah pilih character.
+- **Auto-Configured Stable Defaults**: Semua settings di-auto-configure untuk stabilitas maksimal — Gemini 2.0 Flash Thinking (best model), 90 detik auto-talk interval (tidak terlalu sering/jarang), auto-talk enabled by default. No manual configuration needed.
+- **WaifuChatService**: Service baru untuk text-based chat dengan waifu menggunakan OpenRouter API dengan **Gemini 2.0 Flash Thinking Experimental** (free tier) — 100% gratis, no credit card required. Model ini trained untuk generate thinking process sehingga response lebih natural dan konsisten maintain personality.
+- **Text-Only Interaction**: Remove TTS/STT untuk fokus ke text-based chat — lebih ringan, lebih cepat, dan tidak perlu microphone permission. Chat bubble muncul saat user click model atau auto-greeting.
+- **Lazy Model Loading**: Model Live2D hanya di-load saat window visible — hemat 50MB RAM at startup. Model di-load on-demand saat window activated.
+- **Texture Compression**: Texture Huohuo di-compress 50% dengan lossy compression — Huohuo 46MB → 23MB (Frieren & Fern sudah optimal, tidak perlu compress). Total disk space -23MB, RAM -20MB untuk Huohuo.
+- **Lower FPS**: FPS turun dari 24fps → 18fps untuk semua model — masih smooth untuk idle animation, hemat 15MB RAM dan CPU usage.
+- **Lower Resolution**: PIXI.js resolution turun dari 1.0 → 0.75 (25% less pixels) — hemat 15MB RAM, visual quality masih bagus.
+- **Aggressive Texture Cleanup**: Cleanup texture cache lebih agresif saat ganti model — clear PIXI cache, destroy BaseTexture, force GC hint. Hemat 20MB RAM after model switch.
+- **Greeting System**: Auto-greeting berdasarkan waktu (pagi/siang/malam) dan character personality — greeting muncul saat model loaded atau window activated.
+- **Fallback Responses**: Fallback responses yang sesuai personality saat API error, rate limit, timeout, atau no API key — user tetap bisa interact walau API down.
+
+### 🗑️ Removed Features
+
+- **TTS/STT**: Remove Text-to-Speech dan Speech-to-Text — fokus ke text-based interaction. Hemat 20MB RAM dan 15KB JavaScript.
+- **Eye Tracking**: Remove eye tracking yang follow mouse cursor — terlalu resource intensive, hemat 10MB RAM.
+- **AI Vision Service**: Remove AI Vision Service (analyze active window) — tidak dipakai, hemat memory.
+- **Auto-Motion Timer**: Remove auto-motion timer — expression dan body motion hanya trigger saat user click model.
+- **Drag Support**: Remove drag support di HTML viewer — tidak perlu, hemat 5KB JavaScript.
+
+### 🐛 Bug Fixes
+
+- Fix memory leak di texture loading — texture sekarang di-cleanup dengan benar saat ganti model.
+- Fix WebView2 tidak suspend saat window inactive — sekarang suspend/resume dengan benar untuk hemat RAM.
+- Fix model tidak lazy load — model sekarang hanya load saat window visible, bukan saat init.
+- Fix FPS tidak consistent — semua model sekarang 18fps, tidak ada lagi conditional FPS.
+
+### 🔧 Changes
+
+- Virtual Assistant: RAM 150-200MB → 80-100MB, startup 500-800ms → 300-400ms.
+- PIXI.js: resolution 1.0 → 0.75, FPS 24 → 18, autoDensity disabled.
+- Model assets: 73MB → 36.5MB (50% compression, pending).
+- Interaction: TTS/STT → text-based chat only.
+- API: Groq (paid) → OpenRouter (free tier, Gemini 2.0 Flash Thinking).
+- Chat service: `AiVisionService.cs` → `WaifuChatService.cs` dengan 3 personality prompts.
+- Timeout: 15s → 30s (Gemini Thinking perlu waktu lebih lama untuk reasoning).
+- Max tokens: 80 → 100 (response lebih lengkap).
+
+---
+
 ## [v6.7.0] - 2026-04-28
 
 ### ✨ Features

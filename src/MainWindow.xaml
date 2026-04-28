@@ -949,6 +949,22 @@
                                             </TextBlock>
                                         </StackPanel>
 
+                                        <!-- Cat Gatekeeper Credit -->
+                                        <TextBlock Text="🐱 Cat Gatekeeper"
+                                                   FontSize="14" FontWeight="Bold"
+                                                   Foreground="White" Margin="0,8,0,6"/>
+                                        <StackPanel Margin="8,0,0,16">
+                                            <TextBlock Margin="0,0,0,4" FontSize="12" Foreground="{StaticResource SubTextBrush}" TextWrapping="Wrap">
+                                                <Run Text="Aset video kucing asli oleh "/><Run Text="@konekone2026 (ZOKUZOKU)" FontWeight="Bold" Foreground="White"/><Run Text=" — Cat Gatekeeper Chrome Extension."/>
+                                            </TextBlock>
+                                            <TextBlock Margin="0,0,0,4" FontSize="12">
+                                                <Run Text="• " Foreground="{StaticResource NeonBlueBrush}"/><Hyperlink RequestNavigate="Hyperlink_RequestNavigate" NavigateUri="https://x.com/konekone2026">https://x.com/konekone2026</Hyperlink>
+                                            </TextBlock>
+                                            <TextBlock Margin="0,0,0,4" FontSize="12" Foreground="{StaticResource SubTextBrush}">
+                                                <Run Text="• Ekstraksi &amp; Adaptasi ke WPF: "/><Run Text="Zaki" FontWeight="Bold" Foreground="White"/>
+                                            </TextBlock>
+                                        </StackPanel>
+
                                         <Border Background="#141922" CornerRadius="10" Padding="14" Margin="0,8,0,0">
                                             <TextBlock Text="Note: Weather effects vary dynamically based on current city time and real-world conditions."
                                                        Foreground="{StaticResource SubTextBrush}" FontSize="11"

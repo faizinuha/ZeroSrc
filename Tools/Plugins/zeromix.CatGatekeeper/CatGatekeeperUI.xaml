@@ -1,0 +1,107 @@
+<UserControl x:Class="zeromix.CatGatekeeper.CatGatekeeperUI"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        
+        <!-- Header -->
+        <StackPanel Grid.Row="0" Margin="0,0,0,20">
+            <TextBlock Text="🐱 Cat Gatekeeper" FontSize="24" FontWeight="Bold"/>
+            <TextBlock Text="Kucing lucu yang memaksa kamu istirahat" 
+                       FontSize="12" Opacity="0.7" Margin="0,5,0,0"/>
+        </StackPanel>
+        
+        <!-- Usage Limit -->
+        <StackPanel Grid.Row="1" Margin="0,0,0,15">
+            <TextBlock Text="⏱️ Batas Waktu Layar" FontWeight="SemiBold" Margin="0,0,0,5"/>
+            <StackPanel Orientation="Horizontal">
+                <Slider x:Name="UsageLimitSlider" 
+                        Width="200" 
+                        Minimum="15" 
+                        Maximum="180" 
+                        Value="60"
+                        TickFrequency="15"
+                        IsSnapToTickEnabled="True"
+                        VerticalAlignment="Center"
+                        ValueChanged="UsageLimitSlider_ValueChanged"/>
+                <TextBlock x:Name="UsageLimitText" 
+                           Text="60 menit" 
+                           Margin="10,0,0,0" 
+                           VerticalAlignment="Center"
+                           FontWeight="Bold"/>
+            </StackPanel>
+            <TextBlock Text="Kucing akan muncul setelah kamu aktif selama waktu ini" 
+                       FontSize="11" Opacity="0.6" Margin="0,5,0,0"/>
+        </StackPanel>
+        
+        <!-- Break Time -->
+        <StackPanel Grid.Row="2" Margin="0,0,0,15">
+            <TextBlock Text="☕ Waktu Istirahat" FontWeight="SemiBold" Margin="0,0,0,5"/>
+            <StackPanel Orientation="Horizontal">
+                <Slider x:Name="BreakTimeSlider" 
+                        Width="200" 
+                        Minimum="1" 
+                        Maximum="15" 
+                        Value="5"
+                        TickFrequency="1"
+                        IsSnapToTickEnabled="True"
+                        VerticalAlignment="Center"
+                        ValueChanged="BreakTimeSlider_ValueChanged"/>
+                <TextBlock x:Name="BreakTimeText" 
+                           Text="5 menit" 
+                           Margin="10,0,0,0" 
+                           VerticalAlignment="Center"
+                           FontWeight="Bold"/>
+            </StackPanel>
+            <TextBlock Text="Durasi istirahat wajib (layar diblock)" 
+                       FontSize="11" Opacity="0.6" Margin="0,5,0,0"/>
+        </StackPanel>
+        
+        <!-- Status -->
+        <Border Grid.Row="3" 
+                Background="#F0F0F0" 
+                CornerRadius="8" 
+                Padding="15" 
+                Margin="0,0,0,15">
+            <StackPanel>
+                <TextBlock Text="📊 Status" FontWeight="SemiBold" Margin="0,0,0,10"/>
+                <StackPanel Orientation="Horizontal" Margin="0,0,0,5">
+                    <TextBlock Text="Waktu Aktif: " Opacity="0.7"/>
+                    <TextBlock x:Name="ActiveTimeText" Text="0 menit" FontWeight="Bold"/>
+                </StackPanel>
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Text="Status: " Opacity="0.7"/>
+                    <TextBlock x:Name="StatusText" Text="Tracking..." FontWeight="Bold" Foreground="Green"/>
+                </StackPanel>
+            </StackPanel>
+        </Border>
+        
+        <!-- Credit -->
+        <Border Grid.Row="4" 
+                Background="#FFF9E6" 
+                BorderBrush="#FFD700" 
+                BorderThickness="1" 
+                CornerRadius="5" 
+                Padding="10">
+            <StackPanel>
+                <TextBlock Text="📝 Credit" FontWeight="SemiBold" Margin="0,0,0,5"/>
+                <TextBlock TextWrapping="Wrap" FontSize="11">
+                    <Run Text="Aset Asli oleh: "/><Run Text="@konekone2026 (ZOKUZOKU)" FontWeight="Bold"/>
+                    <LineBreak/>
+                    <Run Text="Cat Gatekeeper Extension"/><LineBreak/>
+                    <Run Text="Ekstraksi &amp; Optimasi: Zaki"/><LineBreak/>
+                    <Run Text="Sumber: "/><Hyperlink NavigateUri="https://x.com/konekone2026" RequestNavigate="Hyperlink_RequestNavigate">
+                        <Run Text="https://x.com/konekone2026"/>
+                    </Hyperlink>
+                </TextBlock>
+            </StackPanel>
+        </Border>
+    </Grid>
+</UserControl>

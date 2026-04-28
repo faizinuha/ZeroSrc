@@ -37,3 +37,16 @@ cert.pfx
 config.json
 .kiro
 kiro
+Docs/VIRTUAL_ASSISTANT_FAQ.md
+Docs/VIRTUAL_ASSISTANT_SETUP.md
+Docs/VIRTUAL_ASSISTANT_V6.8.0_PLAN.md
+src/Native/CubismSDK
+
+
+# Cubism SDK (exclude full SDK folders, but keep essential DLL & headers)
+src/Native/CubismSdkForNative-*/
+# Include these essential files for build:
+!src/Native/x64/
+!src/Native/x64/Live2DCubismCore.dll
+!src/Native/Live2DCubismCore.h
+!src/Native/CUBISM_LICENSE.md

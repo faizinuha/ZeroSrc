@@ -1,0 +1,25 @@
+{
+    "Type": "Live2D Expression",
+    "Parameters": [
+        {
+            "Id": "ParamSwitch2",
+            "Value": 0.3499999940395355,
+            "Blend": "Add"
+        },
+        {
+            "Id": "ParamSwitch8",
+            "Value": 1.0,
+            "Blend": "Add"
+        },
+        {
+            "Id": "ParamBrowRForm",
+            "Value": 0.8999999761581421,
+            "Blend": "Add"
+        },
+        {
+            "Id": "ParamBrowLForm",
+            "Value": 0.8999999761581421,
+            "Blend": "Add"
+        }
+    ]
+}

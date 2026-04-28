@@ -10,6 +10,7 @@ using System.Windows.Forms;
 using System.Windows.Controls;
 using Newtonsoft.Json.Linq;
 using System.Threading.Tasks;
+using ZeroMix.Services;
 
 namespace ZeroMix.Virtual_Assisten
 {
@@ -28,6 +29,10 @@ namespace ZeroMix.Virtual_Assisten
         private DispatcherTimer? _visionTimer;
         private string _apiKey = ApiKeys.OPENAI_API_KEY; 
         private string _currentLang = "id-ID";
+        
+        // WaifuChatService untuk AI chat interaktif
+        private WaifuChatService? _waifuChatService;
+        private string _openRouterApiKey = ApiKeys.OPENROUTER_API_KEY;
 
         private readonly Dictionary<string, List<string>> _characterMessages = new()
         {
@@ -68,6 +73,16 @@ namespace ZeroMix.Virtual_Assisten
             // Vision timer — jangan start dulu, tunggu WebView siap
             _visionTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(60) };
             _visionTimer.Tick += async (s, e) => await PerformAiObservation();
+            
+            // Initialize WaifuChatService untuk AI chat
+            try
+            {
+                _waifuChatService = new WaifuChatService(_openRouterApiKey, WaifuChatService.ModelType.GeminiFlashThinking);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[VA] Failed to init WaifuChatService: {ex.Message}");
+            }
         }
 
         private async void OnWindowLoaded(object sender, RoutedEventArgs e)
@@ -197,10 +212,72 @@ namespace ZeroMix.Virtual_Assisten
 
         public void ShowNextChatMessage()
         {
-            var msgs = _characterMessages.ContainsKey(_currentCharacter) ? _characterMessages[_currentCharacter] : _characterMessages["Frieren"];
-            ChatText.Text = msgs[_random.Next(msgs.Count)];
-            ChatBubble.Visibility = Visibility.Visible;
-            _hideChatTimer?.Stop(); _hideChatTimer?.Start();
+            // Gunakan AI chat jika tersedia, fallback ke manual messages
+            if (_waifuChatService != null)
+            {
+                _ = ShowAiChatMessage();
+            }
+            else
+            {
+                // Fallback: manual messages
+                var msgs = _characterMessages.ContainsKey(_currentCharacter) ? _characterMessages[_currentCharacter] : _characterMessages["Frieren"];
+                ChatText.Text = msgs[_random.Next(msgs.Count)];
+                ChatBubble.Visibility = Visibility.Visible;
+                _hideChatTimer?.Stop(); _hideChatTimer?.Start();
+            }
+        }
+        
+        private async Task ShowAiChatMessage()
+        {
+            if (_waifuChatService == null) return;
+            
+            try
+            {
+                // Get greeting dari WaifuChatService
+                string greeting = _waifuChatService.GetGreeting(_currentCharacter);
+                ChatText.Text = greeting;
+                ChatBubble.Visibility = Visibility.Visible;
+                _hideChatTimer?.Stop(); _hideChatTimer?.Start();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[VA] AI chat error: {ex.Message}");
+                // Fallback ke manual message
+                var msgs = _characterMessages[_currentCharacter];
+                ChatText.Text = msgs[_random.Next(msgs.Count)];
+                ChatBubble.Visibility = Visibility.Visible;
+            }
+        }
+        
+        // Method untuk user chat dengan AI (bisa dipanggil dari UI atau voice input)
+        public async Task HandleUserChat(string userMessage)
+        {
+            if (_waifuChatService == null || string.IsNullOrWhiteSpace(userMessage)) return;
+            
+            try
+            {
+                // Show user message
+                ChatText.Text = $"💬: {userMessage}";
+                ChatBubble.Visibility = Visibility.Visible;
+                
+                // Get AI response
+                string response = await _waifuChatService.ChatAsync(userMessage, _currentCharacter);
+                
+                // Show AI response
+                ChatText.Text = response;
+                ChatBubble.Visibility = Visibility.Visible;
+                
+                // Speak the response
+                await WebView.ExecuteScriptAsync($"speakText('{response.Replace("'", "\\'")}', '{_currentLang}');");
+                
+                _hideChatTimer?.Stop(); _hideChatTimer?.Start();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[VA] User chat error: {ex.Message}");
+                ChatText.Text = "Maaf, ada error...";
+                ChatBubble.Visibility = Visibility.Visible;
+            }
         }
 
         private async Task PerformAiObservation()
@@ -227,20 +304,30 @@ namespace ZeroMix.Virtual_Assisten
             if (string.IsNullOrWhiteSpace(text)) return;
             Console.WriteLine($"[VirtualAssistant] User Said: {text}");
             
-            ChatText.Text = $"💬: {text}";
-            ChatBubble.Visibility = Visibility.Visible;
-            
-            string aiResponse = await _visionService!.AskAiAsync(text, _currentCharacter);
-            Console.WriteLine($"[VirtualAssistant] AI Answer: {aiResponse}");
+            // Gunakan WaifuChatService jika tersedia (lebih cepat & lebih character-focused)
+            if (_waifuChatService != null)
+            {
+                await HandleUserChat(text);
+            }
+            else if (_visionService != null)
+            {
+                // Fallback ke AiVisionService (lebih lambat tapi bisa vision)
+                ChatText.Text = $"💬: {text}";
+                ChatBubble.Visibility = Visibility.Visible;
+                
+                string aiResponse = await _visionService.AskAiAsync(text, _currentCharacter);
+                Console.WriteLine($"[VirtualAssistant] AI Answer: {aiResponse}");
 
-            ChatText.Text = aiResponse;
-            ChatBubble.Visibility = Visibility.Visible;
-            
-            // Speak the response!
-            await WebView.ExecuteScriptAsync($"speakText('{aiResponse.Replace("'", "\\'")}', '{_currentLang}');");
+                ChatText.Text = aiResponse;
+                ChatBubble.Visibility = Visibility.Visible;
+                
+                // Speak the response!
+                await WebView.ExecuteScriptAsync($"speakText('{aiResponse.Replace("'", "\\'")}', '{_currentLang}');");
 
-            _hideChatTimer?.Stop();
-            _hideChatTimer?.Start();
+                _hideChatTimer?.Stop();
+                _hideChatTimer?.Start();
+            }
+            
             App.OptimizeMemory();
         }
 

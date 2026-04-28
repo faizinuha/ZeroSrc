@@ -9,7 +9,7 @@
     <UseWindowsForms>true</UseWindowsForms>
     <ApplicationIcon>Assets\Icons\zeromix.ico</ApplicationIcon>
     <EnableWindowsTargeting>true</EnableWindowsTargeting>
-    <Version>6.7.0</Version>
+    <Version>6.9.0</Version>
     
     <!-- Optimasi Ukuran & Portabilitas (Self-Contained & Kompresi) -->
     <PublishSingleFile>false</PublishSingleFile>
@@ -20,7 +20,7 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     <GenerateTargetFrameworkAttribute>false</GenerateTargetFrameworkAttribute>
-    <!-- Disable auto-discovery so we can register all XAML files explicitly -->
+    <!-- Keep manual control for XAML files -->
     <EnableDefaultPageItems>false</EnableDefaultPageItems>
     <EnableDefaultApplicationDefinition>false</EnableDefaultApplicationDefinition>
   </PropertyGroup>
@@ -95,6 +95,7 @@
   <AccelerateBuildsInVisualStudio>true</AccelerateBuildsInVisualStudio>
 </PropertyGroup>
 
+  <!-- App.xaml must be explicitly defined as ApplicationDefinition -->
   <ItemGroup>
     <ApplicationDefinition Include="src\App.xaml">
       <SubType>Designer</SubType>
@@ -102,121 +103,17 @@
     </ApplicationDefinition>
   </ItemGroup>
 
-  <!-- Explicit Page registration — required when EnableDefaultPageItems=false -->
+  <!-- All XAML Pages using wildcard pattern (simpler than listing each file) -->
   <ItemGroup>
-    <Page Include="src\MainWindow.xaml">
+    <Page Include="src\**\*.xaml" Exclude="src\App.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="src\Hotkeys\CustomShortcutWindow.xaml">
+    <Page Include="Tools\Plugins\**\*.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="src\onboarding\onboarding.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="src\Search\SearchOverlay.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="src\SleepMode\SleepOverlayWindow.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="src\Studio\ExportOptionsDialog.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="src\Studio\StudioWindow.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="src\Transparan\TransparentTaskbar.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="src\Virtual_Assisten\VirtualAssistantWindow.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="src\Wallpapers\VideoWallpaperWindow.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="src\Wallpapers\WallpapersView.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="src\Widgets\ClockWidget.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="src\Widgets\DesktopWidget.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="src\ZeroMix.recorder\AreaSelectorWindow.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="src\ZeroMix.recorder\RecordingBorderWindow.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="src\ZeroMix.recorder\WindowPickerWindow.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="src\ZeroShell\WdmWindow.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="src\ZeroShell\ZeroLaunchpad.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="src\ZeroShell\ZeroShellWindow.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="Tools\Plugins\DynamicPluginWindow.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="Tools\Plugins\ChargerBatterynotif.core\BatteryNotif.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="Tools\Plugins\ChargerBatterynotif.core\ChargerNotifUI.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="Tools\Plugins\zeromix.Battery\BatteryNotificationWindow.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="Tools\Plugins\zeromix.Battery\BatteryPluginUI.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="Tools\Plugins\zeromix.Translate\TranslatePluginUI.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="Tools\Plugins\zeromix.weather\WeatherPluginUI.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="Tools\Plugins\zeromix.Welcome\WelcomePluginUI.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="Tools\Plugins\zeromix.Welcome\WelcomeWindow.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="Tools\zeromix.CreatePlugins\CreatePluginWindow.xaml">
+    <Page Include="Tools\zeromix.CreatePlugins\**\*.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -227,6 +124,13 @@
     <Resource Include="Assets\Resources\Locales\**" />
     <Resource Include="src\SleepMode\IMG\**" />
     <Resource Include="Tools\Plugins\Styles.xaml" />
+  </ItemGroup>
+
+  <!-- Live2D Cubism Core DLL -->
+  <ItemGroup>
+    <None Include="src\Native\x64\Live2DCubismCore.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
   <!-- Wallpaper & anim assets -->
@@ -254,7 +158,7 @@
     <Content Include="Tools\Plugins\**\*.wav">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="Tools\Plugins\**\*.gif">
+    <Content Include="Tools\Plugins\**\*.webm">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <!-- Styles.xaml dibutuhkan runtime sebagai resource -->

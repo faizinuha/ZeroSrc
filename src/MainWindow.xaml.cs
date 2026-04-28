@@ -46,7 +46,7 @@ namespace ZeroMix
     
     public partial class MainWindow : Wpf.Ui.Controls.FluentWindow, ZeroMix.Plugins.IZeroMixHost
     {
-        private const string CURRENT_VERSION = "6.7.0";
+        private const string CURRENT_VERSION = "6.9.0";
         
         // Windows API for Taskbar transparency
         [DllImport("user32.dll", SetLastError = true)]
@@ -386,9 +386,8 @@ namespace ZeroMix
             // Tunda semua operasi berat agar window selesai render dulu
             Dispatcher.BeginInvoke(async () =>
             {
-                // Welcome screen — delay sedikit agar window sudah visible
-                await Task.Delay(300);
-                ZeroMix.Plugins.Welcome.WelcomePlugin.TryShowWelcome();
+                // Welcome screen — disabled (v6.9.0)
+                // ZeroMix.Plugins.Welcome.WelcomePlugin.TryShowWelcome();
 
                 // Load VA thumbnails
                 LoadVAThumbnails();
@@ -2280,10 +2279,9 @@ end";
             }
 
             // Get Pre-Launch Settings from Dashboard
-            string selectedLang = (AssistantLanguageSelection?.SelectedItem as ComboBoxItem)?.Tag?.ToString() ?? "id-ID";
-            bool micEnabled = AssistantMicPreload?.IsChecked ?? true;
-            _assistantWindow.PreConfigure(selectedLang, micEnabled);
-
+            // PreConfigure removed - Virtual Assistant now uses auto-configured defaults
+            // No manual configuration needed
+            
             if (!_assistantWindow.IsVisible)
             {
                 _assistantWindow.Show();
