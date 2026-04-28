@@ -155,9 +155,22 @@
     </footer>
 
     <script>
-      const params   = new URLSearchParams(window.location.search);
-      const fileUrl  = params.get("url");
+      const params = new URLSearchParams(window.location.search);
+      const rawFileUrl = params.get("url");
       const fileName = params.get("name") || "ZeroMix-Setup.exe";
+
+      function sanitizeDownloadUrl(input) {
+        if (!input) return null;
+        try {
+          const parsed = new URL(input, window.location.origin);
+          if (parsed.protocol === "http:" || parsed.protocol === "https:") {
+            return parsed.href;
+          }
+        } catch (_) {}
+        return null;
+      }
+
+      const fileUrl = sanitizeDownloadUrl(rawFileUrl);
 
       // Tampilkan nama file
       document.getElementById("file-badge").textContent = fileName;
