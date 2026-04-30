@@ -46,7 +46,7 @@ namespace ZeroMix
     
     public partial class MainWindow : Wpf.Ui.Controls.FluentWindow, ZeroMix.Plugins.IZeroMixHost
     {
-        private const string CURRENT_VERSION = "6.9.0";
+        private const string CURRENT_VERSION = "6.9.1";
         
         // Windows API for Taskbar transparency
         [DllImport("user32.dll", SetLastError = true)]
@@ -425,31 +425,36 @@ namespace ZeroMix
             string baseDir = AppDomain.CurrentDomain.BaseDirectory;
             var thumbs = new[]
             {
-                (Name: "FrierenThumb", File: "Virtual_Assisten/VA_Thumbnails/Frieren.png"),
-                (Name: "FernThumb",    File: "Virtual_Assisten/VA_Thumbnails/fern.jpg"),
-                (Name: "HuohuoThumb", File: "Virtual_Assisten/VA_Thumbnails/Huohuo.jpg"),
+                (Image: FrierenThumb, File: "Virtual_Assisten/VA_Thumbnails/Frieren.png"),
+                (Image: FernThumb,    File: "Virtual_Assisten/VA_Thumbnails/fern.jpg"),
+                (Image: HuohuoThumb, File: "Virtual_Assisten/VA_Thumbnails/Huohuo.jpg"),
             };
 
-            foreach (var (name, file) in thumbs)
+            foreach (var (img, file) in thumbs)
             {
                 try
                 {
                     string fullPath = Path.Combine(baseDir, file);
-                    if (!File.Exists(fullPath)) continue;
+                    if (!File.Exists(fullPath))
+                    {
+                        Debug.WriteLine($"[VA] Thumbnail not found: {fullPath}");
+                        continue;
+                    }
 
                     var bmp = new System.Windows.Media.Imaging.BitmapImage();
                     bmp.BeginInit();
                     bmp.UriSource = new Uri(fullPath, UriKind.Absolute);
                     bmp.CacheOption = System.Windows.Media.Imaging.BitmapCacheOption.OnLoad;
+                    bmp.DecodePixelWidth = 300; // Limit decode size untuk hemat RAM
                     bmp.EndInit();
                     bmp.Freeze();
 
-                    if (FindName(name) is System.Windows.Controls.Image img)
-                        img.Source = bmp;
+                    img.Source = bmp;
+                    Debug.WriteLine($"[VA] Thumbnail loaded: {file}");
                 }
                 catch (Exception ex)
                 {
-                    Debug.WriteLine($"[VA] Failed to load thumbnail {name}: {ex.Message}");
+                    Debug.WriteLine($"[VA] Failed to load thumbnail {file}: {ex.Message}");
                 }
             }
         }
