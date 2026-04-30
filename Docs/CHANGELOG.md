@@ -16,7 +16,16 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) | [Semantic Ver
 - **API & SDK**: Public API dan SDK untuk developer — integrate ZeroMix features ke aplikasi lain.
 
 ---
+## [v6.9.1] - 2026-04-30 - Fix
 
+### 🔧 Changes
+
+- **Fix** 
+- Perbaikan Thumbnail yang telah hilang atau tidak terbaca oleh sistem
+- Perbaikan sistem cek update
+- Perbaikan namespace
+
+---
 ## [v6.9.0] - 2026-04-28
 
 ### ✨ Features

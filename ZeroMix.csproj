@@ -9,7 +9,7 @@
     <UseWindowsForms>true</UseWindowsForms>
     <ApplicationIcon>Assets\Icons\zeromix.ico</ApplicationIcon>
     <EnableWindowsTargeting>true</EnableWindowsTargeting>
-    <Version>6.9.0</Version>
+    <Version>6.9.1</Version>
     
     <!-- Optimasi Ukuran & Portabilitas (Self-Contained & Kompresi) -->
     <PublishSingleFile>false</PublishSingleFile>
@@ -217,10 +217,12 @@
     </Content>
   </ItemGroup>
 
-  <!-- Build Updater after main build -->
-  <Target Name="BuildUpdater" AfterTargets="Build" Condition="'$(Configuration)'=='Release'">
+  <!-- Build Updater after main build — hanya jika source berubah -->
+  <Target Name="BuildUpdater" AfterTargets="Build"
+          Inputs="Tools/Updater/MainWindow.xaml.cs;Tools/Updater/App.xaml.cs;Tools/Updater/ZeroMix.Updater.csproj"
+          Outputs="$(OutputPath)Tools/Updater/ZeroMix-Updater.exe">
     <Message Text="Building ZeroMix-Updater..." Importance="high" />
-    <Exec Command="dotnet publish Tools/Updater/ZeroMix.Updater.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -o $(OutputPath)Tools/Updater" />
+    <Exec Command="dotnet publish Tools/Updater/ZeroMix.Updater.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -o $(OutputPath)Tools/Updater" ContinueOnError="true" />
   </Target>
 
 </Project>
