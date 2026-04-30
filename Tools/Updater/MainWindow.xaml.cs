@@ -16,7 +16,10 @@ namespace ZeroMix.Updater
         private const string ApiUrl      = $"https://api.github.com/repos/{Repo}/releases/latest";
         private const string CurrentVer  = "6.9.0"; // di-update tiap release via CI
 
-        private static readonly HttpClient Http = new HttpClient();
+        private static readonly HttpClient Http = new HttpClient()
+        {
+            Timeout = TimeSpan.FromSeconds(8) // Timeout cepat — jangan tunggu lama
+        };
 
         private string? _downloadUrl;
         private string? _fileName;
@@ -47,15 +50,22 @@ namespace ZeroMix.Updater
             SetState(State.Checking);
             try
             {
-                var json    = await Http.GetStringAsync(ApiUrl);
+                // Set timeout per-request agar tidak nunggu lama
+                using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(8));
+
+                var json      = await Http.GetStringAsync(ApiUrl, cts.Token);
                 using var doc = JsonDocument.Parse(json);
-                var root    = doc.RootElement;
+                var root      = doc.RootElement;
 
                 _latestTag   = root.GetProperty("tag_name").GetString() ?? "";
                 string latestVer = _latestTag.TrimStart('v');
 
                 CurrentVerText.Text = $"v{CurrentVer}";
                 LatestVerText.Text  = _latestTag;
+
+                // Ambil changelog dari body release
+                string releaseBody = root.TryGetProperty("body", out var bodyEl)
+                    ? bodyEl.GetString() ?? "" : "";
 
                 // Cari asset Setup*.exe
                 foreach (var asset in root.GetProperty("assets").EnumerateArray())
@@ -70,9 +80,12 @@ namespace ZeroMix.Updater
                     }
                 }
 
+                // Tampilkan changelog
+                ShowChangelog(releaseBody, _latestTag ?? "");
+
                 if (IsNewerVersion(latestVer, CurrentVer))
                 {
-                    TitleText.Text = $"Update tersedia!";
+                    TitleText.Text = "Update tersedia!";
                     SubText.Text   = $"ZeroMix {_latestTag} siap didownload";
                     SetState(State.ReadyToDownload);
                 }
@@ -83,13 +96,38 @@ namespace ZeroMix.Updater
                     SetState(State.UpToDate);
                 }
             }
+            catch (OperationCanceledException)
+            {
+                TitleText.Text  = "Timeout";
+                SubText.Text    = "Koneksi terlalu lambat, coba lagi";
+                StatusText.Text = "Request timeout setelah 8 detik";
+                SetState(State.Error);
+            }
             catch (Exception ex)
             {
-                TitleText.Text = "Gagal cek update";
-                SubText.Text   = "Periksa koneksi internet kamu";
+                TitleText.Text  = "Gagal cek update";
+                SubText.Text    = "Periksa koneksi internet kamu";
                 StatusText.Text = ex.Message;
                 SetState(State.Error);
             }
+        }
+
+        private void ShowChangelog(string body, string tag)
+        {
+            if (ChangelogPanel == null) return;
+
+            // Ambil max 20 baris pertama dari release body
+            var lines = body.Split('\n');
+            int maxLines = Math.Min(lines.Length, 20);
+            string preview = string.Join("\n", lines[..maxLines]);
+            if (lines.Length > maxLines) preview += "\n...";
+
+            ChangelogTag.Text  = $"📋 What's new in {tag}";
+            ChangelogText.Text = string.IsNullOrWhiteSpace(preview)
+                ? "Lihat release notes di GitHub untuk detail perubahan."
+                : preview;
+
+            ChangelogPanel.Visibility = Visibility.Visible;
         }
 
         // ── Download ──────────────────────────────────────────────────────

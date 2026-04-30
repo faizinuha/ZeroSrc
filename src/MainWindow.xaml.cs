@@ -46,7 +46,7 @@ namespace ZeroMix
     
     public partial class MainWindow : Wpf.Ui.Controls.FluentWindow, ZeroMix.Plugins.IZeroMixHost
     {
-        private const string CURRENT_VERSION = "6.9.2";
+        private const string CURRENT_VERSION = "6.9.3";
         
         // Windows API for Taskbar transparency
         [DllImport("user32.dll", SetLastError = true)]
@@ -391,6 +391,9 @@ namespace ZeroMix
 
                 // Load VA thumbnails
                 LoadVAThumbnails();
+                
+                // Load CatGatekeeper plugin secara lazy dan aman
+                LoadCatGatekeeperPlugin();
 
                 // Initialize Lua Engine di background
                 await Task.Run(() =>
@@ -456,6 +459,22 @@ namespace ZeroMix
                 {
                     Debug.WriteLine($"[VA] Failed to load thumbnail {file}: {ex.Message}");
                 }
+            }
+        }
+
+        private void LoadCatGatekeeperPlugin()
+        {
+            try
+            {
+                if (CatGatekeeperContainer == null) return;
+                var ui = new global::zeromix.CatGatekeeper.CatGatekeeperUI();
+                CatGatekeeperContainer.Content = ui;
+                Console.WriteLine("[Plugin] CatGatekeeper loaded successfully");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[Plugin] CatGatekeeper failed to load: {ex.Message}");
+                // Gagal load plugin tidak boleh crash aplikasi
             }
         }
 

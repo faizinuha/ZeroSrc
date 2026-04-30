@@ -13,7 +13,6 @@
         xmlns:translate="clr-namespace:ZeroMix.Plugins.Translate"
         xmlns:chargernotif="clr-namespace:ZeroMix.Plugins.ChargerNotif"
         xmlns:welcome="clr-namespace:ZeroMix.Plugins.Welcome"
-        xmlns:CatGatekeeper="clr-namespace:zeromix.CatGatekeeper"
         Title="ZeroMix"
         Icon="../Assets/Icons/zeromix.ico"
         Height="650"
@@ -956,10 +955,13 @@
                                                    Foreground="White" Margin="0,8,0,6"/>
                                         <StackPanel Margin="8,0,0,16">
                                             <TextBlock Margin="0,0,0,4" FontSize="12" Foreground="{StaticResource SubTextBrush}" TextWrapping="Wrap">
-                                                <Run Text="Aset video kucing asli oleh "/><Run Text="@konekone2026 (ZOKUZOKU)" FontWeight="Bold" Foreground="White"/><Run Text=" — Cat Gatekeeper Chrome Extension."/>
+                                                <Run Text="Aset video kucing asli oleh "/>
+                                                <Run Text="@konekone2026 (ZOKUZOKU)" FontWeight="Bold" Foreground="White"/>
+                                                <Run Text=" — Cat Gatekeeper Chrome Extension."/>
                                             </TextBlock>
                                             <TextBlock Margin="0,0,0,4" FontSize="12">
-                                                <Run Text="• " Foreground="{StaticResource NeonBlueBrush}"/><Hyperlink RequestNavigate="Hyperlink_RequestNavigate" NavigateUri="https://x.com/konekone2026">https://x.com/konekone2026</Hyperlink>
+                                                <Run Text="• " Foreground="{StaticResource NeonBlueBrush}"/>
+                                                <Hyperlink RequestNavigate="Hyperlink_RequestNavigate" NavigateUri="https://x.com/konekone2026">https://x.com/konekone2026</Hyperlink>
                                             </TextBlock>
                                             <TextBlock Margin="0,0,0,4" FontSize="12" Foreground="{StaticResource SubTextBrush}">
                                                 <Run Text="• Ekstraksi &amp; Adaptasi ke WPF: "/><Run Text="Zaki" FontWeight="Bold" Foreground="White"/>
@@ -1026,7 +1028,8 @@
                                     <battery:BatteryPluginUI/>
                                     <translate:TranslatePluginUI/>
                                     <chargernotif:ChargerNotifUI/>
-                                    <CatGatekeeper:CatGatekeeperUI/>
+                                    <!-- CatGatekeeper: loaded lazily from code-behind -->
+                                    <ContentPresenter x:Name="CatGatekeeperContainer"/>
                                     <StackPanel x:Name="UserPluginsContainer" Margin="0,12,0,0"/>
                                 </StackPanel>
                             </StackPanel>
