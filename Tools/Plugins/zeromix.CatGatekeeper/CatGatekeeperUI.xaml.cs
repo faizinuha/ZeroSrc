@@ -13,6 +13,9 @@ namespace zeromix.CatGatekeeper
         private DispatcherTimer _updateTimer;
         private CatOverlayWindow? _overlayWindow;
 
+        // Parameterless constructor untuk XAML instantiation
+        public CatGatekeeperUI() : this(new CatGatekeeperService()) { }
+
         public CatGatekeeperUI(CatGatekeeperService service)
         {
             InitializeComponent();
