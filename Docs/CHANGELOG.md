@@ -16,6 +16,42 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) | [Semantic Ver
 - **API & SDK**: Public API dan SDK untuk developer — integrate ZeroMix features ke aplikasi lain.
 
 ---
+## [v6.9.3] - 2026-04-30
+
+### 🐛 Bug Fixes
+
+- **Fix Welcome Plugin re-enabled** — `WelcomePlugin.TryShowWelcome()` yang sebelumnya di-disable di v6.9.0 kini dikembalikan ke kondisi semula (dipanggil saat startup). Plugin Welcome tetap bisa dikonfigurasi via mode (FreshBootOnly / EveryStart / Disabled) dari panel settings.
+- **Fix System Tray hilang** — Tray icon tidak muncul karena `CatGatekeeperUI` di-instantiate langsung di XAML dan crash saat parse. Dipindah ke lazy load dari code-behind via `LoadCatGatekeeperPlugin()` dengan try-catch — aplikasi tidak crash walau plugin gagal load.
+- **Fix CatGatekeeperUI crash on startup** — Constructor `CatGatekeeperUI` terlalu berat saat XAML parse. Semua inisialisasi (service start, timer, load settings) dipindah ke `Loaded` event agar aman.
+- **Fix CatGatekeeperUI tidak punya parameterless constructor** — WPF XAML wajib ada constructor tanpa parameter. Ditambah `public CatGatekeeperUI() : this(new CatGatekeeperService()) { }`.
+- **Fix CatGatekeeperUI namespace conflict** — Namespace `Zeromix.Plugins.CatGatekeeper` salah di `MainWindow.xaml`, diperbaiki ke `zeromix.CatGatekeeper`. Penggunaan di code-behind menggunakan `global::zeromix.CatGatekeeper.CatGatekeeperUI`.
+- **Fix thumbnail karakter Virtual Assistant hitam** — `FindName()` tidak bisa resolve element di dalam nested `ScrollViewer`. Diganti dengan direct field reference (`FrierenThumb`, `FernThumb`, `HuohuoThumb`) yang di-generate WPF dari `x:Name`.
+- **Fix Check Update terlalu lama** — Tidak ada timeout di `HttpClient` sehingga bisa hang selamanya. Ditambah timeout 8 detik per-request. Jika timeout, langsung tampil error tanpa freeze.
+- **Fix Updater tidak muncul di Debug** — `ZeroMix-Updater.exe` hanya di-build saat Release. Ditambah incremental build target dengan `Inputs/Outputs` agar Updater di-build otomatis saat source berubah, berlaku untuk Debug dan Release.
+- **Fix CatGatekeeper UI tidak seragam** — Tampilan berbeda dari plugin lain. Di-redesign mengikuti pola Battery/Weather plugin: card collapsible, checkbox toggle di kanan, settings panel expand/collapse saat card diklik.
+- **Fix Updater versi masih 6.7.0** — `CurrentVer` di `MainWindow.xaml.cs` Updater tidak diupdate. Diperbarui ke `6.9.0`.
+
+### ✨ Features
+
+- **Changelog di Updater** — Setelah check update berhasil, release notes dari GitHub ditampilkan langsung di window Updater (max 20 baris preview dengan scroll). Tidak perlu buka browser untuk lihat perubahan.
+- **Updater window lebih besar** — Height diperbesar dari 300px → 480px untuk menampung changelog section.
+- **Security fix ThanksYouForDownload.html** — URL validation (hanya izinkan GitHub domain), sanitize filename, cegah XSS dan open redirect.
+- **Security fix live2d-viewer.html** — Tambah `crossorigin` dan `referrerpolicy` pada CDN script tags.
+- **Security fix GitHub Actions** — Tambah `permissions: contents: write` di `update-changelog.yml`.
+- **Cat Gatekeeper credit di About** — Tambah section credit @konekone2026 (ZOKUZOKU) di halaman About.
+- **README update** — Tambah Cat Gatekeeper di tabel fitur dan Built-in Plugins list.
+
+### 🔧 Changes
+
+- `CatGatekeeperUI.xaml` — Redesign total mengikuti pola plugin lain (CompactCardBorder, ModernCheckBox, collapsible settings).
+- `CatGatekeeperUI.xaml.cs` — Refactor: init di `Loaded` event, tambah parameterless constructor, card click toggle expand, checkbox enable/disable service.
+- `MainWindow.xaml` — Hapus `<CatGatekeeper:CatGatekeeperUI/>` dari XAML, ganti dengan `<ContentPresenter x:Name="CatGatekeeperContainer"/>`.
+- `MainWindow.xaml.cs` — Tambah `LoadCatGatekeeperPlugin()` dengan try-catch, fix `LoadVAThumbnails()` pakai direct reference.
+- `Tools/Updater/MainWindow.xaml.cs` — Tambah timeout 8 detik, tambah `ShowChangelog()` method.
+- `Tools/Updater/MainWindow.xaml` — Perbesar window, tambah `ChangelogPanel` dengan ScrollViewer.
+- `ZeroMix.csproj` — Build Updater target pakai `Inputs/Outputs` untuk incremental build.
+
+---
 ## [v6.9.2] - 2026-04-30 - Fix
 
 ### 🔧 Changes

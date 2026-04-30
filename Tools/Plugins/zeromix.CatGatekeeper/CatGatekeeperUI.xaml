@@ -1,107 +1,183 @@
 <UserControl x:Class="zeromix.CatGatekeeper.CatGatekeeperUI"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
-    <Grid Margin="20">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
-        </Grid.RowDefinitions>
-        
-        <!-- Header -->
-        <StackPanel Grid.Row="0" Margin="0,0,0,20">
-            <TextBlock Text="🐱 Cat Gatekeeper" FontSize="24" FontWeight="Bold"/>
-            <TextBlock Text="Kucing lucu yang memaksa kamu istirahat" 
-                       FontSize="12" Opacity="0.7" Margin="0,5,0,0"/>
-        </StackPanel>
-        
-        <!-- Usage Limit -->
-        <StackPanel Grid.Row="1" Margin="0,0,0,15">
-            <TextBlock Text="⏱️ Batas Waktu Layar" FontWeight="SemiBold" Margin="0,0,0,5"/>
-            <StackPanel Orientation="Horizontal">
-                <Slider x:Name="UsageLimitSlider" 
-                        Width="200" 
-                        Minimum="15" 
-                        Maximum="180" 
-                        Value="60"
-                        TickFrequency="15"
-                        IsSnapToTickEnabled="True"
-                        VerticalAlignment="Center"
-                        ValueChanged="UsageLimitSlider_ValueChanged"/>
-                <TextBlock x:Name="UsageLimitText" 
-                           Text="60 menit" 
-                           Margin="10,0,0,0" 
-                           VerticalAlignment="Center"
-                           FontWeight="Bold"/>
-            </StackPanel>
-            <TextBlock Text="Kucing akan muncul setelah kamu aktif selama waktu ini" 
-                       FontSize="11" Opacity="0.6" Margin="0,5,0,0"/>
-        </StackPanel>
-        
-        <!-- Break Time -->
-        <StackPanel Grid.Row="2" Margin="0,0,0,15">
-            <TextBlock Text="☕ Waktu Istirahat" FontWeight="SemiBold" Margin="0,0,0,5"/>
-            <StackPanel Orientation="Horizontal">
-                <Slider x:Name="BreakTimeSlider" 
-                        Width="200" 
-                        Minimum="1" 
-                        Maximum="15" 
-                        Value="5"
-                        TickFrequency="1"
-                        IsSnapToTickEnabled="True"
-                        VerticalAlignment="Center"
-                        ValueChanged="BreakTimeSlider_ValueChanged"/>
-                <TextBlock x:Name="BreakTimeText" 
-                           Text="5 menit" 
-                           Margin="10,0,0,0" 
-                           VerticalAlignment="Center"
-                           FontWeight="Bold"/>
-            </StackPanel>
-            <TextBlock Text="Durasi istirahat wajib (layar diblock)" 
-                       FontSize="11" Opacity="0.6" Margin="0,5,0,0"/>
-        </StackPanel>
-        
-        <!-- Status -->
-        <Border Grid.Row="3" 
-                Background="#F0F0F0" 
-                CornerRadius="8" 
-                Padding="15" 
-                Margin="0,0,0,15">
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             mc:Ignorable="d"
+             d:DesignHeight="150"
+             d:DesignWidth="800">
+    <UserControl.Resources>
+        <ResourceDictionary Source="../Styles.xaml"/>
+    </UserControl.Resources>
+
+    <StackPanel>
+        <!-- ── Plugin Card ── -->
+        <Border x:Name="CatCard"
+                Style="{StaticResource CompactCardBorder}"
+                MouseDown="CatCard_MouseDown"
+                Cursor="Hand">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <!-- Icon -->
+                <Border Grid.Column="0" Width="42" Height="42" CornerRadius="11"
+                        Margin="0,0,14,0">
+                    <Border.Background>
+                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                            <GradientStop Color="#2D1A0A" Offset="0"/>
+                            <GradientStop Color="#0A1A2D" Offset="1"/>
+                        </LinearGradientBrush>
+                    </Border.Background>
+                    <TextBlock Text="🐱" FontSize="20"
+                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </Border>
+
+                <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                    <TextBlock Text="Cat Gatekeeper" Foreground="White" FontSize="14" FontWeight="Bold" Margin="0,0,0,2"/>
+                    <TextBlock Text="Cute cat that forces you to take breaks after screen time."
+                               Foreground="{StaticResource SubTextBrush}" FontSize="11"/>
+                    <!-- Status -->
+                    <TextBlock x:Name="StatusText" Text="Tracking..."
+                               Foreground="{StaticResource NeonBlueBrush}" FontSize="10"
+                               Margin="0,4,0,0" Visibility="Collapsed"/>
+                </StackPanel>
+
+                <!-- Checkbox toggle -->
+                <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                    <CheckBox x:Name="CatPluginToggle"
+                              VerticalAlignment="Center"
+                              Click="CatPluginToggle_Click"
+                              Style="{StaticResource ModernCheckBox}"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- ── Settings Panel (collapsible) ── -->
+        <Border x:Name="CatSettingsBorder"
+                Visibility="Collapsed"
+                Background="#0B0E14" CornerRadius="0,0,12,12"
+                BorderThickness="1,0,1,1" BorderBrush="#161C2A"
+                Padding="20,16,20,20" Margin="0,-2,0,0">
             <StackPanel>
-                <TextBlock Text="📊 Status" FontWeight="SemiBold" Margin="0,0,0,10"/>
-                <StackPanel Orientation="Horizontal" Margin="0,0,0,5">
-                    <TextBlock Text="Waktu Aktif: " Opacity="0.7"/>
-                    <TextBlock x:Name="ActiveTimeText" Text="0 menit" FontWeight="Bold"/>
-                </StackPanel>
-                <StackPanel Orientation="Horizontal">
-                    <TextBlock Text="Status: " Opacity="0.7"/>
-                    <TextBlock x:Name="StatusText" Text="Tracking..." FontWeight="Bold" Foreground="Green"/>
-                </StackPanel>
+
+                <!-- Section header -->
+                <Grid Margin="0,0,0,14">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <Border Grid.Column="0" Width="3" CornerRadius="2" Margin="0,0,10,0">
+                        <Border.Background>
+                            <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                                <GradientStop Color="#FF9800" Offset="0"/>
+                                <GradientStop Color="#FF5722" Offset="1"/>
+                            </LinearGradientBrush>
+                        </Border.Background>
+                    </Border>
+                    <StackPanel Grid.Column="1">
+                        <TextBlock Text="SCREEN TIME SETTINGS"
+                                   Foreground="#FF9800" FontSize="10" FontWeight="Bold"
+                                   Margin="0,0,0,2"/>
+                        <TextBlock Text="Cat will appear after usage limit and block screen during break."
+                                   Foreground="{StaticResource TextMutedBrush}" FontSize="10"/>
+                    </StackPanel>
+                </Grid>
+
+                <!-- Usage Limit -->
+                <Grid Margin="0,0,0,14">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <StackPanel Grid.Column="0">
+                        <TextBlock Text="⏱️  Batas Waktu Layar"
+                                   Foreground="{StaticResource SubTextBrush}" FontSize="11"
+                                   FontWeight="SemiBold" Margin="0,0,0,6"/>
+                        <Slider x:Name="UsageLimitSlider"
+                                Minimum="15" Maximum="180" Value="60"
+                                TickFrequency="15" IsSnapToTickEnabled="True"
+                                ValueChanged="UsageLimitSlider_ValueChanged"/>
+                    </StackPanel>
+                    <Border Grid.Column="1" Background="#111620" CornerRadius="8"
+                            BorderThickness="1" BorderBrush="#1E2633"
+                            Padding="12,6" Margin="12,0,0,0" VerticalAlignment="Bottom">
+                        <TextBlock x:Name="UsageLimitText" Text="60 menit"
+                                   Foreground="White" FontSize="12" FontWeight="Bold"/>
+                    </Border>
+                </Grid>
+
+                <!-- Break Time -->
+                <Grid Margin="0,0,0,20">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <StackPanel Grid.Column="0">
+                        <TextBlock Text="☕  Waktu Istirahat"
+                                   Foreground="{StaticResource SubTextBrush}" FontSize="11"
+                                   FontWeight="SemiBold" Margin="0,0,0,6"/>
+                        <Slider x:Name="BreakTimeSlider"
+                                Minimum="1" Maximum="15" Value="5"
+                                TickFrequency="1" IsSnapToTickEnabled="True"
+                                ValueChanged="BreakTimeSlider_ValueChanged"/>
+                    </StackPanel>
+                    <Border Grid.Column="1" Background="#111620" CornerRadius="8"
+                            BorderThickness="1" BorderBrush="#1E2633"
+                            Padding="12,6" Margin="12,0,0,0" VerticalAlignment="Bottom">
+                        <TextBlock x:Name="BreakTimeText" Text="5 menit"
+                                   Foreground="White" FontSize="12" FontWeight="Bold"/>
+                    </Border>
+                </Grid>
+
+                <!-- Divider -->
+                <Border Height="1" Background="#161C2A" Margin="0,0,0,14"/>
+
+                <!-- Active time display -->
+                <Grid Margin="0,0,0,16">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <Border Grid.Column="0" Background="#111620" CornerRadius="10"
+                            BorderThickness="1" BorderBrush="#1E2633"
+                            Padding="14,10" Margin="0,0,6,0">
+                        <StackPanel>
+                            <TextBlock Text="WAKTU AKTIF" Foreground="{StaticResource TextMutedBrush}"
+                                       FontSize="9" FontWeight="Bold" Margin="0,0,0,4"/>
+                            <TextBlock x:Name="ActiveTimeText" Text="0 menit 0 detik"
+                                       Foreground="{StaticResource NeonBlueBrush}"
+                                       FontSize="13" FontWeight="Bold"/>
+                        </StackPanel>
+                    </Border>
+                    <Border Grid.Column="1" Background="#111620" CornerRadius="10"
+                            BorderThickness="1" BorderBrush="#1E2633"
+                            Padding="14,10" Margin="6,0,0,0">
+                        <StackPanel>
+                            <TextBlock Text="STATUS" Foreground="{StaticResource TextMutedBrush}"
+                                       FontSize="9" FontWeight="Bold" Margin="0,0,0,4"/>
+                            <TextBlock x:Name="StatusDetailText" Text="Tracking..."
+                                       Foreground="#00D68F"
+                                       FontSize="13" FontWeight="Bold"/>
+                        </StackPanel>
+                    </Border>
+                </Grid>
+
+                <!-- Credit -->
+                <Border Background="#0D1117" CornerRadius="8"
+                        BorderThickness="1" BorderBrush="#1E2633"
+                        Padding="12,8">
+                    <TextBlock Foreground="{StaticResource TextMutedBrush}" FontSize="10"
+                               TextWrapping="Wrap">
+                        <Run Text="🐱 Aset oleh "/><Run Text="@konekone2026 (ZOKUZOKU)" FontWeight="Bold" Foreground="White"/>
+                        <Run Text=" · Ekstraksi: Zaki"/>
+                    </TextBlock>
+                </Border>
+
             </StackPanel>
         </Border>
-        
-        <!-- Credit -->
-        <Border Grid.Row="4" 
-                Background="#FFF9E6" 
-                BorderBrush="#FFD700" 
-                BorderThickness="1" 
-                CornerRadius="5" 
-                Padding="10">
-            <StackPanel>
-                <TextBlock Text="📝 Credit" FontWeight="SemiBold" Margin="0,0,0,5"/>
-                <TextBlock TextWrapping="Wrap" FontSize="11">
-                    <Run Text="Aset Asli oleh: "/><Run Text="@konekone2026 (ZOKUZOKU)" FontWeight="Bold"/>
-                    <LineBreak/>
-                    <Run Text="Cat Gatekeeper Extension"/><LineBreak/>
-                    <Run Text="Ekstraksi &amp; Optimasi: Zaki"/><LineBreak/>
-                    <Run Text="Sumber: "/><Hyperlink NavigateUri="https://x.com/konekone2026" RequestNavigate="Hyperlink_RequestNavigate">
-                        <Run Text="https://x.com/konekone2026"/>
-                    </Hyperlink>
-                </TextBlock>
-            </StackPanel>
-        </Border>
-    </Grid>
+    </StackPanel>
 </UserControl>
