@@ -2,11 +2,11 @@
 
 <img src="Assets/zeromix-high-resolution-logo-transparent.png" alt="ZeroMix Logo" width="160"/>
 
-# 🎯 ZeroMix
+# ZeroMix
 
 [🇺🇸 English](README.md) | [🇮🇩 Indonesia](README.id.md)
 
-**The Ultimate Windows Suite for Performance & Aesthetics**
+**A modern Windows utility suite for power users who care about performance and aesthetics.**
 
 [![GitHub Release](https://img.shields.io/github/v/release/faizinuha/ZeroMix?color=00D9FF&style=for-the-badge)](https://github.com/faizinuha/ZeroMix/releases)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg?style=for-the-badge)](LICENSE.txt)
@@ -14,201 +14,200 @@
 [![NuGet](https://img.shields.io/badge/NuGet-ZeroMix.PluginSDK-004880?style=for-the-badge&logo=nuget)](https://www.nuget.org/packages/ZeroMix.PluginSDK)
 [![Support](https://img.shields.io/badge/SUPPORT-TRAKTEER-red?style=for-the-badge)](https://trakteer.id/MyCici)
 
-[📥 Download](https://github.com/faizinuha/ZeroMix/releases) • [🎥 Demo](https://www.youtube.com/watch?v=y9yz7ZPh_Bo) • [📖 Docs](https://github.com/faizinuha/ZeroMix/wiki) • [🧩 Plugin Guide](Docs/PLUGIN_GUIDE.md) • [💬 Community](https://github.com/faizinuha/ZeroMix/discussions)
-
----
-
-**ZeroMix** is a high-performance, lightweight utility suite designed to transform your Windows experience. From real-time system monitoring to immersive video wallpapers and a **Lua-powered plugin system**, ZeroMix brings pro-level tools into a beautiful, modern interface.
+[📥 Download](https://github.com/faizinuha/ZeroMix/releases) · [🎥 Demo](https://www.youtube.com/watch?v=y9yz7ZPh_Bo) · [📖 Docs](https://github.com/faizinuha/ZeroMix/wiki) · [🧩 Plugin Guide](Docs/PLUGIN_GUIDE.md) · [💬 Community](https://github.com/faizinuha/ZeroMix/discussions)
 
 </div>
 
 ---
 
-## 🚀 Core Features
-
-| Feature | Description |
-| :--- | :--- |
-| **🧩 Lua Plugin System** | Create and share plugins using simple Lua scripts |
-| **🎥 ZeroRecord** | **(HOT)** Screen recording with dynamic zoom based on cursor movement |
-| **🌍 Nexus Translate** | **(v2.0)** Real-time translation with Anti-Crash protection |
-| **🐱 Cat Gatekeeper** | **(NEW)** Cute cat that forces you to take breaks after screen time |
-| **🌙 Fake Sleep Mode** | Always-On Display with multi-trigger, idle detection & hotkey |
-| **🤖 Virtual Assistant** | AI Vision with Live2D characters (Mihoyo, Frieren) via Groq API |
-| **📊 System Monitor** | Real-time CPU, RAM, and Disk tracking from your dashboard |
-| **🎨 Ghost Taskbar** | Instantly make your taskbar transparent |
-| **🎬 Video Wallpaper** | Immersive animated wallpapers with high-performance video engine |
-| **💻 ZeroShell** | **(STABLE)** Pro Terminal with Powerline prompt & Arch-style fetch |
-| **🔍 Search Overlay** | High-performance search bar (`Alt + Space`) for apps, files, and web |
-| **🧹 Memory Optimizer** | Smart background GC collection and working set trimming |
-| **🕒 Desktop Widgets** | Clock and other widgets for your desktop |
-| **🔧 Plugin Creator** | Built-in tool to create and manage Lua plugins |
+ZeroMix is a self-contained Windows desktop enhancement suite built on .NET 9 and WPF. It combines system monitoring, AI-powered tools, Live2D virtual assistants, screen recording, and a Lua plugin system into a single lightweight application.
 
 ---
 
-## 🧩 Lua Plugin System
+## Features
 
-ZeroMix features a powerful Lua-powered plugin ecosystem — extend functionality without recompiling.
+| Feature | Description |
+| :--- | :--- |
+| **🧩 Lua Plugin System** | Extend ZeroMix with custom Lua scripts — no recompile needed |
+| **🎥 ZeroRecord** | Screen recorder with hardware-accelerated encoding (NVENC / QSV / AMF) |
+| **🌍 Nexus Translate** | Real-time translation with clipboard integration and game mode support |
+| **🐱 Cat Gatekeeper** | Screen time enforcer — a cat takes over your screen when it's time to rest |
+| **🌙 Sleep Mode** | Always-On Display with idle detection, hotkeys, and custom backgrounds |
+| **🤖 Virtual Assistant** | Live2D AI companions (Frieren, Fern, Huohuo) powered by OpenRouter API |
+| **📊 System Monitor** | Real-time CPU, RAM, and disk metrics on your dashboard |
+| **🎨 Ghost Taskbar** | Transparent taskbar with acrylic and Mica effects |
+| **🎬 Video Wallpaper** | Animated desktop wallpapers with FFmpeg-powered playback |
+| **💻 ZeroShell** | Integrated terminal with Powerline prompt, tab support, and shell commands |
+| **🔍 Search Overlay** | Fast app and file launcher (`Alt + Space`) with AI query support |
+| **🕒 Desktop Widgets** | Clock, weather, and system stats embedded directly on your desktop |
+| **🔧 Plugin Creator** | Built-in tool to scaffold and manage Lua plugins |
+
+---
+
+## Plugin System
+
+ZeroMix ships with a Lua-powered plugin ecosystem. Plugins run in an isolated sandbox and communicate with the host via a typed API bridge.
 
 ### Built-in Plugins
-- **zeromix.Battery** — Real-time battery monitoring
-- **zeromix.Translate** — Translation services
-- **zeromix.weather** — Weather data integration
-- **zeromix.CatGatekeeper** — Screen time tracker with cute cat enforcer
+
+| Plugin | Description |
+| :--- | :--- |
+| `zeromix.Battery` | Battery level monitoring with custom notifications |
+| `zeromix.Translate` | Translation engine with keyboard and clipboard hooks |
+| `zeromix.weather` | Real-time weather via Open-Meteo API |
+| `zeromix.CatGatekeeper` | Screen time tracker with fullscreen cat overlay |
 
 ### Creating Plugins
-1. Use the built-in Plugin Creator tool in ZeroMix
-2. Write Lua scripts in `Plugins/user.*` folders
-3. Plugins load automatically — no restart needed
-4. Full API access via `ZeroMixLuaApi` bridge
+
+1. Open the Plugin Creator from the ZeroMix dashboard
+2. Write your logic in Lua inside a `Plugins/user.*` folder
+3. Plugins hot-reload automatically — no restart required
+4. Access system APIs via the `ZeroMixLuaApi` bridge
 
 📖 **[Full Plugin Guide →](Docs/PLUGIN_GUIDE.md)**
 
-### Plugin SDK (for C# developers)
+### C# Plugin SDK
+
 ```bash
 dotnet add package ZeroMix.PluginSDK
 ```
 
 ---
 
-## 🎥 ZeroRecord Preview
+## Demo
 
+**ZeroRecord — Screen Recording**
 <div align="center">
   <video src="https://github.com/user-attachments/assets/0a5c1928-32b8-4b32-a391-aefdb5b3d2f5" width="1000" autoplay muted loop></video>
 </div>
 
----
-
-## 🎥 Windows present  Preview
-
+**ZeroShell — Integrated Terminal**
 <div align="center">
-  <video src="https://github.com/user-attachments/src/Web/assets/ZeroRecord_20260411_211121.mp4" width="1000" autoplay muted loop></video>
+  <video src="https://github.com/faizinuha/ZeroMix/blob/1dd04f3460efc2256abacc1c27db167950630596/src/Web/assets/ZeroRecord_20260411_211121.mp4" width="1000" autoplay muted loop></video>
+</div>
+
+**Select Area Recording**
+<div align="center">
+  <video src="https://github.com/faizinuha/ZeroMix/blob/1dd04f3460efc2256abacc1c27db167950630596/src/Web/assets/ZeroRecord_20260411_211722.mp4" width="1000" autoplay muted loop></video>
 </div>
 
 ---
 
-## 🎥 Select Area  Preview
+## Nexus Translator
 
-<div align="center">
-  <video src="https://github.com/user-attachments/src/Web/assets/ZeroRecord_20260411_211722.mp4" width="1000" autoplay muted loop></video>
-</div>
-
-## 🎥 Img ZeroMix Installers
-
-<div align="center">
-  <video src="https://github.com/user-attachments/Assets/image copy 3.png" width="1000" autoplay muted loop></video>
-</div>
+- **Pure Magic Mode** — Translates as you type, injected directly into the active window
+- **Anti-Collision Engine** — Prevents text corruption during injection
+- **Triple-API Backend** — Automatic failover between MyMemory and Google Translate
+- **Game Mode** — Clipboard-based translation compatible with DirectInput games
+- **Unicode Bypass** — Works in Notepad, Chrome, Discord, VS Code, and more
 
 ---
 
-## 🌍 Nexus Translator Core v2.0
-
-- **✨ Pure Magic Mode** — Translates automatically as you type
-- **🛡️ Anti-Collision Engine** — Prevents text corruption during injection
-- **🚀 Triple-API Backend** — Failover between MyMemory and Google Translate
-- **💎 Glassmorphism UI** — Premium interface with live terminal status log
-- **⌨️ Unicode Bypass** — Works in Notepad, Chrome, Discord, and more
-
----
-
-## 📥 Quick Installation
+## Installation
 
 | Method | Description |
 | :--- | :--- |
-| **⭐ Bootstrap Installer** | Small (~10MB), downloads latest version automatically |
-| **📦 Setup EXE** | Full offline installer |
-| **🚀 Portable ZIP** | No install needed, just extract and run |
+| **⭐ Bootstrap Installer** | ~10 MB download, fetches the latest release automatically |
+| **📦 Setup EXE** | Full offline installer with all dependencies |
+| **🚀 Portable ZIP** | Extract and run — no installation required |
 
 Download from **[GitHub Releases →](https://github.com/faizinuha/ZeroMix/releases)**
 
 ### Getting Started
-1. Find the ⚡ icon in your system tray after install
-2. ZeroMix will prompt to enable "Run on Startup" on first launch
-3. Admin is only needed during initial installation for Start Menu shortcuts
+
+1. Run the installer and follow the setup wizard
+2. ZeroMix starts minimized to the system tray (⚡ icon)
+3. Open the dashboard with `Ctrl + Q` or click the tray icon
+4. Admin rights are only required during initial install for Start Menu shortcuts
 
 ---
 
-## ⌨️ Keyboard Shortcuts
+## Keyboard Shortcuts
 
 | Shortcut | Action |
 | :--- | :--- |
-| `Alt + S` | Toggle Fake Sleep Mode |
-| `Ctrl + Space` | Open Search Overlay |
-| `Ctrl + Q` | Toggle Main Dashboard |
-| `Ctrl + R` | Force Refresh System Metrics |
-| `Esc` | Close Active Overlay/Window |
+| `Ctrl + Q` | Toggle main dashboard |
+| `Alt + Space` | Open Search Overlay |
+| `Alt + S` | Toggle Sleep Mode |
+| `Ctrl + R` | Force refresh system metrics |
+| `Esc` | Close active overlay or window |
 
-```
-| Key | Ask AI |
-| Carikan saya sepatu yang murah -> otomatis buka 
-| Carikan saya bajuu yang murah di tokopedia -> otomatis buka Tokopedia
-| Carikan saya Handphone yang murah di Shoppe -> otomatis buka Shoppe
+**Ask AI via Search Overlay:**
 
-```
----
-
-## 🛠️ Built With
-
-- **Frontend** — WPF + Windows Forms hybrid
-- **Core** — .NET 9.0 (C#), self-contained
-- **Scripting** — MoonSharp (Lua interpreter)
-- **Graphics** — Vortice (DirectX bindings)
-- **Web** — Microsoft.Web.WebView2
-- **Video** — FFmpeg
-- **Packaging** — Inno Setup
+| Query | Action |
+| :--- | :--- |
+| `Carikan saya sepatu murah` | Opens a search for cheap shoes |
+| `Beli baju di Tokopedia` | Opens Tokopedia with the query |
+| `Handphone murah di Shopee` | Opens Shopee with the query |
 
 ---
 
-## 🤝 Community & Contribution
+## Tech Stack
+
+| Layer | Technology |
+| :--- | :--- |
+| UI Framework | WPF (.NET 9) + WPF-UI (Fluent Design) |
+| Scripting | MoonSharp (Lua 5.2 interpreter) |
+| Graphics | Vortice.Windows (DirectX 11/12 bindings) |
+| Web Rendering | Microsoft.Web.WebView2 |
+| Video Processing | FFmpeg |
+| AI Backend | OpenRouter API (Gemini 2.0 Flash Thinking) |
+| Packaging | Inno Setup |
+| Distribution | GitHub Releases + Bootstrap Installer |
+
+---
+
+## Contributing
 
 - **Found a bug?** → [Open an Issue](https://github.com/faizinuha/ZeroMix/issues)
-- **Have an idea?** → [Start a Discussion](https://github.com/faizinuha/ZeroMix/discussions)
-- **Want to code?** → [Contributing Guide](CONTRIBUTING.md)
+- **Have a feature idea?** → [Start a Discussion](https://github.com/faizinuha/ZeroMix/discussions)
+- **Want to contribute code?** → [Contributing Guide](CONTRIBUTING.md)
 
 ---
 
-## 🎬 Credits & Acknowledgments
+## Credits & Acknowledgments
 
-The atmospheric experiences in ZeroMix are powered by beautiful visuals from the creative community:
+### Atmospheric Video Assets
 
-- **Rainy City at Night** by [Hans](https://pixabay.com/id/users/hans-2/) from [Pixabay](https://pixabay.com/)
-- **Nature & Garden Ambience** by [Nicky ❤️🌿🐞🌿❤️](https://pixabay.com/id/users/nickype-10327513/) from [Pixabay](https://pixabay.com/)
-- **Cinematic Scenery 1** by [Andreas](https://pixabay.com/id/users/adege-4994132/?content=257240) from [Pixabay](https://pixabay.com/)
-- **Cinematic Scenery 2** by [Andreas](https://pixabay.com/id/users/adege-4994132/?content=230317) from [Pixabay](https://pixabay.com/)
+Background videos used in ZeroMix are sourced from Pixabay under their free license:
+
+- **Rainy City at Night** by [Hans](https://pixabay.com/id/users/hans-2/) — [Pixabay](https://pixabay.com/)
+- **Nature & Garden Ambience** by [Nicky ❤️🌿🐞🌿❤️](https://pixabay.com/id/users/nickype-10327513/) — [Pixabay](https://pixabay.com/)
+- **Cinematic Scenery 1** by [Andreas](https://pixabay.com/id/users/adege-4994132/?content=257240) — [Pixabay](https://pixabay.com/)
+- **Cinematic Scenery 2** by [Andreas](https://pixabay.com/id/users/adege-4994132/?content=230317) — [Pixabay](https://pixabay.com/)
 
 ### 🐱 Cat Gatekeeper
 
-- **Original Cat Videos** by [@konekone2026 (ZOKUZOKU)](https://x.com/konekone2026) — Cat Gatekeeper Chrome Extension
-- **Extraction & WPF Adaptation** by Zaki
+- **Original cat animation videos** by [@konekone2026 (ZOKUZOKU)](https://x.com/konekone2026) — Cat Gatekeeper Chrome Extension
+- **Extraction & WPF adaptation** by Zaki
 
 ### 🎭 Live2D Models
 
-- **Frieren & Fern Model** by [kyokiStudio](https://kyoki.booth.pm/) on Booth.pm
-- **Huohuo Model** by [bailyovo](https://bailyovo.booth.pm/) on Booth.pm
-  - _Precautions_: The copyright belongs to miHoYo. This model is for Honkai: Star Rail fan creation only. Not for political use or profit-oriented live streaming. Secondary distribution is prohibited. Creators are not responsible for violations.
+- **Frieren & Fern** by [kyokiStudio](https://kyoki.booth.pm/) on Booth.pm
+- **Huohuo** by [bailyovo](https://bailyovo.booth.pm/) on Booth.pm
+  - Copyright belongs to miHoYo. This model is for Honkai: Star Rail fan creation only. Not for commercial use, political content, or profit-oriented streaming. Secondary distribution is prohibited.
 
 ---
 
 > [!IMPORTANT]
-> **Removal Policy:** If this model is not permitted for use in the application, please contact us immediately via email: **Rozakadm@gmail.com**. We will immediately remove the model to respect the owner's rights and ensure the comfort of all parties. Thank you.
+> **Removal Policy:** If any model or asset is not permitted for use in this application, contact us at **Rozakadm@gmail.com** and we will remove it promptly.
 
 > [!NOTE]
-> If you wish to download the model, please use the **official website we have provided**. Please respect the hard work of the model creator. Do not use this model for **commercial purposes or sell it without permission**. Thank you for your understanding! 🥰
+> Download models only from the official sources linked above. Do not use these models for commercial purposes or redistribute them without permission.
 
 > [!NOTE]
-> Use of this model is entirely the user's responsibility.
-> The application developer does not provide any commercial license for this model and only passes on the terms of the original creator.
+> Use of included models is entirely the user's responsibility. The application developer does not provide any commercial license for third-party models.
 
 > [!WARNING]
-> The application developer does not act as the model's licensor.
-> Any use that violates the original creator's terms is the user's responsibility.
+> The application developer does not act as licensor for any included third-party models. Violations of the original creator's terms are the user's responsibility.
 
 ---
 
-## 💖 Support the Project
+## Support
 
 <div align="center">
 
-[![sociabuzz Support](https://img.shields.io/badge/sociabuzz-Support_The_Dev-EE4B2B?style=for-the-badge&logoColor=white)](https://sociabuzz.com/zuax)
+[![Sociabuzz](https://img.shields.io/badge/sociabuzz-Support_The_Dev-EE4B2B?style=for-the-badge&logoColor=white)](https://sociabuzz.com/zuax)
 
 ## Star History
 
@@ -220,7 +219,5 @@ The atmospheric experiences in ZeroMix are powered by beautiful visuals from the
  </picture>
 </a>
 
-Made with ❤️ by **Faizinuha** and the community.
-**ZeroMix © 2026-2026**
-
+Made with ❤️ by **Faizinuha** and the community. **ZeroMix © 2026**
 </div>

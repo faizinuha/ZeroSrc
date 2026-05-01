@@ -1,428 +1,244 @@
 <Window x:Class="ZeroMix.Onboarding.OnboardingWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        mc:Ignorable="d"
         Title="Welcome to ZeroMix"
-        Height="650"
-        Width="900"
+        Height="520" Width="760"
         WindowStartupLocation="CenterScreen"
         WindowStyle="None"
         AllowsTransparency="True"
         ResizeMode="NoResize"
         Background="Transparent">
 
-    <Window.Resources>
-        <ResourceDictionary>
-
-            <!-- Fade Animation for Slides -->
-            <Storyboard x:Key="FadeIn">
-                <DoubleAnimation Storyboard.TargetProperty="Opacity"
-                                 From="0"
-                                 To="1"
-                                 Duration="0:0:0.4"/>
-                <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(TranslateTransform.Y)"
-                                 From="20"
-                                 To="0"
-                                 Duration="0:0:0.4">
-                    <DoubleAnimation.EasingFunction>
-                        <CubicEase EasingMode="EaseOut"/>
-                    </DoubleAnimation.EasingFunction>
-                </DoubleAnimation>
-            </Storyboard>
-
-            <Style x:Key="SlideContentStyle"
-                   TargetType="Grid">
-                <Setter Property="RenderTransform">
-                    <Setter.Value>
-                        <TranslateTransform/>
-                    </Setter.Value>
-                </Setter>
-            </Style>
-
-            <Style x:Key="NavButtonStyle"
-                   TargetType="Button">
-                <Setter Property="Background"
-                        Value="#252525"/>
-                <Setter Property="Foreground"
-                        Value="White"/>
-                <Setter Property="Padding"
-                        Value="20,10"/>
-                <Setter Property="FontSize"
-                        Value="14"/>
-                <Setter Property="FontWeight"
-                        Value="SemiBold"/>
-                <Setter Property="Cursor"
-                        Value="Hand"/>
-                <Setter Property="Template">
-                    <Setter.Value>
-                        <ControlTemplate TargetType="Button">
-                            <Border x:Name="border"
-                                    Background="{TemplateBinding Background}"
-                                    CornerRadius="8"
-                                    BorderBrush="#444"
-                                    BorderThickness="1">
-                                <ContentPresenter HorizontalAlignment="Center"
-                                                  VerticalAlignment="Center"
-                                                  Margin="{TemplateBinding Padding}"/>
-                            </Border>
-                            <ControlTemplate.Triggers>
-                                <Trigger Property="IsMouseOver"
-                                         Value="True">
-                                    <Setter TargetName="border"
-                                            Property="Background"
-                                            Value="#333"/>
-                                    <Setter TargetName="border"
-                                            Property="BorderBrush"
-                                            Value="#0A84FF"/>
-                                </Trigger>
-                                <Trigger Property="IsEnabled"
-                                         Value="False">
-                                    <Setter TargetName="border"
-                                            Property="Opacity"
-                                            Value="0.3"/>
-                                </Trigger>
-                            </ControlTemplate.Triggers>
-                        </ControlTemplate>
-                    </Setter.Value>
-                </Setter>
-            </Style>
-        </ResourceDictionary>
-    </Window.Resources>
-
-    <Border CornerRadius="20"
-            Background="#0F0F0F"
-            BorderBrush="#222"
-            BorderThickness="1"
-            ClipToBounds="True">
-        <Border.Effect>
-            <DropShadowEffect Color="Black"
-                              BlurRadius="40"
-                              ShadowDepth="0"
-                              Opacity="0.5"/>
-        </Border.Effect>
+    <Border CornerRadius="14"
+            Background="#0D1117"
+            BorderBrush="#21262D"
+            BorderThickness="1">
         <Grid>
-            <!-- Background Decoration -->
-            <Ellipse Fill="#0A84FF"
-                     Opacity="0.05"
-                     Width="400"
-                     Height="400"
-                     HorizontalAlignment="Right"
-                     VerticalAlignment="Bottom"
-                     Margin="0,0,-150,-150"/>
-            <Ellipse Fill="#5E5CE6"
-                     Opacity="0.05"
-                     Width="300"
-                     Height="300"
-                     HorizontalAlignment="Left"
-                     VerticalAlignment="Top"
-                     Margin="-100,-100,0,0"/>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
 
-            <Grid Margin="40">
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="*"/>
-                    <RowDefinition Height="Auto"/>
-                </Grid.RowDefinitions>
+            <!-- Slides -->
+            <Grid x:Name="SlidesContainer" Grid.Row="0" Margin="48,40,48,0">
 
-                <!-- Slides Container -->
-                <Grid x:Name="SlidesContainer"
-                      Grid.Row="0">
+                <!-- SLIDE 0: Welcome -->
+                <Grid x:Name="Slide0" Visibility="Visible">
+                    <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+                        <Image Source="pack://application:,,,/assets/zeromix-high-resolution-logo-transparent.png"
+                               Height="80" Margin="0,0,0,24"/>
+                        <TextBlock Text="Welcome to ZeroMix"
+                                   FontSize="28" FontWeight="Bold" Foreground="White"
+                                   HorizontalAlignment="Center"/>
+                        <TextBlock Text="A modern Windows utility suite for power users."
+                                   FontSize="14" Foreground="#8B949E"
+                                   Margin="0,8,0,0" HorizontalAlignment="Center"/>
+                    </StackPanel>
+                </Grid>
 
-                    <!-- SLIDE 0: Welcome -->
-                    <Grid x:Name="Slide0"
-                          Style="{StaticResource SlideContentStyle}"
-                          Visibility="Visible">
-                        <StackPanel VerticalAlignment="Center"
-                                    HorizontalAlignment="Center">
-                            <Image Source="pack://application:,,,/assets/zeromix-high-resolution-logo-transparent.png"
-                                   Height="120"
-                                   Margin="0,0,0,30">
-                                <Image.Effect>
-                                    <DropShadowEffect Color="#0A84FF"
-                                                      BlurRadius="30"
-                                                      ShadowDepth="0"
-                                                      Opacity="0.4"/>
-                                </Image.Effect>
-                            </Image>
-                            <TextBlock Text="Welcome to ZeroMix"
-                                       FontSize="36"
-                                       FontWeight="Bold"
-                                       Foreground="White"
-                                       HorizontalAlignment="Center"/>
-                            <TextBlock Text="Smart Workspace, Redefined."
-                                       FontSize="16"
-                                       Foreground="#888"
-                                       Margin="0,10,0,0"
-                                       HorizontalAlignment="Center"/>
-                        </StackPanel>
-                    </Grid>
-
-                    <!-- SLIDE 1: System Monitoring -->
-                    <Grid x:Name="Slide1" Style="{StaticResource SlideContentStyle}" Visibility="Collapsed">
-                        <Grid VerticalAlignment="Center">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="*"/>
-                            </Grid.ColumnDefinitions>
-                            <StackPanel Grid.Column="0" Margin="0,0,40,0">
-                                <TextBlock Text="⚡" FontSize="64" Margin="0,0,0,20"/>
-                                <TextBlock Text="Neural Pulse Monitoring" FontSize="26" FontWeight="Black" Foreground="#00D4FF" Margin="0,0,0,15"/>
-                                <TextBlock Text="Pantau kesehatan PC Kakak secara real-time dengan akurasi tinggi. Dilengkapi fitur Turbo Cleanup untuk membersihkan file sampah (%temp%) lewat diagnosa mendalam." 
-                                           Foreground="#BBB" FontSize="15" TextWrapping="Wrap" LineHeight="24"/>
-                            </StackPanel>
-                            <Border Grid.Column="1" Background="#1100D4FF" CornerRadius="16" BorderBrush="#2200D4FF" BorderThickness="1" Height="250" Padding="20">
-                                <StackPanel VerticalAlignment="Center">
-                                    <TextBlock Text="HARDWARE DIAGNOSTIC" Foreground="#00D4FF" FontSize="10" FontWeight="Bold" Margin="0,0,0,20"/>
-                                    <Grid Margin="0,10">
-                                        <TextBlock Text="CPU" Foreground="#88FFFFFF" FontSize="11"/>
-                                        <TextBlock Text="12.4% / Stable" Foreground="White" FontSize="11" HorizontalAlignment="Right"/>
-                                        <ProgressBar Height="4" Value="12.4" Maximum="100" VerticalAlignment="Bottom" Margin="0,18,0,0" Foreground="#00D4FF" Background="#22FFFFFF" BorderThickness="0"/>
-                                    </Grid>
-                                    <Grid Margin="0,10">
-                                        <TextBlock Text="RAM" Foreground="#88FFFFFF" FontSize="11"/>
-                                        <TextBlock Text="4.2 GB / Optimal" Foreground="White" FontSize="11" HorizontalAlignment="Right"/>
-                                        <ProgressBar Height="4" Value="35" Maximum="100" VerticalAlignment="Bottom" Margin="0,18,0,0" Foreground="#00D4FF" Background="#22FFFFFF" BorderThickness="0"/>
-                                    </Grid>
-                                    <Button Content="RUN TURBO CLEANUP" Margin="0,20,0,0" Padding="0,8" Background="#1A00D4FF" Foreground="#00D4FF" FontWeight="Bold" FontSize="10" BorderBrush="#3300D4FF">
-                                        <Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="8"/></Style></Button.Resources>
-                                    </Button>
-                                </StackPanel>
-                            </Border>
-                        </Grid>
-                    </Grid>
-
-                    <!-- SLIDE 2: Transparent Taskbar -->
-                    <Grid x:Name="Slide2" Style="{StaticResource SlideContentStyle}" Visibility="Collapsed">
-                        <Grid VerticalAlignment="Center">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="*"/>
-                            </Grid.ColumnDefinitions>
-                            <StackPanel Grid.Column="0" Margin="0,0,40,0">
-                                <TextBlock Text="💎" FontSize="64" Margin="0,0,0,20"/>
-                                <TextBlock Text="Ghost Taskbar" FontSize="26" FontWeight="Black" Foreground="#27C93F" Margin="0,0,0,15"/>
-                                <TextBlock Text="Ubah taskbar Windows Kakak menjadi sepenuhnya transparan atau Crystal Glass. Memberikan kesan desktop yang bersih, modern, dan sangat estetis."
-                                           Foreground="#BBB" FontSize="15" TextWrapping="Wrap" LineHeight="24"/>
-                            </StackPanel>
-                            <Border Grid.Column="1" Background="#11FFFFFF" CornerRadius="16" BorderBrush="#22FFFFFF" BorderThickness="1" Height="250">
-                                <Grid>
-                                    <Border Background="#1AFFFFFF" Height="40" VerticalAlignment="Bottom" Margin="20" CornerRadius="8" BorderBrush="#33FFFFFF" BorderThickness="1">
-                                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                                            <Ellipse Width="8" Height="8" Fill="White" Margin="5" Opacity="0.5"/>
-                                            <Ellipse Width="8" Height="8" Fill="White" Margin="5" Opacity="0.5"/>
-                                            <Ellipse Width="8" Height="8" Fill="White" Margin="5" Opacity="0.5"/>
-                                        </StackPanel>
-                                    </Border>
-                                    <TextBlock Text="CRYSTAL GLASS EFFECT" Foreground="#44FFFFFF" FontSize="10" VerticalAlignment="Center" HorizontalAlignment="Center"/>
-                                </Grid>
-                            </Border>
-                        </Grid>
-                    </Grid>
-
-                    <!-- SLIDE 3: Video Wallpaper -->
-                    <Grid x:Name="Slide3"
-                          Style="{StaticResource SlideContentStyle}"
-                          Visibility="Collapsed">
-                        <Grid VerticalAlignment="Center">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="*"/>
-                            </Grid.ColumnDefinitions>
-                            <StackPanel Grid.Column="0"
-                                        Margin="0,0,40,0">
-                                <TextBlock Text="🎥"
-                                           FontSize="64"
-                                           Margin="0,0,0,20"/>
-                                <TextBlock Text="Live Wallpapers"
-                                           FontSize="28"
-                                           FontWeight="Bold"
-                                           Foreground="#FF9F0A"
-                                           Margin="0,0,0,15"/>
-                                <TextBlock Text="Hidupkan desktop Anda dengan video wallpaper favorit. Mendukung berbagai format video dengan konsumsi sumber daya yang sangat rendah."
-                                           Foreground="#BBB"
-                                           FontSize="15"
-                                           TextWrapping="Wrap"
-                                           LineHeight="24"/>
-                            </StackPanel>
-                            <Border Grid.Column="1"
-                                    Background="#1A1A1A"
-                                    CornerRadius="12"
-                                    BorderBrush="#333"
-                                    BorderThickness="1"
-                                    Height="250">
-                                <Grid>
-                                    <Path Data="M0,0 L20,10 L0,20 Z"
-                                          Fill="#444"
-                                          HorizontalAlignment="Center"
-                                          VerticalAlignment="Center"
-                                          Stretch="Fill"
-                                          Width="40"
-                                          Height="40"/>
-                                    <TextBlock Text="Animated Background System"
-                                               Foreground="#444"
-                                               VerticalAlignment="Bottom"
-                                               HorizontalAlignment="Center"
-                                               Margin="0,0,0,40"/>
-                                </Grid>
-                            </Border>
-                        </Grid>
-                    </Grid>
-
-                    <!-- SLIDE 4: Quick Search -->
-                    <Grid x:Name="Slide4" Style="{StaticResource SlideContentStyle}" Visibility="Collapsed">
-                        <Grid VerticalAlignment="Center">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="*"/>
-                            </Grid.ColumnDefinitions>
-                            <StackPanel Grid.Column="0" Margin="0,0,40,0">
-                                <TextBlock Text="🔍" FontSize="64" Margin="0,0,0,20"/>
-                                <TextBlock Text="Unified Search Engine" FontSize="26" FontWeight="Black" Foreground="#5E5CE6" Margin="0,0,0,15"/>
-                                <TextBlock Text="Cari aplikasi, file, hitung kalkulator, atau tanya Google hanya dengan satu shortcut. Cepat, cerdas, dan langsung tersedia di mana saja tanpa delay."
-                                           Foreground="#BBB" FontSize="15" TextWrapping="Wrap" LineHeight="24"/>
-                            </StackPanel>
-                            <Border Grid.Column="1" Background="#11FFFFFF" CornerRadius="16" BorderBrush="#335E5CE6" BorderThickness="1" Height="250">
-                                <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
-                                    <Border Background="#222" CornerRadius="12" Padding="15,10" Width="250" BorderBrush="#44FFFFFF" BorderThickness="1">
-                                        <TextBlock Text="Search files, apps, or '2+2'..." Foreground="#55FFFFFF" FontSize="12"/>
-                                    </Border>
-                                    <Border Background="#1A5E5CE6" CornerRadius="8" Margin="0,15,0,0" Padding="10" Width="250">
-                                        <TextBlock Text="Result: 4.0 (Math Engine)" Foreground="#5E5CE6" FontSize="11" FontWeight="Bold"/>
-                                    </Border>
-                                </StackPanel>
-                            </Border>
-                        </Grid>
-                    </Grid>
-
-                    <!-- SLIDE 5: Changelog -->
-                    <Grid x:Name="Slide5"
-                          Style="{StaticResource SlideContentStyle}"
-                          Visibility="Collapsed">
-                        <Grid>
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="*"/>
-                            </Grid.RowDefinitions>
-                            <TextBlock Grid.Row="0"
-                                       Text="What's New (6.9.4)"
-                                       FontSize="28"
-                                       FontWeight="Bold"
-                                       Foreground="White"
-                                       Margin="0,0,0,20"
-                                       HorizontalAlignment="Left"/>
-                            <Border Grid.Row="1"
-                                    Background="#151515"
-                                    CornerRadius="12"
-                                    Padding="20"
-                                    BorderBrush="#222"
-                                    BorderThickness="1">
-                                <Grid>
-                                    <Grid.RowDefinitions>
-                                        <RowDefinition Height="Auto"/>
-                                        <RowDefinition Height="*"/>
-                                    </Grid.RowDefinitions>
-                                    <TextBlock Grid.Row="0"
-                                               Text="Recent Releases"
-                                               Foreground="#FF3B3B"
-                                               FontWeight="Bold"
-                                               Margin="0,0,0,10"/>
-                                    <ScrollViewer Grid.Row="1"
-                                                  VerticalScrollBarVisibility="Auto">
-                                        <ItemsControl x:Name="ReleasesParams">
-                                            <ItemsControl.ItemTemplate>
-                                                <DataTemplate>
-                                                    <Border Margin="0,0,0,15"
-                                                            BorderBrush="#222"
-                                                            BorderThickness="0,0,0,1"
-                                                            Padding="0,0,0,10">
-                                                        <StackPanel>
-                                                            <Grid>
-                                                                <TextBlock Text="{Binding TagName}"
-                                                                           FontWeight="Bold"
-                                                                           Foreground="#FF3B3B"
-                                                                           FontSize="12"/>
-
-                                                                <TextBlock Text="{Binding CreatedAt, StringFormat='\{0:dd MMM yyyy\}'}"
-                                                                           Foreground="#7A1F1F"
-                                                                           FontSize="9"
-                                                                           HorizontalAlignment="Right"/>
-                                                            </Grid>
-                                                            <TextBlock Text="{Binding Body}"
-                                                                       Foreground="#CFCFCF"
-                                                                       FontSize="10"
-                                                                       TextWrapping="Wrap"
-                                                                       Margin="0,3,0,0"/>
-                                                        </StackPanel>
-                                                    </Border>
-                                                </DataTemplate>
-                                            </ItemsControl.ItemTemplate>
-                                        </ItemsControl>
-                                    </ScrollViewer>
-                                </Grid>
-                            </Border>
-                        </Grid>
-                    </Grid>
-
-                    <!-- SLIDE 6: ZeroShell Features -->
-                    <Grid x:Name="Slide6" Style="{StaticResource SlideContentStyle}" Visibility="Collapsed">
-                        <Grid VerticalAlignment="Center">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="*"/>
-                            </Grid.ColumnDefinitions>
-                            <StackPanel Grid.Column="0" Margin="0,0,40,0">
-                                <TextBlock Text="👾" FontSize="64" Margin="0,0,0,20"/>
-                                <TextBlock Text="ZeroShell Console" FontSize="26" FontWeight="Black" Foreground="#00BFA5" Margin="0,0,0,15"/>
-                                <TextBlock Text="Terminal bertenaga GPU untuk power user. Dengan fitur !tasks profesional yang bisa menjalankan urutan perintah otomatis dengan animasi yang keren."
-                                           Foreground="#BBB" FontSize="15" TextWrapping="Wrap" LineHeight="24"/>
-                            </StackPanel>
-                            <Border Grid.Column="1" Background="#F5080E14" CornerRadius="16" BorderBrush="#3300BFA5" BorderThickness="1" Height="250" Padding="15">
+                <!-- SLIDE 1: Core Features -->
+                <Grid x:Name="Slide1" Visibility="Collapsed">
+                    <StackPanel VerticalAlignment="Center">
+                        <TextBlock Text="What's included" FontSize="22" FontWeight="Bold"
+                                   Foreground="White" Margin="0,0,0,24"/>
+                        <UniformGrid Columns="2" Rows="3">
+                            <StackPanel Orientation="Horizontal" Margin="0,0,16,16">
+                                <TextBlock Text="🎥" FontSize="18" Margin="0,0,10,0" VerticalAlignment="Center"/>
                                 <StackPanel>
-                                    <TextBlock Text="ZEROMIX TERMINAL v1.0" Foreground="#00BFA5" FontSize="9" FontFamily="Consolas" Margin="0,0,0,15"/>
-                                    <TextBlock Text="❯ !tasks --run" Foreground="#FF27C93F" FontSize="11" FontFamily="Consolas"/>
-                                    <TextBlock Text="[EXEC] Diagnostic Pulse Active..." Foreground="White" FontSize="11" FontFamily="Consolas" Opacity="0.7" Margin="0,5,0,0"/>
-                                    <TextBlock Text="[INFO] Status: All systems clear." Foreground="White" FontSize="11" FontFamily="Consolas" Opacity="0.5" Margin="0,5,0,0"/>
-                                    <Border Height="2" Background="#00BFA5" Width="50" HorizontalAlignment="Left" Margin="0,20,0,0"/>
+                                    <TextBlock Text="ZeroRecord" FontWeight="SemiBold" Foreground="White" FontSize="13"/>
+                                    <TextBlock Text="Hardware-accelerated screen recording" Foreground="#8B949E" FontSize="11"/>
                                 </StackPanel>
-                            </Border>
-                        </Grid>
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" Margin="0,0,0,16">
+                                <TextBlock Text="🌍" FontSize="18" Margin="0,0,10,0" VerticalAlignment="Center"/>
+                                <StackPanel>
+                                    <TextBlock Text="Nexus Translate" FontWeight="SemiBold" Foreground="White" FontSize="13"/>
+                                    <TextBlock Text="Real-time translation anywhere" Foreground="#8B949E" FontSize="11"/>
+                                </StackPanel>
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" Margin="0,0,16,16">
+                                <TextBlock Text="🤖" FontSize="18" Margin="0,0,10,0" VerticalAlignment="Center"/>
+                                <StackPanel>
+                                    <TextBlock Text="Virtual Assistant" FontWeight="SemiBold" Foreground="White" FontSize="13"/>
+                                    <TextBlock Text="Live2D AI companions" Foreground="#8B949E" FontSize="11"/>
+                                </StackPanel>
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" Margin="0,0,0,16">
+                                <TextBlock Text="🎨" FontSize="18" Margin="0,0,10,0" VerticalAlignment="Center"/>
+                                <StackPanel>
+                                    <TextBlock Text="Ghost Taskbar" FontWeight="SemiBold" Foreground="White" FontSize="13"/>
+                                    <TextBlock Text="Transparent taskbar with Mica effect" Foreground="#8B949E" FontSize="11"/>
+                                </StackPanel>
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" Margin="0,0,16,0">
+                                <TextBlock Text="🔍" FontSize="18" Margin="0,0,10,0" VerticalAlignment="Center"/>
+                                <StackPanel>
+                                    <TextBlock Text="Search Overlay" FontWeight="SemiBold" Foreground="White" FontSize="13"/>
+                                    <TextBlock Text="Fast launcher with AI support" Foreground="#8B949E" FontSize="11"/>
+                                </StackPanel>
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" Margin="0,0,0,0">
+                                <TextBlock Text="🐱" FontSize="18" Margin="0,0,10,0" VerticalAlignment="Center"/>
+                                <StackPanel>
+                                    <TextBlock Text="Cat Gatekeeper" FontWeight="SemiBold" Foreground="White" FontSize="13"/>
+                                    <TextBlock Text="Screen time enforcer" Foreground="#8B949E" FontSize="11"/>
+                                </StackPanel>
+                            </StackPanel>
+                        </UniformGrid>
+                    </StackPanel>
+                </Grid>
+
+                <!-- SLIDE 2: Keyboard Shortcuts -->
+                <Grid x:Name="Slide2" Visibility="Collapsed">
+                    <StackPanel VerticalAlignment="Center">
+                        <TextBlock Text="Keyboard shortcuts" FontSize="22" FontWeight="Bold"
+                                   Foreground="White" Margin="0,0,0,24"/>
+                        <Border Background="#161B22" CornerRadius="10" Padding="20"
+                                BorderBrush="#21262D" BorderThickness="1">
+                            <StackPanel>
+                                <Grid Margin="0,0,0,12">
+                                    <Border Background="#21262D" CornerRadius="6" Padding="8,4" HorizontalAlignment="Left">
+                                        <TextBlock Text="Ctrl + Q" Foreground="#58A6FF" FontFamily="Consolas" FontSize="12" FontWeight="Bold"/>
+                                    </Border>
+                                    <TextBlock Text="Toggle main dashboard" Foreground="#C9D1D9" FontSize="13" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                                </Grid>
+                                <Grid Margin="0,0,0,12">
+                                    <Border Background="#21262D" CornerRadius="6" Padding="8,4" HorizontalAlignment="Left">
+                                        <TextBlock Text="Alt + Space" Foreground="#58A6FF" FontFamily="Consolas" FontSize="12" FontWeight="Bold"/>
+                                    </Border>
+                                    <TextBlock Text="Open Search Overlay" Foreground="#C9D1D9" FontSize="13" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                                </Grid>
+                                <Grid Margin="0,0,0,12">
+                                    <Border Background="#21262D" CornerRadius="6" Padding="8,4" HorizontalAlignment="Left">
+                                        <TextBlock Text="Alt + S" Foreground="#58A6FF" FontFamily="Consolas" FontSize="12" FontWeight="Bold"/>
+                                    </Border>
+                                    <TextBlock Text="Toggle Sleep Mode" Foreground="#C9D1D9" FontSize="13" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                                </Grid>
+                                <Grid>
+                                    <Border Background="#21262D" CornerRadius="6" Padding="8,4" HorizontalAlignment="Left">
+                                        <TextBlock Text="Ctrl + R" Foreground="#58A6FF" FontFamily="Consolas" FontSize="12" FontWeight="Bold"/>
+                                    </Border>
+                                    <TextBlock Text="Refresh system metrics" Foreground="#C9D1D9" FontSize="13" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                                </Grid>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </Grid>
+
+                <!-- SLIDE 3: What's New -->
+                <Grid x:Name="Slide3" Visibility="Collapsed">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+                        <TextBlock Grid.Row="0" Text="What's new"
+                                   FontSize="22" FontWeight="Bold" Foreground="White"
+                                   Margin="0,0,0,16"/>
+                        <Border Grid.Row="1" Background="#161B22" CornerRadius="10"
+                                BorderBrush="#21262D" BorderThickness="1" Padding="16">
+                            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                                <ItemsControl x:Name="ReleasesParams">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <StackPanel Margin="0,0,0,16">
+                                                <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+                                                    <Border Background="#1F6FEB22" CornerRadius="4" Padding="6,2" Margin="0,0,8,0">
+                                                        <TextBlock Text="{Binding TagName}" Foreground="#58A6FF"
+                                                                   FontSize="11" FontWeight="Bold" FontFamily="Consolas"/>
+                                                    </Border>
+                                                    <TextBlock Text="{Binding CreatedAt, StringFormat='{}{0:dd MMM yyyy}'}"
+                                                               Foreground="#8B949E" FontSize="11" VerticalAlignment="Center"/>
+                                                </StackPanel>
+                                                <TextBlock Text="{Binding Body}" Foreground="#C9D1D9"
+                                                           FontSize="11" TextWrapping="Wrap"/>
+                                                <Border Height="1" Background="#21262D" Margin="0,12,0,0"/>
+                                            </StackPanel>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </ScrollViewer>
+                        </Border>
                     </Grid>
-
                 </Grid>
 
-                <!-- Navigation Bottom Bar -->
-                <Grid Grid.Row="1"
-                      Margin="0,30,0,0">
-                    <StackPanel Orientation="Horizontal"
-                                HorizontalAlignment="Left">
-                        <TextBlock x:Name="SlideIndicator"
-                                   Text="STEP 1 OF 6"
-                                   Foreground="#FF3B3B"
-                                   VerticalAlignment="Center"
-                                   FontSize="9"
-                                   FontWeight="Bold"
-                                   Padding="1"/>
-                    </StackPanel>
-
-                    <StackPanel Orientation="Horizontal"
-                                HorizontalAlignment="Right">
-                        <Button x:Name="BtnBack"
-                                Content="Back"
-                                Click="BtnBack_Click"
-                                Style="{StaticResource NavButtonStyle}"
-                                Visibility="Collapsed"
-                                Margin="0,0,10,0"/>
-                        <Button x:Name="BtnNext"
-                                Content="Next →"
-                                Click="BtnNext_Click"
-                                Style="{StaticResource NavButtonStyle}"
-                                Background="#0A84FF"
-                                Foreground="White"
-                                Padding="30,12"/>
+                <!-- SLIDE 4: Ready -->
+                <Grid x:Name="Slide4" Visibility="Collapsed">
+                    <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+                        <TextBlock Text="✅" FontSize="56" HorizontalAlignment="Center" Margin="0,0,0,20"/>
+                        <TextBlock Text="You're all set"
+                                   FontSize="28" FontWeight="Bold" Foreground="White"
+                                   HorizontalAlignment="Center"/>
+                        <TextBlock Text="ZeroMix is running in your system tray. Press Ctrl+Q to open the dashboard anytime."
+                                   FontSize="13" Foreground="#8B949E" TextWrapping="Wrap"
+                                   MaxWidth="400" TextAlignment="Center"
+                                   Margin="0,10,0,0" HorizontalAlignment="Center"/>
                     </StackPanel>
                 </Grid>
+
             </Grid>
+
+            <!-- Bottom Navigation -->
+            <Border Grid.Row="1" BorderBrush="#21262D" BorderThickness="0,1,0,0" Padding="48,16">
+                <Grid>
+                    <!-- Step indicator dots -->
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Left">
+                        <Ellipse x:Name="Dot0" Width="6" Height="6" Fill="#58A6FF" Margin="0,0,6,0"/>
+                        <Ellipse x:Name="Dot1" Width="6" Height="6" Fill="#30363D" Margin="0,0,6,0"/>
+                        <Ellipse x:Name="Dot2" Width="6" Height="6" Fill="#30363D" Margin="0,0,6,0"/>
+                        <Ellipse x:Name="Dot3" Width="6" Height="6" Fill="#30363D" Margin="0,0,6,0"/>
+                        <Ellipse x:Name="Dot4" Width="6" Height="6" Fill="#30363D"/>
+                    </StackPanel>
+
+                    <!-- Buttons -->
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                        <Button x:Name="BtnBack" Content="Back"
+                                Click="BtnBack_Click"
+                                Visibility="Collapsed"
+                                Margin="0,0,8,0"
+                                Padding="20,8"
+                                Background="#21262D" Foreground="#C9D1D9"
+                                BorderBrush="#30363D" BorderThickness="1"
+                                Cursor="Hand">
+                            <Button.Template>
+                                <ControlTemplate TargetType="Button">
+                                    <Border x:Name="b" Background="{TemplateBinding Background}"
+                                            BorderBrush="{TemplateBinding BorderBrush}"
+                                            BorderThickness="{TemplateBinding BorderThickness}"
+                                            CornerRadius="8" Padding="{TemplateBinding Padding}">
+                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </Border>
+                                    <ControlTemplate.Triggers>
+                                        <Trigger Property="IsMouseOver" Value="True">
+                                            <Setter TargetName="b" Property="Background" Value="#30363D"/>
+                                        </Trigger>
+                                    </ControlTemplate.Triggers>
+                                </ControlTemplate>
+                            </Button.Template>
+                        </Button>
+                        <Button x:Name="BtnNext" Content="Continue"
+                                Click="BtnNext_Click"
+                                Padding="24,8"
+                                Background="#238636" Foreground="White"
+                                BorderThickness="0"
+                                Cursor="Hand">
+                            <Button.Template>
+                                <ControlTemplate TargetType="Button">
+                                    <Border x:Name="b" Background="{TemplateBinding Background}"
+                                            CornerRadius="8" Padding="{TemplateBinding Padding}">
+                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </Border>
+                                    <ControlTemplate.Triggers>
+                                        <Trigger Property="IsMouseOver" Value="True">
+                                            <Setter TargetName="b" Property="Background" Value="#2EA043"/>
+                                        </Trigger>
+                                    </ControlTemplate.Triggers>
+                                </ControlTemplate>
+                            </Button.Template>
+                        </Button>
+                    </StackPanel>
+                </Grid>
+            </Border>
         </Grid>
     </Border>
 </Window>

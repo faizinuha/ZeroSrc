@@ -40,7 +40,7 @@ namespace ZeroMix.Studio
             public bool FadeOut { get; set; }
         }
 
-        private string PIXABAY_KEY => ApiKeys.PixabayKey;
+        private string PIXABAY_KEY => ApiKeys.PixabayVideoKey;
         private ObservableCollection<VideoClip> _timelineClips = new ObservableCollection<VideoClip>();
         private HttpClient _http = new HttpClient();
         private VideoClip? _selectedClip;
@@ -49,6 +49,7 @@ namespace ZeroMix.Studio
         {
             public string Name { get; set; } = "";
             public string Tag { get; set; } = "";
+            public string StatusText { get; set; } = "";
             public ImageSource? PreviewImage { get; set; }
         }
         private ObservableCollection<FilterItem> _filters = new ObservableCollection<FilterItem>();
@@ -81,10 +82,10 @@ namespace ZeroMix.Studio
 
         private void LoadFilters()
         {
-            _filters.Add(new FilterItem { Name = "None", Tag = "" });
-            _filters.Add(new FilterItem { Name = "Grayscale", Tag = "grayscale" });
-            _filters.Add(new FilterItem { Name = "Sepia", Tag = "sepia" });
-            _filters.Add(new FilterItem { Name = "Cinematic", Tag = "cine" });
+            _filters.Add(new FilterItem { Name = "None",      Tag = "",          StatusText = "" });
+            _filters.Add(new FilterItem { Name = "Grayscale", Tag = "grayscale", StatusText = "" });
+            _filters.Add(new FilterItem { Name = "Sepia",     Tag = "sepia",     StatusText = "" });
+            _filters.Add(new FilterItem { Name = "Cinematic", Tag = "cine",      StatusText = "" });
         }
 
         // Window control methods tidak diperlukan lagi (handled by FluentWindow)
@@ -381,8 +382,8 @@ namespace ZeroMix.Studio
             MusicPreview.Pause(); // Wait for video play
         }
 
-        private async void PixabaySearch_Click(object sender, RoutedEventArgs e) => await PerformPixabaySearch(PixabaySearchBox.Text);
-        private async void PixabaySearchBox_KeyDown(object sender, System.Windows.Input.KeyEventArgs e) { if (e.Key == Key.Enter) await PerformPixabaySearch(PixabaySearchBox.Text); }
+        private async void PixabaySearch_Click(object sender, RoutedEventArgs e) => await PerformPixabaySearch(PixabaySearchBox.Text, _pixabaySearchMode);
+        private async void PixabaySearchBox_KeyDown(object sender, System.Windows.Input.KeyEventArgs e) { if (e.Key == Key.Enter) await PerformPixabaySearch(PixabaySearchBox.Text, _pixabaySearchMode); }
         
         private async void PixabayCategory_Click(object sender, RoutedEventArgs e)
         {
@@ -391,50 +392,72 @@ namespace ZeroMix.Studio
             if (!string.IsNullOrEmpty(category))
             {
                 PixabaySearchBox.Text = category;
-                await PerformPixabaySearch(category);
+                await PerformPixabaySearch(category, _pixabaySearchMode);
             }
         }
 
-        private async Task PerformPixabaySearch(string query)
+        // Toggle mode: video atau music
+        private void PixabayModeVideo_Click(object sender, RoutedEventArgs e)
+        {
+            _pixabaySearchMode = "video";
+            if (!string.IsNullOrWhiteSpace(PixabaySearchBox.Text))
+                _ = PerformPixabaySearch(PixabaySearchBox.Text, "video");
+        }
+
+        private void PixabayModeMusic_Click(object sender, RoutedEventArgs e)
+        {
+            _pixabaySearchMode = "music";
+            if (!string.IsNullOrWhiteSpace(PixabaySearchBox.Text))
+                _ = PerformPixabaySearch(PixabaySearchBox.Text, "music");
+            else
+                _ = PerformPixabaySearch("music background", "music");
+        }
+
+        // Mode pencarian Pixabay: "video" atau "music"
+        private string _pixabaySearchMode = "video";
+
+        private async Task PerformPixabaySearch(string query, string mode = "video")
         {
             if (string.IsNullOrWhiteSpace(query)) return;
 
+            _pixabaySearchMode = mode;
             PixabayResultsList.Items.Clear();
             
-            // Add loading indicator
             var loadingItem = new PixabayMusicResult
             {
                 Id = "loading",
-                Title = "🔄 Searching Pixabay...",
-                User = "",
-                DurationStr = "",
-                PreviewUrl = "",
-                DownloadUrl = ""
+                Title = $"🔄 Searching {(mode == "music" ? "music videos" : "videos")}...",
+                User = "", DurationStr = "", PreviewUrl = "", DownloadUrl = ""
             };
             PixabayResultsList.Items.Add(loadingItem);
             
             try
             {
-                string url = $"https://pixabay.com/api/videos/?key={PIXABAY_KEY}&q={Uri.EscapeDataString(query)}&video_type=film";
+                // Pixabay Videos API — gunakan category=music untuk cari video musik
+                string url;
+                if (mode == "music")
+                {
+                    // Category music: video dengan kategori musik (background music videos)
+                    url = $"https://pixabay.com/api/videos/?key={PIXABAY_KEY}&q={Uri.EscapeDataString(query)}&category=music&per_page=20&order=popular";
+                }
+                else
+                {
+                    // Mode video biasa
+                    url = $"https://pixabay.com/api/videos/?key={PIXABAY_KEY}&q={Uri.EscapeDataString(query)}&video_type=film&per_page=20&order=popular";
+                }
                 
                 using var response = await _http.GetAsync(url);
-                
-                // Clear loading indicator
                 PixabayResultsList.Items.Clear();
                 
                 if (!response.IsSuccessStatusCode)
                 {
-                    // Show friendly error in UI instead of popup
-                    var errorItem = new PixabayMusicResult
+                    PixabayResultsList.Items.Add(new PixabayMusicResult
                     {
                         Id = "error",
-                        Title = $"❌ Search failed: {response.StatusCode}",
+                        Title = $"❌ Search failed ({(int)response.StatusCode})",
                         User = response.ReasonPhrase ?? "Unknown error",
-                        DurationStr = "",
-                        PreviewUrl = "",
-                        DownloadUrl = ""
-                    };
-                    PixabayResultsList.Items.Add(errorItem);
+                        DurationStr = "", PreviewUrl = "", DownloadUrl = ""
+                    });
                     return;
                 }
                 
@@ -450,72 +473,61 @@ namespace ZeroMix.Studio
                         string videoUrl = "";
                         if (videos != null)
                         {
-                            videoUrl = (videos["small"]?["url"] ?? videos["tiny"]?["url"] ?? videos["medium"]?["url"] ?? "").ToString();
+                            videoUrl = (videos["small"]?["url"] 
+                                     ?? videos["tiny"]?["url"] 
+                                     ?? videos["medium"]?["url"] 
+                                     ?? "").ToString();
                         }
                         
                         if (string.IsNullOrEmpty(videoUrl)) continue;
                         
-                        var result = new PixabayMusicResult
+                        string tags = hit["tags"]?.ToString() ?? "Untitled";
+                        string title = mode == "music" ? $"🎵 {tags}" : tags;
+                        
+                        PixabayResultsList.Items.Add(new PixabayMusicResult
                         {
                             Id = hit["id"]?.ToString() ?? "",
-                            Title = hit["tags"]?.ToString() ?? "Untitled",
+                            Title = title,
                             User = hit["user"]?.ToString() ?? "Unknown",
                             DurationStr = FormatPixabayDuration(hit["duration"]?.ToString()),
                             PreviewUrl = videoUrl,
                             DownloadUrl = videoUrl
-                        };
-
-                        PixabayResultsList.Items.Add(result);
+                        });
+                    }
+                    
+                    if (PixabayResultsList.Items.Count == 0)
+                    {
+                        PixabayResultsList.Items.Add(new PixabayMusicResult
+                        {
+                            Id = "noresult",
+                            Title = "😕 No results found",
+                            User = "Try different keywords",
+                            DurationStr = "", PreviewUrl = "", DownloadUrl = ""
+                        });
                     }
                 }
                 else
                 {
-                    // No results found
-                    var noResultItem = new PixabayMusicResult
+                    PixabayResultsList.Items.Add(new PixabayMusicResult
                     {
                         Id = "noresult",
                         Title = "😕 No results found",
                         User = "Try different keywords",
-                        DurationStr = "",
-                        PreviewUrl = "",
-                        DownloadUrl = ""
-                    };
-                    PixabayResultsList.Items.Add(noResultItem);
+                        DurationStr = "", PreviewUrl = "", DownloadUrl = ""
+                    });
                 }
-            }
-            catch (HttpRequestException ex)
-            {
-                PixabayResultsList.Items.Clear();
-                var errorItem = new PixabayMusicResult
-                {
-                    Id = "error",
-                    Title = "❌ Network error",
-                    User = "Check your internet connection",
-                    DurationStr = "",
-                    PreviewUrl = "",
-                    DownloadUrl = ""
-                };
-                PixabayResultsList.Items.Add(errorItem);
-                
-                // Log to console for debugging
-                Console.WriteLine($"Pixabay network error: {ex.Message}");
             }
             catch (Exception ex)
             {
                 PixabayResultsList.Items.Clear();
-                var errorItem = new PixabayMusicResult
+                PixabayResultsList.Items.Add(new PixabayMusicResult
                 {
                     Id = "error",
-                    Title = "❌ Unexpected error",
-                    User = ex.Message.Length > 50 ? ex.Message.Substring(0, 50) + "..." : ex.Message,
-                    DurationStr = "",
-                    PreviewUrl = "",
-                    DownloadUrl = ""
-                };
-                PixabayResultsList.Items.Add(errorItem);
-                
-                // Log to console for debugging
-                Console.WriteLine($"Pixabay error: {ex.Message}");
+                    Title = "❌ Error",
+                    User = ex.Message.Length > 60 ? ex.Message[..60] + "..." : ex.Message,
+                    DurationStr = "", PreviewUrl = "", DownloadUrl = ""
+                });
+                Console.WriteLine($"[Pixabay] Error: {ex.Message}");
             }
         }
 
@@ -648,36 +660,36 @@ namespace ZeroMix.Studio
             if (FilterList.SelectedItem is FilterItem filter)
             {
                 _activeFilter = filter.Tag;
-                ApplyFilterRealtime(); // Apply immediately
+                
+                // Update StatusText untuk semua filter items
+                foreach (var f in _filters)
+                    f.StatusText = (f.Tag == _activeFilter && !string.IsNullOrEmpty(_activeFilter)) ? "✓ Active" : "";
+                
+                // Refresh list
+                FilterList.Items.Refresh();
+                
+                ApplyFilterRealtime();
             }
+        }
+        
+        private void ClearFilter_Click(object sender, RoutedEventArgs e)
+        {
+            _activeFilter = "";
+            foreach (var f in _filters) f.StatusText = "";
+            FilterList.SelectedIndex = 0; // Select "None"
+            FilterList.Items.Refresh();
+            if (VideoPreview != null) VideoPreview.Effect = null;
         }
         
         private void ApplyFilterRealtime()
         {
             if (VideoPreview == null) return;
-            
-            // Reset effects
             VideoPreview.Effect = null;
             
-            // Apply filter effect real-time
-            if (_activeFilter == "grayscale")
-            {
-                // Grayscale effect using shader
-                var effect = new System.Windows.Media.Effects.BlurEffect { Radius = 0 }; // Placeholder
-                // Note: WPF doesn't have built-in grayscale, need custom shader or use FFmpeg at export
-                // For now, just mark it for export
-            }
-            else if (_activeFilter == "sepia")
-            {
-                // Sepia effect - similar, mark for export
-            }
-            else if (_activeFilter == "cine")
-            {
-                // Cinematic effect - mark for export
-            }
-            
-            // Note: Real-time filter preview lebih baik pakai FFmpeg preview atau custom shader
-            // Untuk sekarang, filter akan di-apply saat export
+            // WPF tidak punya built-in grayscale/sepia shader
+            // Filter di-apply saat export via FFmpeg
+            // Untuk preview, tampilkan overlay teks saja
+            Console.WriteLine($"[Studio] Filter set: {(_activeFilter == "" ? "None" : _activeFilter)} — will apply at export");
         }
 
         private void TogglePlay_Click(object sender, RoutedEventArgs e)

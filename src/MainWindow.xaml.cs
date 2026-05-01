@@ -46,7 +46,7 @@ namespace ZeroMix
     
     public partial class MainWindow : Wpf.Ui.Controls.FluentWindow, ZeroMix.Plugins.IZeroMixHost
     {
-        private const string CURRENT_VERSION = "6.9.4";
+        private const string CURRENT_VERSION = "6.9.6";
         
         // Windows API for Taskbar transparency
         [DllImport("user32.dll", SetLastError = true)]
@@ -285,6 +285,8 @@ namespace ZeroMix
             MoonSharp.Interpreter.UserData.RegisterType<Plugins.ZeroMixLuaApi>();
             
             InitializeComponent();
+            // Set opacity 0 SEBELUM window render untuk cegah white flash
+            this.Opacity = 0;
             ApplicationThemeManager.Apply(this);
             StartGameDetection();
             // Tray icon diinisialisasi via XAML (ui:FluentWindow.Tray)
@@ -368,9 +370,8 @@ namespace ZeroMix
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
-            // Fade in window setelah render selesai — cegah white flash
-            this.Opacity = 0;
-            var fadeIn = new DoubleAnimation(0, 1, TimeSpan.FromMilliseconds(200));
+            // Fade in — opacity sudah di-set 0 di constructor, tinggal animate ke 1
+            var fadeIn = new DoubleAnimation(0, 1, TimeSpan.FromMilliseconds(300));
             this.BeginAnimation(OpacityProperty, fadeIn);
 
             // Set initial view after the window has loaded
@@ -380,18 +381,14 @@ namespace ZeroMix
             // Initialize Language Selector
             InitializeLanguageSelector();
 
-            // Setup tray icon dengan delay kecil agar HWND benar-benar siap
-            // Tanpa delay, tray icon kadang tidak muncul saat pertama kali buka
-            Dispatcher.BeginInvoke(async () =>
-            {
-                await Task.Delay(500); // Tunggu window fully rendered
-                InitializeTrayIcon();
-            }, System.Windows.Threading.DispatcherPriority.Loaded);
+            // Setup tray icon — tunggu window benar-benar visible dan HWND siap
+            // Gunakan ContentRendered event yang fire setelah window fully rendered
+            this.ContentRendered += OnContentRenderedInitTray;
 
             // Tunda semua operasi berat agar window selesai render dulu
             Dispatcher.BeginInvoke(async () =>
             {
-                // Welcome screen — disabled (v6.9.0)
+                // Welcome screen — disabled (v6.9.6)
                 // ZeroMix.Plugins.Welcome.WelcomePlugin.TryShowWelcome();
 
                 // Load VA thumbnails — delay agar UI sudah rendered
@@ -551,6 +548,24 @@ namespace ZeroMix
             catch { return null; }
         }
 
+        private async void OnContentRenderedInitTray(object? sender, EventArgs e)
+        {
+            // Unsubscribe — hanya perlu sekali
+            this.ContentRendered -= OnContentRenderedInitTray;
+            
+            // Tunggu sedikit agar OS benar-benar register HWND ke shell
+            await Task.Delay(300);
+            
+            InitializeTrayIcon();
+            
+            // Retry jika gagal — kadang shell belum siap
+            if (_notifyIcon == null)
+            {
+                await Task.Delay(1000);
+                InitializeTrayIcon();
+            }
+        }
+
         private void InitializeTrayIcon()
         {
             try
@@ -638,10 +653,6 @@ namespace ZeroMix
             _trayContextMenu.Items.Add(shellItem);
 
             _trayContextMenu.Items.Add(new Separator());
-            
-            var updateItem = new MenuItem { Header = "Check Update", Name = "CheckUpdateItem" };
-            updateItem.Click += (s, args) => Dispatcher.Invoke(() => CheckUpdateBtn_Click(this, new RoutedEventArgs()));
-            _trayContextMenu.Items.Add(updateItem);
             
             _trayContextMenu.Items.Add(new Separator());
             
@@ -2287,6 +2298,33 @@ end";
                     MessageBoxImage.Warning);
                 
                 StatusLabel.Text = "Update check failed";
+            }
+        }
+
+        private void OpenUpdaterBtn_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                string updaterPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Tools", "Updater", "ZeroMix-Updater.exe");
+                if (File.Exists(updaterPath))
+                {
+                    Process.Start(new ProcessStartInfo
+                    {
+                        FileName = updaterPath,
+                        UseShellExecute = true,
+                        WorkingDirectory = Path.GetDirectoryName(updaterPath)
+                    });
+                }
+                else
+                {
+                    // Fallback: buka halaman releases di browser
+                    Process.Start(new ProcessStartInfo("https://github.com/faizinuha/ZeroMix/releases/latest") { UseShellExecute = true });
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[Updater] Failed to open: {ex.Message}");
+                Process.Start(new ProcessStartInfo("https://github.com/faizinuha/ZeroMix/releases/latest") { UseShellExecute = true });
             }
         }
 

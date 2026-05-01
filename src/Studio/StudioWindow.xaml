@@ -233,23 +233,71 @@
                             <!-- Effects Panel -->
                             <Grid x:Name="PanelEffects" Visibility="Collapsed">
                                 <StackPanel>
-                                    <TextBlock Text="VISUAL FILTERS" FontSize="10" FontWeight="Black" Foreground="{StaticResource AccentCyan}" Margin="0,0,0,15"/>
+                                    <TextBlock Text="VISUAL FILTERS" FontSize="10" FontWeight="Black" Foreground="{StaticResource AccentCyan}" Margin="0,0,0,10"/>
+                                    <TextBlock Text="Applied at export via FFmpeg. Preview shows active filter." 
+                                               FontSize="8" Foreground="{StaticResource TextGray}" Margin="0,0,0,12" TextWrapping="Wrap"/>
                                     <ListBox x:Name="FilterList" Background="Transparent" BorderThickness="0" SelectionChanged="FilterList_SelectionChanged">
+                                        <ListBox.ItemContainerStyle>
+                                            <Style TargetType="ListBoxItem">
+                                                <Setter Property="Background" Value="Transparent"/>
+                                                <Setter Property="Padding" Value="0"/>
+                                                <Setter Property="Margin" Value="0"/>
+                                                <Setter Property="Template">
+                                                    <Setter.Value>
+                                                        <ControlTemplate TargetType="ListBoxItem">
+                                                            <ContentPresenter/>
+                                                        </ControlTemplate>
+                                                    </Setter.Value>
+                                                </Setter>
+                                            </Style>
+                                        </ListBox.ItemContainerStyle>
                                         <ListBox.ItemTemplate>
                                             <DataTemplate>
-                                                <Border Background="{StaticResource BgDark}" CornerRadius="6" Margin="0,0,0,8" Padding="8" Cursor="Hand">
-                                                    <TextBlock Text="{Binding Name}" FontSize="10" Foreground="White" HorizontalAlignment="Center"/>
+                                                <Border x:Name="filterBorder" Background="{StaticResource BgDark}" CornerRadius="6" 
+                                                        Margin="0,0,0,8" Padding="10,8" Cursor="Hand"
+                                                        BorderBrush="Transparent" BorderThickness="1">
+                                                    <Grid>
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="*"/>
+                                                            <ColumnDefinition Width="Auto"/>
+                                                        </Grid.ColumnDefinitions>
+                                                        <TextBlock Text="{Binding Name}" FontSize="11" Foreground="White"/>
+                                                        <TextBlock Grid.Column="1" Text="{Binding StatusText}" FontSize="9" 
+                                                                   Foreground="{StaticResource AccentCyan}" VerticalAlignment="Center"/>
+                                                    </Grid>
                                                 </Border>
                                             </DataTemplate>
                                         </ListBox.ItemTemplate>
                                     </ListBox>
+                                    <Button Content="✕ Clear Filter" FontSize="9" Padding="8,4" Margin="0,4,0,0"
+                                            Background="{StaticResource BgDark}" Foreground="{StaticResource TextGray}" 
+                                            BorderThickness="0" Cursor="Hand" Click="ClearFilter_Click"/>
                                 </StackPanel>
                             </Grid>
 
                             <!-- Music Panel (Pixabay) -->
                             <Grid x:Name="PanelMusic" Visibility="Collapsed">
                                 <StackPanel>
-                                    <TextBlock Text="PIXABAY MUSIC" FontSize="10" FontWeight="Black" Foreground="{StaticResource AccentCyan}" Margin="0,0,0,15"/>
+                                    <TextBlock Text="PIXABAY MEDIA" FontSize="10" FontWeight="Black" Foreground="{StaticResource AccentCyan}" Margin="0,0,0,10"/>
+                                    
+                                    <!-- Mode Toggle: Video / Music -->
+                                    <Grid Margin="0,0,0,10">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+                                        <Button Grid.Column="0" Content="🎬 Video" FontSize="9" Height="26"
+                                                Background="#1A58A6FF" Foreground="#58A6FF" BorderBrush="#58A6FF" BorderThickness="1"
+                                                Cursor="Hand" Click="PixabayModeVideo_Click" Margin="0,0,4,0">
+                                            <Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="6"/></Style></Button.Resources>
+                                        </Button>
+                                        <Button Grid.Column="1" Content="🎵 Music" FontSize="9" Height="26"
+                                                Background="{StaticResource BgDark}" Foreground="{StaticResource TextGray}" BorderBrush="{StaticResource BorderDark}" BorderThickness="1"
+                                                Cursor="Hand" Click="PixabayModeMusic_Click" Margin="4,0,0,0">
+                                            <Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="6"/></Style></Button.Resources>
+                                        </Button>
+                                    </Grid>
+                                    
                                     <Grid Margin="0,0,0,10">
                                         <TextBox x:Name="PixabaySearchBox" Height="32" Padding="10,0" VerticalContentAlignment="Center" 
                                                 Background="{StaticResource BgDark}" Foreground="White" BorderBrush="{StaticResource BorderDark}" 
@@ -266,6 +314,8 @@
                                                 Background="{StaticResource BgDark}" Foreground="White" BorderThickness="0" Cursor="Hand"/>
                                         <Button Content="Cinematic" FontSize="8" Padding="8,4" Margin="0,0,5,5" Click="PixabayCategory_Click" Tag="cinematic" 
                                                 Background="{StaticResource BgDark}" Foreground="White" BorderThickness="0" Cursor="Hand"/>
+                                        <Button Content="Nature" FontSize="8" Padding="8,4" Margin="0,0,5,5" Click="PixabayCategory_Click" Tag="nature" 
+                                                Background="{StaticResource BgDark}" Foreground="White" BorderThickness="0" Cursor="Hand"/>
                                     </WrapPanel>
                                     <ListBox x:Name="PixabayResultsList" Background="Transparent" BorderThickness="0" MaxHeight="300">
                                         <ListBox.ItemTemplate>
@@ -275,11 +325,17 @@
                                                         <Grid.ColumnDefinitions>
                                                             <ColumnDefinition Width="Auto"/>
                                                             <ColumnDefinition Width="*"/>
+                                                            <ColumnDefinition Width="Auto"/>
                                                         </Grid.ColumnDefinitions>
                                                         <Button Content="▶" Width="24" Height="24" Background="Transparent" BorderThickness="0" 
                                                                 Click="PixabayPreview_Click" Tag="{Binding}" Foreground="{StaticResource AccentCyan}"/>
-                                                        <TextBlock Grid.Column="1" Text="{Binding Title}" FontSize="9" Foreground="White" 
-                                                                  Margin="10,0" TextTrimming="CharacterEllipsis" VerticalAlignment="Center"/>
+                                                        <StackPanel Grid.Column="1" Margin="8,0">
+                                                            <TextBlock Text="{Binding Title}" FontSize="9" Foreground="White" 
+                                                                      TextTrimming="CharacterEllipsis"/>
+                                                            <TextBlock Text="{Binding DurationStr}" FontSize="8" Foreground="{StaticResource TextGray}"/>
+                                                        </StackPanel>
+                                                        <TextBlock Grid.Column="2" Text="{Binding User}" FontSize="8" 
+                                                                   Foreground="{StaticResource TextGray}" VerticalAlignment="Center"/>
                                                     </Grid>
                                                 </Border>
                                             </DataTemplate>
