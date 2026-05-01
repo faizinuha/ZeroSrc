@@ -81,7 +81,7 @@ dotnet add package ZeroMix.PluginSDK
 ## 🎥 Windows present  Preview
 
 <div align="center">
-  <video src="https://github.com/faizinuha/ZeroMix/blob/1dd04f3460efc2256abacc1c27db167950630596/src/Web/assets/ZeroRecord_20260411_211121.mp4" width="1000" autoplay muted loop></video>
+  <video src="https://github.com/user-attachments/src/Web/assets/ZeroRecord_20260411_211121.mp4" width="1000" autoplay muted loop></video>
 </div>
 
 ---
@@ -89,13 +89,13 @@ dotnet add package ZeroMix.PluginSDK
 ## 🎥 Select Area  Preview
 
 <div align="center">
-  <video src="https://github.com/faizinuha/ZeroMix/blob/1dd04f3460efc2256abacc1c27db167950630596/src/Web/assets/ZeroRecord_20260411_211722.mp4" width="1000" autoplay muted loop></video>
+  <video src="https://github.com/user-attachments/src/Web/assets/ZeroRecord_20260411_211722.mp4" width="1000" autoplay muted loop></video>
 </div>
 
 ## 🎥 Img ZeroMix Installers
 
 <div align="center">
-  <video src="https://github.com/faizinuha/ZeroMix/blob/1dd04f3460efc2256abacc1c27db167950630596/Assets/image copy 3.png" width="1000" autoplay muted loop></video>
+  <video src="https://github.com/user-attachments/Assets/image copy 3.png" width="1000" autoplay muted loop></video>
 </div>
 
 ---
