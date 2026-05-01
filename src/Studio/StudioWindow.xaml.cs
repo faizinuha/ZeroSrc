@@ -806,7 +806,7 @@ namespace ZeroMix.Studio
             if (saveDialog.ShowDialog() != true) return;
             string outputPath = saveDialog.FileName;
 
-            string ffmpegPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "FFMPEG", "ffmpeg.exe");
+            string ffmpegPath = ResolveFFmpegPath();
             if (!File.Exists(ffmpegPath)) { System.Windows.MessageBox.Show("FFmpeg not found in: " + ffmpegPath); return; }
 
             ExportButton.IsEnabled = false;
@@ -939,7 +939,7 @@ namespace ZeroMix.Studio
         {
             try
             {
-                string ffmpegPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "FFMPEG", "ffmpeg.exe");
+                string ffmpegPath = ResolveFFmpegPath();
                 if (!File.Exists(ffmpegPath)) return null;
                 string tempThumb = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString() + ".jpg");
                 var processInfo = new ProcessStartInfo { FileName = ffmpegPath, Arguments = $"-i \"{videoPath}\" -ss 00:00:00.5 -vframes 1 \"{tempThumb}\"", UseShellExecute = false, RedirectStandardOutput = true, RedirectStandardError = true, CreateNoWindow = true };

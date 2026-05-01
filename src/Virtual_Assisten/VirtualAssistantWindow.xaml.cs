@@ -114,8 +114,23 @@ namespace ZeroMix.Virtual_Assisten
                 
                 WebView.WebMessageReceived += OnWebMessageReceived;
 
-                // Navigate to the viewer — model will be sent after page signals ready via model_loaded
-                WebView.Source = new Uri("https://zeromix.vercel.app/Virtual_Assisten/live2d-viewer.html");
+                // Cek file HTML ada dulu sebelum navigate
+                string htmlLocalPath = Path.Combine(appBase, "Virtual_Assisten", "live2d-viewer.html");
+                Uri navigateUri;
+                
+                if (File.Exists(htmlLocalPath))
+                {
+                    // Pakai virtual host (lebih aman, support relative paths)
+                    navigateUri = new Uri("https://zeromix.vercel.app/Virtual_Assisten/live2d-viewer.html");
+                }
+                else
+                {
+                    Console.WriteLine($"[VA] live2d-viewer.html not found at: {htmlLocalPath}");
+                    return;
+                }
+
+                // Navigate ke viewer
+                WebView.Source = navigateUri;
 
                 // Wait for navigation to complete before marking initialized
                 var tcs = new TaskCompletionSource<bool>();

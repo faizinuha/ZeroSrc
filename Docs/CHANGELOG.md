@@ -16,6 +16,27 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) | [Semantic Ver
 - **API & SDK**: Public API dan SDK untuk developer — integrate ZeroMix features ke aplikasi lain.
 
 ---
+## [v6.9.4] - 2026-05-01
+
+### 🐛 Bug Fixes
+
+- **Fix plugin kucing tidak muncul** — `MediaElement` WPF tidak support format `.webm` (VP8/VP9). Video kucing di-convert ke `.mp4` (H.264) menggunakan FFmpeg agar bisa diplay native oleh WPF tanpa dependency tambahan.
+- **Fix FFmpeg not found di Studio** — Path hardcoded `"FFMPEG\ffmpeg.exe"` salah, seharusnya `"Tools\FFMPEG\ffmpeg.exe"`. Diganti ke `ResolveFFmpegPath()` yang sudah handle semua kemungkinan path.
+- **Fix System Tray tidak muncul saat pertama buka** — `InitializeTrayIcon()` dipanggil terlalu cepat sebelum HWND window benar-benar siap. Ditambah delay 500ms via `Dispatcher.BeginInvoke` dengan priority `Loaded`.
+- **Fix thumbnail karakter Virtual Assistant hitam** — Path separator `/` tidak konsisten di Windows. Diganti ke `Path.Combine()` yang proper + delay 200ms agar UI fully rendered sebelum load thumbnail.
+- **Fix ERR_FILE_NOT_FOUND di Virtual Assistant** — `live2d-viewer.html` di-navigate sebelum file dicek. Ditambah validasi `File.Exists()` sebelum navigate, log error jika file tidak ada.
+
+### 🔧 Changes
+
+- `neko1.webm` → `neko1.mp4` (H.264, CRF 23, preset fast, no audio)
+- `neko2.webm` → `neko2.mp4` (H.264, CRF 23, preset fast, no audio)
+- `CatOverlayWindow` — kembali pakai `MediaElement` (lebih ringan dari WebView2), hapus dependency WebView2 dari overlay
+- `ZeroMix.csproj` — tambah `*.mp4` content copy untuk plugin assets
+- `StudioWindow.xaml.cs` — export dan thumbnail generation pakai `ResolveFFmpegPath()` yang sudah ada
+- `MainWindow.xaml.cs` — tray icon init dengan delay, thumbnail load dengan delay + `Path.Combine()`
+- `VirtualAssistantWindow.xaml.cs` — validasi file HTML sebelum navigate ke virtual host
+
+---
 ## [v6.9.3] - 2026-04-30
 
 ### 🐛 Bug Fixes

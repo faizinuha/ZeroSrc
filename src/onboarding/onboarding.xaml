@@ -305,7 +305,7 @@
                                 <RowDefinition Height="*"/>
                             </Grid.RowDefinitions>
                             <TextBlock Grid.Row="0"
-                                       Text="What's New (6.9.3)"
+                                       Text="What's New (6.9.4)"
                                        FontSize="28"
                                        FontWeight="Bold"
                                        Foreground="White"

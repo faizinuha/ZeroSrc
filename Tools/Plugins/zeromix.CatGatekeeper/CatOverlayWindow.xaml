@@ -10,45 +10,44 @@
         ShowInTaskbar="False"
         ResizeMode="NoResize"
         Loaded="Window_Loaded">
-    
-    <Grid x:Name="RootGrid" Background="Transparent">
-        <!-- Countdown Timer -->
-        <TextBlock x:Name="CountdownText"
-                   FontSize="160"
-                   FontWeight="Bold"
-                   Foreground="White"
-                   HorizontalAlignment="Left"
-                   VerticalAlignment="Top"
-                   Margin="200,150,0,0">
-            <TextBlock.Effect>
-                <DropShadowEffect Color="Black" BlurRadius="20" ShadowDepth="0" Opacity="0.8"/>
-            </TextBlock.Effect>
-            <TextBlock.Background>
-                <SolidColorBrush Color="Black" Opacity="0.6"/>
-            </TextBlock.Background>
-        </TextBlock>
-        
-        <!-- Cat Video -->
+
+    <Grid x:Name="RootGrid" Background="#CC000000">
+
+        <!-- Cat Video (mp4 — WPF MediaElement native support) -->
         <MediaElement x:Name="CatVideo"
                       LoadedBehavior="Manual"
                       UnloadedBehavior="Stop"
                       Stretch="Uniform"
-                      VerticalAlignment="Center"
-                      HorizontalAlignment="Center"
-                      MediaEnded="CatVideo_MediaEnded"/>
-        
-        <!-- Credit Text -->
-        <TextBlock Text="Aset Asli oleh: @konekone2026 (ZOKUZOKU) – Cat Gatekeeper&#x0a;Ekstraksi &amp; Optimasi: Zaki&#x0a;Sumber: https://x.com/konekone2026"
-                   FontSize="12"
-                   Foreground="White"
-                   HorizontalAlignment="Right"
-                   VerticalAlignment="Bottom"
-                   Margin="0,0,20,20"
-                   TextAlignment="Right"
-                   Opacity="0.7">
-            <TextBlock.Effect>
-                <DropShadowEffect Color="Black" BlurRadius="5" ShadowDepth="1"/>
-            </TextBlock.Effect>
-        </TextBlock>
+                      HorizontalAlignment="Right"
+                      VerticalAlignment="Bottom"
+                      MediaEnded="CatVideo_MediaEnded">
+            <MediaElement.RenderTransform>
+                <TranslateTransform x:Name="VideoTranslate"/>
+            </MediaElement.RenderTransform>
+        </MediaElement>
+
+        <!-- Countdown Timer -->
+        <Border HorizontalAlignment="Left"
+                VerticalAlignment="Top"
+                Margin="80,120,0,0"
+                Background="#99000000"
+                CornerRadius="20"
+                Padding="40,20">
+            <TextBlock x:Name="CountdownText"
+                       FontSize="120"
+                       FontWeight="Bold"
+                       Foreground="White"
+                       TextAlignment="Center">
+                <TextBlock.Effect>
+                    <DropShadowEffect Color="Black" BlurRadius="20" ShadowDepth="0" Opacity="0.8"/>
+                </TextBlock.Effect>
+            </TextBlock>
+        </Border>
+
+        <!-- Credit -->
+        <TextBlock Text="Aset Asli oleh: @konekone2026 (ZOKUZOKU) – Cat Gatekeeper&#x0a;Ekstraksi &amp; Optimasi: Zaki · https://x.com/konekone2026"
+                   FontSize="11" Foreground="White"
+                   HorizontalAlignment="Right" VerticalAlignment="Bottom"
+                   Margin="0,0,20,20" TextAlignment="Right" Opacity="0.6"/>
     </Grid>
 </Window>

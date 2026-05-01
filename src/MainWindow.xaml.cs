@@ -46,7 +46,7 @@ namespace ZeroMix
     
     public partial class MainWindow : Wpf.Ui.Controls.FluentWindow, ZeroMix.Plugins.IZeroMixHost
     {
-        private const string CURRENT_VERSION = "6.9.3";
+        private const string CURRENT_VERSION = "6.9.4";
         
         // Windows API for Taskbar transparency
         [DllImport("user32.dll", SetLastError = true)]
@@ -380,8 +380,13 @@ namespace ZeroMix
             // Initialize Language Selector
             InitializeLanguageSelector();
 
-            // Setup tray icon SETELAH window loaded (agar punya HWND)
-            InitializeTrayIcon();
+            // Setup tray icon dengan delay kecil agar HWND benar-benar siap
+            // Tanpa delay, tray icon kadang tidak muncul saat pertama kali buka
+            Dispatcher.BeginInvoke(async () =>
+            {
+                await Task.Delay(500); // Tunggu window fully rendered
+                InitializeTrayIcon();
+            }, System.Windows.Threading.DispatcherPriority.Loaded);
 
             // Tunda semua operasi berat agar window selesai render dulu
             Dispatcher.BeginInvoke(async () =>
@@ -389,7 +394,8 @@ namespace ZeroMix
                 // Welcome screen — disabled (v6.9.0)
                 // ZeroMix.Plugins.Welcome.WelcomePlugin.TryShowWelcome();
 
-                // Load VA thumbnails
+                // Load VA thumbnails — delay agar UI sudah rendered
+                await Task.Delay(200);
                 LoadVAThumbnails();
                 
                 // Load CatGatekeeper plugin secara lazy dan aman
@@ -428,9 +434,9 @@ namespace ZeroMix
             string baseDir = AppDomain.CurrentDomain.BaseDirectory;
             var thumbs = new[]
             {
-                (Image: FrierenThumb, File: "Virtual_Assisten/VA_Thumbnails/Frieren.png"),
-                (Image: FernThumb,    File: "Virtual_Assisten/VA_Thumbnails/fern.jpg"),
-                (Image: HuohuoThumb, File: "Virtual_Assisten/VA_Thumbnails/Huohuo.jpg"),
+                (Image: FrierenThumb, File: Path.Combine("Virtual_Assisten", "VA_Thumbnails", "Frieren.png")),
+                (Image: FernThumb,    File: Path.Combine("Virtual_Assisten", "VA_Thumbnails", "fern.jpg")),
+                (Image: HuohuoThumb, File: Path.Combine("Virtual_Assisten", "VA_Thumbnails", "Huohuo.jpg")),
             };
 
             foreach (var (img, file) in thumbs)
@@ -448,7 +454,7 @@ namespace ZeroMix
                     bmp.BeginInit();
                     bmp.UriSource = new Uri(fullPath, UriKind.Absolute);
                     bmp.CacheOption = System.Windows.Media.Imaging.BitmapCacheOption.OnLoad;
-                    bmp.DecodePixelWidth = 300; // Limit decode size untuk hemat RAM
+                    bmp.DecodePixelWidth = 300;
                     bmp.EndInit();
                     bmp.Freeze();
 
