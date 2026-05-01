@@ -16,6 +16,32 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) | [Semantic Ver
 - **API & SDK**: Public API dan SDK untuk developer — integrate ZeroMix features ke aplikasi lain.
 
 ---
+## [v6.9.6] - 2026-05-01
+
+### ✨ Features
+
+- **Pixabay Media Mode Toggle** — Panel Pixabay di Studio sekarang punya 2 mode: **🎬 Video** (cari video biasa) dan **🎵 Music** (cari video dengan `category=music` dari Pixabay API). Klik tombol toggle untuk switch mode sebelum search.
+- **Pixabay API Key Baru** — API key Pixabay diperbarui ke key yang valid (`52490765-...`) dan di-XOR encode di `ApiKeys.cs` sebagai `PixabayVideoKey`. Key lama (`PixabayKey`) tetap ada untuk backward compatibility.
+- **Filter Status Indicator** — Filter yang aktif sekarang menampilkan badge `✓ Active` di sebelah kanan nama filter. Tombol `✕ Clear Filter` ditambahkan untuk reset ke None.
+- **Filter Info Text** — Tambah keterangan "Applied at export via FFmpeg" agar user tahu filter bekerja saat export, bukan real-time preview.
+- **Pixabay Results Improved** — Hasil pencarian sekarang tampilkan duration dan username di setiap item. Category button ditambah: Nature.
+
+### 🐛 Bug Fixes
+
+- **Fix System tray Deail** — Sebelumnya hanya delay 500 sekarang di percepat agar efisian
+- **Fix Pixabay tidak ada hasil music** — Sebelumnya hanya search `video_type=film`, sekarang mode music menggunakan `category=music` dari Pixabay Videos API.
+- **Fix PIXABAY_KEY** — Diganti dari `ApiKeys.PixabayKey` (key lama) ke `ApiKeys.PixabayVideoKey` (key baru yang valid).
+- **Fix Filter tidak ada feedback** — Filter sebelumnya tidak ada indikator mana yang aktif. Sekarang ada `StatusText` yang update saat filter dipilih.
+
+### 🔧 Changes
+
+- `src/ApiKeys.cs` — Tambah `PixabayVideoKey` dengan API key baru ter-XOR
+- `src/Studio/StudioWindow.xaml` — Pixabay panel: tambah mode toggle Video/Music, improve results list (duration + user), tambah Nature category
+- `src/Studio/StudioWindow.xaml.cs` — `PerformPixabaySearch()` support parameter `mode`, tambah `PixabayModeVideo_Click`, `PixabayModeMusic_Click`, `ClearFilter_Click`
+- `FilterItem` — Tambah property `StatusText` untuk indicator filter aktif
+- `FilterList_SelectionChanged` — Update StatusText saat filter dipilih, refresh list
+
+---
 ## [v6.9.4] - 2026-05-01
 
 ### 🐛 Bug Fixes

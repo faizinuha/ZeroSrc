@@ -872,7 +872,7 @@
                                                                Margin="0,0,0,6"/>
                                                     <StackPanel Orientation="Horizontal">
                                                         <TextBlock x:Name="VersionText"
-                                                                   Text="6.9.0"
+                                                                   Text="6.9.6"
                                                                    FontSize="18"
                                                                    FontWeight="Bold"
                                                                    Foreground="White"
@@ -897,6 +897,29 @@
                                                         Style="{StaticResource ActionButton}"
                                                         Padding="16,8"
                                                         Click="CheckUpdateBtn_Click"/>
+                                            </Grid>
+                                        </Border>
+
+                                        <!-- Open Updater -->
+                                        <Border Background="#0D1117" CornerRadius="10" Padding="16" Margin="0,0,0,24"
+                                                BorderBrush="#1A2030" BorderThickness="1">
+                                            <Grid>
+                                                <StackPanel>
+                                                    <TextBlock Text="UPDATER"
+                                                               FontWeight="Bold"
+                                                               Foreground="{StaticResource TextMutedBrush}"
+                                                               FontSize="10"
+                                                               Margin="0,0,0,4"/>
+                                                    <TextBlock Text="Download dan install versi terbaru secara otomatis."
+                                                               Foreground="{StaticResource SubTextBrush}"
+                                                               FontSize="11"/>
+                                                </StackPanel>
+                                                <Button Content="Open Updater"
+                                                        HorizontalAlignment="Right"
+                                                        VerticalAlignment="Center"
+                                                        Style="{StaticResource ActionButton}"
+                                                        Padding="16,8"
+                                                        Click="OpenUpdaterBtn_Click"/>
                                             </Grid>
                                         </Border>
 

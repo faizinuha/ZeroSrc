@@ -65,6 +65,13 @@ jobs:
         $VER = "${{ steps.version.outputs.version }}" -replace '^v', ''
         Write-Host "⏳ Restoring dependencies..."
         dotnet restore ZeroMix.csproj
+
+        # Update versi di Setup.iss agar installer versi sesuai tag
+        $issContent = Get-Content "Exe/Setup.iss" -Raw
+        $issContent = $issContent -replace '#define AppVersion "[\d\.]+"', "#define AppVersion `"$VER`""
+        Set-Content "Exe/Setup.iss" $issContent -Encoding UTF8
+        Write-Host "✅ Setup.iss version updated to $VER"
+
         Write-Host "⏳ Publishing application..."
         dotnet publish ZeroMix.csproj -c Release -o publish/win-x64 `
           -p:Version=$VER `
@@ -72,6 +79,14 @@ jobs:
           -p:PublishReadyToRun=true `
           --self-contained true -r win-x64
         Write-Host "✅ Publish complete"
+
+        # Pastikan folder Virtual_Assisten/VA_Thumbnails ada di output
+        # (thumbnail mungkin tidak ada di CI karena model files tidak di-commit)
+        $thumbDir = "publish/win-x64/Virtual_Assisten/VA_Thumbnails"
+        if (!(Test-Path $thumbDir)) {
+          New-Item -ItemType Directory -Force -Path $thumbDir | Out-Null
+          Write-Host "📁 Created thumbnail directory: $thumbDir"
+        }
 
     # ─── STEP 3: Download FFMPEG ────────────────────────────────────────────
     - name: 🎬 Download FFMPEG
