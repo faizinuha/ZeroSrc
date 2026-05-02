@@ -46,7 +46,7 @@ namespace ZeroMix
     
     public partial class MainWindow : Wpf.Ui.Controls.FluentWindow, ZeroMix.Plugins.IZeroMixHost
     {
-        private const string CURRENT_VERSION = "6.9.6";
+        private const string CURRENT_VERSION = "6.9.8";
         
         // Windows API for Taskbar transparency
         [DllImport("user32.dll", SetLastError = true)]
@@ -388,11 +388,11 @@ namespace ZeroMix
             // Tunda semua operasi berat agar window selesai render dulu
             Dispatcher.BeginInvoke(async () =>
             {
-                // Welcome screen — disabled (v6.9.6)
+                // Welcome screen — disabled (v6.9.8)
                 // ZeroMix.Plugins.Welcome.WelcomePlugin.TryShowWelcome();
 
-                // Load VA thumbnails — delay agar UI sudah rendered
-                await Task.Delay(200);
+                // Load VA thumbnails — delay lebih lama agar view sudah di-render
+                await Task.Delay(800);
                 LoadVAThumbnails();
                 
                 // Load CatGatekeeper plugin secara lazy dan aman
@@ -2231,72 +2231,89 @@ end";
         {
             try
             {
-                // Launch ZeroMix-Updater.exe
-                string updaterPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Tools", "Updater", "ZeroMix-Updater.exe");
-                
-                if (!File.Exists(updaterPath))
+                string baseDir = AppDomain.CurrentDomain.BaseDirectory;
+
+                // 1. Coba ZeroMix-Updater.exe dulu (GUI updater)
+                string updaterExe = Path.Combine(baseDir, "Tools", "Updater", "ZeroMix-Updater.exe");
+                if (File.Exists(updaterExe))
                 {
-                    // Fallback ke old method jika updater tidak ada
-                    StatusLabel.Text = "Checking for updates...";
-                    
-                    using (var client = new HttpClient())
+                    Process.Start(new ProcessStartInfo
                     {
-                        client.DefaultRequestHeaders.Add("User-Agent", "ZeroMix-App");
-                        var response = await client.GetStringAsync("https://api.github.com/repos/faizinuha/ZeroMix/releases/latest");
-                        var json = JsonDocument.Parse(response);
-                        
-                        string latestVersion = json.RootElement.GetProperty("tag_name").GetString()?.TrimStart('v') ?? "";
-                        string downloadUrl = json.RootElement.GetProperty("html_url").GetString() ?? "";
-                        
-                        if (IsNewerVersion(latestVersion, CURRENT_VERSION))
-                        {
-                            var result = System.Windows.MessageBox.Show(
-                                $"New version available: v{latestVersion}\n\n" +
-                                $"Current version: v{CURRENT_VERSION}\n\n" +
-                                $"Do you want to open the download page?",
-                                "Update Available",
-                                MessageBoxButton.YesNo,
-                                MessageBoxImage.Information);
-                            
-                            if (result == MessageBoxResult.Yes)
-                            {
-                                Process.Start(new ProcessStartInfo(downloadUrl) { UseShellExecute = true });
-                            }
-                            
-                            StatusLabel.Text = $"Update available: v{latestVersion}";
-                        }
-                        else
-                        {
-                            System.Windows.MessageBox.Show(
-                                $"You are using the latest version (v{CURRENT_VERSION})",
-                                "No Updates",
-                                MessageBoxButton.OK,
-                                MessageBoxImage.Information);
-                            
-                            StatusLabel.Text = "You're up to date!";
-                        }
-                    }
+                        FileName = updaterExe,
+                        UseShellExecute = true,
+                        WorkingDirectory = Path.GetDirectoryName(updaterExe)
+                    });
+                    StatusLabel.Text = "Updater launched...";
                     return;
                 }
-                
-                // Launch updater
-                Process.Start(new ProcessStartInfo
+
+                // 2. Fallback: buka terminal dan jalankan zeromix-update.bat → ps1
+                string batPath = Path.Combine(baseDir, "zeromix-update.bat");
+                string ps1Path = Path.Combine(baseDir, "zeromix-update.ps1");
+
+                if (File.Exists(batPath))
                 {
-                    FileName = updaterPath,
-                    UseShellExecute = true,
-                    WorkingDirectory = Path.GetDirectoryName(updaterPath)
-                });
-                
-                StatusLabel.Text = "Updater launched...";
+                    // Buka CMD biasa (terminal yang umum dikenal user)
+                    Process.Start(new ProcessStartInfo
+                    {
+                        FileName = "cmd.exe",
+                        Arguments = $"/k \"{batPath}\"",
+                        UseShellExecute = true,
+                        WorkingDirectory = baseDir
+                    });
+                    StatusLabel.Text = "Update terminal opened...";
+                    return;
+                }
+
+                if (File.Exists(ps1Path))
+                {
+                    // Buka PowerShell dengan ps1
+                    Process.Start(new ProcessStartInfo
+                    {
+                        FileName = "powershell.exe",
+                        Arguments = $"-NoExit -ExecutionPolicy Bypass -File \"{ps1Path}\"",
+                        UseShellExecute = true,
+                        WorkingDirectory = baseDir
+                    });
+                    StatusLabel.Text = "Update terminal opened...";
+                    return;
+                }
+
+                // 3. Fallback terakhir: cek GitHub API dan buka browser
+                StatusLabel.Text = "Checking for updates...";
+                using var client = new HttpClient();
+                client.DefaultRequestHeaders.Add("User-Agent", "ZeroMix-App");
+                client.Timeout = TimeSpan.FromSeconds(8);
+                var response = await client.GetStringAsync("https://api.github.com/repos/faizinuha/ZeroMix/releases/latest");
+                var json = JsonDocument.Parse(response);
+
+                string latestVersion = json.RootElement.GetProperty("tag_name").GetString()?.TrimStart('v') ?? "";
+                string downloadUrl   = json.RootElement.GetProperty("html_url").GetString() ?? "";
+
+                if (IsNewerVersion(latestVersion, CURRENT_VERSION))
+                {
+                    var result = System.Windows.MessageBox.Show(
+                        $"Update tersedia: v{latestVersion}\n\nVersi saat ini: v{CURRENT_VERSION}\n\nBuka halaman download?",
+                        "Update Available", MessageBoxButton.YesNo, MessageBoxImage.Information);
+
+                    if (result == MessageBoxResult.Yes)
+                        Process.Start(new ProcessStartInfo(downloadUrl) { UseShellExecute = true });
+
+                    StatusLabel.Text = $"Update available: v{latestVersion}";
+                }
+                else
+                {
+                    System.Windows.MessageBox.Show(
+                        $"Sudah versi terbaru (v{CURRENT_VERSION})",
+                        "No Updates", MessageBoxButton.OK, MessageBoxImage.Information);
+                    StatusLabel.Text = "You're up to date!";
+                }
             }
             catch (Exception ex)
             {
                 System.Windows.MessageBox.Show(
-                    $"Failed to launch updater:\n{ex.Message}\n\nPlease check manually at:\nhttps://github.com/faizinuha/ZeroMix/releases",
-                    "Update Check Failed",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Warning);
-                
+                    $"Gagal cek update:\n{ex.Message}\n\nCek manual di:\nhttps://github.com/faizinuha/ZeroMix/releases",
+                    "Update Check Failed", MessageBoxButton.OK, MessageBoxImage.Warning);
                 StatusLabel.Text = "Update check failed";
             }
         }

@@ -1,8 +1,5 @@
 using System;
-using System.Diagnostics;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Navigation;
 using System.Windows.Threading;
 
 namespace zeromix.CatGatekeeper
@@ -14,7 +11,6 @@ namespace zeromix.CatGatekeeper
         private CatOverlayWindow? _overlayWindow;
         private bool _isExpanded = false;
 
-        // Parameterless constructor untuk XAML / lazy load dari code-behind
         public CatGatekeeperUI() : this(new CatGatekeeperService()) { }
 
         public CatGatekeeperUI(CatGatekeeperService service)
@@ -24,26 +20,27 @@ namespace zeromix.CatGatekeeper
             _service.OnBreakTimeReached += OnBreakTimeReached;
             _service.OnBreakEnded += OnBreakEnded;
 
-            // Semua init setelah UI loaded — cegah crash saat XAML parse
-            this.Loaded += OnLoaded;
+            this.Loaded   += OnLoaded;
             this.Unloaded += OnUnloaded;
         }
 
         private void OnLoaded(object sender, RoutedEventArgs e)
         {
-            // Load saved settings dulu sebelum start
             LoadSettings();
-
-            // Start service
             _service.Start();
 
-            // Update status setiap detik
             _updateTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
             _updateTimer.Tick += UpdateStatus;
             _updateTimer.Start();
 
-            // Restore toggle state
             CatPluginToggle.IsChecked = true;
+
+            // TestDurationSlider handler
+            TestDurationSlider.ValueChanged += (s, ev) =>
+            {
+                int min = (int)ev.NewValue;
+                TestDurationText.Text = $"{min} menit";
+            };
         }
 
         private void OnUnloaded(object sender, RoutedEventArgs e)
@@ -52,12 +49,28 @@ namespace zeromix.CatGatekeeper
             _service.Stop();
         }
 
-        // ── Card click: toggle expand ──────────────────────────────────────
+        // ── Card click ─────────────────────────────────────────────────────
         private void CatCard_MouseDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
         {
             _isExpanded = !_isExpanded;
             CatSettingsBorder.Visibility = _isExpanded ? Visibility.Visible : Visibility.Collapsed;
             StatusText.Visibility = _isExpanded ? Visibility.Collapsed : Visibility.Visible;
+        }
+
+        // ── Test button ────────────────────────────────────────────────────
+        private void TestBtn_Click(object sender, RoutedEventArgs e)
+        {
+            // Ambil durasi dari slider (1 atau 2 menit)
+            int testMinutes = (int)(TestDurationSlider?.Value ?? 1);
+
+            // Tutup overlay lama jika ada
+            _overlayWindow?.Close();
+            _overlayWindow = null;
+
+            // Buka overlay test
+            _overlayWindow = new CatOverlayWindow(testMinutes);
+            _overlayWindow.Closed += (s, ev) => _overlayWindow = null;
+            _overlayWindow.Show();
         }
 
         // ── Checkbox toggle ────────────────────────────────────────────────
@@ -67,19 +80,25 @@ namespace zeromix.CatGatekeeper
             if (isEnabled)
             {
                 _service.Start();
-                StatusDetailText.Text = "Tracking...";
-                StatusDetailText.Foreground = System.Windows.Media.Brushes.LimeGreen;
+                if (StatusDetailText != null)
+                {
+                    StatusDetailText.Text = "Tracking...";
+                    StatusDetailText.Foreground = System.Windows.Media.Brushes.LimeGreen;
+                }
             }
             else
             {
                 _service.Stop();
-                StatusDetailText.Text = "Disabled";
-                StatusDetailText.Foreground = System.Windows.Media.Brushes.Gray;
+                if (StatusDetailText != null)
+                {
+                    StatusDetailText.Text = "Disabled";
+                    StatusDetailText.Foreground = System.Windows.Media.Brushes.Gray;
+                }
             }
         }
 
         // ── Sliders ────────────────────────────────────────────────────────
-        private void UsageLimitSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        private void UsageLimitSlider_ValueChanged(object sender, System.Windows.RoutedPropertyChangedEventArgs<double> e)
         {
             if (UsageLimitText == null) return;
             int minutes = (int)e.NewValue;
@@ -88,7 +107,7 @@ namespace zeromix.CatGatekeeper
             SaveSettings();
         }
 
-        private void BreakTimeSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        private void BreakTimeSlider_ValueChanged(object sender, System.Windows.RoutedPropertyChangedEventArgs<double> e)
         {
             if (BreakTimeText == null) return;
             int minutes = (int)e.NewValue;
@@ -103,21 +122,21 @@ namespace zeromix.CatGatekeeper
             if (ActiveTimeText == null || StatusDetailText == null) return;
 
             int seconds = _service.GetCurrentSeconds();
-            int minutes = seconds / 60;
-            int secs = seconds % 60;
-            ActiveTimeText.Text = $"{minutes} menit {secs} detik";
+            int m = seconds / 60;
+            int s = seconds % 60;
+            ActiveTimeText.Text = $"{m}m {s}s";
 
             if (_service.IsBreakActive())
             {
                 StatusDetailText.Text = "Break! 🐱";
                 StatusDetailText.Foreground = System.Windows.Media.Brushes.Orange;
-                StatusText.Text = "Break Time! 🐱";
+                if (StatusText != null) StatusText.Text = "Break Time! 🐱";
             }
             else if (CatPluginToggle.IsChecked == true)
             {
                 StatusDetailText.Text = "Tracking...";
                 StatusDetailText.Foreground = System.Windows.Media.Brushes.LimeGreen;
-                StatusText.Text = $"Aktif: {minutes}m {secs}s";
+                if (StatusText != null) StatusText.Text = $"Aktif: {m}m {s}s";
             }
         }
 
@@ -126,6 +145,7 @@ namespace zeromix.CatGatekeeper
         {
             Dispatcher.Invoke(() =>
             {
+                _overlayWindow?.Close();
                 _overlayWindow = new CatOverlayWindow(_service.BreakTimeMinutes);
                 _overlayWindow.Closed += (s, e) => _service.EndBreak();
                 _overlayWindow.Show();
@@ -141,55 +161,48 @@ namespace zeromix.CatGatekeeper
             });
         }
 
-        // ── Settings persistence ───────────────────────────────────────────
+        // ── Settings ───────────────────────────────────────────────────────
         private void LoadSettings()
         {
             try
             {
-                string configPath = System.IO.Path.Combine(
+                string path = System.IO.Path.Combine(
                     Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
                     "ZeroMix", "cat_gatekeeper_config.json");
 
-                if (System.IO.File.Exists(configPath))
+                if (System.IO.File.Exists(path))
                 {
-                    string json = System.IO.File.ReadAllText(configPath);
-                    var config = System.Text.Json.JsonSerializer.Deserialize<Config>(json);
-                    if (config != null)
+                    var json = System.IO.File.ReadAllText(path);
+                    var cfg  = System.Text.Json.JsonSerializer.Deserialize<Config>(json);
+                    if (cfg != null)
                     {
-                        UsageLimitSlider.Value = config.UsageLimitMinutes;
-                        BreakTimeSlider.Value  = config.BreakTimeMinutes;
+                        UsageLimitSlider.Value = cfg.UsageLimitMinutes;
+                        BreakTimeSlider.Value  = cfg.BreakTimeMinutes;
                     }
                 }
             }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"[CatGatekeeper] Load settings error: {ex.Message}");
-            }
+            catch { }
+        }
+
+        private void Credit_RequestNavigate(object sender, System.Windows.Navigation.RequestNavigateEventArgs e)
+        {
+            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(e.Uri.AbsoluteUri) { UseShellExecute = true });
+            e.Handled = true;
         }
 
         private void SaveSettings()
         {
             try
             {
-                string configDir = System.IO.Path.Combine(
+                string dir = System.IO.Path.Combine(
                     Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "ZeroMix");
-                System.IO.Directory.CreateDirectory(configDir);
+                System.IO.Directory.CreateDirectory(dir);
 
-                var config = new Config
-                {
-                    UsageLimitMinutes = _service.UsageLimitMinutes,
-                    BreakTimeMinutes  = _service.BreakTimeMinutes
-                };
-
-                string json = System.Text.Json.JsonSerializer.Serialize(config,
-                    new System.Text.Json.JsonSerializerOptions { WriteIndented = true });
-                System.IO.File.WriteAllText(
-                    System.IO.Path.Combine(configDir, "cat_gatekeeper_config.json"), json);
+                var cfg  = new Config { UsageLimitMinutes = _service.UsageLimitMinutes, BreakTimeMinutes = _service.BreakTimeMinutes };
+                var json = System.Text.Json.JsonSerializer.Serialize(cfg, new System.Text.Json.JsonSerializerOptions { WriteIndented = true });
+                System.IO.File.WriteAllText(System.IO.Path.Combine(dir, "cat_gatekeeper_config.json"), json);
             }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"[CatGatekeeper] Save settings error: {ex.Message}");
-            }
+            catch { }
         }
 
         private class Config

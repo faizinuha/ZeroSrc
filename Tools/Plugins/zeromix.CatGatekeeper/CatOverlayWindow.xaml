@@ -11,43 +11,52 @@
         ResizeMode="NoResize"
         Loaded="Window_Loaded">
 
-    <Grid x:Name="RootGrid" Background="#CC000000">
+    <Grid x:Name="RootGrid">
 
-        <!-- Cat Video (mp4 — WPF MediaElement native support) -->
+        <!-- Cat Video — fill tinggi layar, anchor kanan bawah seperti Chrome extension -->
         <MediaElement x:Name="CatVideo"
                       LoadedBehavior="Manual"
                       UnloadedBehavior="Stop"
-                      Stretch="Uniform"
+                      Stretch="UniformToFill"
                       HorizontalAlignment="Right"
                       VerticalAlignment="Bottom"
+                      Width="Auto"
                       MediaEnded="CatVideo_MediaEnded">
             <MediaElement.RenderTransform>
-                <TranslateTransform x:Name="VideoTranslate"/>
+                <TranslateTransform x:Name="VideoTranslate" X="3000"/>
             </MediaElement.RenderTransform>
         </MediaElement>
 
-        <!-- Countdown Timer -->
+        <!-- Countdown Timer — pojok kiri atas -->
         <Border HorizontalAlignment="Left"
                 VerticalAlignment="Top"
-                Margin="80,120,0,0"
-                Background="#99000000"
-                CornerRadius="20"
-                Padding="40,20">
-            <TextBlock x:Name="CountdownText"
-                       FontSize="120"
-                       FontWeight="Bold"
-                       Foreground="White"
-                       TextAlignment="Center">
-                <TextBlock.Effect>
-                    <DropShadowEffect Color="Black" BlurRadius="20" ShadowDepth="0" Opacity="0.8"/>
-                </TextBlock.Effect>
-            </TextBlock>
+                Margin="60,80,0,0"
+                Background="#CC000000"
+                CornerRadius="16"
+                Padding="28,14">
+            <StackPanel>
+                <TextBlock Text="Break Time!"
+                           FontSize="14" FontWeight="Bold"
+                           Foreground="#00D68F"
+                           HorizontalAlignment="Center"
+                           Margin="0,0,0,2"/>
+                <TextBlock x:Name="CountdownText"
+                           FontSize="72"
+                           FontWeight="Bold"
+                           Foreground="White"
+                           TextAlignment="Center"
+                           MinWidth="140">
+                    <TextBlock.Effect>
+                        <DropShadowEffect Color="Black" BlurRadius="12" ShadowDepth="0" Opacity="0.9"/>
+                    </TextBlock.Effect>
+                </TextBlock>
+                <TextBlock Text="Istirahat sebentar 🐱"
+                           FontSize="12"
+                           Foreground="#AAAAAA"
+                           HorizontalAlignment="Center"
+                           Margin="0,3,0,0"/>
+            </StackPanel>
         </Border>
 
-        <!-- Credit -->
-        <TextBlock Text="Aset Asli oleh: @konekone2026 (ZOKUZOKU) – Cat Gatekeeper&#x0a;Ekstraksi &amp; Optimasi: Zaki · https://x.com/konekone2026"
-                   FontSize="11" Foreground="White"
-                   HorizontalAlignment="Right" VerticalAlignment="Bottom"
-                   Margin="0,0,20,20" TextAlignment="Right" Opacity="0.6"/>
     </Grid>
 </Window>

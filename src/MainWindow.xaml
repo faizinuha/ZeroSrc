@@ -872,7 +872,7 @@
                                                                Margin="0,0,0,6"/>
                                                     <StackPanel Orientation="Horizontal">
                                                         <TextBlock x:Name="VersionText"
-                                                                   Text="6.9.6"
+                                                                   Text="6.9.8"
                                                                    FontSize="18"
                                                                    FontWeight="Bold"
                                                                    Foreground="White"
@@ -984,7 +984,9 @@
                                             </TextBlock>
                                             <TextBlock Margin="0,0,0,4" FontSize="12">
                                                 <Run Text="• " Foreground="{StaticResource NeonBlueBrush}"/>
-                                                <Hyperlink RequestNavigate="Hyperlink_RequestNavigate" NavigateUri="https://x.com/konekone2026">https://x.com/konekone2026</Hyperlink>
+                                                <Hyperlink RequestNavigate="Hyperlink_RequestNavigate" 
+                                                NavigateUri="https://x.com/konekone2026">
+                                                https://x.com/konekone2026</Hyperlink>
                                             </TextBlock>
                                             <TextBlock Margin="0,0,0,4" FontSize="12" Foreground="{StaticResource SubTextBrush}">
                                                 <Run Text="• Ekstraksi &amp; Adaptasi ke WPF: "/><Run Text="Zaki" FontWeight="Bold" Foreground="White"/>

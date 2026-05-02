@@ -5,7 +5,7 @@
 ; --- App Identity ---
 AppId={{ZeroMix-v2-ZeroMix-identifier}}
 AppName=ZeroMix
-#define AppVersion "6.9.6"
+#define AppVersion "6.9.8"
 AppVersion={#AppVersion}
 VersionInfoVersion={#AppVersion}.0
 VersionInfoCompany=Frieren
@@ -94,6 +94,10 @@ Source: "..\publish\win-x64\Tools\Updater\*.dll"; DestDir: "{app}\Tools\Updater"
 
 ; Documentation
 Source: "..\LICENSE.txt"; DestDir: "{app}"; Flags: ignoreversion
+
+; Update scripts
+Source: "..\zeromix-update.ps1"; DestDir: "{app}"; Flags: ignoreversion skipifsourcedoesntexist
+Source: "..\zeromix-update.bat"; DestDir: "{app}"; Flags: ignoreversion skipifsourcedoesntexist
 
 [Icons]
 Name: "{group}\ZeroMix"; Filename: "{app}\ZeroMix.exe"; IconFilename: "{app}\zeromix.ico"

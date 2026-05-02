@@ -116,21 +116,16 @@ namespace ZeroMix.Virtual_Assisten
 
                 // Cek file HTML ada dulu sebelum navigate
                 string htmlLocalPath = Path.Combine(appBase, "Virtual_Assisten", "live2d-viewer.html");
-                Uri navigateUri;
                 
-                if (File.Exists(htmlLocalPath))
-                {
-                    // Pakai virtual host (lebih aman, support relative paths)
-                    navigateUri = new Uri("https://zeromix.vercel.app/Virtual_Assisten/live2d-viewer.html");
-                }
-                else
+                if (!File.Exists(htmlLocalPath))
                 {
                     Console.WriteLine($"[VA] live2d-viewer.html not found at: {htmlLocalPath}");
                     return;
                 }
 
-                // Navigate ke viewer
-                WebView.Source = navigateUri;
+                // Pakai virtual host — lebih cepat karena tidak perlu resolve file:/// path
+                // Virtual host sudah di-map ke appBase folder
+                WebView.Source = new Uri("https://zeromix.vercel.app/Virtual_Assisten/live2d-viewer.html");
 
                 // Wait for navigation to complete before marking initialized
                 var tcs = new TaskCompletionSource<bool>();
@@ -157,12 +152,26 @@ namespace ZeroMix.Virtual_Assisten
         private async Task SendModelToWebView(string characterName)
         {
             if (!_isWebViewInitialized || _isWebViewDisposed) return;
+            
             string modelPath = GetModelPath(characterName);
+            
+            if (!File.Exists(modelPath))
+            {
+                Console.WriteLine($"[VA] Model not found: {modelPath}");
+                return;
+            }
+
+            // Convert ke virtual host URL — konsisten dengan cara HTML di-load
             string appBase = AppDomain.CurrentDomain.BaseDirectory.TrimEnd('\\', '/');
-            string webPath = "https://zeromix.vercel.app/" + modelPath.Replace(appBase, "").TrimStart('\\', '/').Replace("\\", "/");
+            string relativePath = modelPath.Replace(appBase, "").TrimStart('\\', '/').Replace("\\", "/");
+            string webPath = "https://zeromix.vercel.app/" + relativePath;
+            
+            Console.WriteLine($"[VA] Loading model: {webPath}");
+            
             try
             {
-                await WebView.ExecuteScriptAsync($"if(typeof changeModel === 'function') changeModel('{Uri.EscapeUriString(webPath)}');");
+                string escaped = Uri.EscapeUriString(webPath).Replace("'", "\\'");
+                await WebView.ExecuteScriptAsync($"if(typeof changeModel === 'function') changeModel('{escaped}');");
             }
             catch (Exception ex) { Console.WriteLine($"[VA] SendModel error: {ex.Message}"); }
         }
@@ -200,11 +209,12 @@ namespace ZeroMix.Virtual_Assisten
         private string GetModelPath(string characterName)
         {
             string baseDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Virtual_Assisten");
+            // Gunakan Path.Combine agar konsisten di Windows (backslash)
             return characterName switch
             {
-                "Fern" => Path.Combine(baseDir, "Sou Sou No Frieren/fern/fern.model3.json"),
-                "Huohuo" => Path.Combine(baseDir, "Mihoyo/Honkai_Star_Rail/huohuo/huohuo.model3.json"),
-                _ => Path.Combine(baseDir, "Sou Sou No Frieren/Frieren/Frieren.model3.json")
+                "Fern"   => Path.Combine(baseDir, "Sou Sou No Frieren", "fern", "fern.model3.json"),
+                "Huohuo" => Path.Combine(baseDir, "Mihoyo", "Honkai_Star_Rail", "huohuo", "huohuo.model3.json"),
+                _        => Path.Combine(baseDir, "Sou Sou No Frieren", "Frieren", "Frieren.model3.json")
             };
         }
 

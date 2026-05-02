@@ -14,6 +14,7 @@ namespace zeromix.CatGatekeeper
         private string _video1Path;
         private string _video2Path;
         private bool _isVideo1Playing = true;
+        private bool _isClosed = false;
 
         // Low-level hooks untuk block input
         private const int WH_KEYBOARD_LL = 13;
@@ -37,11 +38,11 @@ namespace zeromix.CatGatekeeper
 
             _remainingSeconds = breakMinutes * 60;
 
-            string pluginDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory,
+            string assetsDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory,
                 "Tools", "Plugins", "zeromix.CatGatekeeper", "assets");
 
-            _video1Path = Path.Combine(pluginDir, "neko1.mp4");
-            _video2Path = Path.Combine(pluginDir, "neko2.mp4");
+            _video1Path = Path.Combine(assetsDir, "neko1.mp4");
+            _video2Path = Path.Combine(assetsDir, "neko2.mp4");
 
             this.PreviewKeyDown += (s, e) => e.Handled = true;
             _keyboardProc = KeyboardHookCallback;
@@ -51,59 +52,89 @@ namespace zeromix.CatGatekeeper
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
             // Install input hooks
-            using var proc = System.Diagnostics.Process.GetCurrentProcess();
-            var module = proc.MainModule;
-            if (module != null)
+            try
             {
-                _keyboardHookID = SetWindowsHookEx(WH_KEYBOARD_LL, _keyboardProc!, GetModuleHandle(module.ModuleName), 0);
-                _mouseHookID    = SetWindowsHookEx(WH_MOUSE_LL,    _mouseProc!,    GetModuleHandle(module.ModuleName), 0);
+                using var proc = System.Diagnostics.Process.GetCurrentProcess();
+                var module = proc.MainModule;
+                if (module != null)
+                {
+                    _keyboardHookID = SetWindowsHookEx(WH_KEYBOARD_LL, _keyboardProc!, GetModuleHandle(module.ModuleName), 0);
+                    _mouseHookID    = SetWindowsHookEx(WH_MOUSE_LL,    _mouseProc!,    GetModuleHandle(module.ModuleName), 0);
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[CatGatekeeper] Hook error: {ex.Message}");
             }
 
-            // Play video 1 dengan slide-in animation
+            // Update countdown dulu sebelum timer start
+            UpdateCountdownText();
+
+            // Play video 1 — slide in dari kanan seperti Chrome extension
             if (File.Exists(_video1Path))
             {
                 CatVideo.Source = new Uri(_video1Path);
                 CatVideo.Play();
 
-                // Slide in dari kanan
+                // Slide in dari kanan ke posisi normal
                 var slideIn = new DoubleAnimation
                 {
-                    From     = SystemParameters.PrimaryScreenWidth,
-                    To       = 0,
-                    Duration = TimeSpan.FromSeconds(3),
+                    From           = SystemParameters.PrimaryScreenWidth,
+                    To             = 0,
+                    Duration       = TimeSpan.FromSeconds(2.5),
                     EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut }
                 };
                 VideoTranslate.BeginAnimation(System.Windows.Media.TranslateTransform.XProperty, slideIn);
             }
+            else
+            {
+                Console.WriteLine($"[CatGatekeeper] Video not found: {_video1Path}");
+            }
 
-            // Start countdown
-            UpdateCountdownText();
-            _countdownTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
+            // Start countdown timer
+            _countdownTimer = new DispatcherTimer
+            {
+                Interval = TimeSpan.FromSeconds(1)
+            };
             _countdownTimer.Tick += CountdownTick;
             _countdownTimer.Start();
         }
 
         private void CatVideo_MediaEnded(object sender, RoutedEventArgs e)
         {
-            if (_isVideo1Playing && File.Exists(_video2Path))
+            if (_isClosed) return;
+
+            if (_isVideo1Playing)
             {
                 _isVideo1Playing = false;
-                CatVideo.Source  = new Uri(_video2Path);
-                CatVideo.Play();
-                // Loop neko2
-                CatVideo.MediaEnded -= CatVideo_MediaEnded;
-                CatVideo.MediaEnded += (s, ev) =>
+
+                if (File.Exists(_video2Path))
                 {
-                    CatVideo.Position = TimeSpan.Zero;
+                    // Switch ke neko2 (sleeping loop)
+                    CatVideo.Source = new Uri(_video2Path);
                     CatVideo.Play();
-                };
+
+                    // Loop neko2
+                    CatVideo.MediaEnded -= CatVideo_MediaEnded;
+                    CatVideo.MediaEnded += LoopVideo2;
+                }
             }
+        }
+
+        private void LoopVideo2(object sender, RoutedEventArgs e)
+        {
+            if (_isClosed) return;
+            CatVideo.Position = TimeSpan.Zero;
+            CatVideo.Play();
         }
 
         private void CountdownTick(object? sender, EventArgs e)
         {
+            if (_isClosed) return;
+
             _remainingSeconds--;
             UpdateCountdownText();
+
             if (_remainingSeconds <= 0)
             {
                 _countdownTimer?.Stop();
@@ -120,8 +151,27 @@ namespace zeromix.CatGatekeeper
 
         private void CloseWithFade()
         {
+            if (_isClosed) return;
+            _isClosed = true;
+
+            // Slide out kucing ke kanan
+            var slideOut = new DoubleAnimation
+            {
+                From     = 0,
+                To       = SystemParameters.PrimaryScreenWidth,
+                Duration = TimeSpan.FromSeconds(1.5),
+                EasingFunction = new CubicEase { EasingMode = EasingMode.EaseIn }
+            };
+
+            // Fade out countdown
             var fadeOut = new DoubleAnimation(1.0, 0.0, TimeSpan.FromSeconds(1));
-            fadeOut.Completed += (s, e) => { UnhookAll(); this.Close(); };
+            fadeOut.Completed += (s, e) =>
+            {
+                UnhookAll();
+                this.Close();
+            };
+
+            VideoTranslate.BeginAnimation(System.Windows.Media.TranslateTransform.XProperty, slideOut);
             RootGrid.BeginAnimation(OpacityProperty, fadeOut);
         }
 
@@ -132,7 +182,7 @@ namespace zeromix.CatGatekeeper
         }
 
         private IntPtr KeyboardHookCallback(int nCode, IntPtr wParam, IntPtr lParam)
-            => (IntPtr)1;
+            => (IntPtr)1; // Block semua keyboard
 
         private IntPtr MouseHookCallback(int nCode, IntPtr wParam, IntPtr lParam)
         {
@@ -147,9 +197,9 @@ namespace zeromix.CatGatekeeper
 
         protected override void OnClosed(EventArgs e)
         {
+            _isClosed = true;
             _countdownTimer?.Stop();
-            CatVideo.Stop();
-            CatVideo.Close();
+            try { CatVideo.Stop(); CatVideo.Close(); } catch { }
             UnhookAll();
             base.OnClosed(e);
         }
