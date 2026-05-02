@@ -16,6 +16,34 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) | [Semantic Ver
 - **API & SDK**: Public API dan SDK untuk developer — integrate ZeroMix features ke aplikasi lain.
 
 ---
+## [v6.9.8] - 2026-05-02
+
+### ✨ Features
+
+- **zeromix-update.ps1 & .bat** — Script update baru yang buka terminal CMD biasa saat `ZeroMix-Updater.exe` tidak tersedia. Flow: Klik "Check for Updates" → buka `cmd.exe` → jalankan `zeromix-update.bat` → PowerShell cek GitHub API → download Setup.exe → install otomatis.
+- **Docs/GUIDE_ADD_MODEL.md** — Panduan lengkap cara tambah model Live2D baru ke Virtual Assistant: struktur folder, daftar di `GetModelPath()`, tambah card di XAML, load thumbnail, tambah expressions/motions di HTML viewer.
+
+### 🐛 Bug Fixes
+
+- **Fix VA 404 NOT_FOUND** — WebView2 mencoba load `https://zeromix.vercel.app/Virtual_Assisten/live2d-viewer.html` ke internet (Vercel) bukan lokal. Diperbaiki kembali ke virtual host mapping yang benar — URL tetap `zeromix.vercel.app` tapi di-intercept WebView2 ke folder lokal.
+- **Fix VA model path** — `GetModelPath()` pakai forward slash (`/`) yang tidak konsisten di Windows. Diganti ke `Path.Combine()` dengan separator yang benar.
+- **Fix VA model tidak ditemukan saat ACTIVATE** — `SendModelToWebView()` sekarang cek `File.Exists()` dulu sebelum kirim ke WebView, log path yang dipakai untuk debugging.
+- **Fix Cat Gatekeeper background hitam** — Background overlay kucing masih hitam. Diperbaiki: `MediaElement` pakai `Stretch="UniformToFill"` + anchor kanan bawah, background benar-benar transparan.
+- **Fix Check Update tidak ada file bat/ps1** — `zeromix-update.bat` dan `zeromix-update.ps1` tidak ada di output folder. Sekarang dibuat dan di-copy ke output via csproj + ikut ke installer via Setup.iss.
+- **Fix .gitignore ApiKeys.cs** — Baris `src/ApiKeys.cs` di-comment sehingga file ter-push ke GitHub. Sekarang di-uncomment agar API key tidak bocor.
+
+### 🔧 Changes
+
+- `zeromix-update.ps1` — Script PowerShell baru: cek GitHub API, tampilkan versi, konfirmasi download, download Setup.exe, jalankan installer
+- `zeromix-update.bat` — Wrapper BAT yang buka `cmd.exe /k` dan jalankan PS1
+- `ZeroMix.csproj` — Tambah copy rule untuk `zeromix-update.ps1` dan `zeromix-update.bat` ke output
+- `Exe/Setup.iss` — Tambah entry untuk bundle kedua script ke installer
+- `CheckUpdateBtn_Click` — Update flow: Updater.exe → bat → ps1 → GitHub API fallback
+- `VirtualAssistantWindow.xaml.cs` — Kembali ke virtual host URL, fix `GetModelPath()` dan `SendModelToWebView()`
+- `CatOverlayWindow.xaml` — Fix background transparan, `Stretch="UniformToFill"`
+- `.gitignore` — Uncomment `src/ApiKeys.cs`
+
+---
 ## [v6.9.6] - 2026-05-01
 
 ### ✨ Features

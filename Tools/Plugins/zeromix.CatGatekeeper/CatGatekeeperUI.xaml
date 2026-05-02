@@ -40,14 +40,42 @@
                     <TextBlock Text="Cat Gatekeeper" Foreground="White" FontSize="14" FontWeight="Bold" Margin="0,0,0,2"/>
                     <TextBlock Text="Cute cat that forces you to take breaks after screen time."
                                Foreground="{StaticResource SubTextBrush}" FontSize="11"/>
-                    <!-- Status -->
                     <TextBlock x:Name="StatusText" Text="Tracking..."
                                Foreground="{StaticResource NeonBlueBrush}" FontSize="10"
-                               Margin="0,4,0,0" Visibility="Collapsed"/>
+                               Margin="0,3,0,0" Visibility="Collapsed"/>
                 </StackPanel>
 
-                <!-- Checkbox toggle -->
-                <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                <!-- Test button + Checkbox -->
+                <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,4,0">
+                    <Button x:Name="TestBtn"
+                            Content="▶ Test"
+                            Click="TestBtn_Click"
+                            Padding="10,4"
+                            Margin="0,0,8,0"
+                            FontSize="11"
+                            Cursor="Hand"
+                            Background="#1A2233"
+                            Foreground="#00D68F"
+                            BorderBrush="#00D68F"
+                            BorderThickness="1">
+                        <Button.Template>
+                            <ControlTemplate TargetType="Button">
+                                <Border x:Name="b"
+                                        Background="{TemplateBinding Background}"
+                                        BorderBrush="{TemplateBinding BorderBrush}"
+                                        BorderThickness="{TemplateBinding BorderThickness}"
+                                        CornerRadius="6"
+                                        Padding="{TemplateBinding Padding}">
+                                    <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                </Border>
+                                <ControlTemplate.Triggers>
+                                    <Trigger Property="IsMouseOver" Value="True">
+                                        <Setter TargetName="b" Property="Background" Value="#223344"/>
+                                    </Trigger>
+                                </ControlTemplate.Triggers>
+                            </ControlTemplate>
+                        </Button.Template>
+                    </Button>
                     <CheckBox x:Name="CatPluginToggle"
                               VerticalAlignment="Center"
                               Click="CatPluginToggle_Click"
@@ -87,6 +115,61 @@
                     </StackPanel>
                 </Grid>
 
+                <!-- Test Preview Section -->
+                <Border Background="#111620" CornerRadius="8"
+                        BorderThickness="1" BorderBrush="#1E2633"
+                        Padding="14,10" Margin="0,0,0,14">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Grid.Column="0">
+                            <TextBlock Text="TEST PREVIEW" Foreground="{StaticResource TextMutedBrush}"
+                                       FontSize="9" FontWeight="Bold" Margin="0,0,0,4"/>
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="Durasi: " Foreground="{StaticResource SubTextBrush}" FontSize="11" VerticalAlignment="Center"/>
+                                <Slider x:Name="TestDurationSlider"
+                                        Minimum="1" Maximum="2" Value="1"
+                                        TickFrequency="1" IsSnapToTickEnabled="True"
+                                        Width="80" VerticalAlignment="Center" Margin="6,0"/>
+                                <TextBlock x:Name="TestDurationText" Text="1 menit"
+                                           Foreground="White" FontSize="11" FontWeight="Bold"
+                                           VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </StackPanel>
+                        <Button Grid.Column="2"
+                                Content="▶ Preview"
+                                Click="TestBtn_Click"
+                                Padding="12,6"
+                                FontSize="11"
+                                Cursor="Hand"
+                                Background="#1A2233"
+                                Foreground="#00D68F"
+                                BorderBrush="#00D68F"
+                                BorderThickness="1"
+                                VerticalAlignment="Center">
+                            <Button.Template>
+                                <ControlTemplate TargetType="Button">
+                                    <Border x:Name="b"
+                                            Background="{TemplateBinding Background}"
+                                            BorderBrush="{TemplateBinding BorderBrush}"
+                                            BorderThickness="{TemplateBinding BorderThickness}"
+                                            CornerRadius="6" Padding="{TemplateBinding Padding}">
+                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </Border>
+                                    <ControlTemplate.Triggers>
+                                        <Trigger Property="IsMouseOver" Value="True">
+                                            <Setter TargetName="b" Property="Background" Value="#223344"/>
+                                        </Trigger>
+                                    </ControlTemplate.Triggers>
+                                </ControlTemplate>
+                            </Button.Template>
+                        </Button>
+                    </Grid>
+                </Border>
+
                 <!-- Usage Limit -->
                 <Grid Margin="0,0,0,14">
                     <Grid.ColumnDefinitions>
@@ -111,7 +194,7 @@
                 </Grid>
 
                 <!-- Break Time -->
-                <Grid Margin="0,0,0,20">
+                <Grid Margin="0,0,0,16">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="Auto"/>
@@ -137,7 +220,7 @@
                 <Border Height="1" Background="#161C2A" Margin="0,0,0,14"/>
 
                 <!-- Active time display -->
-                <Grid Margin="0,0,0,16">
+                <Grid Margin="0,0,0,14">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="*"/>
@@ -148,7 +231,7 @@
                         <StackPanel>
                             <TextBlock Text="WAKTU AKTIF" Foreground="{StaticResource TextMutedBrush}"
                                        FontSize="9" FontWeight="Bold" Margin="0,0,0,4"/>
-                            <TextBlock x:Name="ActiveTimeText" Text="0 menit 0 detik"
+                            <TextBlock x:Name="ActiveTimeText" Text="0m 0s"
                                        Foreground="{StaticResource NeonBlueBrush}"
                                        FontSize="13" FontWeight="Bold"/>
                         </StackPanel>
@@ -173,7 +256,9 @@
                     <TextBlock Foreground="{StaticResource TextMutedBrush}" FontSize="10"
                                TextWrapping="Wrap">
                         <Run Text="🐱 Aset oleh "/><Run Text="@konekone2026 (ZOKUZOKU)" FontWeight="Bold" Foreground="White"/>
-                        <Run Text=" · Ekstraksi: Zaki"/>
+                        <Run Text=" · Ekstraksi: Zaki · "/><Hyperlink NavigateUri="https://x.com/konekone2026" RequestNavigate="Credit_RequestNavigate">
+                            <Run Text="x.com/konekone2026"/>
+                        </Hyperlink>
                     </TextBlock>
                 </Border>
 

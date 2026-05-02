@@ -78,17 +78,21 @@ dotnet add package ZeroMix.PluginSDK
 
 **ZeroRecord — Screen Recording**
 <div align="center">
-  <video src="https://github.com/user-attachments/assets/0a5c1928-32b8-4b32-a391-aefdb5b3d2f5" width="1000" autoplay muted loop></video>
+  <video src="https://github.com/faizinuha/ZeroMix/blob/ProyekTil/src/Web/assets/ZeroRecord_20260122_133325.mp4?raw=true" width="1000" autoplay muted loop controls></video>
 </div>
+
+---
 
 **ZeroShell — Integrated Terminal**
 <div align="center">
-  <video src="https://github.com/faizinuha/ZeroMix/blob/1dd04f3460efc2256abacc1c27db167950630596/src/Web/assets/ZeroRecord_20260411_211121.mp4" width="1000" autoplay muted loop></video>
+  <video src="https://github.com/faizinuha/ZeroMix/blob/ProyekTil/src/Web/assets/ZeroRecord_20260411_211121.mp4?raw=true" width="1000" autoplay muted loop controls></video>
 </div>
+
+---
 
 **Select Area Recording**
 <div align="center">
-  <video src="https://github.com/faizinuha/ZeroMix/blob/1dd04f3460efc2256abacc1c27db167950630596/src/Web/assets/ZeroRecord_20260411_211722.mp4" width="1000" autoplay muted loop></video>
+  <video src="https://github.com/faizinuha/ZeroMix/blob/ProyekTil/src/Web/assets/ZeroRecord_20260411_211722.mp4?raw=true" width="1000" autoplay muted loop controls></video>
 </div>
 
 ---
