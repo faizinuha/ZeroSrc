@@ -111,11 +111,18 @@ dotnet add package ZeroMix.PluginSDK
 
 | Method | Description |
 | :--- | :--- |
+| **⭐ One-liner** | `irm https://raw.githubusercontent.com/faizinuha/ZeroMix/main/ZeroMix.ps1 \| iex` |
 | **⭐ Bootstrap Installer** | ~10 MB download, fetches the latest release automatically |
 | **📦 Setup EXE** | Full offline installer with all dependencies |
 | **🚀 Portable ZIP** | Extract and run — no installation required |
 
 Download from **[GitHub Releases →](https://github.com/faizinuha/ZeroMix/releases)**
+
+### One-liner Install (PowerShell)
+
+```powershell
+irm https://raw.githubusercontent.com/faizinuha/ZeroMix/main/ZeroMix.ps1 | iex
+```
 
 ### Getting Started
 
