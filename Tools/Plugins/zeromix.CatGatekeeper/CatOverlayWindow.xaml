@@ -11,26 +11,28 @@
         ResizeMode="NoResize"
         Loaded="Window_Loaded">
 
-    <Grid x:Name="RootGrid">
+    <!--
+        Layout: kucing muncul dari kanan bawah, transparan di atas desktop.
+        Tidak ada background hitam — hanya kucing + countdown.
+    -->
+    <Canvas x:Name="RootGrid">
 
-        <!-- Cat Video — fill tinggi layar, anchor kanan bawah seperti Chrome extension -->
+        <!-- Cat Video — anchor kanan bawah, tinggi = tinggi layar -->
         <MediaElement x:Name="CatVideo"
                       LoadedBehavior="Manual"
                       UnloadedBehavior="Stop"
-                      Stretch="UniformToFill"
-                      HorizontalAlignment="Right"
-                      VerticalAlignment="Bottom"
-                      Width="Auto"
+                      Stretch="Uniform"
+                      Canvas.Bottom="0"
+                      Canvas.Right="0"
+                      Height="{Binding ActualHeight, RelativeSource={RelativeSource AncestorType=Canvas}}"
                       MediaEnded="CatVideo_MediaEnded">
             <MediaElement.RenderTransform>
                 <TranslateTransform x:Name="VideoTranslate" X="3000"/>
             </MediaElement.RenderTransform>
         </MediaElement>
 
-        <!-- Countdown Timer — pojok kiri atas -->
-        <Border HorizontalAlignment="Left"
-                VerticalAlignment="Top"
-                Margin="60,80,0,0"
+        <!-- Countdown — pojok kiri atas -->
+        <Border Canvas.Left="60" Canvas.Top="80"
                 Background="#CC000000"
                 CornerRadius="16"
                 Padding="28,14">
@@ -58,5 +60,5 @@
             </StackPanel>
         </Border>
 
-    </Grid>
+    </Canvas>
 </Window>
