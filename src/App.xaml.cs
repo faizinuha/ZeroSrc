@@ -139,9 +139,13 @@ namespace ZeroMix
 
             if (isFirstRun)
             {
-                var onboarding = new ZeroMix.Onboarding.OnboardingWindow();
-                onboarding.OnOnboardingFinished += () => StartMainApp(e.Args);
-                onboarding.Show();
+                // Pre-warm WPF rendering engine di background agar onboarding muncul cepat
+                Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Background, new Action(() =>
+                {
+                    var onboarding = new ZeroMix.Onboarding.OnboardingWindow();
+                    onboarding.OnOnboardingFinished += () => StartMainApp(e.Args);
+                    onboarding.Show();
+                }));
             }
             else
             {

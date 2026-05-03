@@ -16,6 +16,14 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) | [Semantic Ver
 - **API & SDK**: Public API dan SDK untuk developer — integrate ZeroMix features ke aplikasi lain.
 
 ---
+## [v6.9.9] - 2026-05-02
+
+### Fix Bugs
+
+- **Fix Onboarding Fix System tray** —
+-Memperbaiki Error System tray tidak muncul Fix -> Tray 3x 300ms - 600ms -> 1200ms
+-memperbaiki Onboarding Long Load System Onboarding
+
 ## [v6.9.8] - 2026-05-02
 
 ### ✨ Features
