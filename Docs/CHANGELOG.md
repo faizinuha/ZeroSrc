@@ -23,6 +23,7 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) | [Semantic Ver
 - **Fix Onboarding Fix System tray** —
 -Memperbaiki Error System tray tidak muncul Fix -> Tray 3x 300ms - 600ms -> 1200ms
 -memperbaiki Onboarding Long Load System Onboarding
+-Tamabha zeromix-helper.ps1
 
 ## [v6.9.8] - 2026-05-02
 
