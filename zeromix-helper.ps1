@@ -96,11 +96,14 @@ function Compare-SemVer {
 
 function Get-InstalledVersion {
     # 1. Registry
+    # FIX #1: Null-conditional operator ?. tidak didukung di PowerShell 5.1.
+    # Sebelum: if ($e?.DisplayVersion)
+    # Sesudah: cek $null secara eksplisit agar kompatibel dengan PS 5.1+
     foreach ($hive in @("HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*",
                          "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*")) {
         $e = Get-ItemProperty $hive -ErrorAction SilentlyContinue |
              Where-Object { $_.DisplayName -like "*ZeroMix*" } | Select-Object -First 1
-        if ($e?.DisplayVersion) { return $e.DisplayVersion }
+        if ($null -ne $e -and $e.DisplayVersion) { return $e.DisplayVersion }
     }
     # 2. Exe
     $exePaths = @(
@@ -121,12 +124,18 @@ function Get-InstalledVersion {
 
 # ── GitHub API ───────────────────────────────────────────────────────────────
 function Get-LatestRelease {
+    # FIX #2: HttpClient tidak di-dispose jika terjadi exception.
+    # Sebelum: $client.Dispose() hanya dipanggil di happy path.
+    # Sesudah: pakai try/finally agar selalu di-dispose meski ada error.
     $client = [System.Net.Http.HttpClient]::new()
-    $client.DefaultRequestHeaders.Add("User-Agent", "ZeroMix-Installer/1.0")
-    $client.Timeout = [TimeSpan]::FromSeconds(15)
-    $resp = $client.GetStringAsync($API_URL).GetAwaiter().GetResult()
-    $client.Dispose()
-    return $resp | ConvertFrom-Json
+    try {
+        $client.DefaultRequestHeaders.Add("User-Agent", "ZeroMix-Installer/1.0")
+        $client.Timeout = [TimeSpan]::FromSeconds(15)
+        $resp = $client.GetStringAsync($API_URL).GetAwaiter().GetResult()
+        return $resp | ConvertFrom-Json
+    } finally {
+        $client.Dispose()
+    }
 }
 
 # ── Parallel Chunked Download ────────────────────────────────────────────────
@@ -137,7 +146,6 @@ function Invoke-ChunkedDownload {
     $tmpFiles   = @()
     $jobs       = @()
     $sw         = [System.Diagnostics.Stopwatch]::StartNew()
-    $downloaded = [long]0
 
     Write-Host ""
     c "  Downloading with $CHUNKS parallel connections..." DarkGray
@@ -146,6 +154,11 @@ function Invoke-ChunkedDownload {
     # Buat temp files
     for ($i = 0; $i -lt $CHUNKS; $i++) {
         $tmpFiles += Join-Path $TEMP_DIR "zeromix_chunk_$i.tmp"
+    }
+
+    # Cleanup sisa temp file dari run sebelumnya
+    foreach ($f in $tmpFiles) {
+        if (Test-Path $f) { Remove-Item $f -Force }
     }
 
     # Launch parallel jobs
@@ -158,73 +171,104 @@ function Invoke-ChunkedDownload {
             param($url, $dest, $start, $end)
             Add-Type -AssemblyName System.Net.Http
             $client = [System.Net.Http.HttpClient]::new()
-            $client.DefaultRequestHeaders.Add("User-Agent", "ZeroMix-Installer/1.0")
-            $client.DefaultRequestHeaders.Add("Range", "bytes=$start-$end")
-            $resp   = $client.GetAsync($url, [System.Net.Http.HttpCompletionOption]::ResponseHeadersRead).GetAwaiter().GetResult()
-            $stream = $resp.Content.ReadAsStreamAsync().GetAwaiter().GetResult()
-            $fs     = [System.IO.File]::Create($dest)
-            $buf    = New-Object byte[] 65536
-            $read   = 0
-            $total  = 0
-            while (($read = $stream.Read($buf, 0, $buf.Length)) -gt 0) {
-                $fs.Write($buf, 0, $read)
-                $total += $read
+            try {
+                $client.DefaultRequestHeaders.Add("User-Agent", "ZeroMix-Installer/1.0")
+                $client.DefaultRequestHeaders.Add("Range", "bytes=$start-$end")
+                $resp   = $client.GetAsync($url, [System.Net.Http.HttpCompletionOption]::ResponseHeadersRead).GetAwaiter().GetResult()
+
+                # Validasi status response — Range Request harus 206 Partial Content
+                if (-not ($resp.StatusCode -eq 206 -or $resp.StatusCode -eq 200)) {
+                    throw "Unexpected HTTP status: $($resp.StatusCode)"
+                }
+
+                $stream = $resp.Content.ReadAsStreamAsync().GetAwaiter().GetResult()
+                $fs     = [System.IO.File]::Create($dest)
+                $buf    = New-Object byte[] 65536
+                $read   = 0
+                $total  = 0
+                while (($read = $stream.Read($buf, 0, $buf.Length)) -gt 0) {
+                    $fs.Write($buf, 0, $read)
+                    $total += $read
+                }
+                $fs.Close()
+                $stream.Close()
+                return $total
+            } finally {
+                # FIX #3 (dalam job): pastikan HttpClient di-dispose di tiap worker
+                $client.Dispose()
             }
-            $fs.Close(); $stream.Close(); $client.Dispose()
-            return $total
         } -ArgumentList $Url, $tmp, $start, $end
     }
 
-    # Monitor progress
+    # Monitor progress — FIX #4: gunakan bytes aktual (bukan job count) untuk akurasi progress
+    # Sebelum: $pct = ($done / $CHUNKS) * 100  → melompat 0/20/40/60/80/100%
+    # Sesudah: $pct dihitung dari total bytes yang sudah ditulis ke temp files
     while ($jobs | Where-Object { $_.State -eq 'Running' }) {
-        $done = ($jobs | Where-Object { $_.State -ne 'Running' }).Count
-        $pct  = ($done / $CHUNKS) * 100
-
-        # Hitung bytes dari file temp yang sudah ada
-        $bytes = 0
+        $bytes = [long]0
         foreach ($f in $tmpFiles) {
             if (Test-Path $f) { $bytes += (Get-Item $f).Length }
         }
-
         $elapsed = $sw.Elapsed.TotalSeconds
         $speed   = if ($elapsed -gt 0) { $bytes / $elapsed } else { 0 }
-        Write-ProgressBar -Pct ([math]::Min($pct, 99)) -Downloaded $bytes -Total $FileSize -SpeedBps $speed
+        $pct     = if ($FileSize -gt 0) { [math]::Min(($bytes / $FileSize) * 100, 99) } else { 0 }
+        Write-ProgressBar -Pct $pct -Downloaded $bytes -Total $FileSize -SpeedBps $speed
         Start-Sleep -Milliseconds 200
     }
 
-    # Tunggu semua selesai
+    # Tunggu semua selesai & cek error
     $jobs | Wait-Job | Out-Null
-
-    # Cek error
+    $hasError = $false
     foreach ($job in $jobs) {
         if ($job.State -eq 'Failed') {
-            $jobs | Remove-Job -Force
-            throw "Chunk download failed: $($job.ChildJobs[0].JobStateInfo.Reason.Message)"
+            $hasError = $true
+            Write-Log "ERROR" "Chunk failed: $($job.ChildJobs[0].JobStateInfo.Reason.Message)"
         }
     }
     $jobs | Remove-Job -Force
 
-    # Hitung total
-    $totalBytes = 0
-    foreach ($f in $tmpFiles) {
-        if (Test-Path $f) { $totalBytes += (Get-Item $f).Length }
+    if ($hasError) {
+        # Cleanup temp files sebelum throw agar tidak ada sisa file korup
+        foreach ($f in $tmpFiles) { if (Test-Path $f) { Remove-Item $f -Force -ErrorAction SilentlyContinue } }
+        throw "Satu atau lebih chunk download gagal. Lihat log untuk detail."
     }
+
+    # FIX #5: Validasi semua chunk tersedia sebelum merge.
+    # Sebelum: chunk yang hilang di-skip diam-diam → file output korup.
+    # Sesudah: throw jika ada chunk yang tidak ada.
+    for ($i = 0; $i -lt $CHUNKS; $i++) {
+        if (-not (Test-Path $tmpFiles[$i])) {
+            foreach ($f in $tmpFiles) { if (Test-Path $f) { Remove-Item $f -Force -ErrorAction SilentlyContinue } }
+            throw "Chunk $i tidak ditemukan setelah download selesai."
+        }
+    }
+
+    # Hitung total & tampilkan progress 100%
+    $totalBytes = [long]0
+    foreach ($f in $tmpFiles) { $totalBytes += (Get-Item $f).Length }
     $elapsed = $sw.Elapsed.TotalSeconds
     $speed   = if ($elapsed -gt 0) { $totalBytes / $elapsed } else { 0 }
     Write-ProgressBar -Pct 100 -Downloaded $totalBytes -Total $FileSize -SpeedBps $speed
     Write-Host ""
 
-    # Gabungkan chunks
+    # FIX #6: Merge chunk menggunakan stream copy, bukan ReadAllBytes.
+    # Sebelum: [System.IO.File]::ReadAllBytes($tmp) — membaca seluruh chunk ke RAM.
+    #          Untuk file 100 MB dibagi 5, tiap chunk = 20 MB → puncak RAM 20 MB extra per iterasi.
+    # Sesudah: stream.CopyTo(fs) — pipeline byte langsung dari disk ke disk, tanpa buffer besar.
     c "  Merging chunks..." DarkGray
     $fs = [System.IO.File]::Create($Destination)
-    foreach ($tmp in $tmpFiles) {
-        if (Test-Path $tmp) {
-            $data = [System.IO.File]::ReadAllBytes($tmp)
-            $fs.Write($data, 0, $data.Length)
+    try {
+        foreach ($tmp in $tmpFiles) {
+            $srcStream = [System.IO.File]::OpenRead($tmp)
+            try {
+                $srcStream.CopyTo($fs)
+            } finally {
+                $srcStream.Close()
+            }
             Remove-Item $tmp -Force
         }
+    } finally {
+        $fs.Close()
     }
-    $fs.Close()
 
     $sw.Stop()
     return @{ Seconds = [math]::Round($sw.Elapsed.TotalSeconds, 1); Speed = $speed }
@@ -245,26 +289,45 @@ function Invoke-SingleDownload {
     $read   = 0
     $total  = [long]0
     $sw     = [System.Diagnostics.Stopwatch]::StartNew()
-    $lastT  = 0
+    $lastT  = [long]0
     $lastB  = [long]0
 
     Write-Host ""
-    while (($read = $stream.Read($buf, 0, $buf.Length)) -gt 0) {
-        $fs.Write($buf, 0, $read)
-        $total += $read
-        if (($sw.ElapsedMilliseconds - $lastT) -gt 300) {
-            $speed  = ($total - $lastB) / ($sw.ElapsedMilliseconds - $lastT) * 1000
-            $lastT  = $sw.ElapsedMilliseconds
-            $lastB  = $total
-            $pct    = if ($FileSize -gt 0) { $total / $FileSize * 100 } else { 0 }
-            Write-ProgressBar -Pct $pct -Downloaded $total -Total $FileSize -SpeedBps $speed
+    try {
+        while (($read = $stream.Read($buf, 0, $buf.Length)) -gt 0) {
+            $fs.Write($buf, 0, $read)
+            $total += $read
+            if (($sw.ElapsedMilliseconds - $lastT) -gt 300) {
+                $interval = $sw.ElapsedMilliseconds - $lastT
+                $speed    = if ($interval -gt 0) { ($total - $lastB) / $interval * 1000 } else { 0 }
+                $lastT    = $sw.ElapsedMilliseconds
+                $lastB    = $total
+                $pct      = if ($FileSize -gt 0) { $total / $FileSize * 100 } else { 0 }
+                Write-ProgressBar -Pct $pct -Downloaded $total -Total $FileSize -SpeedBps $speed
+            }
         }
+    } finally {
+        $fs.Close()
+        $stream.Close()
+        $client.Dispose()
     }
-    $fs.Close(); $stream.Close(); $client.Dispose()
-    Write-ProgressBar -Pct 100 -Downloaded $total -Total $FileSize -SpeedBps 0
+
+    $elapsed = $sw.Elapsed.TotalSeconds
+    $finalSpeed = if ($elapsed -gt 0) { $total / $elapsed } else { 0 }
+    Write-ProgressBar -Pct 100 -Downloaded $total -Total $FileSize -SpeedBps $finalSpeed
     Write-Host ""
     $sw.Stop()
-    return @{ Seconds = [math]::Round($sw.Elapsed.TotalSeconds, 1); Speed = 0 }
+    return @{ Seconds = [math]::Round($sw.Elapsed.TotalSeconds, 1); Speed = $finalSpeed }
+}
+
+# ── File Integrity Validation ─────────────────────────────────────────────────
+function Test-DownloadIntegrity {
+    param([string]$FilePath, [long]$ExpectedSize)
+    if (-not (Test-Path $FilePath)) { throw "File tidak ditemukan setelah download: $FilePath" }
+    $actualSize = (Get-Item $FilePath).Length
+    if ($actualSize -ne $ExpectedSize) {
+        throw "Ukuran file tidak sesuai: ekspektasi $ExpectedSize bytes, aktual $actualSize bytes"
+    }
 }
 
 # ════════════════════════════════════════════════════════════════════════════
@@ -372,12 +435,15 @@ try {
 
     # Cek apakah server support Range requests
     $testClient = [System.Net.Http.HttpClient]::new()
-    $testClient.DefaultRequestHeaders.Add("User-Agent", "ZeroMix-Installer/1.0")
-    $testResp = $testClient.SendAsync(
-        [System.Net.Http.HttpRequestMessage]::new("HEAD", $dlUrl)
-    ).GetAwaiter().GetResult()
-    $supportsRange = $testResp.Headers.AcceptRanges -contains "bytes"
-    $testClient.Dispose()
+    try {
+        $testClient.DefaultRequestHeaders.Add("User-Agent", "ZeroMix-Installer/1.0")
+        $testResp = $testClient.SendAsync(
+            [System.Net.Http.HttpRequestMessage]::new("HEAD", $dlUrl)
+        ).GetAwaiter().GetResult()
+        $supportsRange = $testResp.Headers.AcceptRanges -contains "bytes"
+    } finally {
+        $testClient.Dispose()
+    }
 
     if ($supportsRange -and $asset.size -gt 5MB) {
         $result = Invoke-ChunkedDownload -Url $dlUrl -Destination $dlPath -FileSize $asset.size
@@ -387,6 +453,11 @@ try {
         $result = Invoke-SingleDownload -Url $dlUrl -Destination $dlPath -FileSize $asset.size
         c "  ✓ Download selesai! ($($result.Seconds)s)" Green
     }
+
+    # Validasi integritas file setelah download
+    Test-DownloadIntegrity -FilePath $dlPath -ExpectedSize $asset.size
+    c "  ✓ Integritas file OK ($fileSizeMB MB)" Green
+
     Write-Log "INFO" "Downloaded: $dlPath ($($result.Seconds)s)"
 } catch {
     Write-Log "ERROR" "Download failed: $_"
