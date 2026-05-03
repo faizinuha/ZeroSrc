@@ -19,7 +19,8 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) | [Semantic Ver
 ## [v6.9.8] - 2026-05-02
 
 ### ✨ Features
-
+- **zeromix.ps1 untuk Install Exe** —
+-Menambahkan file Zeromix.ps1 agar install agar mudah
 - **zeromix-update.ps1 & .bat** — Script update baru yang buka terminal CMD biasa saat `ZeroMix-Updater.exe` tidak tersedia. Flow: Klik "Check for Updates" → buka `cmd.exe` → jalankan `zeromix-update.bat` → PowerShell cek GitHub API → download Setup.exe → install otomatis.
 - **Docs/GUIDE_ADD_MODEL.md** — Panduan lengkap cara tambah model Live2D baru ke Virtual Assistant: struktur folder, daftar di `GetModelPath()`, tambah card di XAML, load thumbnail, tambah expressions/motions di HTML viewer.
 
