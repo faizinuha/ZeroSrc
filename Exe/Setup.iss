@@ -77,20 +77,13 @@ Source: "..\Assets\zeromix-high-resolution-logo-transparent.png"; DestDir: "{app
 ; Plugins
 Source: "..\publish\win-x64\Tools\Plugins\**";   DestDir: "{app}\Tools\Plugins"; Flags: ignoreversion recursesubdirs createallsubdirs skipifsourcedoesntexist
 
-; Cat Gatekeeper assets (webm videos)
-Source: "..\Tools\Plugins\zeromix.CatGatekeeper\assets\neko1.webm"; DestDir: "{app}\Tools\Plugins\zeromix.CatGatekeeper\assets"; Flags: ignoreversion skipifsourcedoesntexist
-Source: "..\Tools\Plugins\zeromix.CatGatekeeper\assets\neko2.webm"; DestDir: "{app}\Tools\Plugins\zeromix.CatGatekeeper\assets"; Flags: ignoreversion skipifsourcedoesntexist
+; Virtual Assistant — ambil dari publish folder (sudah di-build, tidak ada source code)
+Source: "..\publish\win-x64\Virtual_Assisten\**"; DestDir: "{app}\Virtual_Assisten"; Flags: ignoreversion recursesubdirs createallsubdirs skipifsourcedoesntexist
+
+; Cat Gatekeeper assets — mp4 (converted from webm)
+Source: "..\Tools\Plugins\zeromix.CatGatekeeper\assets\neko1.mp4";     DestDir: "{app}\Tools\Plugins\zeromix.CatGatekeeper\assets"; Flags: ignoreversion skipifsourcedoesntexist
+Source: "..\Tools\Plugins\zeromix.CatGatekeeper\assets\neko2.mp4";     DestDir: "{app}\Tools\Plugins\zeromix.CatGatekeeper\assets"; Flags: ignoreversion skipifsourcedoesntexist
 Source: "..\Tools\Plugins\zeromix.CatGatekeeper\assets\nekoicon128.png"; DestDir: "{app}\Tools\Plugins\zeromix.CatGatekeeper\assets"; Flags: ignoreversion skipifsourcedoesntexist
-
-; FFmpeg
-Source: "..\Tools\FFMPEG\ffmpeg.exe";             DestDir: "{app}\Tools\FFMPEG"; Flags: ignoreversion
-
-; Updater — bundle ZeroMix-Updater.exe agar bisa auto-update
-Source: "..\publish\win-x64\Tools\Updater\ZeroMix-Updater.exe"; DestDir: "{app}\Tools\Updater"; Flags: ignoreversion skipifsourcedoesntexist
-Source: "..\publish\win-x64\Tools\Updater\*.dll"; DestDir: "{app}\Tools\Updater"; Flags: ignoreversion recursesubdirs skipifsourcedoesntexist
-
-; Virtual Assistant — model Live2D, thumbnails, html viewer (exclude source code)
-;Source: "..\src\Virtual_Assisten\*";              DestDir: "{app}\Virtual_Assisten"; Flags: ignoreversion recursesubdirs createallsubdirs skipifsourcedoesntexist; Excludes: "*.cs,*.xaml,*.md,*.txt,*.bak,*.vtube.json,*.cdi3.json"
 
 ; Documentation
 Source: "..\LICENSE.txt"; DestDir: "{app}"; Flags: ignoreversion
