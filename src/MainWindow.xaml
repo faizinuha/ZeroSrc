@@ -872,7 +872,7 @@
                                                                Margin="0,0,0,6"/>
                                                     <StackPanel Orientation="Horizontal">
                                                         <TextBlock x:Name="VersionText"
-                                                                   Text="6.9.8"
+                                                                   Text="6.9.9"
                                                                    FontSize="18"
                                                                    FontWeight="Bold"
                                                                    Foreground="White"

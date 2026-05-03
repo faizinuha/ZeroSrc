@@ -46,7 +46,7 @@ namespace ZeroMix
     
     public partial class MainWindow : Wpf.Ui.Controls.FluentWindow, ZeroMix.Plugins.IZeroMixHost
     {
-        private const string CURRENT_VERSION = "6.9.8";
+        private const string CURRENT_VERSION = "6.9.9";
         
         // Windows API for Taskbar transparency
         [DllImport("user32.dll", SetLastError = true)]
@@ -388,7 +388,7 @@ namespace ZeroMix
             // Tunda semua operasi berat agar window selesai render dulu
             Dispatcher.BeginInvoke(async () =>
             {
-                // Welcome screen — disabled (v6.9.8)
+                // Welcome screen — disabled (v6.9.9)
                 // ZeroMix.Plugins.Welcome.WelcomePlugin.TryShowWelcome();
 
                 // Load VA thumbnails — delay lebih lama agar view sudah di-render
@@ -550,19 +550,17 @@ namespace ZeroMix
 
         private async void OnContentRenderedInitTray(object? sender, EventArgs e)
         {
-            // Unsubscribe — hanya perlu sekali
             this.ContentRendered -= OnContentRenderedInitTray;
+
+            // Coba sampai 3x dengan interval naik — handle sistem lambat
+            // Jangan pakai 0ms: HWND belum terdaftar di Windows Shell
+            int[] delays = { 300, 600, 1200 };
             
-            // Tunggu sedikit agar OS benar-benar register HWND ke shell
-            await Task.Delay(300);
-            
-            InitializeTrayIcon();
-            
-            // Retry jika gagal — kadang shell belum siap
-            if (_notifyIcon == null)
+            foreach (int delay in delays)
             {
-                await Task.Delay(1000);
+                await Task.Delay(delay);
                 InitializeTrayIcon();
+                if (_notifyIcon != null) break; // Berhasil, stop retry
             }
         }
 
