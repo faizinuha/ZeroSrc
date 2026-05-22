@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>56Editor — Video Editor</title>
+  <link rel="stylesheet" href="editor.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" crossorigin="anonymous" />
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════════════════
+     HEADER
+═══════════════════════════════════════════════════════════ -->
+<header class="app-header">
+  <div class="header-left">
+    <span class="logo">56<span class="logo-accent">Editor</span></span>
+    <span class="header-badge">Beta</span>
+  </div>
+  <div class="header-center">
+    <span id="project-name" class="project-name" contenteditable="true" spellcheck="false">Untitled Project</span>
+  </div>
+  <div class="header-right">
+    <button class="btn-header" id="btn-export" disabled><i class="fas fa-download"></i> Export</button>
+  </div>
+</header>
+
+<!-- ═══════════════════════════════════════════════════════════
+     MAIN LAYOUT
+═══════════════════════════════════════════════════════════ -->
+<div class="app-body">
+
+  <!-- LEFT PANEL: Tools -->
+  <aside class="panel-left">
+    <nav class="tool-nav">
+      <button class="tool-btn active" data-panel="media" title="Media"><i class="fas fa-film"></i><span>Media</span></button>
+      <button class="tool-btn" data-panel="audio" title="Audio"><i class="fas fa-music"></i><span>Audio</span></button>
+      <button class="tool-btn" data-panel="text" title="Text"><i class="fas fa-font"></i><span>Text</span></button>
+      <button class="tool-btn" data-panel="filters" title="Filters"><i class="fas fa-magic"></i><span>Filters</span></button>
+      <button class="tool-btn" data-panel="transitions" title="Transitions"><i class="fas fa-exchange-alt"></i><span>Trans.</span></button>
+    </nav>
+
+    <!-- Media Panel -->
+    <div class="side-panel active" id="panel-media">
+      <div class="panel-title">Media</div>
+      <div class="upload-zone" id="upload-zone">
+        <i class="fas fa-cloud-upload-alt"></i>
+        <p>Drop video here</p>
+        <p class="upload-sub">or click to browse</p>
+        <input type="file" id="file-input" accept="video/*" multiple hidden />
+      </div>
+      <div class="media-list" id="media-list"></div>
+    </div>
+
+    <!-- Audio Panel -->
+    <div class="side-panel" id="panel-audio">
+      <div class="panel-title">Audio Library</div>
+      <div class="search-row">
+        <input type="text" id="audio-search" class="search-input" placeholder="Search music..." />
+        <button class="btn-search" id="btn-audio-search"><i class="fas fa-search"></i></button>
+      </div>
+      <div class="audio-list" id="audio-list">
+        <div class="empty-hint"><i class="fas fa-music"></i><p>Search for music</p></div>
+      </div>
+      <div class="audio-player-mini" id="audio-player-mini" style="display:none">
+        <span id="audio-preview-title" class="audio-preview-title"></span>
+        <div class="audio-controls">
+          <button id="btn-audio-play"><i class="fas fa-play"></i></button>
+          <button id="btn-audio-add" class="btn-accent"><i class="fas fa-plus"></i> Add to Timeline</button>
+        </div>
+        <audio id="audio-preview" preload="none"></audio>
+      </div>
+    </div>
+
+    <!-- Text Panel -->
+    <div class="side-panel" id="panel-text">
+      <div class="panel-title">Add Text</div>
+      <textarea id="text-content" class="text-input" placeholder="Enter text..."></textarea>
+      <div class="form-row">
+        <label>Size</label>
+        <input type="range" id="text-size" min="12" max="96" value="32" />
+        <span id="text-size-val">32px</span>
+      </div>
+      <div class="form-row">
+        <label>Color</label>
+        <input type="color" id="text-color" value="#ffffff" />
+      </div>
+      <div class="form-row">
+        <label>Position</label>
+        <select id="text-position">
+          <option value="center">Center</option>
+          <option value="top">Top</option>
+          <option value="bottom">Bottom</option>
+        </select>
+      </div>
+      <button class="btn-accent full-width" id="btn-add-text" disabled><i class="fas fa-plus"></i> Add Text</button>
+    </div>
+
+    <!-- Filters Panel -->
+    <div class="side-panel" id="panel-filters">
+      <div class="panel-title">Filters</div>
+      <div class="filter-grid" id="filter-grid">
+        <div class="filter-item active" data-filter="">
+          <div class="filter-preview filter-none"></div>
+          <span>None</span>
+        </div>
+        <div class="filter-item" data-filter="grayscale(100%)">
+          <div class="filter-preview filter-grayscale"></div>
+          <span>B&W</span>
+        </div>
+        <div class="filter-item" data-filter="sepia(80%)">
+          <div class="filter-preview filter-sepia"></div>
+          <span>Sepia</span>
+        </div>
+        <div class="filter-item" data-filter="contrast(1.4) saturate(1.3)">
+          <div class="filter-preview filter-vivid"></div>
+          <span>Vivid</span>
+        </div>
+        <div class="filter-item" data-filter="brightness(0.85) contrast(1.2) saturate(0.8)">
+          <div class="filter-preview filter-cine"></div>
+          <span>Cinematic</span>
+        </div>
+        <div class="filter-item" data-filter="hue-rotate(180deg)">
+          <div class="filter-preview filter-invert"></div>
+          <span>Neon</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Transitions Panel -->
+    <div class="side-panel" id="panel-transitions">
+      <div class="panel-title">Transitions</div>
+      <div class="transition-list">
+        <div class="transition-item active" data-transition="none"><i class="fas fa-minus"></i> None</div>
+        <div class="transition-item" data-transition="fade"><i class="fas fa-adjust"></i> Fade</div>
+        <div class="transition-item" data-transition="dissolve"><i class="fas fa-circle-notch"></i> Dissolve</div>
+        <div class="transition-item" data-transition="wipe"><i class="fas fa-arrow-right"></i> Wipe</div>
+        <div class="transition-item" data-transition="zoom"><i class="fas fa-search-plus"></i> Zoom</div>
+      </div>
+      <p class="hint-text">Select a clip in the timeline to apply a transition.</p>
+    </div>
+  </aside>
+
+  <!-- CENTER: Preview + Timeline -->
+  <main class="main-area">
+
+    <!-- Video Preview -->
+    <div class="preview-area">
+      <div class="preview-wrapper" id="preview-wrapper">
+        <div class="preview-empty" id="preview-empty">
+          <i class="fas fa-play-circle"></i>
+          <p>Add a video to start editing</p>
+        </div>
+        <video id="preview-video" style="display:none" playsinline></video>
+        <canvas id="preview-canvas" style="display:none"></canvas>
+        <!-- Text overlay -->
+        <div id="text-overlay" class="text-overlay"></div>
+      </div>
+
+      <!-- Playback Controls -->
+      <div class="playback-bar">
+        <div class="time-display">
+          <span id="current-time">0:00</span>
+          <span class="time-sep">/</span>
+          <span id="total-time">0:00</span>
+        </div>
+        <div class="playback-controls">
+          <button class="ctrl-btn" id="btn-prev-frame" title="Previous frame"><i class="fas fa-step-backward"></i></button>
+          <button class="ctrl-btn" id="btn-rewind" title="Rewind"><i class="fas fa-backward"></i></button>
+          <button class="ctrl-btn play-btn" id="btn-play" disabled><i class="fas fa-play"></i></button>
+          <button class="ctrl-btn" id="btn-forward" title="Forward"><i class="fas fa-forward"></i></button>
+          <button class="ctrl-btn" id="btn-next-frame" title="Next frame"><i class="fas fa-step-forward"></i></button>
+        </div>
+        <div class="volume-row">
+          <i class="fas fa-volume-up"></i>
+          <input type="range" id="volume-slider" min="0" max="1" step="0.05" value="1" />
+        </div>
+      </div>
+    </div>
+
+    <!-- Timeline -->
+    <div class="timeline-area">
+      <div class="timeline-toolbar">
+        <button class="tl-btn" id="btn-cut" disabled title="Cut at playhead"><i class="fas fa-cut"></i> Cut</button>
+        <button class="tl-btn" id="btn-delete" disabled title="Delete selected"><i class="fas fa-trash"></i> Delete</button>
+        <button class="tl-btn" id="btn-split" disabled title="Split clip"><i class="fas fa-columns"></i> Split</button>
+        <div class="tl-sep"></div>
+        <button class="tl-btn" id="btn-zoom-in" title="Zoom in"><i class="fas fa-search-plus"></i></button>
+        <button class="tl-btn" id="btn-zoom-out" title="Zoom out"><i class="fas fa-search-minus"></i></button>
+        <div class="tl-sep"></div>
+        <span class="tl-label">Zoom: <span id="zoom-level">1x</span></span>
+      </div>
+
+      <div class="timeline-scroll-wrapper" id="timeline-scroll">
+        <!-- Ruler -->
+        <div class="timeline-ruler" id="timeline-ruler"></div>
+
+        <!-- Tracks -->
+        <div class="timeline-tracks" id="timeline-tracks">
+          <!-- Video Track -->
+          <div class="track-row">
+            <div class="track-label"><i class="fas fa-film"></i> Video</div>
+            <div class="track-content" id="track-video" data-track="video"></div>
+          </div>
+          <!-- Audio Track -->
+          <div class="track-row">
+            <div class="track-label"><i class="fas fa-music"></i> Audio</div>
+            <div class="track-content" id="track-audio" data-track="audio"></div>
+          </div>
+          <!-- Text Track -->
+          <div class="track-row">
+            <div class="track-label"><i class="fas fa-font"></i> Text</div>
+            <div class="track-content" id="track-text" data-track="text"></div>
+          </div>
+
+          <!-- Playhead -->
+          <div class="playhead" id="playhead"></div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- RIGHT PANEL: Clip Properties -->
+  <aside class="panel-right" id="panel-right">
+    <div class="panel-title">Properties</div>
+    <div class="props-empty" id="props-empty">
+      <i class="fas fa-mouse-pointer"></i>
+      <p>Select a clip</p>
+    </div>
+    <div class="props-content" id="props-content" style="display:none">
+      <div class="prop-group">
+        <label>Name</label>
+        <div class="prop-value" id="prop-name"></div>
+      </div>
+      <div class="prop-group">
+        <label>Duration</label>
+        <div class="prop-value" id="prop-duration"></div>
+      </div>
+      <div class="prop-group">
+        <label>Start</label>
+        <input type="number" id="prop-start" class="prop-input" min="0" step="0.1" />
+      </div>
+      <div class="prop-group">
+        <label>End</label>
+        <input type="number" id="prop-end" class="prop-input" min="0" step="0.1" />
+      </div>
+      <div class="prop-group">
+        <label>Speed</label>
+        <select id="prop-speed">
+          <option value="0.25">0.25x</option>
+          <option value="0.5">0.5x</option>
+          <option value="1" selected>1x (Normal)</option>
+          <option value="1.5">1.5x</option>
+          <option value="2">2x</option>
+        </select>
+      </div>
+      <div class="prop-group">
+        <label>Volume</label>
+        <input type="range" id="prop-volume" min="0" max="1" step="0.05" value="1" />
+        <span id="prop-volume-val">100%</span>
+      </div>
+      <div class="prop-group">
+        <label class="checkbox-label">
+          <input type="checkbox" id="prop-fade-in" /> Fade In
+        </label>
+        <label class="checkbox-label">
+          <input type="checkbox" id="prop-fade-out" /> Fade Out
+        </label>
+      </div>
+      <button class="btn-accent full-width" id="btn-apply-props"><i class="fas fa-check"></i> Apply</button>
+      <button class="btn-danger full-width" id="btn-delete-clip"><i class="fas fa-trash"></i> Delete Clip</button>
+    </div>
+  </aside>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     EXPORT MODAL
+═══════════════════════════════════════════════════════════ -->
+<div class="modal-overlay" id="modal-export" style="display:none">
+  <div class="modal">
+    <div class="modal-header">
+      <span>Export Video</span>
+      <button class="modal-close" id="btn-close-export"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="modal-body">
+      <div class="prop-group">
+        <label>Format</label>
+        <select id="export-format">
+          <option value="mp4">MP4 (H.264)</option>
+          <option value="webm">WebM (VP9)</option>
+        </select>
+      </div>
+      <div class="prop-group">
+        <label>Quality</label>
+        <select id="export-quality">
+          <option value="high">High (1080p)</option>
+          <option value="medium" selected>Medium (720p)</option>
+          <option value="low">Low (480p)</option>
+        </select>
+      </div>
+      <div class="prop-group">
+        <label>Filename</label>
+        <input type="text" id="export-filename" class="prop-input" value="56editor-export" />
+      </div>
+      <div class="export-note">
+        <i class="fas fa-info-circle"></i>
+        Export uses FFmpeg via the ZeroMix host app.
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-accent" id="btn-start-export"><i class="fas fa-download"></i> Export</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     TOAST NOTIFICATION
+═══════════════════════════════════════════════════════════ -->
+<div class="toast" id="toast"></div>
+
+<script src="editor.js"></script>
+<script src="audio.js"></script>
+</body>
+</html>

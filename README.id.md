@@ -137,8 +137,15 @@ Setelah install, cari ikon ⚡ di system tray. ZeroMix akan minta izin untuk ber
 > Pengembang aplikasi tidak bertindak sebagai pemberi lisensi model.
 > Penggunaan yang melanggar ketentuan pembuat asli merupakan tanggung jawab pengguna.
 
----
+## Setup Winget CI/CD
 
+Untuk mengotomatisasi pengiriman pembaruan paket ke Windows Package Manager (WinGet) pada setiap rilis baru:
+1. Fork `microsoft/winget-pkgs` ke akun Anda (misal, `faizinuha/winget-pkgs`).
+2. Buat GitHub Classic PAT dengan scope `public_repo`.
+3. Simpan PAT tersebut sebagai repository secret bernama `WINGET_ACC_TOKEN` di pengaturan repositori (Settings → Secrets and variables → Actions).
+Workflow `winget-releaser` akan otomatis membuat PR untuk memperbarui paket winget setiap kali rilis tag `v*` dipublikasikan.
+
+---
 
 ## Dukung Project
 

@@ -137,20 +137,8 @@ namespace ZeroMix
                 SaveConfig(false, true); // Mark as prompted
             }
 
-            if (isFirstRun)
-            {
-                // Pre-warm WPF rendering engine di background agar onboarding muncul cepat
-                Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Background, new Action(() =>
-                {
-                    var onboarding = new ZeroMix.Onboarding.OnboardingWindow();
-                    onboarding.OnOnboardingFinished += () => StartMainApp(e.Args);
-                    onboarding.Show();
-                }));
-            }
-            else
-            {
-                StartMainApp(e.Args);
-            }
+            // Skip onboarding — go straight to main app
+            StartMainApp(e.Args);
         }
 
         private void LoadLanguageResources()

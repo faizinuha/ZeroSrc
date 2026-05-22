@@ -1,0 +1,42 @@
+name: 📦 Winget Releaser
+
+# ─────────────────────────────────────────────────────────────────────────────
+# KAPAN WORKFLOW INI JALAN?
+#
+# Otomatis saat kamu mempublikasikan GitHub Release baru.
+# Workflow ini akan membuat Pull Request otomatis ke microsoft/winget-pkgs
+# sehingga ZeroMix bisa diinstall via: winget install Zeromix.ZeroMix
+#
+# SETUP YANG DIBUTUHKAN (lakukan sekali):
+# 1. Fork microsoft/winget-pkgs ke akun kamu (github.com/faizinuha/winget-pkgs)
+# 2. Buat GitHub Classic PAT dengan scope "public_repo"
+# 3. Simpan PAT tersebut sebagai secret bernama WINGET_ACC_TOKEN
+#    di: Settings → Secrets → Actions → New repository secret
+# 4. Submit manifest awal ke winget-pkgs (lihat Docs/winget/ untuk template)
+#    Setelah manifest pertama di-approve, workflow ini yang akan handle sisanya.
+# ─────────────────────────────────────────────────────────────────────────────
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  winget:
+    name: 📦 Submit to WinGet
+    runs-on: ubuntu-latest
+    steps:
+      - name: 🪟 Publish ZeroMix to WinGet Community Repository
+        uses: vedantmgoyal9/winget-releaser@v2
+        with:
+          # Package identifier yang terdaftar di winget-pkgs
+          identifier: Zeromix.ZeroMix
+
+          # Regex untuk memilih file installer yang tepat dari release assets
+          # Hanya Setup.exe yang akan disubmit (bukan Portable.zip atau Installer.exe)
+          installers-regex: 'ZeroMix-v[\d\.]+-Setup\.exe$'
+
+          # GitHub Classic PAT (stored as repository secret)
+          token: ${{ secrets.WINGET_ACC_TOKEN }}
+
+          # Otomatis hapus versi lama dari fork (keep 5 latest)
+          max-versions-to-keep: 5

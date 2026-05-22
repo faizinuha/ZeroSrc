@@ -33,7 +33,7 @@ namespace ZeroMix.ZeroShell
         public string CurrentDirectory { get; set; } = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
     }
 
-    public partial class ZeroShellWindow : Window
+    public partial class ZeroShellWindow : Wpf.Ui.Controls.FluentWindow
     {
         private const string CURRENT_VERSION = "6.7.0";
         private List<TerminalTab> _tabs = new List<TerminalTab>();

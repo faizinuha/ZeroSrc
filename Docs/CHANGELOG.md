@@ -7,13 +7,33 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) | [Semantic Ver
 
 ## [Unreleased]
 
-### 🚀 Upcoming Features (v7.0.0 - Web Platform)
+---
 
-- **ZeroMix Web Platform**: Platform web untuk akses ZeroMix dari browser — cloud sync, collaborative editing, cross-platform support.
-- **Cloud Storage Integration**: Sync projects, assets, dan settings ke cloud — akses dari device manapun.
-- **Web-based Video Editor**: Lightweight web editor dengan core features Studio — edit video langsung dari browser tanpa install aplikasi.
-- **Collaborative Editing**: Real-time collaboration untuk team projects — multiple users edit video bersamaan.
-- **API & SDK**: Public API dan SDK untuk developer — integrate ZeroMix features ke aplikasi lain.
+## [v7.0.0] - 2026-05-22
+
+### ✨ Features
+
+- **56Editor (Web Video Editor)** — Editor video berbasis web terinspirasi dari 123apps.com. Layout 3-panel: left tool nav (Media/Audio/Text/Filters/Transitions), preview center, timeline 3 tracks (Video/Audio/Text), right properties panel. Bisa dibuka dari System Tray.
+- **WPF-UI Integration** — Seluruh UI (Home, Studio, Terminal) dirombak menggunakan WPF-UI v4.2.1 components: `ui:NavigationViewItem`, `ui:Card`, `ui:Button`, `ui:SymbolIcon`, `ui:FluentWindow`.
+- **StudioWindow Redesign** — Layout baru 1:1 dengan 56Editor web: 5 panel kiri, preview area, timeline 3 tracks, right properties panel. Dark theme `#0A0A0A` dengan accent `#00FFA3`.
+- **ZeroShellWindow Redesign** — Terminal kini pakai `ui:FluentWindow` dengan `WindowBackdropType="Acrylic"`, `ui:Card` untuk terminal area, `ui:Button` untuk settings.
+- **MainWindow Home Redesign** — Quick Actions pakai `ui:SymbolIcon`, stats pakai `ui:Card`, navigation sidebar pakai `ui:NavigationViewItem`.
+- **System Tray Overhaul** — Ganti `Wpf.Ui.Tray.Controls.NotifyIcon` ke `System.Windows.Forms.NotifyIcon` yang lebih reliable. Menu tray: Show Dashboard → ZeroMix Studio → 56Editor (Web) → ZeroShell → Exit.
+- **WinGet Package** — Manifest `Zeromix.ZeroMix` disiapkan untuk distribusi via Windows Package Manager. *(Coming Soon — pending PR approval di winget-pkgs)*
+
+### 🐛 Bug Fixes
+
+- **Fix System Tray tidak muncul** — Root cause: `WPF-UI NotifyIcon` butuh visual tree / HWND timing. Diganti ke `WinForms NotifyIcon` yang tidak butuh dependency tersebut.
+- **Fix Memory Leak StudioWindow** — `HttpClient` dan `DispatcherTimer` sekarang di-dispose saat window ditutup via `Closed` event. `MediaElement.Close()` dipanggil untuk release unmanaged video memory.
+- **Fix SymbolRegular invalid values** — Semua `ui:SymbolIcon` divalidasi terhadap enum `SymbolRegular` WPF-UI v4.2.1 (`Puzzle24` → `PuzzleCube24`, `Video24` → `Video36024`, dll).
+- **Fix XAML parse error** — `RowDefinition` tidak valid sebagai child langsung `Grid` di ZeroShellWindow compat section.
+
+### 🔧 Changes
+
+- **Hapus Onboarding** — `OnboardingWindow` dihapus dari startup (`App.xaml.cs`) dan folder `src/onboarding` dihapus. App langsung masuk `MainWindow`.
+- **WinGet manifest** — File lama `Faizinuha.ZeroMix.*` dihapus, diganti `Zeromix.ZeroMix.*` dengan ProductCode GUID valid `{077E54A3-2CC5-439F-AC7E-32FA2A8BDD5A}_is1`.
+- **Setup.iss** — `AppId` diganti dari string non-GUID ke GUID proper `{077E54A3-2CC5-439F-AC7E-32FA2A8BDD5A}`.
+- **56Editor web files** — `src/Web/56editor/` berisi `index.html`, `editor.css`, `editor.js`, `audio.js` — full web video editor dengan Pixabay audio integration.
 
 ---
 ## [v6.9.9] - 2026-05-02

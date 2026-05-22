@@ -1,0 +1,27 @@
+<ui:FluentWindow x:Class="ZeroMix.Studio.EditorWebWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+        xmlns:wv2="clr-namespace:Microsoft.Web.WebView2.Wpf;assembly=Microsoft.Web.WebView2.Wpf"
+        Title="56Editor — ZeroMix"
+        Height="780" Width="1400"
+        MinHeight="600" MinWidth="1024"
+        WindowStartupLocation="CenterScreen"
+        ExtendsContentIntoTitleBar="True"
+        WindowBackdropType="None"
+        WindowCornerPreference="Round"
+        Background="#0a0a0a">
+
+    <Grid>
+        <wv2:WebView2 x:Name="WebView" />
+
+        <!-- Loading overlay -->
+        <Border x:Name="LoadingOverlay" Background="#0a0a0a" Visibility="Visible">
+            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                <ui:ProgressRing IsIndeterminate="True" Width="40" Height="40" Foreground="#00ffa3"/>
+                <TextBlock Text="Loading 56Editor..." Foreground="#666" FontSize="13"
+                           HorizontalAlignment="Center" FontFamily="Segoe UI" Margin="0,12,0,0"/>
+            </StackPanel>
+        </Border>
+    </Grid>
+</ui:FluentWindow>

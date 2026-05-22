@@ -212,6 +212,14 @@ Background videos used in ZeroMix are sourced from Pixabay under their free lice
 > [!WARNING]
 > The application developer does not act as licensor for any included third-party models. Violations of the original creator's terms are the user's responsibility.
 
+## Winget CI/CD Setup
+
+To automate submitting package updates to Windows Package Manager (WinGet) on new releases:
+1. Fork `microsoft/winget-pkgs` to your account (e.g., `faizinuha/winget-pkgs`).
+2. Create a GitHub Classic PAT with `public_repo` scope.
+3. Save it as a repository secret named `WINGET_ACC_TOKEN` in settings (Settings → Secrets and variables → Actions).
+The `winget-releaser` workflow will automatically submit a PR to update the winget package when a new release tag `v*` is published.
+
 ---
 
 ## Support

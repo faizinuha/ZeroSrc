@@ -1,0 +1,28 @@
+# yaml-language-server: $schema=https://aka.ms/winget-manifest.defaultLocale.1.6.0.schema.json
+
+PackageIdentifier: Zeromix.ZeroMix
+PackageVersion: 6.9.9
+PackageLocale: en-US
+Publisher: Faizinuha
+PublisherUrl: https://github.com/faizinuha
+PublisherSupportUrl: https://github.com/faizinuha/ZeroMix/issues
+PrivacyUrl: https://github.com/faizinuha/ZeroMix/blob/main/Docs/Privacy.md
+Author: Faizinuha
+PackageName: ZeroMix
+PackageUrl: https://github.com/faizinuha/ZeroMix
+License: MIT
+LicenseUrl: https://github.com/faizinuha/ZeroMix/blob/main/LICENSE.txt
+Copyright: Copyright (c) 2026 Faizinuha
+ShortDescription: Modern Windows utility suite for power users
+Description: ZeroMix is a self-contained Windows desktop enhancement suite. Combines system monitoring, AI-powered tools, Live2D virtual assistants, screen recording, and a Lua plugin system into a single lightweight application.
+Moniker: zeromix
+Tags:
+  - utility
+  - launcher
+  - productivity
+  - customizer
+  - screen-recorder
+  - desktop
+ReleaseNotesUrl: https://github.com/faizinuha/ZeroMix/blob/main/Docs/CHANGELOG.md
+ManifestType: defaultLocale
+ManifestVersion: 1.6.0
