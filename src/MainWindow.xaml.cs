@@ -46,7 +46,7 @@ namespace ZeroMix
     
     public partial class MainWindow : Wpf.Ui.Controls.FluentWindow, ZeroMix.Plugins.IZeroMixHost
     {
-        private const string CURRENT_VERSION = "6.9.9";
+        private const string CURRENT_VERSION = "7.0.0";
         
         // Windows API for Taskbar transparency
         [DllImport("user32.dll", SetLastError = true)]
