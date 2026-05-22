@@ -103,6 +103,15 @@ function handleFiles(files) {
   });
 }
 
+function isSafeMediaSrc(src) {
+  try {
+    const parsed = new URL(src, window.location.href);
+    return parsed.protocol === 'blob:';
+  } catch (_) {
+    return false;
+  }
+}
+
 function addMediaItem({ name, src, duration }) {
   const list = $('media-list');
   const item = document.createElement('div');
@@ -112,6 +121,10 @@ function addMediaItem({ name, src, duration }) {
   const thumb = document.createElement('img');
   thumb.alt = name;
   const tmpV = document.createElement('video');
+  if (!isSafeMediaSrc(src)) {
+    toast('Invalid media source', 'error');
+    return;
+  }
   tmpV.src = src;
   tmpV.currentTime = 0.5;
   tmpV.onloadeddata = () => {
@@ -405,6 +418,10 @@ $('text-content').addEventListener('input', function() {
 
 // ── Video preview ──────────────────────────────────────────
 function loadVideoPreview(clip) {
+  if (!isSafeMediaSrc(clip.src)) {
+    toast('Invalid media source', 'error');
+    return;
+  }
   video.src = clip.src;
   video.style.display = '';
   previewEmpty.style.display = 'none';
