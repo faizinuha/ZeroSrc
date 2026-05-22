@@ -75,9 +75,17 @@ namespace ZeroMix.Studio
             
             LoadFilters();
             
-            // Initialize scrubber
             TimelineScrubber.Maximum = 100;
             TimelineScrubber.Value = 0;
+
+            Closed += (_, _) =>
+            {
+                _timer.Stop();
+                _http.Dispose();
+                VideoPreview.Close();
+                MusicPreview.Close();
+                PixabayPreviewInternal.Close();
+            };
         }
 
         private void LoadFilters()
@@ -270,9 +278,9 @@ namespace ZeroMix.Studio
             VideoPreview.Play();
             VideoPreview.Pause();
             _timer.Start();
+            PreviewEmpty.Visibility = Visibility.Collapsed;
 
             // Refresh Filter Thumbnails
-            // FilterBtn.IsEnabled = true; // Removed in redesign
             foreach(var filter in _filters) filter.PreviewImage = clip.Thumbnail;
             FilterList.Items.Refresh();
         }
@@ -302,8 +310,16 @@ namespace ZeroMix.Studio
         private void ShowClipSettings(VideoClip clip)
         {
             ShowSidePanel(PanelEdit);
-            FadeInCheck.IsChecked = clip.FadeIn;
+            FadeInCheck.IsChecked  = clip.FadeIn;
             FadeOutCheck.IsChecked = clip.FadeOut;
+
+            // Sync right properties panel
+            PropsEmpty.Visibility   = Visibility.Collapsed;
+            PropsContent.Visibility = Visibility.Visible;
+            PropFileName.Text  = clip.FileName;
+            PropDuration.Text  = clip.DurationStr;
+            FadeInCheck2.IsChecked  = clip.FadeIn;
+            FadeOutCheck2.IsChecked = clip.FadeOut;
         }
 
         // Sidebar Navigation
@@ -338,11 +354,14 @@ namespace ZeroMix.Studio
 
         private void ClipSetting_Changed(object sender, RoutedEventArgs e)
         {
-            if (_selectedClip != null)
-            {
-                _selectedClip.FadeIn = FadeInCheck.IsChecked ?? false;
-                _selectedClip.FadeOut = FadeOutCheck.IsChecked ?? false;
-            }
+            if (_selectedClip == null) return;
+            // Either checkbox panel can drive the value
+            bool fi = (FadeInCheck.IsChecked ?? false) || (FadeInCheck2.IsChecked ?? false);
+            bool fo = (FadeOutCheck.IsChecked ?? false) || (FadeOutCheck2.IsChecked ?? false);
+            _selectedClip.FadeIn  = fi;
+            _selectedClip.FadeOut = fo;
+            FadeInCheck.IsChecked  = fi; FadeInCheck2.IsChecked  = fi;
+            FadeOutCheck.IsChecked = fo; FadeOutCheck2.IsChecked = fo;
         }
 
         // RemoveFromLibrary - tidak perlu lagi karena tidak ada library terpisah

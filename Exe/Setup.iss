@@ -3,7 +3,7 @@
 
 [Setup]
 ; --- App Identity ---
-AppId={{ZeroMix-v2-ZeroMix-identifier}}
+AppId={{077E54A3-2CC5-439F-AC7E-32FA2A8BDD5A}}
 AppName=ZeroMix
 #define AppVersion "6.9.9"
 AppVersion={#AppVersion}
@@ -89,8 +89,8 @@ Source: "..\Tools\Plugins\zeromix.CatGatekeeper\assets\nekoicon128.png"; DestDir
 Source: "..\LICENSE.txt"; DestDir: "{app}"; Flags: ignoreversion
 
 ; Update scripts
-Source: "..\zeromix-update.ps1"; DestDir: "{app}"; Flags: ignoreversion skipifsourcedoesntexist
-Source: "..\zeromix-update.bat"; DestDir: "{app}"; Flags: ignoreversion skipifsourcedoesntexist
+Source: "..\Scripts\zeromix-update.ps1"; DestDir: "{app}"; Flags: ignoreversion skipifsourcedoesntexist
+Source: "..\Scripts\zeromix-update.bat"; DestDir: "{app}"; Flags: ignoreversion skipifsourcedoesntexist
 Source: "..\ZeroMix.ps1";        DestDir: "{app}"; Flags: ignoreversion skipifsourcedoesntexist
 
 [Icons]

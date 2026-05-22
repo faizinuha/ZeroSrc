@@ -88,7 +88,7 @@ namespace ZeroMix
         }
 
         private bool _isTaskbarTransparent = false;
-        private Wpf.Ui.Tray.Controls.NotifyIcon? _notifyIcon;
+        private System.Windows.Forms.NotifyIcon? _notifyIcon;
         private ContextMenu? _trayContextMenu;
         private PerformanceCounter? _cpuCounter;
         private PerformanceCounter? _ramCounter;
@@ -568,62 +568,36 @@ namespace ZeroMix
         {
             try
             {
-                _notifyIcon = new Wpf.Ui.Tray.Controls.NotifyIcon();
+                _notifyIcon = new System.Windows.Forms.NotifyIcon();
 
-                // Load icon dengan kualitas terbaik untuk system tray
-                try
-                {
-                    string iconPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Assets", "Icons", "zeromix.ico");
-                    if (File.Exists(iconPath))
-                    {
-                        // Buat BitmapImage dengan DecodePixelWidth untuk hasil tajam
-                        var bitmap = new BitmapImage();
-                        bitmap.BeginInit();
-                        bitmap.UriSource = new Uri(iconPath, UriKind.Absolute);
-                        bitmap.DecodePixelWidth = 16; // Force decode ke 16px untuk tray icon
-                        bitmap.DecodePixelHeight = 16;
-                        bitmap.CacheOption = BitmapCacheOption.OnLoad;
-                        bitmap.EndInit();
-                        bitmap.Freeze();
-                        
-                        _notifyIcon.Icon = bitmap;
-                    }
-                    else
-                    {
-                        // Fallback ke pack URI
-                        var bitmap = new BitmapImage();
-                        bitmap.BeginInit();
-                        bitmap.UriSource = new Uri("pack://application:,,,/Assets/Icons/zeromix.ico");
-                        bitmap.DecodePixelWidth = 16;
-                        bitmap.DecodePixelHeight = 16;
-                        bitmap.CacheOption = BitmapCacheOption.OnLoad;
-                        bitmap.EndInit();
-                        bitmap.Freeze();
-                        
-                        _notifyIcon.Icon = bitmap;
-                    }
-                }
-                catch (Exception ex)
-                {
-                    Debug.WriteLine($"Icon load error: {ex.Message}");
-                }
+                string iconPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Assets", "Icons", "zeromix.ico");
+                if (File.Exists(iconPath))
+                    _notifyIcon.Icon = new System.Drawing.Icon(iconPath, 16, 16);
 
-                _notifyIcon.TooltipText = "ZeroMix - Desktop Enhancement Suite";
-                _notifyIcon.FocusOnLeftClick = true;
-                _notifyIcon.MenuOnRightClick = true;
-                
-                CreateTrayContextMenu();
-                _notifyIcon.Menu = _trayContextMenu;
-                
-                _notifyIcon.LeftClick += (sender, e) => Dispatcher.Invoke(() => ShowWindow());
-                
-                _notifyIcon.Register();
-                
-                UpdateTrayMenuState();
+                _notifyIcon.Text = "ZeroMix";
+                _notifyIcon.Visible = true;
+
+                _notifyIcon.MouseClick += (s, e) =>
+                {
+                    if (e.Button == System.Windows.Forms.MouseButtons.Left)
+                        Dispatcher.Invoke(ShowWindow);
+                };
+
+                // Build WinForms context menu
+                var cms = new System.Windows.Forms.ContextMenuStrip();
+                cms.Items.Add("Show Dashboard",    null, (s, e) => Dispatcher.Invoke(ShowWindow));
+                cms.Items.Add("ZeroMix Studio",    null, (s, e) => Dispatcher.Invoke(OpenVideoEditor));
+                cms.Items.Add("56Editor (Web)",    null, (s, e) => Dispatcher.Invoke(Open56Editor));
+                cms.Items.Add(new System.Windows.Forms.ToolStripSeparator());
+                cms.Items.Add("ZeroShell",         null, (s, e) => Dispatcher.Invoke(ToggleZeroShell));
+                cms.Items.Add(new System.Windows.Forms.ToolStripSeparator());
+                cms.Items.Add("Exit",              null, (s, e) => Dispatcher.Invoke(ExitApplication));
+
+                _notifyIcon.ContextMenuStrip = cms;
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"Failed to initialize tray icon: {ex.Message}");
+                Debug.WriteLine($"Tray init failed: {ex.Message}");
                 _notifyIcon = null;
             }
         }
@@ -632,32 +606,6 @@ namespace ZeroMix
         // (Tidak digunakan karena tray dibuat programatik, bukan via XAML)
         // ────────────────────────────────────────────────────────────────────
 
-        private void CreateTrayContextMenu()
-        {
-            _trayContextMenu = new ContextMenu();
-            
-            var showItem = new MenuItem { Header = "Show Dashboard" };
-            showItem.Click += (s, args) => Dispatcher.Invoke(() => ShowWindow());
-            _trayContextMenu.Items.Add(showItem);
-            
-            var studioItem = new MenuItem { Header = "ZeroMix Studio (Editor)" };
-            studioItem.Click += (s, args) => Dispatcher.Invoke(() => OpenVideoEditor());
-            _trayContextMenu.Items.Add(studioItem);
-            
-            _trayContextMenu.Items.Add(new Separator());
-            
-            var shellItem = new MenuItem { Header = "Enable ZeroShell", Name = "EnableShellItem" };
-            shellItem.Click += (s, args) => ToggleZeroShell();
-            _trayContextMenu.Items.Add(shellItem);
-
-            _trayContextMenu.Items.Add(new Separator());
-            
-            _trayContextMenu.Items.Add(new Separator());
-            
-            var exitItem = new MenuItem { Header = "Exit" };
-            exitItem.Click += (s, args) => ExitApplication();
-            _trayContextMenu.Items.Add(exitItem);
-        }
 
 
 
@@ -680,18 +628,8 @@ namespace ZeroMix
             UpdateTrayMenuState();
         }
 
-        private void UpdateTrayMenuState()
-        {
-            if (_trayContextMenu != null)
-            {
-                var enableItem = _trayContextMenu.Items.OfType<MenuItem>().FirstOrDefault(x => x.Name == "EnableShellItem");
-                bool isEnabled = _zeroShellWindow != null;
-                if (enableItem != null) {
-                    enableItem.IsChecked = isEnabled;
-                    enableItem.Header = isEnabled ? "ZeroShell (Enabled)" : "Enable ZeroShell";
-                }
-            }
-        }
+        private void UpdateTrayMenuState() { /* WinForms tray — no state update needed */ }
+        private void CreateTrayContextMenu() { /* replaced by WinForms ContextMenuStrip in InitializeTrayIcon */ }
 
         private void InitializePerformanceCounters()
         {
@@ -774,7 +712,7 @@ namespace ZeroMix
                 string trayTip = $"CPU: {cpuUsage:F1}% | RAM: {ramPercent:F1}% | Disk: {(float)(DiskProgressBar.Value):F1}%";
                 if (_notifyIcon != null)
                 {
-                    _notifyIcon.TooltipText = trayTip.Length > 63 ? trayTip.Substring(0, 63) : trayTip;
+                    _notifyIcon.Text = trayTip.Length > 63 ? trayTip.Substring(0, 63) : trayTip;
                 }
             }
             catch (Exception ex)
@@ -895,12 +833,9 @@ namespace ZeroMix
         {
             if (_notifyIcon != null)
             {
-                _notifyIcon.Unregister();
+                _notifyIcon.Visible = false;
                 _notifyIcon.Dispose();
-            }
-            if (_trayContextMenu != null)
-            {
-                _trayContextMenu = null;
+                _notifyIcon = null;
             }
             System.Windows.Application.Current.Shutdown();
         }
@@ -1379,6 +1314,13 @@ namespace ZeroMix
             DeactivateAllTabs();
             AssistantContent.Visibility = Visibility.Visible;
             AssistantButton.Background = (System.Windows.Media.SolidColorBrush)FindResource("NavSelectedBrush");
+        }
+
+        private void FiveSixEditorButton_Click(object sender, RoutedEventArgs e)
+        {
+            var editorWin = new ZeroMix.Studio.StudioWindow();
+            editorWin.Owner = this;
+            editorWin.ShowDialog();
         }
 
         private void DonationLink_Click(object sender, RoutedEventArgs e)
@@ -2420,6 +2362,20 @@ end";
             catch (Exception ex)
             {
                 System.Windows.MessageBox.Show("Gagal membuka ZeroMix Studio: " + ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        private void Open56Editor()
+        {
+            try
+            {
+                var editor = new Studio.EditorWebWindow();
+                editor.Show();
+                editor.Activate();
+            }
+            catch (Exception ex)
+            {
+                System.Windows.MessageBox.Show("Gagal membuka 56Editor: " + ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
     }
