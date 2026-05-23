@@ -1,4 +1,4 @@
-/* ═══════════════════════════════════════════════════════════
+﻿/* ═══════════════════════════════════════════════════════════
    56Editor — Core JavaScript
    Handles: media upload, timeline, playback, cut/trim, filters
 ═══════════════════════════════════════════════════════════ */
@@ -134,13 +134,13 @@ function addMediaItem({ name, src, duration }) {
     thumb.src = c.toDataURL();
   };
 
-  item.innerHTML = `
-    <div class="media-item-info">
-      <div class="media-item-name">${name}</div>
-      <div class="media-item-dur">${fmtTime(duration)}</div>
-    </div>
-    <button class="media-item-add" title="Add to timeline"><i class="fas fa-plus"></i></button>`;
-  item.insertBefore(thumb, item.firstChild);
+  const info = document.createElement('div'); info.className = 'media-item-info';
+  const nameEl = document.createElement('div'); nameEl.className = 'media-item-name'; nameEl.textContent = name;
+  const durEl  = document.createElement('div'); durEl.className  = 'media-item-dur';  durEl.textContent = fmtTime(duration);
+  info.appendChild(nameEl); info.appendChild(durEl);
+  const addBtn = document.createElement('button'); addBtn.className = 'media-item-add'; addBtn.title = 'Add to timeline';
+  addBtn.innerHTML = '<i class="fas fa-plus"></i>';
+  item.appendChild(thumb); item.appendChild(info); item.appendChild(addBtn);
 
   item.querySelector('.media-item-add').addEventListener('click', () => {
     addClipToTimeline({ type: 'video', name, src, duration });
@@ -185,10 +185,10 @@ function renderClip(clip) {
   el.style.left   = `${clip.trackStart * state.pxPerSec}px`;
   el.style.width  = `${clip.duration * state.pxPerSec}px`;
   el.title = clip.name;
-  el.innerHTML = `
-    <div class="clip-handle left"></div>
-    <span>${clip.name}</span>
-    <div class="clip-handle right"></div>`;
+  const lh = document.createElement('div'); lh.className = 'clip-handle left';
+  const sp = document.createElement('span'); sp.textContent = clip.name;
+  const rh = document.createElement('div'); rh.className = 'clip-handle right';
+  el.appendChild(lh); el.appendChild(sp); el.appendChild(rh);
 
   // Select on click
   el.addEventListener('mousedown', e => {
