@@ -1354,8 +1354,8 @@ Clear-Host
                 ProcessCommand(AutoRunCommand);
             }
 
-            // Auto-restore WDM state on startup
-            Task.Run(() => {
+            // Auto-restore WDM state on startup (fire-and-forget)
+            _ = Task.Run(() => {
                 try {
                     string wdmPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "ZeroShell", "wdm.json");
                     if (File.Exists(wdmPath)) {

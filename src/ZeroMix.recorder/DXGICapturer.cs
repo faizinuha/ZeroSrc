@@ -178,7 +178,7 @@ namespace ZeroMix.Recorder
                 if (result.Success && resource != null)
                 {
                     using var desktopTexture = resource.QueryInterface<ID3D11Texture2D>();
-                    _context.CopyResource(_lastFrame!, desktopTexture);
+                    if (_lastFrame != null) _context.CopyResource(_lastFrame, desktopTexture);
                     _deskDupl.ReleaseFrame();
                     resource.Dispose();
                 }
