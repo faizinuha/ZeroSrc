@@ -142,7 +142,7 @@ namespace ZeroMix.Studio
                 {
                     WinMsgBox.Show(
                         "Export via FFmpeg requires saving the source video file first.\n\n" +
-                        "This feature will be fully implemented in v7.0.0.",
+                        "This feature will be fully implemented in v7.1.1.",
                         "56Editor — Export",
                         MessageBoxButton.OK, MessageBoxImage.Information);
                     return;
