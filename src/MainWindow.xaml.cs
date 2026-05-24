@@ -8,7 +8,6 @@ using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Forms;
 using System.Windows.Threading;
 using System.Net.Http;
 using System.Text.Json;
@@ -88,6 +87,7 @@ namespace ZeroMix
         }
 
         private bool _isTaskbarTransparent = false;
+        private Wpf.Ui.Tray.Controls.NotifyIcon? _wpfTray;
         private System.Windows.Forms.NotifyIcon? _notifyIcon;
                 private PerformanceCounter? _cpuCounter;
         private PerformanceCounter? _ramCounter;
@@ -382,8 +382,33 @@ namespace ZeroMix
             // Initialize Language Selector
             InitializeLanguageSelector();
 
+            // If a XAML-declared WPF-UI.Tray.NotifyIcon resource exists, prefer it (avoids reflection/fallback)
+            try
+            {
+                if (this.Resources.Contains("AppTrayResource"))
+                {
+                    var appTray = this.Resources["AppTrayResource"] as Wpf.Ui.Tray.Controls.NotifyIcon;
+                    if (appTray != null)
+                    {
+                        _wpfTray = appTray;
+                        Console.WriteLine("[Tray] Using resource-declared AppTray instance");
+                    }
+                }
+            }
+            catch { }
+
             // Setup tray icon langsung di Loaded
             InitializeTrayIcon();
+            // Ensure native tray is present as a robust fallback if user can't see WPF/WinForms icon
+            EnsureNativeTrayIfNeeded();
+            // Install an extra message hook to show the app context menu when native tray is right-clicked.
+            try
+            {                if (_hwndSource != null)
+                {                    _hwndSource.AddHook((IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled) =>
+                    {                        try
+                        {                            if (msg == WM_TRAY_CALLBACK)
+                            {                                int ev = lParam.ToInt32();                                if (ev == 0x0205) // WM_RBUTTONUP
+                                {                                    Dispatcher.Invoke(ShowTrayContextMenu);                                    handled = true;                                }                            }                        }                        catch { }                        return IntPtr.Zero;                    });                }            }            catch { }
 
             // Tunda semua operasi berat agar window selesai render dulu
             Dispatcher.BeginInvoke(async () =>
@@ -551,61 +576,141 @@ namespace ZeroMix
         private void OnContentRenderedInitTray(object? sender, EventArgs e)
         {
             this.ContentRendered -= OnContentRenderedInitTray;
-            InitializeTrayIcon();
+            if (TryInitWpfTray()) { EnsureNativeTrayIfNeeded(); return; }
+            // WPF tray unavailable; skipping WinForms fallback (disabled).
+        }
+
+        private bool TryInitWpfTray()
+        {
+            try
+            {
+                var wpfTray = new global::Wpf.Ui.Tray.Controls.NotifyIcon();
+
+                // Try common tooltip properties
+                try { wpfTray.GetType().GetProperty("ToolTipText")?.SetValue(wpfTray, "ZeroMix"); } catch { try { wpfTray.GetType().GetProperty("ToolTip")?.SetValue(wpfTray, "ZeroMix"); } catch { } }
+
+                // Try set icon if possible
+                string iconPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Assets", "Icons", "zeromix.ico");
+                if (File.Exists(iconPath))
+                {
+                    var pIcon = wpfTray.GetType().GetProperty("Icon") ?? wpfTray.GetType().GetProperty("IconSource") ?? wpfTray.GetType().GetProperty("Image");
+                    if (pIcon != null && pIcon.CanWrite)
+                    {
+                        var propType = pIcon.PropertyType;
+                        try
+                        {
+                            if (propType == typeof(System.Drawing.Icon))
+                            {
+                                pIcon.SetValue(wpfTray, new System.Drawing.Icon(iconPath));
+                            }
+                            else if (typeof(System.Windows.Media.ImageSource).IsAssignableFrom(propType))
+                            {
+                                var bmp = new BitmapImage();
+                                bmp.BeginInit();
+                                bmp.UriSource = new Uri(iconPath, UriKind.Absolute);
+                                bmp.CacheOption = BitmapCacheOption.OnLoad;
+                                bmp.EndInit();
+                                pIcon.SetValue(wpfTray, bmp);
+                            }
+                        }
+                        catch (Exception exIcon)
+                        {
+                            Debug.WriteLine($"[Tray] Failed to set WPF tray icon: {exIcon.Message}");
+                        }
+                    }
+                }
+
+                // Attach double-click / click handler if available (try several event names)
+                foreach (var evName in new[] { "DoubleClick", "Click", "MouseClick", "TrayMouseDoubleClick", "TrayClick" })
+                {
+                    var ev = wpfTray.GetType().GetEvent(evName);
+                    if (ev != null)
+                    {
+                        try
+                        {
+                            EventHandler handler = (s, a) => Dispatcher.Invoke(ShowMainWindow);
+                            ev.AddEventHandler(wpfTray, handler);
+                            break;
+                        }
+                        catch { }
+                    }
+                }
+
+                // Attach right-click/context handler if available (don't break; try to add alongside double-click)
+                foreach (var evName in new[] { "RightClick", "MouseClick", "TrayMouseClick", "ContextMenuOpening", "TrayRightClick" })
+                {
+                    var ev = wpfTray.GetType().GetEvent(evName);
+                    if (ev != null)
+                    {
+                        try
+                        {
+                            EventHandler handler = (s, a) => Dispatcher.Invoke(ShowTrayContextMenu);
+                            ev.AddEventHandler(wpfTray, handler);
+                        }
+                        catch { }
+                    }
+                }
+
+                // Keep instance alive in resources and store to field
+                try { this.Resources["WpfTrayInstance"] = wpfTray; } catch { }
+                _wpfTray = wpfTray;                Console.WriteLine("[Tray] Initialized via WPF-UI.Tray (direct)");                return true;
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"[Tray] WPF-UI.Tray init failed: {ex.Message}");
+                Console.WriteLine("[Tray] WPF-UI.Tray init failed; skipping WinForms fallback to avoid runtime TypeLoadException.");
+                return false;
+            }
         }
 
         private void InitializeTrayIcon()
         {
             try
             {
-                _notifyIcon = new System.Windows.Forms.NotifyIcon();
-                // Default to system app icon first to avoid runtime dependency issues
-                _notifyIcon.Icon = System.Drawing.SystemIcons.Application;
+                // Prefer WPF-UI.Tray NotifyIcon to avoid System.Windows.Forms TypeLoadException on some runtimes
                 try
                 {
-                    string iconPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Assets", "Icons", "zeromix.ico");
-                    if (File.Exists(iconPath))
+                    var trayType = AppDomain.CurrentDomain.GetAssemblies()
+                        .SelectMany(a => {
+                            try { return a.GetTypes(); } catch { return Array.Empty<Type>(); }
+                        })
+                        .FirstOrDefault(t => t.FullName == "Wpf.Ui.Tray.Controls.NotifyIcon");
+
+                    if (trayType != null)
                     {
-                        try
+                        var trayObj = Activator.CreateInstance(trayType);
+                    
+                        // Set tooltip if available
+                        foreach (var pn in new[] { "ToolTipText", "ToolTip", "Tooltip", "Text" })
                         {
-                            var ico = new System.Drawing.Icon(iconPath);
-                            _notifyIcon.Icon = ico;
+                            var p = trayType.GetProperty(pn);
+                            if (p != null && p.CanWrite)
+                            {
+                                p.SetValue(trayObj, "ZeroMix");
+                                break;
+                            }
                         }
-                        catch (Exception icoEx)
+
+                        // Try set icon if property exists
+                        string iconPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Assets", "Icons", "zeromix.ico");
+                        if (File.Exists(iconPath))
                         {
-                            Debug.WriteLine($"Tray icon load failed, using fallback: {icoEx.Message}");
-                        }
-                    }
-                }
-                catch { }
+                            var pIcon = trayType.GetProperty("Icon") ?? trayType.GetProperty("IconSource") ?? trayType.GetProperty("Image");
+                            if (pIcon != null && pIcon.CanWrite)
+                            {
+                                var propType = pIcon.PropertyType;
+                                try
+                                {                                    if (propType == typeof(System.Drawing.Icon))
+                                    {                                        pIcon.SetValue(trayObj, new System.Drawing.Icon(iconPath));                                    }
+                                    else if (typeof(System.Windows.Media.ImageSource).IsAssignableFrom(propType))
+                                    {                                        var bmp = new BitmapImage();                                        bmp.BeginInit();                                        bmp.UriSource = new Uri(iconPath, UriKind.Absolute);                                        bmp.CacheOption = BitmapCacheOption.OnLoad;                                        bmp.EndInit();                                        pIcon.SetValue(trayObj, bmp);                                    }                                }                                catch (Exception exIcon)                                {                                    Debug.WriteLine($"[Tray] Failed to set WPF tray icon: {exIcon.Message}");                                }                            }                        }
+                        // Attach double-click / click handler if available
+                        foreach (var evName in new[] { "DoubleClick", "Click", "MouseClick", "TrayMouseDoubleClick", "TrayClick" })                        {                            var ev = trayType.GetEvent(evName);                            if (ev != null)                            {                                try                                {                                    // Try common EventHandler signature first                                                                    EventHandler handler = (s, a) => Dispatcher.Invoke(ShowMainWindow);                                    ev.AddEventHandler(trayObj, handler);                                    break;                                }                                catch { /* ignore and try next event name */ }                            }                        }                        // Store instance in resources to keep it alive / part of logical tree                        try { this.Resources["WpfTrayInstance"] = trayObj; } catch { /* ignore if resource key exists */ }                        Console.WriteLine("[Tray] Initialized via WPF-UI.Tray");                        return;                    }                }                catch (Exception ex)                {                    Debug.WriteLine($"[Tray] WPF-UI.Tray init failed: {ex.Message}");                }                // Fallback to WinForms NotifyIcon if WPF-UI.Tray unavailable or fail                _notifyIcon = new System.Windows.Forms.NotifyIcon();                // Default to system app icon first to avoid runtime dependency issues                _notifyIcon.Icon = System.Drawing.SystemIcons.Application;                try                {                    string iconPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Assets", "Icons", "zeromix.ico");                    if (File.Exists(iconPath))                    {                        try                        {                            var ico = new System.Drawing.Icon(iconPath);                            _notifyIcon.Icon = ico;                        }                        catch (Exception icoEx)                        {                            Debug.WriteLine($"Tray icon load failed, using fallback: {icoEx.Message}");                        }                    }                }                catch { }                _notifyIcon.Text = "ZeroMix";                _notifyIcon.Visible = true;                _notifyIcon.MouseClick += (s, e) =>                {                    if (e.Button == System.Windows.Forms.MouseButtons.Left)                        Dispatcher.Invoke(ShowMainWindow);                };                _notifyIcon.DoubleClick += (s, e) => Dispatcher.Invoke(ShowMainWindow);                var cms = new System.Windows.Forms.ContextMenuStrip();                cms.Items.Add("Show Dashboard", null, (s, e) => Dispatcher.Invoke(ShowMainWindow));                cms.Items.Add("ZeroMix Studio", null, (s, e) => Dispatcher.Invoke(OpenVideoEditor));                cms.Items.Add(new System.Windows.Forms.ToolStripSeparator());                cms.Items.Add("ZeroShell",      null, (s, e) => Dispatcher.Invoke(ToggleZeroShell));                cms.Items.Add(new System.Windows.Forms.ToolStripSeparator());                cms.Items.Add("Exit",           null, (s, e) => Dispatcher.Invoke(ExitApplication));                _notifyIcon.ContextMenuStrip = cms;                Console.WriteLine("[Tray] Initialized (WinForms fallback)");            }
+            catch (Exception ex)            {                Debug.WriteLine($"Tray init failed: {ex.Message}");                Console.WriteLine($"[Tray] Init failed: {ex.Message}\n{ex}");                _notifyIcon = null;            }
+        }
 
-                _notifyIcon.Text = "ZeroMix";
-                _notifyIcon.Visible = true;
-
-                _notifyIcon.MouseClick += (s, e) =>
-                {
-                    if (e.Button == System.Windows.Forms.MouseButtons.Left)
-                        Dispatcher.Invoke(ShowMainWindow);
-                };
-                _notifyIcon.DoubleClick += (s, e) => Dispatcher.Invoke(ShowMainWindow);
-
-                var cms = new System.Windows.Forms.ContextMenuStrip();
-                cms.Items.Add("Show Dashboard", null, (s, e) => Dispatcher.Invoke(ShowMainWindow));
-                cms.Items.Add("ZeroMix Studio", null, (s, e) => Dispatcher.Invoke(OpenVideoEditor));
-                cms.Items.Add("56Editor (Web)", null, (s, e) => Dispatcher.Invoke(Open56Editor));
-                cms.Items.Add(new System.Windows.Forms.ToolStripSeparator());
-                cms.Items.Add("ZeroShell",      null, (s, e) => Dispatcher.Invoke(ToggleZeroShell));
-                cms.Items.Add(new System.Windows.Forms.ToolStripSeparator());
-                cms.Items.Add("Exit",           null, (s, e) => Dispatcher.Invoke(ExitApplication));
-                _notifyIcon.ContextMenuStrip = cms;
-                Console.WriteLine("[Tray] Initialized");
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"Tray init failed: {ex.Message}");
-                Console.WriteLine($"[Tray] Init failed: {ex.Message}\n{ex}");
-                _notifyIcon = null;
-            }
+        private void GenericTrayEventHandler(object? sender, EventArgs e)
+        {            Dispatcher.Invoke(ShowMainWindow);
         }
 
         private void ShowMainWindow()
@@ -619,8 +724,56 @@ namespace ZeroMix
         // (Tidak digunakan karena tray dibuat programatik, bukan via XAML)
         // ────────────────────────────────────────────────────────────────────
 
+        // If WPF/WinForms trays fail to appear for the user, a native Shell_NotifyIcon fallback is available below.
+        // The methods use P/Invoke to avoid referencing System.Windows.Forms.NotifyIcon constructor which caused TypeLoadException on some runtimes.
+
+        private void EnsureNativeTrayIfNeeded()
+        {            try            {                // If a WPF tray or WinForms tray is already active, still attempt native fallback only if user likely cannot see icon.                // In practice we will add native tray when other methods didn't visibly register an icon for the session.                if (_nativeTrayAdded) return;                InitializeNativeTrayIcon();            }            catch { }        }
+
+        // (Native tray helpers appended below)
 
 
+
+
+
+        private void ShowTrayContextMenu()
+        {
+            try
+            {
+                Dispatcher.Invoke(() =>
+                {
+                    var menu = new System.Windows.Controls.ContextMenu();
+
+                    var miShow = new System.Windows.Controls.MenuItem { Header = "Show Dashboard" };
+                    miShow.Click += (_, __) => ShowMainWindow();
+                    menu.Items.Add(miShow);
+
+                    var miStudio = new System.Windows.Controls.MenuItem { Header = "ZeroMix Studio" };
+                    miStudio.Click += (_, __) => OpenVideoEditor();
+                    menu.Items.Add(miStudio);
+
+
+                    menu.Items.Add(new System.Windows.Controls.Separator());
+
+                    var miShell = new System.Windows.Controls.MenuItem { Header = "ZeroShell" };
+                    miShell.Click += (_, __) => ToggleZeroShell();
+                    menu.Items.Add(miShell);
+
+                    menu.Items.Add(new System.Windows.Controls.Separator());
+
+                    var miExit = new System.Windows.Controls.MenuItem { Header = "Exit" };
+                    miExit.Click += (_, __) => ExitApplication();
+                    menu.Items.Add(miExit);
+
+                    menu.Placement = System.Windows.Controls.Primitives.PlacementMode.MousePoint;
+                    menu.IsOpen = true;
+                });
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"[Tray] ShowTrayContextMenu failed: {ex.Message}");
+            }
+        }
 
         private void ToggleZeroShell()
         {
@@ -736,9 +889,18 @@ namespace ZeroMix
 
                 // Update tray icon tooltip
                 string trayTip = $"CPU: {cpuUsage:F1}% | RAM: {ramPercent:F1}% | Disk: {(float)(DiskProgressBar.Value):F1}%";
-                if (_notifyIcon != null)
+                if (_wpfTray != null)
                 {
-                    _notifyIcon.Text = trayTip.Length > 63 ? trayTip.Substring(0, 63) : trayTip;
+                    try
+                    {
+                        var prop = _wpfTray.GetType().GetProperty("ToolTipText") ?? _wpfTray.GetType().GetProperty("ToolTip") ?? _wpfTray.GetType().GetProperty("Tooltip") ?? _wpfTray.GetType().GetProperty("Text");
+                        if (prop != null && prop.CanWrite)
+                        {
+                            var val = trayTip.Length > 255 ? trayTip.Substring(0, 255) : trayTip;
+                            prop.SetValue(_wpfTray, val);
+                        }
+                    }
+                    catch { }
                 }
             }
             catch (Exception ex)
@@ -857,11 +1019,21 @@ namespace ZeroMix
 
         private void ExitApplication()
         {
-            if (_notifyIcon != null)
+            if (_wpfTray != null)
             {
-                _notifyIcon.Visible = false;
-                _notifyIcon.Dispose();
-                _notifyIcon = null;
+                try
+                {
+                    var dispose = _wpfTray.GetType().GetMethod("Dispose");
+                    if (dispose != null) dispose.Invoke(_wpfTray, null);
+                    else
+                    {
+                        var isOpen = _wpfTray.GetType().GetProperty("IsOpen");
+                        if (isOpen != null && isOpen.CanWrite) isOpen.SetValue(_wpfTray, false);
+                    }
+                }
+                catch { }
+                try { this.Resources.Remove("WpfTrayInstance"); } catch { }
+                _wpfTray = null;
             }
             System.Windows.Application.Current.Shutdown();
         }
@@ -2404,6 +2576,77 @@ end";
                 System.Windows.MessageBox.Show("Gagal membuka 56Editor: " + ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
+
+        // Native Shell_NotifyIcon implementation (placed near end of MainWindow)
+        private IntPtr _nativeTrayIconHandle = IntPtr.Zero;
+        private uint _nativeTrayId = 0xBEEF;
+        private const int WM_APP = 0x8000;
+        private const int WM_TRAY_CALLBACK = WM_APP + 1;
+        private System.Windows.Interop.HwndSource? _hwndSource;
+        private bool _nativeTrayAdded = false;
+
+        private const uint NIM_ADD = 0x00000000;
+        private const uint NIM_MODIFY = 0x00000001;
+        private const uint NIM_DELETE = 0x00000002;
+        private const uint NIF_MESSAGE = 0x00000001;
+        private const uint NIF_ICON = 0x00000002;
+        private const uint NIF_TIP = 0x00000004;
+        private const uint IMAGE_ICON = 1;
+        private const uint LR_LOADFROMFILE = 0x00000010;
+
+        [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
+        private struct NOTIFYICONDATA
+        {
+            public uint cbSize;
+            public IntPtr hWnd;
+            public uint uID;
+            public uint uFlags;
+            public uint uCallbackMessage;
+            public IntPtr hIcon;
+            [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 128)]
+            public string szTip;
+        }
+
+        [DllImport("user32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+        private static extern IntPtr LoadImage(IntPtr hinst, string lpszName, uint uType, int cx, int cy, uint fuLoad);
+
+        [DllImport("user32.dll", SetLastError = true)]
+        private static extern bool DestroyIcon(IntPtr hIcon);
+
+        [DllImport("shell32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+        private static extern bool Shell_NotifyIcon(uint dwMessage, ref NOTIFYICONDATA pnid);
+
+        private void InitializeNativeTrayIcon()
+        {
+            try
+            {                if (_nativeTrayAdded) return;
+                var helper = new System.Windows.Interop.WindowInteropHelper(this);
+                var hWnd = helper.Handle;
+                if (hWnd == IntPtr.Zero) return; // Need HWND to receive callbacks
+
+                string iconPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Assets", "Icons", "zeromix.ico");
+                IntPtr hIcon = IntPtr.Zero;
+                if (File.Exists(iconPath))
+                {                    hIcon = LoadImage(IntPtr.Zero, iconPath, IMAGE_ICON, 0, 0, LR_LOADFROMFILE);
+                }
+                if (hIcon == IntPtr.Zero)
+                {                    var exePath = System.Diagnostics.Process.GetCurrentProcess().MainModule?.FileName ?? "";
+                    if (!string.IsNullOrEmpty(exePath) && File.Exists(exePath))
+                        hIcon = LoadImage(IntPtr.Zero, exePath, IMAGE_ICON, 0, 0, LR_LOADFROMFILE);
+                }
+                if (hIcon == IntPtr.Zero)
+                {                    Debug.WriteLine("[NativeTray] Failed to load icon handle");                    return;                }
+                var nid = new NOTIFYICONDATA();
+                nid.cbSize = (uint)Marshal.SizeOf(typeof(NOTIFYICONDATA));
+                nid.hWnd = hWnd;                nid.uID = _nativeTrayId;                nid.uFlags = NIF_MESSAGE | NIF_ICON | NIF_TIP;                nid.uCallbackMessage = (uint)WM_TRAY_CALLBACK;                nid.hIcon = hIcon;                nid.szTip = "ZeroMix";                bool ok = Shell_NotifyIcon(NIM_ADD, ref nid);                if (!ok)                {                    Debug.WriteLine($"[NativeTray] Shell_NotifyIcon NIM_ADD failed: {Marshal.GetLastWin32Error()}");                    DestroyIcon(hIcon);                    return;                }                _nativeTrayIconHandle = hIcon;                _nativeTrayAdded = true;                _hwndSource = System.Windows.Interop.HwndSource.FromHwnd(hWnd);                if (_hwndSource != null) _hwndSource.AddHook(NativeWndProc);                this.Closed += (_, __) => CleanupNativeTrayIcon();                Console.WriteLine("[NativeTray] Added native tray icon via Shell_NotifyIcon");            }
+            catch (Exception ex)
+            {                Debug.WriteLine($"[NativeTray] Init failed: {ex.Message}");            }        }
+
+        private IntPtr NativeWndProc(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
+        {            try            {                if (msg == WM_TRAY_CALLBACK)                {                    int ev = lParam.ToInt32();                    if (ev == 0x0203 || ev == 0x0202)                    {                        Dispatcher.Invoke(ShowMainWindow);                        handled = true;                    }                    else if (ev == 0x0205)                    {                        Dispatcher.Invoke(ShowMainWindow);                        handled = true;                    }                }            }            catch { }            return IntPtr.Zero;        }
+
+        private void CleanupNativeTrayIcon()
+        {            try            {                if (!_nativeTrayAdded) return;                var helper = new System.Windows.Interop.WindowInteropHelper(this);                var hWnd = helper.Handle;                var nid = new NOTIFYICONDATA();                nid.cbSize = (uint)Marshal.SizeOf(typeof(NOTIFYICONDATA));                nid.hWnd = hWnd;                nid.uID = _nativeTrayId;                Shell_NotifyIcon(NIM_DELETE, ref nid);                if (_nativeTrayIconHandle != IntPtr.Zero)                {                    DestroyIcon(_nativeTrayIconHandle);                    _nativeTrayIconHandle = IntPtr.Zero;                }                if (_hwndSource != null)                {                    _hwndSource.RemoveHook(NativeWndProc);                    _hwndSource = null;                }                _nativeTrayAdded = false;                Console.WriteLine("[NativeTray] Removed native tray icon");            }            catch { }        }
     }
     public class RecordingHistoryItem
     {

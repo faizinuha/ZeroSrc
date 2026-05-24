@@ -133,6 +133,13 @@
     </None>
   </ItemGroup>
 
+  <!-- Icons — copy to output for tray icon -->
+  <ItemGroup>
+    <Content Include="Assets\Icons\**">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
   <!-- Wallpaper & anim assets -->
   <ItemGroup>
     <Content Include="Assets\Data\**">

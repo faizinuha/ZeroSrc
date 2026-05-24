@@ -1,4 +1,4 @@
-/* ═══════════════════════════════════════════════════════════
+﻿/* ═══════════════════════════════════════════════════════════
    56Editor — Audio Module
    Handles: Pixabay music search, preview, add to timeline
    API key is injected by the host app (C# WebView2 bridge)
@@ -48,15 +48,16 @@ async function doSearch() {
     const data = await res.json();
 
     if (!data.hits?.length) {
-      audioList.innerHTML = `<div class="empty-hint"><i class="fas fa-search"></i><p>No results for "${q}"</p></div>`;
+      audioList.innerHTML = ""; const nh=document.createElement("div"); nh.className="empty-hint"; nh.innerHTML="<i class=\"fas fa-search\"></i>"; const np=document.createElement("p"); np.textContent=`No results for "${q}"`; nh.appendChild(np); audioList.appendChild(nh);
       return;
     }
 
     renderAudioResults(data.hits);
   } catch (err) {
-    audioList.innerHTML = `<div class="empty-hint" style="color:#ff4444">
-      <i class="fas fa-exclamation-circle"></i><p>Search failed: ${err.message}</p>
-    </div>`;
+    audioList.innerHTML = "";
+    const eh=document.createElement("div"); eh.className="empty-hint"; eh.style.color="#ff4444";
+    eh.innerHTML='<i class="fas fa-exclamation-circle"></i>';
+    const ep=document.createElement("p"); ep.textContent=`Search failed: ${err.message}`; eh.appendChild(ep); audioList.appendChild(eh);
   }
 }
 

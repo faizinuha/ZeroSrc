@@ -54,7 +54,7 @@ namespace ZeroMix.Recorder
             if (_dxgiCapturer.IsInitialized)
             {
                 Console.WriteLine("[ScreenStudioRecorder] DXGICapturer initialized successfully.");
-                _compositor = new GPUCompositor(_dxgiCapturer.Device, _dxgiCapturer.Width, _dxgiCapturer.Height);
+                _compositor = new GPUCompositor(_dxgiCapturer.Device!, _dxgiCapturer.Width, _dxgiCapturer.Height);
                 _camera = new VirtualCamera(_dxgiCapturer.Width, _dxgiCapturer.Height);
                 _cursorTracker = new CursorTracker();
             }
@@ -66,11 +66,11 @@ namespace ZeroMix.Recorder
                 // We still need a D3D11 device for the compositor/encoder pipeline
                 if (_dxgiCapturer.Device != null)
                 {
-                    _gdiCapturer = new GDICapturer(_dxgiCapturer.Device, _dxgiCapturer.Context);
+                    _gdiCapturer = new GDICapturer(_dxgiCapturer.Device!, _dxgiCapturer.Context!);
                     if (_gdiCapturer.IsInitialized)
                     {
                         Console.WriteLine("[ScreenStudioRecorder] ✓ GDICapturer initialized successfully!");
-                        _compositor = new GPUCompositor(_dxgiCapturer.Device, _gdiCapturer.Width, _gdiCapturer.Height);
+                        _compositor = new GPUCompositor(_dxgiCapturer.Device!, _gdiCapturer.Width, _gdiCapturer.Height);
                         _camera = new VirtualCamera(_gdiCapturer.Width, _gdiCapturer.Height);
                         _cursorTracker = new CursorTracker();
                     }
@@ -231,7 +231,7 @@ namespace ZeroMix.Recorder
                             }
 
                             _compositor.Compose(rawFrame, _camera.X, _camera.Y, _camera.Zoom, _cursorTracker.X, _cursorTracker.Y, _cursorTracker.IsLeftClick, crop);
-                            _encoder?.QueueFrame(_compositor.OutputTexture);
+                            if (_compositor.OutputTexture != null) _encoder?.QueueFrame(_compositor.OutputTexture);
                         }
 
                         if (frameIndex % 100 == 0 && frameIndex > 0)
