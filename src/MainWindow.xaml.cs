@@ -89,8 +89,7 @@ namespace ZeroMix
 
         private bool _isTaskbarTransparent = false;
         private System.Windows.Forms.NotifyIcon? _notifyIcon;
-        private ContextMenu? _trayContextMenu;
-        private PerformanceCounter? _cpuCounter;
+                private PerformanceCounter? _cpuCounter;
         private PerformanceCounter? _ramCounter;
         private PerformanceCounter? _diskCounter;
         private DispatcherTimer? _performanceTimer;
@@ -285,6 +284,8 @@ namespace ZeroMix
             MoonSharp.Interpreter.UserData.RegisterType<Plugins.ZeroMixLuaApi>();
             
             InitializeComponent();
+            // set content rendered handler to init tray when render ready
+            this.ContentRendered += OnContentRenderedInitTray;
             // Set opacity 0 SEBELUM window render untuk cegah white flash
             this.Opacity = 0;
             ApplicationThemeManager.Apply(this);
@@ -381,9 +382,8 @@ namespace ZeroMix
             // Initialize Language Selector
             InitializeLanguageSelector();
 
-            // Setup tray icon — tunggu window benar-benar visible dan HWND siap
-            // Gunakan ContentRendered event yang fire setelah window fully rendered
-            this.ContentRendered += OnContentRenderedInitTray;
+            // Setup tray icon langsung di Loaded
+            InitializeTrayIcon();
 
             // Tunda semua operasi berat agar window selesai render dulu
             Dispatcher.BeginInvoke(async () =>
@@ -548,20 +548,10 @@ namespace ZeroMix
             catch { return null; }
         }
 
-        private async void OnContentRenderedInitTray(object? sender, EventArgs e)
+        private void OnContentRenderedInitTray(object? sender, EventArgs e)
         {
             this.ContentRendered -= OnContentRenderedInitTray;
-
-            // Coba sampai 3x dengan interval naik — handle sistem lambat
-            // Jangan pakai 0ms: HWND belum terdaftar di Windows Shell
-            int[] delays = { 300, 600, 1200 };
-            
-            foreach (int delay in delays)
-            {
-                await Task.Delay(delay);
-                InitializeTrayIcon();
-                if (_notifyIcon != null) break; // Berhasil, stop retry
-            }
+            InitializeTrayIcon();
         }
 
         private void InitializeTrayIcon()
@@ -569,10 +559,25 @@ namespace ZeroMix
             try
             {
                 _notifyIcon = new System.Windows.Forms.NotifyIcon();
-
-                string iconPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Assets", "Icons", "zeromix.ico");
-                if (File.Exists(iconPath))
-                    _notifyIcon.Icon = new System.Drawing.Icon(iconPath, 16, 16);
+                // Default to system app icon first to avoid runtime dependency issues
+                _notifyIcon.Icon = System.Drawing.SystemIcons.Application;
+                try
+                {
+                    string iconPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Assets", "Icons", "zeromix.ico");
+                    if (File.Exists(iconPath))
+                    {
+                        try
+                        {
+                            var ico = new System.Drawing.Icon(iconPath);
+                            _notifyIcon.Icon = ico;
+                        }
+                        catch (Exception icoEx)
+                        {
+                            Debug.WriteLine($"Tray icon load failed, using fallback: {icoEx.Message}");
+                        }
+                    }
+                }
+                catch { }
 
                 _notifyIcon.Text = "ZeroMix";
                 _notifyIcon.Visible = true;
@@ -580,26 +585,34 @@ namespace ZeroMix
                 _notifyIcon.MouseClick += (s, e) =>
                 {
                     if (e.Button == System.Windows.Forms.MouseButtons.Left)
-                        Dispatcher.Invoke(ShowWindow);
+                        Dispatcher.Invoke(ShowMainWindow);
                 };
+                _notifyIcon.DoubleClick += (s, e) => Dispatcher.Invoke(ShowMainWindow);
 
-                // Build WinForms context menu
                 var cms = new System.Windows.Forms.ContextMenuStrip();
-                cms.Items.Add("Show Dashboard",    null, (s, e) => Dispatcher.Invoke(ShowWindow));
-                cms.Items.Add("ZeroMix Studio",    null, (s, e) => Dispatcher.Invoke(OpenVideoEditor));
-                cms.Items.Add("56Editor (Web)",    null, (s, e) => Dispatcher.Invoke(Open56Editor));
+                cms.Items.Add("Show Dashboard", null, (s, e) => Dispatcher.Invoke(ShowMainWindow));
+                cms.Items.Add("ZeroMix Studio", null, (s, e) => Dispatcher.Invoke(OpenVideoEditor));
+                cms.Items.Add("56Editor (Web)", null, (s, e) => Dispatcher.Invoke(Open56Editor));
                 cms.Items.Add(new System.Windows.Forms.ToolStripSeparator());
-                cms.Items.Add("ZeroShell",         null, (s, e) => Dispatcher.Invoke(ToggleZeroShell));
+                cms.Items.Add("ZeroShell",      null, (s, e) => Dispatcher.Invoke(ToggleZeroShell));
                 cms.Items.Add(new System.Windows.Forms.ToolStripSeparator());
-                cms.Items.Add("Exit",              null, (s, e) => Dispatcher.Invoke(ExitApplication));
-
+                cms.Items.Add("Exit",           null, (s, e) => Dispatcher.Invoke(ExitApplication));
                 _notifyIcon.ContextMenuStrip = cms;
+                Console.WriteLine("[Tray] Initialized");
             }
             catch (Exception ex)
             {
                 Debug.WriteLine($"Tray init failed: {ex.Message}");
+                Console.WriteLine($"[Tray] Init failed: {ex.Message}\n{ex}");
                 _notifyIcon = null;
             }
+        }
+
+        private void ShowMainWindow()
+        {
+            this.Show();
+            this.WindowState = WindowState.Normal;
+            this.Activate();
         }
 
         // ── Tray Icon Event Handlers ────────────────────────────────────────
@@ -629,6 +642,19 @@ namespace ZeroMix
         }
 
         private void UpdateTrayMenuState() { /* WinForms tray — no state update needed */ }
+
+        private void ShowExport_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                var studio = new ZeroMix.Studio.StudioWindow();
+                studio.Show();
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Open Studio failed: {ex.Message}");
+            }
+        }
         private void CreateTrayContextMenu() { /* replaced by WinForms ContextMenuStrip in InitializeTrayIcon */ }
 
         private void InitializePerformanceCounters()
