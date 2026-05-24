@@ -35,7 +35,7 @@ namespace ZeroMix.Studio
             public TimeSpan TotalDuration { get; set; }
             public TimeSpan StartTime { get; set; } = TimeSpan.Zero;
             public TimeSpan EndTime { get; set; } = TimeSpan.Zero;
-            public System.Windows.Media.ImageSource Thumbnail { get; set; }
+            public System.Windows.Media.ImageSource? Thumbnail { get; set; }
             public bool FadeIn { get; set; }
             public bool FadeOut { get; set; }
         }
@@ -67,6 +67,17 @@ namespace ZeroMix.Studio
         public StudioWindow()
         {
             InitializeComponent();
+            // Adjust initial size to fit current display (keep sensible minimums)
+            try
+            {
+                double screenW = SystemParameters.WorkArea.Width;
+                double screenH = SystemParameters.WorkArea.Height;
+                this.Width = Math.Min(this.Width, Math.Max(1100, screenW * 0.9));
+                this.Height = Math.Min(this.Height, Math.Max(600, screenH * 0.85));
+                this.WindowStartupLocation = WindowStartupLocation.CenterScreen;
+            }
+            catch { }
+
             TimelineList.ItemsSource = _timelineClips;
             FilterList.ItemsSource = _filters;
 
@@ -966,7 +977,7 @@ namespace ZeroMix.Studio
             finally { ExportButton.IsEnabled = true; }
         }
 
-        private System.Windows.Media.ImageSource GetVideoThumbnail(string videoPath)
+        private System.Windows.Media.ImageSource? GetVideoThumbnail(string videoPath)
         {
             try
             {
@@ -996,9 +1007,6 @@ namespace ZeroMix.Studio
         // AI AUTO-EDITING FEATURES
         // ═══════════════════════════════════════════════════════════════════
 
-        private Services.GroqAIService? _aiService;
-        private Services.AudioTranscriptionService? _audioService;
-        private Services.AIEditingSuggestion? _currentAISuggestions;
         private Services.CaptionService? _captionService;
         private List<Services.CaptionSegment> _currentCaptions = new List<Services.CaptionSegment>();
 

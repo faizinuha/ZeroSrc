@@ -99,7 +99,10 @@ namespace ZeroMix
             }
 
             base.OnStartup(e);
-            
+
+            // Required for WinForms NotifyIcon to work correctly
+            System.Windows.Forms.Application.EnableVisualStyles();
+
             // Pastikan folder AppData/ZeroMix ada
             Directory.CreateDirectory(Path.GetDirectoryName(ConfigPath)!);
 
