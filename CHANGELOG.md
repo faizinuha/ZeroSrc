@@ -19,8 +19,6 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) | [Semantic Ver
 - Apply ModernComboBox style to language selector
 - Add docs/winget.md with winget publish guidance
 
-Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>
-- fix: XSS - replace innerHTML with textContent
 
 ---
 
