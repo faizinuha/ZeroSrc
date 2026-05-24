@@ -194,7 +194,7 @@ namespace ZeroMix.Recorder
                 {
                     Console.WriteLine($"[GPUCompositor] ERROR during compose: {ex.GetType().Name}: {ex.Message}");
                     // Force reset target in case of error
-                    try { _d2dContext.Target = null; } catch { }
+                    try { if (_d2dContext != null) _d2dContext.Target = null; } catch { }
                 }
             }
         }

@@ -9,6 +9,25 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) | [Semantic Ver
 
 ---
 
+## [v7.1.0] - 2026-05-24
+
+### ✨ Features
+
+- Perbaikan System Tray: inisialisasi lebih robust dengan preferensi Wpf.Ui.Tray dan fallback native Shell_NotifyIcon (mengatasi beberapa runtime interop/TypeLoadException). Tray kini muncul konsisten di banyak konfigurasi Windows.
+- Perbaikan ShowMainWindow() dan handler double-click agar jendela utama dapat dimunculkan kembali secara handal.
+
+### 🐛 Bug Fixes
+
+- Menghapus item "56Editor (Web)" dari context menu system tray (akses web editor tetap tersedia via menu utama).
+- Menambahkan fallback icon: gunakan Assets\Icons\zeromix.ico bila tersedia, atau SystemIcons.Application jika tidak ditemukan.
+
+### 🔧 Changes
+
+- Update docs/CHANGELOG.md untuk 7.1.0.
+- Menambahkan logging dan mekanisme fallback untuk inisialisasi tray serta perbaikan kompatibilitas.
+
+---
+
 ## [v7.0.0] - 2026-05-22
 
 ### ✨ Features

@@ -201,8 +201,10 @@
                     </Setter.Value>
                 </Setter>
             </Style>
+                <tray:NotifyIcon x:Key="AppTrayResource" ToolTip="ZeroMix" Visibility="Collapsed" />
         </ResourceDictionary>
     </Window.Resources>
+
 
     <!-- Main Container with rounded corners -->
     <Border x:Name="RootBorder"
