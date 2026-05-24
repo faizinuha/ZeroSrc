@@ -5,6 +5,25 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) | [Semantic Ver
 
 ---
 
+## [refs/heads/ProyekTil] - 2026-05-24
+
+### ✨ Features
+- feat: add WinGet integration and restructure project layout
+
+### 🐛 Bug Fixes
+- fix(tray+ui): robust tray init, studio sizing, lang combobox style, docs/winget
+
+- Avoid NotifyIcon type load crash using safe fallback
+- Register ContentRendered handler to init tray after window rendered
+- Adjust StudioWindow initial size to fit display
+- Apply ModernComboBox style to language selector
+- Add docs/winget.md with winget publish guidance
+
+Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>
+- fix: XSS - replace innerHTML with textContent
+
+---
+
 ## [Unreleased]
 
 ---
