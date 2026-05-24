@@ -28,7 +28,7 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) | [Semantic Ver
 
 ---
 
-## [v7.0.0] - 2026-05-22
+## [v7.1.1] - 2026-05-22
 
 ### ✨ Features
 
