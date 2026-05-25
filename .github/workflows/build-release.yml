@@ -320,15 +320,15 @@ jobs:
         $body | Out-File -FilePath "RELEASE_NOTES.md" -Encoding utf8
         Write-Host "✅ Release notes generated (top 4 highlights + changelog link)"
 
-    # ─── STEP 9: Buat Release entry dulu (selalu jalan, meski build gagal) ──
-    # Release dibuat lebih awal agar tag tetap terdaftar sebagai "latest"
-    - name: 🏷️ Create GitHub Release (always)
+    # ─── STEP 9: Buat Release entry dulu sebagai DRAFT ──
+    # Release dibuat sebagai draft dulu: upload assets dulu baru publish.
+    - name: 🏷️ Create GitHub Release (draft)
       uses: softprops/action-gh-release@v2
       with:
         tag_name: ${{ steps.version.outputs.tag }}
         name: ZeroMix ${{ steps.version.outputs.tag }}
         body_path: RELEASE_NOTES.md
-        draft: false
+        draft: true
         prerelease: false
         make_latest: true
         fail_on_unmatched_files: false
@@ -348,3 +348,26 @@ jobs:
         fail_on_unmatched_files: false
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    # ─── STEP 10: Publish Release (make it live) ───────────────────────────────
+    - name: 🟢 Publish Release (make live)
+      shell: pwsh
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        $tag = "${{ steps.version.outputs.tag }}"
+        $repo = "${{ github.repository }}"
+        $url = "https://api.github.com/repos/$repo/releases/tags/$tag"
+
+        Write-Host "Looking up release id for $tag..."
+        $resp = Invoke-RestMethod -Headers @{ Authorization = "token $env:GITHUB_TOKEN"; Accept = "application/vnd.github.v3+json" } -Uri $url -Method GET
+        $id = $resp.id
+        if ($null -eq $id) {
+          Write-Host "Release not found for tag $tag" -ForegroundColor Red
+          exit 1
+        }
+
+        Write-Host "Publishing release id $id..."
+        $body = @{ draft = $false } | ConvertTo-Json
+        Invoke-RestMethod -Headers @{ Authorization = "token $env:GITHUB_TOKEN"; Accept = "application/vnd.github.v3+json" } -Uri "https://api.github.com/repos/$repo/releases/$id" -Method PATCH -Body $body
+        Write-Host "✅ Release published"
