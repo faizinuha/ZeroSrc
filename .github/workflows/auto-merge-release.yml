@@ -1,0 +1,33 @@
+name: ✅ Auto-Merge Release PR
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+
+permissions:
+  pull-requests: write
+  contents: write
+
+jobs:
+  auto-merge:
+    name: Auto-Merge Release PR
+    runs-on: ubuntu-latest
+    if: |
+      contains(github.head_ref, 'fix/release') ||
+      contains(github.head_ref, 'chore/release') ||
+      github.event.pull_request.title == 'ci(release): make release draft, upload assets, then publish'
+    steps:
+      - name: 🔍 Wait for CI to pass
+        uses: lewagon/wait-on-check-action@v1.3.1
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          wait-interval: 10
+          allowed-conclusions: success
+
+      - name: 🟢 Enable auto-merge
+        uses: peter-evans/enable-pull-request-automerge@v3
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          pull-request-number: ${{ github.event.pull_request.number }}
+          merge-method: squash
