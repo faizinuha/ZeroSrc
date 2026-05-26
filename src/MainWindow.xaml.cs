@@ -38,15 +38,16 @@ using Cursors = System.Windows.Input.Cursors;
 using Button = System.Windows.Controls.Button;
 using Orientation = System.Windows.Controls.Orientation;
 using Brush = System.Windows.Media.Brush;
+using Color = System.Drawing.Color;
 
 namespace ZeroMix
 {
     using ZeroMix.zeromix.CreatePlugins;
-    
+
     public partial class MainWindow : Wpf.Ui.Controls.FluentWindow, ZeroMix.Plugins.IZeroMixHost
     {
         private const string CURRENT_VERSION = "7.1.1";
-        
+
         // Windows API for Taskbar transparency
         [DllImport("user32.dll", SetLastError = true)]
         private static extern IntPtr FindWindow(string lpClassName, string lpWindowName);
@@ -89,7 +90,7 @@ namespace ZeroMix
         private bool _isTaskbarTransparent = false;
         private Wpf.Ui.Tray.Controls.NotifyIcon? _wpfTray;
         private System.Windows.Forms.NotifyIcon? _notifyIcon;
-                private PerformanceCounter? _cpuCounter;
+        private PerformanceCounter? _cpuCounter;
         private PerformanceCounter? _ramCounter;
         private PerformanceCounter? _diskCounter;
         private DispatcherTimer? _performanceTimer;
@@ -109,7 +110,7 @@ namespace ZeroMix
         private DispatcherTimer? _recordDurationTimer;
         private Key _currentRecordHotkey = Key.F9;
         private bool _isPickingHotkey = false;
-        
+
         // Cache untuk System Health agar tidak query WMI setiap tick
         private long _cachedTotalRAM = 0;
         private string? _cachedOsVersion;
@@ -123,7 +124,7 @@ namespace ZeroMix
         private SleepManager? _sleepManager;
 
         // ── IPluginHost + IZeroMixHost implementation ───────────────────────
-        public string HostName    => "ZeroMix";
+        public string HostName => "ZeroMix";
         public string HostVersion => CURRENT_VERSION;
 
         public void Dispatch(Action action) => Dispatcher.Invoke(action);
@@ -138,7 +139,8 @@ namespace ZeroMix
         public double GetCpuUsage()
         {
             double val = 0;
-            Dispatcher.Invoke(() => {
+            Dispatcher.Invoke(() =>
+            {
                 if (double.TryParse(CpuPercentText.Text.Replace(" %", ""), out double r)) val = r;
             });
             return val;
@@ -147,7 +149,8 @@ namespace ZeroMix
         public double GetRamUsage()
         {
             double val = 0;
-            Dispatcher.Invoke(() => {
+            Dispatcher.Invoke(() =>
+            {
                 if (double.TryParse(RamPercentText.Text.Replace(" %", ""), out double r)) val = r;
             });
             return val;
@@ -156,7 +159,8 @@ namespace ZeroMix
         public double GetDiskUsage()
         {
             double val = 0;
-            Dispatcher.Invoke(() => {
+            Dispatcher.Invoke(() =>
+            {
                 if (double.TryParse(DiskPercentText.Text.Replace(" %", ""), out double r)) val = r;
             });
             return val;
@@ -198,7 +202,7 @@ namespace ZeroMix
             if (IconRec != null) IconRec.Margin = iconMargin;
             if (IconAsst != null) IconAsst.Margin = iconMargin;
             if (IconAbout != null) IconAbout.Margin = iconMargin;
-            
+
             // Handle logo display or other elements if needed
             if (StatusLabel != null) StatusLabel.Visibility = visibility;
             if (LanguageComboBox != null) LanguageComboBox.Visibility = visibility;
@@ -251,12 +255,12 @@ namespace ZeroMix
                 string Get(string key) => dict.Contains(key) ? dict[key]?.ToString() ?? "" : "";
 
                 // Sidebar nav labels
-                if (NavTextHome != null)    NavTextHome.Text    = Get("Nav_Home");
-                if (NavTextWall != null)    NavTextWall.Text    = Get("Nav_Wallpapers");
+                if (NavTextHome != null) NavTextHome.Text = Get("Nav_Home");
+                if (NavTextWall != null) NavTextWall.Text = Get("Nav_Wallpapers");
                 if (NavTextPlugins != null) NavTextPlugins.Text = Get("Nav_Plugins");
-                if (NavTextRec != null)     NavTextRec.Text     = Get("Nav_Record");
-                if (NavTextAsst != null)    NavTextAsst.Text    = Get("Nav_AI") is { Length: > 0 } s ? s : "AI Companions";
-                if (NavTextAbout != null)   NavTextAbout.Text   = Get("Nav_About");
+                if (NavTextRec != null) NavTextRec.Text = Get("Nav_Record");
+                if (NavTextAsst != null) NavTextAsst.Text = Get("Nav_AI") is { Length: > 0 } s ? s : "AI Companions";
+                if (NavTextAbout != null) NavTextAbout.Text = Get("Nav_About");
             }
             catch (Exception ex)
             {
@@ -267,9 +271,9 @@ namespace ZeroMix
         public MainWindow(string[]? args = null)
         {
             _startupArgs = args;
-            
+
             // Auto-Detect Installer Language Selection
-            try 
+            try
             {
                 string langFile = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "language.ini");
                 if (File.Exists(langFile))
@@ -277,12 +281,12 @@ namespace ZeroMix
                     string code = File.ReadAllText(langFile).Trim();
                     ChangeLanguage(code);
                 }
-            } 
+            }
             catch { /* Ignore if fails, default to EN */ }
 
             // Register Lua Bridge
             MoonSharp.Interpreter.UserData.RegisterType<Plugins.ZeroMixLuaApi>();
-            
+
             InitializeComponent();
             // set content rendered handler to init tray when render ready
             this.ContentRendered += OnContentRenderedInitTray;
@@ -296,7 +300,8 @@ namespace ZeroMix
             _sleepManager = new SleepManager();
 
             // Berikan handle HotkeyCore ke SleepManager (untuk pendaftaran shortcut)
-            Dispatcher.BeginInvoke(new Action(() => {
+            Dispatcher.BeginInvoke(new Action(() =>
+            {
                 if (App.HotkeyCoreInstance != null)
                 {
                     var helper = new System.Windows.Interop.WindowInteropHelper(App.HotkeyCoreInstance);
@@ -307,14 +312,18 @@ namespace ZeroMix
             // InitializeRecorder(); // Removed to prevent startup crash, handled in background task below
 
             // Register Global Hotkey (F9) immediately
-            this.Loaded += (s, e) => {
-                try {
+            this.Loaded += (s, e) =>
+            {
+                try
+                {
                     _hotkeyManager = new GlobalHotkeyManager();
                     _hotkeyManager.Register(this);
-                    _hotkeyManager.HotkeyPressed += () => {
+                    _hotkeyManager.HotkeyPressed += () =>
+                    {
                         Dispatcher.Invoke(() => ZeroRecordBtn_Click(this, new RoutedEventArgs()));
                     };
-                } catch { }
+                }
+                catch { }
             };
 
             // RecordingManager di-init lazy saat user buka halaman Capture
@@ -436,7 +445,7 @@ namespace ZeroMix
                 // Load VA thumbnails — delay lebih lama agar view sudah di-render
                 await Task.Delay(800);
                 LoadVAThumbnails();
-                
+
                 // Load CatGatekeeper plugin secara lazy dan aman
                 LoadCatGatekeeperPlugin();
 
@@ -532,7 +541,7 @@ namespace ZeroMix
                 string appDataFile = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "ZeroMix", "language.ini");
                 string baseDirFile = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "language.ini");
                 string currentLang = "en-US";
-                
+
                 try
                 {
                     if (File.Exists(appDataFile))
@@ -564,12 +573,12 @@ namespace ZeroMix
             if (sender is System.Windows.Controls.ComboBox comboBox && comboBox.SelectedItem is ComboBoxItem selectedItem)
             {
                 string selectedLanguage = selectedItem.Tag?.ToString() ?? "en-US";
-                
+
                 // Save to AppData
                 string appDataDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "ZeroMix");
                 Directory.CreateDirectory(appDataDir);
                 string languageFile = Path.Combine(appDataDir, "language.ini");
-                
+
                 try { File.WriteAllText(languageFile, selectedLanguage); }
                 catch (Exception ex) { Debug.WriteLine($"[Language] Save failed: {ex.Message}"); }
 
@@ -690,7 +699,8 @@ namespace ZeroMix
                 try
                 {
                     var trayType = AppDomain.CurrentDomain.GetAssemblies()
-                        .SelectMany(a => {
+                        .SelectMany(a =>
+                        {
                             try { return a.GetTypes(); } catch { return Array.Empty<Type>(); }
                         })
                         .FirstOrDefault(t => t.FullName == "Wpf.Ui.Tray.Controls.NotifyIcon");
@@ -699,7 +709,7 @@ namespace ZeroMix
                     {
                         var trayObj = Activator.CreateInstance(trayType);
 
-                    
+
                         // Set tooltip if available
                         foreach (var pn in new[] { "ToolTipText", "ToolTip", "Tooltip", "Text" })
                         {
@@ -751,7 +761,7 @@ namespace ZeroMix
                                 try
                                 {
                                     // Try common EventHandler signature first
-                                
+
                                     EventHandler handler = (s, a) => Dispatcher.Invoke(ShowMainWindow);
                                     ev.AddEventHandler(trayObj, handler);
                                     break;
@@ -808,9 +818,9 @@ namespace ZeroMix
                 cms.Items.Add("ZeroMix Studio", null, (s, e) => Dispatcher.Invoke(OpenVideoEditor));
 
                 cms.Items.Add(new System.Windows.Forms.ToolStripSeparator());
-                cms.Items.Add("ZeroShell",      null, (s, e) => Dispatcher.Invoke(ToggleZeroShell));
+                cms.Items.Add("ZeroShell", null, (s, e) => Dispatcher.Invoke(ToggleZeroShell));
                 cms.Items.Add(new System.Windows.Forms.ToolStripSeparator());
-                cms.Items.Add("Exit",           null, (s, e) => Dispatcher.Invoke(ExitApplication));
+                cms.Items.Add("Exit", null, (s, e) => Dispatcher.Invoke(ExitApplication));
                 _notifyIcon.ContextMenuStrip = cms;
                 Console.WriteLine("[Tray] Initialized (WinForms fallback)");
             }
@@ -903,7 +913,8 @@ namespace ZeroMix
             if (_zeroShellWindow == null)
             {
                 _zeroShellWindow = new ZeroShellWindow();
-                _zeroShellWindow.Closed += (s, ev) => {
+                _zeroShellWindow.Closed += (s, ev) =>
+                {
                     _zeroShellWindow = null;
                     UpdateTrayMenuState();
                 };
@@ -935,7 +946,8 @@ namespace ZeroMix
 
         private void InitializePerformanceCounters()
         {
-            try {
+            try
+            {
                 _cpuCounter = new PerformanceCounter("Processor", "% Processor Time", "_Total");
                 _ramCounter = new PerformanceCounter("Memory", "Available MBytes");
                 _diskCounter = new PerformanceCounter("PhysicalDisk", "% Disk Time", "_Total");
@@ -944,10 +956,12 @@ namespace ZeroMix
                 _performanceTimer = new DispatcherTimer();
                 _performanceTimer.Interval = TimeSpan.FromSeconds(1); // Set ke 1 detik agar lebih responsif
                 _performanceTimer.Tick += PerformanceTimer_Tick;
-                
+
                 // Panggil sekali untuk pemanasan data
                 _cpuCounter.NextValue();
-            } catch {
+            }
+            catch
+            {
                 // Fallback jika PerformanceCounter tidak tersedia
                 _performanceTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(2) };
                 _performanceTimer.Tick += PerformanceTimer_Tick;
@@ -970,26 +984,29 @@ namespace ZeroMix
 
                 // RAM Usage - gunakan cached totalRAM, tidak perlu query WMI setiap tick
                 float availableRam = _ramCounter!.NextValue();
-                
+
                 // Cache totalRAM saat pertama kali
                 if (_cachedTotalRAM == 0)
                 {
-                    Task.Run(() => {
-                        try {
+                    Task.Run(() =>
+                    {
+                        try
+                        {
                             ManagementClass managementClass = new ManagementClass("Win32_ComputerSystem");
                             foreach (ManagementObject obj in managementClass.GetInstances())
                             {
                                 _cachedTotalRAM = Convert.ToInt64(obj["TotalPhysicalMemory"]) / (1024 * 1024);
                                 break;
                             }
-                        } catch { _cachedTotalRAM = 8192; } // Default 8GB jika gagal
+                        }
+                        catch { _cachedTotalRAM = 8192; } // Default 8GB jika gagal
                     });
                 }
-                
+
                 if (_cachedTotalRAM <= 0)
                 {
                     // Fallback jika task belum selesai
-                    _cachedTotalRAM = 8192; 
+                    _cachedTotalRAM = 8192;
                 }
 
                 float usedRam = _cachedTotalRAM - (int)availableRam;
@@ -1037,9 +1054,10 @@ namespace ZeroMix
             try
             {
                 // Jalankan semua WMI queries di background thread untuk menghindari blocking UI
-                await Task.Run(() => 
+                await Task.Run(() =>
                 {
-                    try {
+                    try
+                    {
                         // OS Version (cache)
                         if (string.IsNullOrEmpty(_cachedOsVersion))
                         {
@@ -1072,7 +1090,8 @@ namespace ZeroMix
                                 break;
                             }
                         }
-                    } catch { }
+                    }
+                    catch { }
                 });
 
                 // Update UI di main thread
@@ -1082,8 +1101,10 @@ namespace ZeroMix
 
                 // Network - ini lebih cepat, bisa langsung di UI thread
                 int activeNetworks = 0;
-                try {
-                    await Task.Run(() => {
+                try
+                {
+                    await Task.Run(() =>
+                    {
                         ManagementClass netClass = new ManagementClass("Win32_NetworkAdapterConfiguration");
                         foreach (ManagementObject net in netClass.GetInstances())
                         {
@@ -1091,7 +1112,8 @@ namespace ZeroMix
                                 activeNetworks++;
                         }
                     });
-                } catch { }
+                }
+                catch { }
                 NetworkText.Text = $"Network: {activeNetworks} Active";
             }
             catch (Exception ex)
@@ -1188,14 +1210,14 @@ namespace ZeroMix
 
         private void SLP_LoadSettingsToUI(SleepSettingsModel s)
         {
-            SLP_ManualModeChk.IsChecked   = s.HasMode(TriggerMode.Manual);
-            SLP_IdleModeChk.IsChecked     = s.HasMode(TriggerMode.Idle);
+            SLP_ManualModeChk.IsChecked = s.HasMode(TriggerMode.Manual);
+            SLP_IdleModeChk.IsChecked = s.HasMode(TriggerMode.Idle);
             SLP_ShortcutModeChk.IsChecked = s.HasMode(TriggerMode.Shortcut);
-            SLP_IdleSecondsTxt.Text       = s.IdleThresholdSeconds.ToString();
-            SLP_ShortcutTxt.Text          = s.ShortcutKey;
+            SLP_IdleSecondsTxt.Text = s.IdleThresholdSeconds.ToString();
+            SLP_ShortcutTxt.Text = s.ShortcutKey;
             SLP_ExitMouseMoveChk.IsChecked = s.ExitOnMouseMove;
             SLP_ExitMouseDownChk.IsChecked = s.ExitOnMouseDown;
-            SLP_ExitKeyDownChk.IsChecked   = s.ExitOnKeyDown;
+            SLP_ExitKeyDownChk.IsChecked = s.ExitOnKeyDown;
             SLP_BrightnessSld.Value = s.Brightness;
             _slpSelectedStyle = s.Style;
             SLP_SelectStyleCard(_slpSelectedStyle);
@@ -1212,28 +1234,28 @@ namespace ZeroMix
         {
             var s = new SleepSettingsModel();
             s.Mode = TriggerMode.None;
-            if (SLP_ManualModeChk.IsChecked   == true) s.Mode |= TriggerMode.Manual;
-            if (SLP_IdleModeChk.IsChecked     == true) s.Mode |= TriggerMode.Idle;
+            if (SLP_ManualModeChk.IsChecked == true) s.Mode |= TriggerMode.Manual;
+            if (SLP_IdleModeChk.IsChecked == true) s.Mode |= TriggerMode.Idle;
             if (SLP_ShortcutModeChk.IsChecked == true) s.Mode |= TriggerMode.Shortcut;
             if (int.TryParse(SLP_IdleSecondsTxt.Text, out int sec)) s.IdleThresholdSeconds = sec;
-            s.ShortcutKey          = SLP_ShortcutTxt.Text;
-            s.ExitOnMouseMove      = SLP_ExitMouseMoveChk.IsChecked ?? true;
-            s.ExitOnMouseDown      = SLP_ExitMouseDownChk.IsChecked ?? true;
-            s.ExitOnKeyDown        = SLP_ExitKeyDownChk.IsChecked   ?? true;
-            s.Style                = _slpSelectedStyle;
-            s.Brightness           = SLP_BrightnessSld.Value;
+            s.ShortcutKey = SLP_ShortcutTxt.Text;
+            s.ExitOnMouseMove = SLP_ExitMouseMoveChk.IsChecked ?? true;
+            s.ExitOnMouseDown = SLP_ExitMouseDownChk.IsChecked ?? true;
+            s.ExitOnKeyDown = SLP_ExitKeyDownChk.IsChecked ?? true;
+            s.Style = _slpSelectedStyle;
+            s.Brightness = SLP_BrightnessSld.Value;
             s.AutoDisableOnLowBattery = true;
             s.CustomBackgroundPath = _slpCustomBgPath;
-            s.MusicPath            = _slpMusicPath;
-            s.MusicVolume          = SLP_MusicVolumeSld.Value;
+            s.MusicPath = _slpMusicPath;
+            s.MusicVolume = SLP_MusicVolumeSld.Value;
             return s;
         }
 
         private void SLP_SelectStyleCard(AodStyle style)
         {
-            var neon   = (System.Windows.Media.Brush)FindResource("NeonBlueBrush");
+            var neon = (System.Windows.Media.Brush)FindResource("NeonBlueBrush");
             var border = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(26, 32, 48));
-            var cards  = new[] {
+            var cards = new[] {
                 (SLP_StyleCardMinimal, AodStyle.MinimalClock),
                 (SLP_StyleCardGlow,    AodStyle.DigitalGlow),
                 (SLP_StyleCardAnalog,  AodStyle.Analog),
@@ -1243,7 +1265,7 @@ namespace ZeroMix
             foreach (var (card, s) in cards)
             {
                 if (card == null) continue;
-                card.BorderBrush     = s == style ? neon : border;
+                card.BorderBrush = s == style ? neon : border;
                 card.BorderThickness = s == style ? new Thickness(2) : new Thickness(1);
             }
         }
@@ -1274,7 +1296,7 @@ namespace ZeroMix
         {
             var dlg = new Microsoft.Win32.OpenFileDialog
             {
-                Title  = "Pilih Background AOD",
+                Title = "Pilih Background AOD",
                 Filter = "Media Files|*.jpg;*.jpeg;*.png;*.bmp;*.mp4;*.webm;*.mkv|All Files|*.*"
             };
             if (dlg.ShowDialog() == true)
@@ -1294,7 +1316,7 @@ namespace ZeroMix
         {
             var dlg = new Microsoft.Win32.OpenFileDialog
             {
-                Title  = "Pilih Musik untuk Sleep Mode",
+                Title = "Pilih Musik untuk Sleep Mode",
                 Filter = "Audio Files|*.mp3;*.wav;*.flac;*.ogg;*.m4a;*.aac|All Files|*.*"
             };
             if (dlg.ShowDialog() == true)
@@ -1340,6 +1362,10 @@ namespace ZeroMix
             if (PluginsContent != null) PluginsContent.Visibility = Visibility.Collapsed;
             if (RecorderContent != null) RecorderContent.Visibility = Visibility.Collapsed;
             if (SleepContent != null) SleepContent.Visibility = Visibility.Collapsed;
+            if (ZeroContent != null) ZeroContent.Visibility = Visibility.Collapsed; // Add ZeroConnect
+            // Di dalam HamburgerBtn_Click, setelah baris NavTextAbout
+            if (NavTextZeroConnect != null) NavTextZeroConnect.Visibility = Visibility;
+            if (IconZeroConnect != null) IconZeroConnect.Margin = iconMargin;
 
             if (_performanceTimer != null) _performanceTimer.Stop();
 
@@ -1349,6 +1375,7 @@ namespace ZeroMix
             if (WallpaperButton != null) WallpaperButton.Background = System.Windows.Media.Brushes.Transparent;
             if (PluginsButton != null) PluginsButton.Background = System.Windows.Media.Brushes.Transparent;
             if (RecorderButton != null) RecorderButton.Background = System.Windows.Media.Brushes.Transparent;
+            if (ZeroConnectButton != null) ZeroConnectButton.Background = System.Windows.Media.Brushes.Transparent;
         }
 
 
@@ -1386,12 +1413,12 @@ namespace ZeroMix
 
             MicComboBox.Items.Clear();
             SpeakerComboBox.Items.Clear();
-            
+
             MicComboBox.Items.Add(new ComboBoxItem { Content = "Default System Microphone" });
             MicComboBox.Items.Add(new ComboBoxItem { Content = "No Audio" });
             SpeakerComboBox.Items.Add(new ComboBoxItem { Content = "Default System Speaker" });
             SpeakerComboBox.Items.Add(new ComboBoxItem { Content = "No Audio" });
-            
+
             MicComboBox.SelectedIndex = 0;
             SpeakerComboBox.SelectedIndex = 0;
 
@@ -1412,14 +1439,14 @@ namespace ZeroMix
 
                     using var p = Process.Start(psi);
                     if (p == null) return names;
-                    
+
                     string output = p.StandardError.ReadToEnd();
                     bool captureNext = false;
                     foreach (var line in output.Split('\n'))
                     {
                         if (line.Contains("DirectShow audio devices")) captureNext = true;
                         else if (line.Contains("DirectShow video devices")) captureNext = false;
-                        
+
                         if (captureNext && line.Contains("\""))
                         {
                             var match = System.Text.RegularExpressions.Regex.Match(line, "\"(.*?)\"");
@@ -1448,16 +1475,20 @@ namespace ZeroMix
             DeactivateAllTabs();
             var recorderContent = FindName("RecorderContent") as UIElement;
             if (recorderContent != null) recorderContent.Visibility = Visibility.Visible;
-            RecorderButton.Background = (System.Windows.Media.SolidColorBrush)FindResource("NavSelectedBrush");
+            var __navBrush = TryFindResource("NavSelectedBrush") as System.Windows.Media.Brush;
+            RecorderButton.Background = __navBrush ?? System.Windows.Media.Brushes.Transparent;
 
             // Lazy-init RecordingManager hanya saat halaman Capture dibuka
             if (_recordingManager == null)
             {
-                Task.Run(() => {
-                    try {
+                Task.Run(() =>
+                {
+                    try
+                    {
                         string ffmpegPath = ResolveFFmpegPath();
                         _recordingManager = new RecordingManager(ffmpegPath);
-                    } catch { }
+                    }
+                    catch { }
                 });
             }
 
@@ -1475,12 +1506,12 @@ namespace ZeroMix
                 // Update UI Visuals
                 var modes = new[] { ModeFullScreen, ModeApp, ModeArea, ModeWindow };
                 var canvases = new[] { CanvasFullScreen, CanvasApp, CanvasArea, CanvasWindow };
-                
+
                 for (int i = 0; i < modes.Length; i++)
                 {
                     var m = modes[i];
                     var c = canvases[i];
-                    
+
                     if (m == null) continue;
                     if (m == border)
                     {
@@ -1606,37 +1637,53 @@ namespace ZeroMix
         {
             DeactivateAllTabs();
             PluginsContent.Visibility = Visibility.Visible;
-            PluginsButton.Background = (System.Windows.Media.SolidColorBrush)FindResource("NavSelectedBrush");
+            var __navBrush = TryFindResource("NavSelectedBrush") as System.Windows.Media.Brush;
+            PluginsButton.Background = __navBrush ?? System.Windows.Media.Brushes.Transparent;
         }
 
         private void HomeButton_Click(object sender, RoutedEventArgs e)
         {
             DeactivateAllTabs();
             HomeContent.Visibility = Visibility.Visible;
-            HomeButton.Background = (System.Windows.Media.SolidColorBrush)FindResource("NavSelectedBrush");
+            var __navBrush = TryFindResource("NavSelectedBrush") as System.Windows.Media.Brush;
+            HomeButton.Background = __navBrush ?? System.Windows.Media.Brushes.Transparent;
         }
 
         private void AboutButton_Click(object sender, RoutedEventArgs e)
         {
             DeactivateAllTabs();
             AboutContent.Visibility = Visibility.Visible;
-            AboutButton.Background = (System.Windows.Media.SolidColorBrush)FindResource("NavSelectedBrush");
+            var __navBrush = TryFindResource("NavSelectedBrush") as System.Windows.Media.Brush;
+            AboutButton.Background = __navBrush ?? System.Windows.Media.Brushes.Transparent;
         }
 
         private void NavWallpapers_Click(object sender, RoutedEventArgs e)
         {
             DeactivateAllTabs();
             WallpapersContent.Visibility = Visibility.Visible;
-            WallpaperButton.Background = (System.Windows.Media.SolidColorBrush)FindResource("NavSelectedBrush");
+            var __navBrush = TryFindResource("NavSelectedBrush") as System.Windows.Media.Brush;
+            WallpaperButton.Background = __navBrush ?? System.Windows.Media.Brushes.Transparent;
         }
 
         private void AssistantButton_Click(object sender, RoutedEventArgs e)
         {
             DeactivateAllTabs();
             AssistantContent.Visibility = Visibility.Visible;
-            AssistantButton.Background = (System.Windows.Media.SolidColorBrush)FindResource("NavSelectedBrush");
+            var __navBrush = TryFindResource("NavSelectedBrush") as System.Windows.Media.Brush;
+            AssistantButton.Background = __navBrush ?? System.Windows.Media.Brushes.Transparent;
         }
 
+
+        
+        private void ZeroConnectButton_Click(object sender, RoutedEventArgs e)
+        {
+            DeactivateAllTabs();
+            ZeroContent.Visibility = Visibility.Visible;
+
+            var navBrush = TryFindResource("NavSelectedBrush") as System.Windows.Media.Brush;
+            ZeroConnectButton.Background = navBrush
+                ?? new SolidColorBrush(System.Windows.Media.Color.FromRgb(20, 25, 34));
+        }
         private void FiveSixEditorButton_Click(object sender, RoutedEventArgs e)
         {
             var editorWin = new ZeroMix.Studio.StudioWindow();
@@ -1665,17 +1712,17 @@ namespace ZeroMix
 
             if (_performanceTimer == null)
             {
-                await Task.Run(() => 
+                await Task.Run(() =>
                 {
                     InitializePerformanceCounters();
-                    Dispatcher.Invoke(() => 
+                    Dispatcher.Invoke(() =>
                     {
                         UpdateSystemInfo();
                         RefreshProcessList();
                     });
                 });
             }
-            
+
             _performanceTimer?.Start();
             StatusLabel.Text = "System Monitor Active";
         }
@@ -1722,7 +1769,7 @@ namespace ZeroMix
                 {
                     _isTaskbarTransparent = true;
                     _taskbarWatcher?.Start();
-                    EnableTransparentTaskbar(); 
+                    EnableTransparentTaskbar();
                     // StatusLabel.Text = "Ghost Taskbar: Clear Mode Active";
                     TaskbarToggleBtn.Opacity = 1.0;
                 }
@@ -1758,7 +1805,8 @@ namespace ZeroMix
         {
             _gameDetectTimer = new DispatcherTimer();
             _gameDetectTimer.Interval = TimeSpan.FromSeconds(2);
-            _gameDetectTimer.Tick += (s, e) => {
+            _gameDetectTimer.Tick += (s, e) =>
+            {
                 if (GameDetector.IsGameRunning(out string name, out IntPtr handle))
                 {
                     _detectedGameHandle = handle;
@@ -1789,7 +1837,7 @@ namespace ZeroMix
                     int.TryParse(content.Split(' ')[0], out fps);
                 }
 
-                string mic     = (MicComboBox?.SelectedItem as ComboBoxItem)?.Content?.ToString() ?? "No Audio";
+                string mic = (MicComboBox?.SelectedItem as ComboBoxItem)?.Content?.ToString() ?? "No Audio";
                 string speaker = (SpeakerComboBox?.SelectedItem as ComboBoxItem)?.Content?.ToString() ?? "No Audio";
 
                 // Format output
@@ -1812,7 +1860,7 @@ namespace ZeroMix
                 IntPtr? hCapture = null;
                 System.Windows.Rect? rCapture = null;
                 if (_selectedRecordingMode == "Application") hCapture = _detectedGameHandle;
-                else if (_selectedRecordingMode == "Area")   rCapture = _selectedCaptureRect;
+                else if (_selectedRecordingMode == "Area") rCapture = _selectedCaptureRect;
                 else if (_selectedRecordingMode == "Window") hCapture = _detectedGameHandle != IntPtr.Zero ? _detectedGameHandle : IntPtr.Zero;
 
                 // ── Countdown 3..2..1 ───────────────────────────────────────
@@ -1869,13 +1917,14 @@ namespace ZeroMix
 
                     _isRecordingActive = true;
                     UpdateRecordUI(true);
-                    
+
                     RecordDurationText.Visibility = Visibility.Visible;
                     if (_recordDurationTimer == null)
                     {
                         _recordDurationTimer = new DispatcherTimer();
                         _recordDurationTimer.Interval = TimeSpan.FromSeconds(1);
-                        _recordDurationTimer.Tick += (s, args) => {
+                        _recordDurationTimer.Tick += (s, args) =>
+                        {
                             RecordDurationText.Text = _recordingManager.GetDuration();
                         };
                     }
@@ -1886,7 +1935,7 @@ namespace ZeroMix
                 {
                     UpdateRecordUI(false);
                 }
-                
+
                 if (HomeRecordBtn != null) HomeRecordBtn.IsEnabled = true;
             }
             else
@@ -1894,20 +1943,20 @@ namespace ZeroMix
                 StatusLabel.Text = "Finalizing Video...";
                 if (HomeRecordBtnText != null) HomeRecordBtnText.Text = "SAVING...";
 
-                await Task.Run(() => 
+                await Task.Run(() =>
                 {
                     try { _recordingManager.StopRecording(); } catch { }
                 });
 
                 _isRecordingActive = false;
                 _recordDurationTimer?.Stop();
-                
+
                 _recordingBorder?.Close();
                 _recordingBorder = null;
 
                 UpdateRecordUI(false);
                 if (RecordDurationText != null) RecordDurationText.Visibility = Visibility.Collapsed;
-                
+
                 // Refresh History
                 Dispatcher.Invoke(LoadRecordingHistory);
                 StatusLabel.Text = "Recording Saved!";
@@ -1935,10 +1984,10 @@ namespace ZeroMix
             double mbps = e.NewValue / 1000.0;
             string label = mbps switch
             {
-                <= 3  => $" — {mbps:F0} Mbps (Low)",
-                <= 8  => $" — {mbps:F0} Mbps (Medium)",
+                <= 3 => $" — {mbps:F0} Mbps (Low)",
+                <= 8 => $" — {mbps:F0} Mbps (Medium)",
                 <= 20 => $" — {mbps:F0} Mbps (High)",
-                _     => $" — {mbps:F0} Mbps (Ultra)"
+                _ => $" — {mbps:F0} Mbps (Ultra)"
             };
             BitrateLabel.Text = label;
         }
@@ -1983,7 +2032,7 @@ namespace ZeroMix
         {
             // Shell_TrayWnd is the main taskbar
             IntPtr taskbarHandle = FindWindow("Shell_TrayWnd", null);
-            
+
             // Mode Clear: ACCENT_ENABLE_TRANSPARENTGRADIENT (2)
             // Color: 0x01140A0D (Almost transparent dark to hide 'square' glitches)
             ApplyTaskbarAccent(taskbarHandle, AccentState.ACCENT_ENABLE_TRANSPARENTGRADIENT, 2, 0x01140A0D);
@@ -2000,7 +2049,7 @@ namespace ZeroMix
         {
             // Shell_TrayWnd is the main taskbar
             IntPtr taskbarHandle = FindWindow("Shell_TrayWnd", null);
-            
+
             // Returning to ACCENT_DISABLED (0) lets Windows take back control of rendering
             // based on the user's system theme (Light/Dark/Blur).
             ApplyTaskbarAccent(taskbarHandle, AccentState.ACCENT_DISABLED, 0, 0x00000000);
@@ -2045,14 +2094,14 @@ namespace ZeroMix
         {
             ClearCacheButton.IsEnabled = false;
             CacheStatusText.Text = "🛡️ Menganalisis sistem & file sampah...";
-            
+
             MonitoringPanel.Visibility = Visibility.Visible;
 
             await Task.Run(() =>
             {
                 // Daftar folder sampah yang lebih lengkap
-                string[] tempPaths = { 
-                    Path.GetTempPath(), 
+                string[] tempPaths = {
+                    Path.GetTempPath(),
                     Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Windows), "Temp"),
                     Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Temp"),
                     Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Windows), "Prefetch"),
@@ -2072,30 +2121,39 @@ namespace ZeroMix
                     this.Dispatcher.Invoke(() => StatusLabel.Text = $"⚡ Cleaning: {path}");
 
                     // Hapus File (Tanpa Delay buatan agar cepat)
-                    try {
+                    try
+                    {
                         foreach (var file in directory.GetFiles("*", SearchOption.TopDirectoryOnly))
                         {
-                            try {
+                            try
+                            {
                                 totalSize += file.Length;
                                 file.Delete();
                                 deletedCount++;
-                            } catch { skippedCount++; }
+                            }
+                            catch { skippedCount++; }
                         }
-                    } catch { }
+                    }
+                    catch { }
 
                     // Hapus Sub-folder
-                    try {
+                    try
+                    {
                         foreach (var dir in directory.GetDirectories())
                         {
-                            try {
+                            try
+                            {
                                 dir.Delete(true);
                                 deletedCount++;
-                            } catch { skippedCount++; }
+                            }
+                            catch { skippedCount++; }
                         }
-                    } catch { }
+                    }
+                    catch { }
                 }
 
-                this.Dispatcher.Invoke(() => {
+                this.Dispatcher.Invoke(() =>
+                {
                     double sizeInMb = totalSize / (1024.0 * 1024.0);
                     CacheStatusText.Text = $"✨ Selesai! {deletedCount} item dibuang ({sizeInMb:F2} MB). {skippedCount} file in-use.";
                     StatusLabel.Text = "Optimization Complete";
@@ -2110,7 +2168,7 @@ namespace ZeroMix
         {
             RefreshProcessList();
         }
-        
+
         private TransparentTaskbar? _taskbar;
 
         // Jika menggunakan tombol di Quick Features
@@ -2197,7 +2255,7 @@ namespace ZeroMix
             string pluginName = inputWin.PluginName;
             bool isPublic = inputWin.IsPublic;
             bool isTemplate = inputWin.IsTemplate;
-            
+
             // folder prefix: user.pub for public/template, user.priv for private
             string folderName = $"user.{(isPublic || isTemplate ? "pub" : "priv")}.{pluginName}";
             string pluginDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Plugins", folderName);
@@ -2209,7 +2267,7 @@ namespace ZeroMix
 
                 // Create Lua Template
                 string luaTemplate = "";
-                
+
                 if (isTemplate)
                 {
                     luaTemplate = @$"-- ZeroMix Plugin: {pluginName} (Template)
@@ -2259,7 +2317,7 @@ function OnUpdate()
     -- Masukkan logika kustom kamu di sini
 end";
                 }
-                
+
                 await File.WriteAllTextAsync(Path.Combine(pluginDir, "script.lua"), luaTemplate);
 
                 if (isPublic)
@@ -2269,9 +2327,9 @@ end";
                 }
 
                 System.Windows.MessageBox.Show(
-                    $"Berhasil membuat Plugin '{pluginName}'.\n\nFolder: {folderName}\nSilakan cek folder Plugins untuk mulai mengedit.", 
-                    "Sukses", 
-                    MessageBoxButton.OK, 
+                    $"Berhasil membuat Plugin '{pluginName}'.\n\nFolder: {folderName}\nSilakan cek folder Plugins untuk mulai mengedit.",
+                    "Sukses",
+                    MessageBoxButton.OK,
                     MessageBoxImage.Information);
 
                 // Instant Load!
@@ -2344,10 +2402,10 @@ end";
                 grid.Children.Add(infoStack);
 
                 // Control Panel (Right Side)
-                StackPanel controlStack = new StackPanel 
-                { 
-                    Orientation = Orientation.Horizontal, 
-                    VerticalAlignment = VerticalAlignment.Center 
+                StackPanel controlStack = new StackPanel
+                {
+                    Orientation = Orientation.Horizontal,
+                    VerticalAlignment = VerticalAlignment.Center
                 };
 
                 // Folder Button (Open Directory)
@@ -2363,7 +2421,8 @@ end";
                     Cursor = Cursors.Hand,
                     ToolTip = "Buka Folder Plugin"
                 };
-                folderBtn.Click += (s, e) => {
+                folderBtn.Click += (s, e) =>
+                {
                     string? folder = Path.GetDirectoryName(plugin.Path);
                     if (folder != null) Process.Start("explorer.exe", folder);
                 };
@@ -2382,7 +2441,8 @@ end";
                     Cursor = Cursors.Hand,
                     ToolTip = "Buat Shortcut di Desktop"
                 };
-                shortcutBtn.Click += (s, e) => {
+                shortcutBtn.Click += (s, e) =>
+                {
                     CreateDesktopShortcut(plugin.Name);
                     System.Windows.MessageBox.Show($"Shortcut untuk '{plugin.Name}' berhasil dibuat di Desktop!", "Sukses", MessageBoxButton.OK, MessageBoxImage.Information);
                 };
@@ -2401,13 +2461,14 @@ end";
                     Cursor = Cursors.Hand,
                     ToolTip = "Hapus Permanen"
                 };
-                deleteBtn.Click += (s, e) => {
+                deleteBtn.Click += (s, e) =>
+                {
                     var result = System.Windows.MessageBox.Show(
                         $"Kamu yakin ingin menghapus plugin '{plugin.Name}'? Folder akan dihapus selamanya.",
                         "Hapus Plugin",
                         MessageBoxButton.YesNo,
                         MessageBoxImage.Warning);
-                    
+
                     if (result == MessageBoxResult.Yes)
                     {
                         engine.RemovePlugin(plugin);
@@ -2422,7 +2483,8 @@ end";
                     VerticalAlignment = VerticalAlignment.Center,
                     LayoutTransform = new ScaleTransform(1.5, 1.5)
                 };
-                toggle.Click += (s, e) => {
+                toggle.Click += (s, e) =>
+                {
                     engine.TogglePlugin(plugin);
                 };
                 controlStack.Children.Add(toggle);
@@ -2442,10 +2504,10 @@ end";
                 string desktop = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
                 string shortcutPath = Path.Combine(desktop, $"{pluginName}.lnk");
                 string exePath = Process.GetCurrentProcess().MainModule?.FileName ?? "";
-                
+
                 // PowerShell script to create WScript.Shell shortcut
                 string command = $"$s=(New-Object -COM WScript.Shell).CreateShortcut('{shortcutPath}');$s.TargetPath='{exePath}';$s.Arguments='--plugin \"{pluginName}\"';$s.Save()";
-                
+
                 var proc = Process.Start(new ProcessStartInfo
                 {
                     FileName = "powershell",
@@ -2549,7 +2611,7 @@ end";
                 var json = JsonDocument.Parse(response);
 
                 string latestVersion = json.RootElement.GetProperty("tag_name").GetString()?.TrimStart('v') ?? "";
-                string downloadUrl   = json.RootElement.GetProperty("html_url").GetString() ?? "";
+                string downloadUrl = json.RootElement.GetProperty("html_url").GetString() ?? "";
 
                 if (IsNewerVersion(latestVersion, CURRENT_VERSION))
                 {
@@ -2608,11 +2670,13 @@ end";
 
         private bool IsNewerVersion(string latest, string current)
         {
-            try {
+            try
+            {
                 Version vLatest = new Version(latest);
                 Version vCurrent = new Version(current);
                 return vLatest > vCurrent;
-            } catch { return latest != current; }
+            }
+            catch { return latest != current; }
         }
 
         private string _lastCharacter = "Frieren";
@@ -2627,7 +2691,7 @@ end";
             // Get Pre-Launch Settings from Dashboard
             // PreConfigure removed - Virtual Assistant now uses auto-configured defaults
             // No manual configuration needed
-            
+
             if (!_assistantWindow.IsVisible)
             {
                 _assistantWindow.Show();
@@ -2707,7 +2771,7 @@ end";
         private const int WM_TRAY_CALLBACK = WM_APP + 1;
         private System.Windows.Interop.HwndSource? _hwndSource;
         private bool _nativeTrayAdded = false;
-
+        private Thickness iconMargin;
         private const uint NIM_ADD = 0x00000000;
         private const uint NIM_MODIFY = 0x00000001;
         private const uint NIM_DELETE = 0x00000002;

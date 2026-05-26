@@ -9,6 +9,7 @@ using Microsoft.Web.WebView2.Core;
 using System.Windows.Forms;
 using System.Windows.Controls;
 using Newtonsoft.Json.Linq;
+using System.Drawing;
 using System.Threading.Tasks;
 using ZeroMix.Services;
 
@@ -162,6 +163,49 @@ namespace ZeroMix.Virtual_Assisten
             }
 
             // Convert ke virtual host URL — konsisten dengan cara HTML di-load
+            // Cari beberapa kandidat folder background (user mungkin memindahkan folder)
+            string[] bgCandidates = new[]
+            {
+                Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Virtual_Assisten", "Background", "img"),
+                Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Virtual_Assisten", "Background"),
+                Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Virtual_Assisten", "Va_Background"),
+                Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Virtual_Assisten", "VA_Background"),
+                Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Virtual_Assisten", "VA_Thumbnails"),
+                Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Virtual_Assisten", "VA_Thumbnails")
+            };
+            string? bgDir = null;
+            foreach (var cand in bgCandidates)
+            {
+                if (Directory.Exists(cand)) { bgDir = cand; break; }
+            }
+            if (!string.IsNullOrEmpty(bgDir))
+            {
+                Console.WriteLine($"[VA] Using background dir: {bgDir}");
+                try
+                {
+                    foreach (var jf in Directory.GetFiles(bgDir, "*.jfif"))
+                    {
+                        var png = Path.ChangeExtension(jf, ".png");
+                        if (!File.Exists(png))
+                        {
+                            try
+                            {
+                                using (var img = System.Drawing.Image.FromFile(jf))
+                                {
+                                    img.Save(png, System.Drawing.Imaging.ImageFormat.Png);
+                                }
+                            }
+                            catch (Exception ex) { Console.WriteLine($"[VA] Background convert error: {ex.Message}"); }
+                        }
+                    }
+                }
+                catch (Exception ex) { Console.WriteLine($"[VA] Background scan error: {ex.Message}"); }
+            }
+            else
+            {
+                Console.WriteLine("[VA] No background folder found in candidates.");
+            }
+
             string appBase = AppDomain.CurrentDomain.BaseDirectory.TrimEnd('\\', '/');
             string relativePath = modelPath.Replace(appBase, "").TrimStart('\\', '/').Replace("\\", "/");
             string webPath = "https://zeromix.vercel.app/" + relativePath;
@@ -171,7 +215,18 @@ namespace ZeroMix.Virtual_Assisten
             try
             {
                 string escaped = Uri.EscapeUriString(webPath).Replace("'", "\\'");
+                var sw = Stopwatch.StartNew();
+                Console.WriteLine($"[VA] Sending model to WebView: {webPath}");
+                long memBefore = GC.GetTotalMemory(false);
+                long wsBefore = Process.GetCurrentProcess().WorkingSet64;
+                Console.WriteLine($"[VA] Memory before send: GC={memBefore} bytes, WorkingSet={wsBefore} bytes");
                 await WebView.ExecuteScriptAsync($"if(typeof changeModel === 'function') changeModel('{escaped}');");
+                sw.Stop();
+                long memAfter = GC.GetTotalMemory(false);
+                long wsAfter = Process.GetCurrentProcess().WorkingSet64;
+                Console.WriteLine($"[VA] Model send completed in {sw.ElapsedMilliseconds}ms. Memory after: GC={memAfter} bytes, WorkingSet={wsAfter} bytes");
+                // Prompt .NET GC and working set trim after model change to free native resources
+                App.OptimizeMemory();
             }
             catch (Exception ex) { Console.WriteLine($"[VA] SendModel error: {ex.Message}"); }
         }
@@ -181,15 +236,29 @@ namespace ZeroMix.Virtual_Assisten
             try 
             {
                 string jsonMessage = e.WebMessageAsJson;
-                if (jsonMessage.Contains("\"type\":\"click\"")) ShowNextChatMessage();
-                else if (jsonMessage.Contains("\"type\":\"model_loaded\"")) ShowNextChatMessage();
-                else if (jsonMessage.Contains("\"type\":\"speech_result\""))
+                JObject msg = JObject.Parse(jsonMessage);
+                var type = msg["type"]?.ToString();
+                if (type == "click")
                 {
-                    JObject data = JObject.Parse(jsonMessage);
+                    ShowNextChatMessage();
+                }
+                else if (type == "model_loaded")
+                {
+                    bool heavy = msg["heavy"]?.ToObject<bool>() ?? false;
+                    long? loadMs = msg["loadTimeMs"]?.ToObject<long?>();
+                    long? jsMem = msg["jsMemoryUsed"]?.ToObject<long?>();
+                    Console.WriteLine($"[VA] WebView model_loaded: heavy={heavy}, loadTimeMs={loadMs}ms, jsMemory={jsMem}");
+                    // Suggest GC/trim after model fully loaded in WebView
+                    App.OptimizeMemory();
+                    ShowNextChatMessage();
+                }
+                else if (type == "speech_result")
+                {
+                    JObject data = msg;
                     ProcessUserVoice(data["text"]?.ToString() ?? "");
                 }
             } 
-            catch { }
+            catch (Exception ex) { Console.WriteLine($"[VA] OnWebMessageReceived parse error: {ex.Message}"); }
         }
 
         public async void SetCharacter(string characterName)
@@ -214,6 +283,8 @@ namespace ZeroMix.Virtual_Assisten
             {
                 "Fern"   => Path.Combine(baseDir, "Sou Sou No Frieren", "fern", "fern.model3.json"),
                 "Huohuo" => Path.Combine(baseDir, "Mihoyo", "Honkai_Star_Rail", "huohuo", "huohuo.model3.json"),
+                "Jian"   => Path.Combine(baseDir, "简__1_", "简", "简.model3.json"),
+                "简"     => Path.Combine(baseDir, "简__1_", "简", "简.model3.json"),
                 _        => Path.Combine(baseDir, "Sou Sou No Frieren", "Frieren", "Frieren.model3.json")
             };
         }
