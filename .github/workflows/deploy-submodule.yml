@@ -1,0 +1,74 @@
+# Workflow untuk deploy static content ke Git Submodule (Kukki-Studio/ZeromixWeb)
+name: Deploy to ZeromixWeb Submodule
+
+on:
+  # Runs on pushes targeting the ProyekTil branch
+  push:
+    branches: ["ProyekTil"]
+    paths:
+      - 'ZeromixWeb/**'
+      - '.github/workflows/deploy-submodule.yml'
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  deploy-submodule:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout main repo with submodules
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Configure Git
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Update submodule to latest commit
+        run: |
+          cd ZeromixWeb
+          git fetch origin main
+          git checkout main
+          git pull origin main
+
+      - name: Sync content to submodule (optional - if you have build step)
+        run: |
+          echo "Submodule already contains latest content from ZeromixWeb/"
+          # Jika ada build step, tambahkan di sini
+          # Contoh: npm run build
+
+      - name: Push changes to submodule
+        run: |
+          cd ZeromixWeb
+          git add -A
+          if git diff-index --quiet HEAD --; then
+            echo "No changes to commit"
+          else
+            git commit -m "Deploy from main repo [ProyekTil] - $(date +'%Y-%m-%d %H:%M:%S')"
+            git push origin main
+          fi
+
+      - name: Update main repo submodule reference
+        run: |
+          cd $GITHUB_WORKSPACE
+          git add ZeromixWeb
+          if git diff-index --quiet HEAD --; then
+            echo "No submodule reference update needed"
+          else
+            git commit -m "chore: Update ZeromixWeb submodule reference"
+            git push origin ${{ github.ref_name }}
+          fi
+        continue-on-error: true
+
+      - name: Deployment Status
+        run: |
+          echo "✅ Submodule deployment completed"
+          echo "Branch: ${{ github.ref_name }}"
+          echo "Commit: ${{ github.sha }}"

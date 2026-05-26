@@ -1,10 +1,13 @@
-# Simple workflow for deploying static content to GitHub Pages
+# Workflow untuk deploy static content ke GitHub Pages
 name: Deploy static content to Pages
 
 on:
-  # Runs on pushes targeting the default branch
+  # Runs on pushes targeting the ProyekTil branch
   push:
     branches: ["ProyekTil"]
+    paths:
+      - 'ZeromixWeb/**'
+      - '.github/workflows/static.yml'
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
@@ -31,13 +34,18 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      
       - name: Setup Pages
         uses: actions/configure-pages@v5
+      
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          # Upload only the folder with static files
-          path: './src/Web'
+          # Upload path relatif ke ZeromixWeb (FIXED: was Windows path, now Linux-compatible)
+          path: 'ZeromixWeb'
+      
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4

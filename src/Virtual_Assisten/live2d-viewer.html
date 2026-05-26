@@ -57,20 +57,17 @@
   </div>
   <canvas id="canvas"></canvas>
 
-   <!-- PIXI.js — pinned version for stability, SRI hash untuk keamanan -->
+  <!-- PIXI.js — pinned version for stability, SRI hash untuk keamanan -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pixi.js/7.3.2/pixi.min.js"
-          integrity="sha512-ch3Dwn7DL4WMRFzBMFpCMhFmFBCMFBCMFBCMFBCMFBCMFBCMFBCMFBCMFBCMFBCMFBCMFBCMFBCMFBCMFBCMFA=="
-          crossorigin="anonymous"
-          referrerpolicy="no-referrer"></script>
+    integrity="sha512-ch3Dwn7DL4WMRFzBMFpCMhFmFBCMFBCMFBCMFBCMFBCMFBCMFBCMFBCMFBCMFBCMFBCMFBCMFBCMFBCMFBCMFA=="
+    crossorigin="anonymous" referrerpolicy="no-referrer"></script>
   <!-- Live2D Cubism Core -->
-  <script src="https://cubism.live2d.com/sdk-web/cubismcore/live2dcubismcore.min.js"
-          crossorigin="anonymous"
-          referrerpolicy="no-referrer"></script>
+  <script src="https://cubism.live2d.com/sdk-web/cubismcore/live2dcubismcore.min.js" crossorigin="anonymous"
+    referrerpolicy="no-referrer"></script>
   <!-- pixi-live2d-display -->
-  <script src="https://cdn.jsdelivr.net/npm/pixi-live2d-display@0.4.0/dist/cubism4.min.js"
-          crossorigin="anonymous"
-          referrerpolicy="no-referrer"></script>
-          
+  <script src="https://cdn.jsdelivr.net/npm/pixi-live2d-display@0.4.0/dist/cubism4.min.js" crossorigin="anonymous"
+    referrerpolicy="no-referrer"></script>
+
   <script>
     // ── State ──────────────────────────────────────────────────────────────
     let MODEL_PATH = "";
@@ -121,9 +118,14 @@
 
         app.ticker.add(updateLoop);
 
-        // Throttle saat tidak aktif — jangan stop total agar idle tetap jalan
-        window.addEventListener("blur", () => { app.ticker.maxFPS = 8; });
-        window.addEventListener("focus", () => { app.ticker.maxFPS = MODEL_PATH.toLowerCase().includes("huohuo") ? 18 : 24; });
+        // Throttle saat tidak aktif — gunakan visibility API untuk menghemat resources saat tersembunyi
+        function updateTickerForVisibility() {
+          if (document.hidden) { app.ticker.maxFPS = 8; }
+          else { app.ticker.maxFPS = MODEL_PATH.toLowerCase().includes("huohuo") ? 18 : 24; }
+        }
+        window.addEventListener("blur", () => updateTickerForVisibility());
+        window.addEventListener("focus", () => updateTickerForVisibility());
+        document.addEventListener("visibilitychange", updateTickerForVisibility);
 
         if (MODEL_PATH) {
           await loadModel(MODEL_PATH);
@@ -142,9 +144,11 @@
     }
 
     // ── Load model ─────────────────────────────────────────────────────────
+
     async function loadModel(path) {
       if (!path || isLoadingModel) return;
       isLoadingModel = true;
+      const loadStart = (typeof performance !== 'undefined' && performance.now) ? performance.now() : Date.now();
 
       const loading = document.getElementById("loading");
       const canvas = document.getElementById("canvas");
@@ -159,100 +163,76 @@
       stopAutoMotion();
       resetMotionFlags();
 
-      // Destroy previous model + aggressive cleanup
-      if (model) {
+      // Destroy previous model + aggressive cleanup      if (model) {
         app.stage.removeChild(model);
         try { model.destroy({ children: true, texture: true, baseTexture: true }); } catch (e) { }
         model = null;
       }
 
-      // Bersihkan semua texture cache
-      if (typeof PIXI.utils.clearTextureCache === "function") PIXI.utils.clearTextureCache();
+      // Bersihkan semua texture cache      if (typeof PIXI.utils.clearTextureCache === "function") PIXI.utils.clearTextureCache();
       if (typeof PIXI.utils.destroyTextureCache === "function") PIXI.utils.destroyTextureCache();
       PIXI.BaseTexture.removeFromCache && Object.keys(PIXI.utils.BaseTextureCache || {})
         .forEach(k => { try { PIXI.utils.BaseTextureCache[k]?.destroy(true); } catch (e) { } });
 
-      // Pause lebih lama untuk Huohuo (model berat ~46MB texture)
+      // Aggressive PIXI texture cleanup to avoid VRAM leaks
+      try {
+        const baseCache = PIXI.utils?.BaseTextureCache || {};
+        for (const k in baseCache) {
+          try { baseCache[k] && baseCache[k].destroy && baseCache[k].destroy(true); } catch (e) { }
+          try { delete PIXI.utils.BaseTextureCache[k]; } catch (e) { }
+        }
+        const texCache = PIXI.utils?.TextureCache || {};
+        for (const k in texCache) {
+          try { const t = texCache[k]; if (t && t.baseTexture && t.baseTexture.destroy) t.baseTexture.destroy(true); } catch (e) { }
+          try { delete PIXI.utils.TextureCache[k]; } catch (e) { }
+        }
+        if (PIXI.utils && typeof PIXI.utils.clearTextureCache === "function") try { PIXI.utils.clearTextureCache(); } catch (e) {}
+        if (PIXI.utils && typeof PIXI.utils.destroyTextureCache === "function") try { PIXI.utils.destroyTextureCache(); } catch (e) {}
+        // Hint to engine / GC (may not be available in all browsers)
+        try { if (window.gc) window.gc(); } catch (e) { }
+      } catch (e) { console.error('[Live2D] Texture cleanup failed', e); }
+      // Pause sedikit agar UI terasa lebih halus saat load
       const isHeavyModel = path.toLowerCase().includes("huohuo");
       await new Promise(r => setTimeout(r, isHeavyModel ? 500 : 200));
 
-      // Resume ticker sebelum load
-      app.ticker.start();
-      MODEL_PATH = path;
+      // Resume ticker sebelum load      app.ticker.start();      MODEL_PATH = path;
 
       try {
-        // Cache-bust so stale files don't block reload
-        const loadPath = path + "?t=" + Date.now();
+        // Cache-bust so stale files don't block reload        const loadPath = path + "?t=" + Date.now();
 
-        model = await PIXI.live2d.Live2DModel.from(loadPath, {
-          autoInteract: true,
-          autoUpdate: true,
-          // onError is called per-resource; don't abort the whole load
-          onError: (e) => console.error("[Live2D] Resource error:", e),
-        });
-
-        // Scale to fit window height with padding
-        model.anchor.set(0.5, 1);
-        // Size
-        const scale = (app.screen.height - 50) / model.height * model.scale.x; // Kurangi padding dari 40 ke 20
-        model.scale.set(scale);
-        model.x = app.screen.width / 2;
-        model.y = app.screen.height;
-
-        app.stage.addChild(model);
-
-        // Hide watermark/credit text parts
-        try {
-          const core = model.internalModel.coreModel;
-          const partIds = model.internalModel.coreModel._partIds || [];
-          partIds.forEach((id, i) => {
-            const lower = id.toLowerCase();
-            if (lower.includes("illust") || lower.includes("text") ||
-              lower.includes("credit") || lower.includes("watermark") ||
-              lower.includes("logo") || lower.includes("copy"))
-              core.setPartOpacityByIndex(i, 0);
-          });
-          // Juga hide via drawable jika ada
-          const drawIds = core._drawableIds || [];
-          drawIds.forEach((id, i) => {
-            const lower = id.toLowerCase();
-            if (lower.includes("illust") || lower.includes("text") ||
-              lower.includes("credit") || lower.includes("watermark"))
-              try { core.setDrawableOpacityByIndex(i, 0); } catch (e) { }
-          });
-        } catch (e) { }
-
-        // Fade in
-        canvas.style.opacity = "1";
-        loading.style.display = "none";
-        isModelLoaded = true;
-
-        // Notify WPF
-        if (window.chrome && window.chrome.webview)
-          window.chrome.webview.postMessage({ type: "model_loaded" });
-
-        model.on("pointerdown", onModelClick);
-        model.interactive = true;
-        model.cursor = "pointer";
-
-        // Huohuo lebih berat — cap FPS lebih rendah
-        if (MODEL_PATH.toLowerCase().includes("huohuo")) {
-          app.ticker.maxFPS = 18;
+        // Adjust renderer & options for heavy vs light models
+        if (isHeavyModel) {
+          app.ticker.maxFPS = 18; // cap FPS for heavy models
         } else {
           app.ticker.maxFPS = 24;
         }
 
-        // Start idle motions immediately
-        resetMotionFlags();
-        startAutoMotion();
-        setTimeout(() => { playIdleMotion(); playBodyMotion(); }, 500);
+        const options = {          autoInteract: true,          autoUpdate: true,          onError: (e) => console.error("[Live2D] Resource error:", e),        };
 
-      } catch (err) {
-        console.error("[Live2D] Load error:", err);
-        showError();
-      } finally {
-        isLoadingModel = false;
-      }
+        model = await PIXI.live2d.Live2DModel.from(loadPath, options);
+
+        // Scale to fit window height with padding; smaller scale for heavy models to save VRAM        model.anchor.set(0.5, 1);        const basePadding = 50;        const scale = (app.screen.height - basePadding) / model.height * model.scale.x;        model.scale.set(scale);        model.x = app.screen.width / 2;        model.y = app.screen.height;
+
+        app.stage.addChild(model);
+
+        // Hide watermark/credit text parts        try {          const core = model.internalModel.coreModel;          const partIds = model.internalModel.coreModel._partIds || [];          partIds.forEach((id, i) => {            const lower = id.toLowerCase();            if (lower.includes("illust") || lower.includes("text") ||              lower.includes("credit") || lower.includes("watermark") ||              lower.includes("logo") || lower.includes("copy"))              core.setPartOpacityByIndex(i, 0);          });          // Juga hide via drawable jika ada          const drawIds = core._drawableIds || [];          drawIds.forEach((id, i) => {            const lower = id.toLowerCase();            if (lower.includes("illust") || lower.includes("text") ||              lower.includes("credit") || lower.includes("watermark"))              try { core.setDrawableOpacityByIndex(i, 0); } catch (e) { }          });        } catch (e) { }
+
+        // Fade in        canvas.style.opacity = "1";        loading.style.display = "none";        isModelLoaded = true;
+
+        // Notify WPF
+        if (window.chrome && window.chrome.webview)
+        {
+          const loadTimeMs = (typeof loadStart !== 'undefined' && performance && performance.now) ? Math.round(performance.now() - loadStart) : null;
+          let jsMem = null;
+          try { if (performance && performance.memory) jsMem = performance.memory.usedJSHeapSize; } catch (e) { }
+          window.chrome.webview.postMessage({ type: "model_loaded", heavy: isHeavyModel, loadTimeMs: loadTimeMs, jsMemoryUsed: jsMem });
+        }
+
+        model.on("pointerdown", onModelClick);        model.interactive = true;        model.cursor = "pointer";
+
+        // Start idle motions immediately        resetMotionFlags();        startAutoMotion();        setTimeout(() => { playIdleMotion(); playBodyMotion(); }, 500);
+
+      } catch (err) {        console.error("[Live2D] Load error:", err);        showError();      } finally {        isLoadingModel = false;      }
     }
 
     // ── Auto-motion (idle loop) ────────────────────────────────────────────
@@ -287,6 +267,8 @@
         } else if (name.includes("fern")) {
           expressions = ["lh", "sq", "sy"];
         } else if (name.includes("huohuo")) {
+          expressions = ["angry", "baozhen", "cry", "qizi1", "qizi2", "white eyes"];
+        } else if (name.includes("简__1_")) {
           expressions = ["angry", "baozhen", "cry", "qizi1", "qizi2", "white eyes"];
         }
 
@@ -399,22 +381,22 @@
     // ── TTS / Lip-sync ─────────────────────────────────────────────────────
     const synthesis = window.speechSynthesis;
     let availableVoices = [];
-    
+
     // Load available voices
     function loadVoices() {
       availableVoices = synthesis.getVoices();
       console.log("[TTS] Available voices:", availableVoices.map(v => `${v.name} (${v.lang})`));
     }
-    
+
     // Load voices on init and when they change
     if (synthesis.onvoiceschanged !== undefined) {
       synthesis.onvoiceschanged = loadVoices;
     }
     loadVoices();
-    
+
     // Voice mapping per character (prefer female voices)
     const characterVoices = {
-      "Frieren": { 
+      "Frieren": {
         // Prefer: Google Japanese Female, Microsoft Ayumi, or any Japanese female
         preferred: ["Google 日本語", "Microsoft Ayumi", "ja-JP-Female"],
         lang: "ja-JP",
@@ -440,40 +422,40 @@
     function speakText(text, lang = "id-ID") {
       if (!synthesis) return;
       synthesis.cancel();
-      
+
       const utt = new SpeechSynthesisUtterance(text);
-      
+
       // Detect current character from MODEL_PATH
       let character = "Frieren"; // default
       if (MODEL_PATH.toLowerCase().includes("fern")) character = "Fern";
       else if (MODEL_PATH.toLowerCase().includes("huohuo")) character = "Huohuo";
-      
+
       // Get character voice settings
       const voiceSettings = characterVoices[character] || characterVoices["Frieren"];
       
       // Try to find preferred voice
       let selectedVoice = null;
       for (const preferred of voiceSettings.preferred) {
-        selectedVoice = availableVoices.find(v => 
-          v.name.includes(preferred) || 
+        selectedVoice = availableVoices.find(v =>
+          v.name.includes(preferred) ||
           (v.lang === voiceSettings.lang && v.name.toLowerCase().includes("female"))
         );
         if (selectedVoice) break;
       }
-      
+
       // Fallback: any female voice in the language
       if (!selectedVoice) {
-        selectedVoice = availableVoices.find(v => 
-          v.lang.startsWith(voiceSettings.lang.split('-')[0]) && 
+        selectedVoice = availableVoices.find(v =>
+          v.lang.startsWith(voiceSettings.lang.split('-')[0]) &&
           (v.name.toLowerCase().includes("female") || v.name.toLowerCase().includes("woman"))
         );
       }
-      
+
       // Fallback: any voice in the language
       if (!selectedVoice) {
         selectedVoice = availableVoices.find(v => v.lang.startsWith(voiceSettings.lang.split('-')[0]));
       }
-      
+
       // Apply voice and settings
       if (selectedVoice) {
         utt.voice = selectedVoice;
@@ -481,20 +463,20 @@
       } else {
         console.log(`[TTS] No suitable voice found for ${character}, using default`);
       }
-      
+
       utt.lang = voiceSettings.lang;
       utt.rate = voiceSettings.rate;
       utt.pitch = voiceSettings.pitch;
-      
-      utt.onstart = () => { 
-        startLipSync(); 
-        if (window.chrome?.webview) window.chrome.webview.postMessage({ type: "speech_start" }); 
+
+      utt.onstart = () => {
+        startLipSync();
+        if (window.chrome?.webview) window.chrome.webview.postMessage({ type: "speech_start" });
       };
-      utt.onend = () => { 
-        stopLipSync(); 
-        if (window.chrome?.webview) window.chrome.webview.postMessage({ type: "speech_finished" }); 
+      utt.onend = () => {
+        stopLipSync();
+        if (window.chrome?.webview) window.chrome.webview.postMessage({ type: "speech_finished" });
       };
-      
+
       synthesis.speak(utt);
     }
 

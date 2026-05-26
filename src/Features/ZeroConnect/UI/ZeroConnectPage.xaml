@@ -1,0 +1,70 @@
+<!-- src/Features/ZeroConnect/UI/ZeroConnectPage.xaml -->
+<UserControl x:Class="ZeroMix.Features.ZeroConnect.UI.ZeroConnectPage"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d">
+
+  <Grid Margin="24">
+    <Grid.RowDefinitions>
+      <RowDefinition Height="Auto"/>
+      <RowDefinition Height="Auto"/>
+      <RowDefinition Height="*"/>
+    </Grid.RowDefinitions>
+
+    <!-- Header -->
+    <StackPanel Grid.Row="0" Margin="0,0,0,20">
+      <TextBlock Text="⚡ ZeroConnect" FontSize="22" FontWeight="Bold"/>
+      <TextBlock Text="Hubungkan HP ke ZeroMix via WiFi" Opacity="0.5" Margin="0,4,0,0"/>
+    </StackPanel>
+
+    <!-- QR + Status -->
+    <Grid Grid.Row="1">
+      <Grid.ColumnDefinitions>
+        <ColumnDefinition Width="Auto"/>
+        <ColumnDefinition Width="*"/>
+      </Grid.ColumnDefinitions>
+
+      <Border Background="#1A1A1A" CornerRadius="12" Padding="12" Margin="0,0,16,0">
+        <StackPanel>
+          <Image x:Name="QrImage" Width="160" Height="160"/>
+          <TextBlock x:Name="UrlText" TextAlignment="Center"
+                     FontSize="11" Opacity="0.5" Margin="0,8,0,0"
+                     TextWrapping="Wrap"/>
+        </StackPanel>
+      </Border>
+
+      <StackPanel Grid.Column="1">
+        <Border Background="#1A1A1A" CornerRadius="12" Padding="16" Margin="0,0,0,12">
+          <StackPanel>
+            <TextBlock Text="STATUS" FontSize="11" Opacity="0.4"/>
+            <TextBlock x:Name="StatusText" Text="● Stopped"
+                       Foreground="#FF4444" FontWeight="SemiBold" Margin="0,4,0,0"/>
+            <TextBlock x:Name="ConnectedText" Text="0 perangkat terhubung"
+                       FontSize="12" Opacity="0.5" Margin="0,4,0,0"/>
+          </StackPanel>
+        </Border>
+
+        <StackPanel Orientation="Horizontal">
+          <Button x:Name="StartBtn" Content="▶ Start" Click="OnStart"
+                  Margin="0,0,8,0" Padding="16,10"/>
+          <Button x:Name="StopBtn" Content="■ Stop" Click="OnStop"
+                  IsEnabled="False" Padding="16,10"/>
+        </StackPanel>
+      </StackPanel>
+    </Grid>
+
+    <!-- Log -->
+    <Border Grid.Row="2" Background="#1A1A1A" CornerRadius="12"
+            Padding="12" Margin="0,16,0,0">
+      <StackPanel>
+        <TextBlock Text="LOG" FontSize="11" Opacity="0.4" Margin="0,0,0,8"/>
+        <ScrollViewer x:Name="LogScroll" MaxHeight="200" VerticalScrollBarVisibility="Auto">
+          <TextBlock x:Name="LogText" FontFamily="Consolas" FontSize="12"
+                     Opacity="0.7" TextWrapping="Wrap"/>
+        </ScrollViewer>
+      </StackPanel>
+    </Border>
+  </Grid>
+</UserControl>

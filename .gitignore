@@ -3,6 +3,11 @@ publish/
 Release/
 obj/
 bin/
+
+publish
+Release
+obj
+bin
 Exstenions/
 
 # File sertifikat (jangan dimasukkan ke repositori publik)
