@@ -10,6 +10,7 @@
     <Grid.RowDefinitions>
       <RowDefinition Height="Auto"/>
       <RowDefinition Height="Auto"/>
+      <RowDefinition Height="Auto"/>
       <RowDefinition Height="*"/>
     </Grid.RowDefinitions>
 
@@ -52,11 +53,70 @@
           <Button x:Name="StopBtn" Content="■ Stop" Click="OnStop"
                   IsEnabled="False" Padding="16,10"/>
         </StackPanel>
+
+        <!-- Connected devices -->
+        <Border Background="#0F0F0F" CornerRadius="8" Padding="8" Margin="0,12,0,0">
+          <StackPanel>
+            <TextBlock Text="🔗 Connected Devices" FontWeight="SemiBold"/>
+            <ListBox x:Name="DevicesList" MaxHeight="120" Margin="0,8,0,0">
+              <ListBox.ItemTemplate>
+                <DataTemplate>
+                  <StackPanel Orientation="Horizontal" Margin="0,4,0,4">
+                    <TextBlock Text="{Binding Name}" Width="140"/>
+                    <TextBlock Text="{Binding Ip}" Opacity="0.6" Width="110"/>
+                    <TextBlock Text="{Binding LastActivity, StringFormat=HH:mm}" Opacity="0.6" Width="60"/>
+                    <Button Content="Disconnect" Click="DisconnectDevice_Click" Tag="{Binding Id}"/>
+                  </StackPanel>
+                </DataTemplate>
+              </ListBox.ItemTemplate>
+            </ListBox>
+          </StackPanel>
+        </Border>
+
+        <!-- Send to Phone drop zone -->
+        <Border Background="#0F0F0F" CornerRadius="8" Padding="12" Margin="0,12,0,0" AllowDrop="True"
+                PreviewDragOver="DropZone_PreviewDragOver" Drop="DropZone_Drop">
+          <StackPanel>
+            <TextBlock Text="📤 Send to Phone" FontWeight="SemiBold"/>
+            <TextBlock Text="Drag file ke sini atau klik untuk pilih" Opacity="0.6" FontSize="12"/>
+          </StackPanel>
+        </Border>
+
+
       </StackPanel>
     </Grid>
 
+    <!-- Drop zone -->
+    <Border x:Name="DropZone" Grid.Row="2" Background="#1A1A1A" CornerRadius="12"
+            Padding="12" Margin="0,16,0,0">
+      <StackPanel>
+        <TextBlock Text="Drop files here to send to connected phones" FontSize="11" Opacity="0.6" />
+        <TextBlock Text="(Supports multi-file)" FontSize="11" Opacity="0.4" />
+      </StackPanel>
+    </Border>
+
+    <!-- File History -->
+    <Border Grid.Row="3" Background="#1A1A1A" CornerRadius="12"
+            Padding="12" Margin="0,16,0,0">
+      <StackPanel>
+        <TextBlock Text="File History (today)" FontSize="11" Opacity="0.4" Margin="0,0,0,8"/>
+        <ListBox x:Name="FileHistoryList" MaxHeight="160">
+          <ListBox.ItemTemplate>
+            <DataTemplate>
+              <StackPanel Orientation="Horizontal" Margin="0,4,0,4">
+                <TextBlock Text="{Binding FileName}" Width="220" TextTrimming="CharacterEllipsis"/>
+                <TextBlock Text="{Binding Direction}" Opacity="0.6" Width="70"/>
+                <TextBlock Text="{Binding Timestamp, StringFormat=HH:mm}" Opacity="0.6" Width="60"/>
+                <Button Content="Open" Click="OpenHistoryItem_Click" Tag="{Binding Path}"/>
+              </StackPanel>
+            </DataTemplate>
+          </ListBox.ItemTemplate>
+        </ListBox>
+      </StackPanel>
+    </Border>
+
     <!-- Log -->
-    <Border Grid.Row="2" Background="#1A1A1A" CornerRadius="12"
+    <Border Grid.Row="4" Background="#1A1A1A" CornerRadius="12"
             Padding="12" Margin="0,16,0,0">
       <StackPanel>
         <TextBlock Text="LOG" FontSize="11" Opacity="0.4" Margin="0,0,0,8"/>

@@ -24,6 +24,15 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) | [Semantic Ver
 
 ## [Unreleased]
 
+### Upcoming (v7.2.0) - UNRELEASED
+
+### ✨ Improvements
+- UI: Hide ZeroConnect entry from main sidebar to declutter navigation; Settings moved to sidebar footer and Settings modal layout improved.
+- UX: Improve placement and styling of ZeroConnect settings modal to avoid overlap with page content.
+
+### 🔧 Notes
+- Security: added local guidance for firewall rules and recommended HTTPS tunneling options (Cloudflare Tunnel/ngrok) in docs.
+
 ---
 
 ## [v7.1.0] - 2026-05-24

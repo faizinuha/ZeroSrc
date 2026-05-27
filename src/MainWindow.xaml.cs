@@ -43,6 +43,7 @@ using Color = System.Drawing.Color;
 namespace ZeroMix
 {
     using ZeroMix.zeromix.CreatePlugins;
+    using ZeroMix.Features.ZeroConnect;
 
     public partial class MainWindow : Wpf.Ui.Controls.FluentWindow, ZeroMix.Plugins.IZeroMixHost
     {
@@ -288,6 +289,15 @@ namespace ZeroMix
             MoonSharp.Interpreter.UserData.RegisterType<Plugins.ZeroMixLuaApi>();
 
             InitializeComponent();
+            // Subscribe to settings changes to toggle Welcome quick actions
+            try
+            {
+                SettingsService.Instance.OnChanged += (_, __) => Dispatcher.Invoke(UpdateWelcomeVisibility);
+                // Apply immediately
+                Dispatcher.BeginInvoke(new Action(() => UpdateWelcomeVisibility()), DispatcherPriority.Loaded);
+            }
+            catch { }
+
             // set content rendered handler to init tray when render ready
             this.ContentRendered += OnContentRenderedInitTray;
             // Set opacity 0 SEBELUM window render untuk cegah white flash
@@ -485,6 +495,7 @@ namespace ZeroMix
                 (Image: FrierenThumb, File: Path.Combine("Virtual_Assisten", "VA_Thumbnails", "Frieren.png")),
                 (Image: FernThumb,    File: Path.Combine("Virtual_Assisten", "VA_Thumbnails", "fern.jpg")),
                 (Image: HuohuoThumb, File: Path.Combine("Virtual_Assisten", "VA_Thumbnails", "Huohuo.jpg")),
+                (Image: HuohuoThumb, File: Path.Combine("Virtual_Assisten", "VA_Thumbnails", "Huohuo.jpg")),
             };
 
             foreach (var (img, file) in thumbs)
@@ -513,6 +524,24 @@ namespace ZeroMix
                 {
                     Debug.WriteLine($"[VA] Failed to load thumbnail {file}: {ex.Message}");
                 }
+            }
+        }
+
+        private void UpdateWelcomeVisibility()
+        {
+            try
+            {
+                var m = SettingsService.Instance.Model;
+                if (EnableMonitoringBtn != null) EnableMonitoringBtn.Visibility = m.ShowFeature1 ? Visibility.Visible : Visibility.Collapsed;
+                if (OpenClockBtn != null) OpenClockBtn.Visibility = m.ShowFeature2 ? Visibility.Visible : Visibility.Collapsed;
+                if (TaskbarToggleBtn != null) TaskbarToggleBtn.Visibility = m.ShowFeature3 ? Visibility.Visible : Visibility.Collapsed;
+                if (HomeRecordBtn != null) HomeRecordBtn.Visibility = m.ShowFeature4 ? Visibility.Visible : Visibility.Collapsed;
+                if (SleepSettingsBtn != null) SleepSettingsBtn.Visibility = m.ShowFeature5 ? Visibility.Visible : Visibility.Collapsed;
+                if (EditorBtn != null) EditorBtn.Visibility = m.ShowFeature6 ? Visibility.Visible : Visibility.Collapsed;
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"[Settings] UpdateWelcomeVisibility error: {ex.Message}");
             }
         }
 
@@ -1201,6 +1230,17 @@ namespace ZeroMix
             SLP_LoadSettingsToUI(_sleepManager.Settings);
             DeactivateAllTabs();
             SleepContent.Visibility = Visibility.Visible;
+        }
+
+        private void SettingsSidebarButton_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                var win = new ZeroMix.Features.ZeroConnect.UI.SettingsWindow { Owner = this };
+                var res = win.ShowDialog();
+                // SettingsService.Instance.Update will be called by the dialog when Save is pressed
+            }
+            catch { }
         }
 
         // ── Sleep Panel Handlers ─────────────────────────────────────────────
@@ -2732,6 +2772,13 @@ end";
         private void OpenHuohuo_Click(object sender, RoutedEventArgs e)
         {
             _lastCharacter = "Huohuo";
+            AssistantMasterToggle.IsChecked = true;
+            AssistantMasterToggle_Checked(this, new RoutedEventArgs());
+        }
+
+        private void OpenJian_Click(object sender, RoutedEventArgs e)
+        {
+            _lastCharacter = "Jian";
             AssistantMasterToggle.IsChecked = true;
             AssistantMasterToggle_Checked(this, new RoutedEventArgs());
         }

@@ -2,6 +2,7 @@ using System;
 using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Interop;
+using System.Windows.Media.Imaging;
 
 namespace ZeroMix.Features.ZeroConnect;
 
@@ -11,13 +12,19 @@ public class ClipboardMonitor : IDisposable
     private IntPtr _hwnd;
     private const int WM_CLIPBOARDUPDATE = 0x031D;
 
+    // Optional reference to clipboard bridge service to detect self-origin changes
+    public ClipboardBridgeService? ClipboardService { get; set; }
+
     public event EventHandler<string>? OnTextCopied;
+    public event EventHandler<byte[]?>? OnImageCopied;
 
     [DllImport("user32.dll")]
     private static extern bool AddClipboardFormatListener(IntPtr hwnd);
 
     [DllImport("user32.dll")]
     private static extern bool RemoveClipboardFormatListener(IntPtr hwnd);
+
+    private DateTime _lastEvent = DateTime.MinValue;
 
     public void Start(Window ownerWindow)
     {
@@ -41,11 +48,38 @@ public class ClipboardMonitor : IDisposable
     {
         try
         {
+            // Debounce rapid changes
+            if (DateTime.UtcNow - _lastEvent < TimeSpan.FromMilliseconds(300)) return;
+            _lastEvent = DateTime.UtcNow;
+
+            // Skip if change originated from our own code
+            if (ClipboardService != null && ClipboardService.IsSettingClipboard) return;
+
             if (System.Windows.Clipboard.ContainsText())
             {
                 var text = System.Windows.Clipboard.GetText();
                 if (!string.IsNullOrWhiteSpace(text))
                     OnTextCopied?.Invoke(this, text);
+                return;
+            }
+
+            if (System.Windows.Clipboard.ContainsImage())
+            {
+                try
+                {
+                    var img = System.Windows.Clipboard.GetImage();
+                    if (img != null)
+                    {
+                        // Encode to PNG bytes
+                        var encoder = new PngBitmapEncoder();
+                        encoder.Frames.Add(System.Windows.Media.Imaging.BitmapFrame.Create(img));
+                        using var ms = new System.IO.MemoryStream();
+                        encoder.Save(ms);
+                        var bytes = ms.ToArray();
+                        OnImageCopied?.Invoke(this, bytes);
+                    }
+                }
+                catch { /* ignore image read errors */ }
             }
         }
         catch { /* Clipboard mungkin terkunci sementara */ }
