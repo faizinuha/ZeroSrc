@@ -5,7 +5,7 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) | [Semantic Ver
 
 ---
 
-## [refs/heads/ProyekTil] - 2026-05-24
+## [v7.2.0] - 2026-05-24
 
 ### ✨ Features
 - feat: add WinGet integration and restructure project layout
@@ -22,9 +22,9 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) | [Semantic Ver
 
 ---
 
-## [Unreleased]
+## [v7.2.0]
 
-### Upcoming (v7.2.0) - UNRELEASED
+###  (v7.2.0) - UNRELEASED
 
 ### ✨ Improvements
 - UI: Hide ZeroConnect entry from main sidebar to declutter navigation; Settings moved to sidebar footer and Settings modal layout improved.
