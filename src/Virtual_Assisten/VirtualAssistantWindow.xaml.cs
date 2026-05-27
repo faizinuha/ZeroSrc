@@ -39,7 +39,8 @@ namespace ZeroMix.Virtual_Assisten
         {
             ["Frieren"] = new List<string> { "Halo! Aku Frieren~ ✨" },
             ["Fern"] = new List<string> { "Halo, namaku Fern." },
-            ["Huohuo"] = new List<string> { "M-maaf... aku Huohuo. 🦊" }
+            ["Huohuo"] = new List<string> { "M-maaf... aku Huohuo. 🦊" },
+            ["Jian"] = new List<string> { "Haloo Kakak... Aku Jian. 🦊" }
         };
         
         private Random _random = new Random();

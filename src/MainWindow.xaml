@@ -410,9 +410,10 @@
                                             Text="AI Companions" />
                                     </StackPanel>
                                 </Button>
-
+                                
                                 <Button
                                     x:Name="ZeroConnectButton"
+                                    Visibility="Collapsed"
                                     Click="ZeroConnectButton_Click"
                                     Style="{StaticResource NavButtonStyle}">
                                     <StackPanel Orientation="Horizontal">
@@ -428,7 +429,7 @@
                                             Text="ZeroConnect" />
                                     </StackPanel>
                                 </Button>
-
+                            
 
                                 <Border
                                     Height="1"
@@ -518,6 +519,24 @@
                                     Foreground="#66FFFFFF"
                                     Text="All Systems Normal"
                                     TextWrapping="Wrap" />
+                                <Button
+                                    x:Name="SettingsSidebarButton"
+                                    Click="SettingsSidebarButton_Click"
+                                    Style="{StaticResource NavButtonStyle}"
+                                    Margin="0,8,0,0">
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock
+                                            x:Name="IconSettings"
+                                            Width="30"
+                                            Margin="0,0,15,0"
+                                            VerticalAlignment="Center"
+                                            FontFamily="Segoe MDL2 Assets"
+                                            FontSize="20"
+                                            Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"
+                                            Text="&#xE713;" />
+                                        <TextBlock VerticalAlignment="Center" Text="Settings" />
+                                    </StackPanel>
+                                </Button>
                             </StackPanel>
                         </Grid>
                     </Border>
@@ -681,6 +700,7 @@
                                     </Button>
 
                                     <Button
+                                        x:Name="EditorBtn"
                                         Grid.Row="1"
                                         Grid.Column="2"
                                         Margin="8,0,0,0"
@@ -1159,6 +1179,46 @@
                                                 <Button
                                                     Height="30"
                                                     Click="OpenHuohuo_Click"
+                                                    Content="ACTIVATE"
+                                                    FontSize="10"
+                                                    Style="{StaticResource ActionButton}" />
+                                            </StackPanel>
+                                        </StackPanel>
+                                    </Border>
+
+                                    <!-- Jian -->
+                                    <Border
+                                        Width="180"
+                                        Margin="0,0,12,12"
+                                        Background="#111620"
+                                        BorderBrush="#1A2030"
+                                        BorderThickness="1"
+                                        CornerRadius="14">
+                                        <StackPanel>
+                                            <Border
+                                                Height="150"
+                                                Background="#141922"
+                                                ClipToBounds="True"
+                                                CornerRadius="14,14,0,0">
+                                                <Image
+                                                    x:Name="Jian"
+                                                    VerticalAlignment="Top"
+                                                    Stretch="UniformToFill" />
+                                            </Border>
+                                            <StackPanel Margin="14">
+                                                <TextBlock
+                                                    FontSize="14"
+                                                    FontWeight="Bold"
+                                                    Foreground="{StaticResource TextBrush}"
+                                                    Text="Jian" />
+                                                <TextBlock
+                                                    Margin="0,3,0,12"
+                                                    FontSize="10"
+                                                    Foreground="{StaticResource SubTextBrush}"
+                                                    Text="Judicator / Fox" />
+                                                <Button
+                                                    Height="30"
+                                                    Click="OpenJian_Click"
                                                     Content="ACTIVATE"
                                                     FontSize="10"
                                                     Style="{StaticResource ActionButton}" />

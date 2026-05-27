@@ -5,13 +5,13 @@ namespace ZeroMix.Features.ZeroConnect;
 
 public enum PacketType
 {
-   ClipboardText,   // 0
-   ClipboardImage,  // 1
-   FileTransfer,    // 2
-   Ping,            // 3
-   Pong,            // 4
-   ChunkTransfer,   // 5
-   Notification
+   ClipboardText = 0,
+   ClipboardImage = 1,
+   FileTransfer = 2,
+   Ping = 3,
+   Pong = 4,
+   ChunkTransfer = 5,
+   Auth = 6
 }
 
 public class ZeroConnectPacket

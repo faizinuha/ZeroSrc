@@ -49,6 +49,16 @@ public static class PwaResources
         #file-preview {
           margin-top: 0.5rem; font-size: 0.85rem; color: #888;
         }
+        /* Toast */
+        .toast {
+          position: fixed; bottom: 24px; left: 50%;
+          transform: translateX(-50%);
+          background: #00D4FF; color: #000;
+          padding: 10px 20px; border-radius: 20px;
+          font-weight: 600; font-size: 14px;
+          z-index: 9999; animation: slideUp 0.3s ease;
+        }
+        @keyframes slideUp { from { transform: translateX(-50%) translateY(12px); opacity: 0;} to { transform: translateX(-50%) translateY(0); opacity: 1;} }
       </style>
     </head>
     <body>
@@ -90,11 +100,18 @@ public static class PwaResources
         const ws = new WebSocket(`ws://${host}${location.search}`);
         let selectedFile = null;
         let lastReceived = '';
+        let lastClipboard = '';
         const _chunkBuffers = new Map(); // fileId -> { chunks: [], total, filename, isImage }
 
         ws.onopen = () => {
           document.getElementById('status').textContent = '● Connected ke ZeroMix';
           document.getElementById('status').className = 'connected';
+          // Send auth token (first WS message) so server can validate without relying on URL
+          try {
+            const params = new URLSearchParams(location.search);
+            const token = params.get('token');
+            if (token) send({ type: 6, payload: token });
+          } catch {}
           ping();
         };
 
@@ -214,27 +231,30 @@ public static class PwaResources
 
         async function sendFile() {
           if (!selectedFile) return;
+          await sendFileWithProgress(selectedFile);
+        }
 
+        async function sendFileWithProgress(file) {
           const CHUNK_SIZE = 512 * 1024; // 512KB per chunk
-          const totalChunks = Math.ceil(selectedFile.size / CHUNK_SIZE);
+          const totalChunks = Math.ceil(file.size / CHUNK_SIZE);
           const fileId = crypto.randomUUID();
 
           for (let i = 0; i < totalChunks; i++) {
             const start = i * CHUNK_SIZE;
-            const end = Math.min(start + CHUNK_SIZE, selectedFile.size);
-            const chunk = selectedFile.slice(start, end);
+            const end = Math.min(start + CHUNK_SIZE, file.size);
+            const chunk = file.slice(start, end);
 
             const base64 = await readChunkAsBase64(chunk);
 
             send({
               type: 5, // ChunkTransfer
               payload: base64,
-              filename: selectedFile.name,
+              filename: file.name,
               meta: JSON.stringify({
                 fileId,
                 chunkIndex: i,
                 totalChunks,
-                isImage: selectedFile.type.startsWith('image/')
+                isImage: file.type.startsWith('image/')
               })
             });
 
@@ -243,10 +263,36 @@ public static class PwaResources
             document.getElementById('file-preview').textContent = 
               `📤 Sending... ${pct}%`;
 
-            // Small delay agar tidak flood WebSocket
+            // Small delay agar not flood WebSocket
             await new Promise(r => setTimeout(r, 10));
           }
         }
+
+        // Drag & drop support
+        const dropZone = document.createElement('div');
+        dropZone.id = 'drop-zone';
+        dropZone.style.position = 'fixed';
+        dropZone.style.top = '0';
+        dropZone.style.left = '0';
+        dropZone.style.right = '0';
+        dropZone.style.bottom = '0';
+        dropZone.style.display = 'flex';
+        dropZone.style.alignItems = 'center';
+        dropZone.style.justifyContent = 'center';
+        dropZone.style.pointerEvents = 'none';
+        document.body.appendChild(dropZone);
+
+        window.addEventListener('dragover', e => { e.preventDefault(); dropZone.style.pointerEvents = 'auto'; dropZone.style.background = 'rgba(255,255,255,0.02)'; });
+        window.addEventListener('dragleave', e => { dropZone.style.pointerEvents = 'none'; dropZone.style.background = 'transparent'; });
+        window.addEventListener('drop', async e => {
+          e.preventDefault();
+          dropZone.style.pointerEvents = 'none';
+          dropZone.style.background = 'transparent';
+          const files = [...e.dataTransfer.files];
+          for (const file of files) {
+            await sendFileWithProgress(file);
+          }
+        });
 
         function readChunkAsBase64(blob) {
           return new Promise((resolve) => {
@@ -265,6 +311,28 @@ public static class PwaResources
 
         function ping() {
           setInterval(() => send({ type: 3 }), 15000); // Ping every 15s
+        }
+
+        // Auto-detect clipboard text on phone and send to laptop (requires permission)
+        setInterval(async () => {
+          try {
+            const text = await navigator.clipboard.readText();
+            if (text && text !== lastClipboard) {
+              lastClipboard = text;
+              send({ type: 0, payload: text });
+              showToast('📋 Tersalin ke Laptop');
+            }
+          } catch (e) { /* ignore if permission denied */ }
+        }, 1000);
+
+        function showToast(msg, duration = 2000) {
+          try {
+            const t = document.createElement('div');
+            t.className = 'toast';
+            t.textContent = msg;
+            document.body.appendChild(t);
+            setTimeout(() => t.remove(), duration);
+          } catch {}
         }
       </script>
     </body>

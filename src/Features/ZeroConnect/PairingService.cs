@@ -28,15 +28,21 @@ public class PairingService
         return token == _currentToken && DateTime.Now < _tokenExpiry;
     }
 
+ 
     public string GetPairingUrl(int port, string token)
-        => $"http://127.0.0.1:{port}/?token={token}";
-    
+        => $"http://{GetLocalIp()}:{port}/?token={token}";
+ 
     public string GetLocalIp()
     {
-        using var socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, 0);
-        socket.Connect("8.8.8.8", 65530);
-        var endPoint = socket.LocalEndPoint as IPEndPoint;
-        return endPoint?.Address.ToString() ?? "127.0.0.1";
+      
+        var host = Dns.GetHostEntry(Dns.GetHostName());
+        var ip = host.AddressList
+            .FirstOrDefault(a =>
+                a.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork &&
+                !IPAddress.IsLoopback(a) &&
+                a.ToString().StartsWith("192.168"));  // pastikan local network
+
+        return ip?.ToString() ?? "127.0.0.1";
     }
 
     public string GetPairingUrl(int port)
