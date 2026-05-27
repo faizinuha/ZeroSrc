@@ -43,7 +43,7 @@ jobs:
         PREV_TAG=${{ steps.release.outputs.prev_tag }}
 
         # Skip jika entry versi ini sudah ada
-        if grep -q "\[$TAG\]" Docs/CHANGELOG.md; then
+        if grep -q "\[$TAG\]" CHANGELOG.md; then
           echo "ℹ️ Entry $TAG already exists in CHANGELOG, skipping."
           exit 0
         fi
@@ -68,9 +68,9 @@ jobs:
         awk -v entry="$NEW_ENTRY" '
           /^---$/ && !inserted { print; printf "\n" entry; inserted=1; next }
           { print }
-        ' Docs/CHANGELOG.md > /tmp/changelog_new.md
+        ' CHANGELOG.md > /tmp/changelog_new.md
 
-        mv /tmp/changelog_new.md Docs/CHANGELOG.md
+        mv /tmp/changelog_new.md  CHANGELOG.md
         echo "✅ CHANGELOG updated for $TAG"
 
     - name: 💾 Commit & Push
@@ -78,7 +78,7 @@ jobs:
       run: |
         git config --local user.email "action@github.com"
         git config --local user.name "GitHub Action Bot"
-        git add Docs/CHANGELOG.md
+        git add CHANGELOG.md
         if git diff --cached --quiet; then
           echo "ℹ️ No changes to commit"
         else
