@@ -67,7 +67,7 @@ foreach ($f in $files) {
 Write-Host ""
 Write-Host "2. Checking CHANGELOG..." -ForegroundColor Yellow
 
-$changelogPath = "Docs/CHANGELOG.md"
+$changelogPath = "CHANGELOG.md"
 if (Test-Path $changelogPath) {
     $cl = Get-Content $changelogPath -Raw
     if ($cl -match "## \[v?$([regex]::Escape($Version))\]") {
