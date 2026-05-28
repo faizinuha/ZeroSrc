@@ -495,7 +495,7 @@ namespace ZeroMix
                 (Image: FrierenThumb, File: Path.Combine("Virtual_Assisten", "VA_Thumbnails", "Frieren.png")),
                 (Image: FernThumb,    File: Path.Combine("Virtual_Assisten", "VA_Thumbnails", "fern.jpg")),
                 (Image: HuohuoThumb, File: Path.Combine("Virtual_Assisten", "VA_Thumbnails", "Huohuo.jpg")),
-                (Image: HuohuoThumb, File: Path.Combine("Virtual_Assisten", "VA_Thumbnails", "Huohuo.jpg")),
+                (Image: JianThumb, File: Path.Combine("Virtual_Assisten", "VA_Thumbnails", "JaneDo.png")),
             };
 
             foreach (var (img, file) in thumbs)
