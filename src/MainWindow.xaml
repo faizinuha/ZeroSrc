@@ -1201,7 +1201,7 @@
                                                 ClipToBounds="True"
                                                 CornerRadius="14,14,0,0">
                                                 <Image
-                                                    x:Name="Jian"
+                                                    x:Name="JianThumb"
                                                     VerticalAlignment="Top"
                                                     Stretch="UniformToFill" />
                                             </Border>

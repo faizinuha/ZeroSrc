@@ -279,8 +279,8 @@ jobs:
         $VER     = "${{ steps.version.outputs.tag }}"
         $VERNUM  = "${{ steps.version.outputs.version }}" -replace '^v', ''
         $REPO    = "${{ github.repository }}"
-        $changelogUrl = "https://github.com/$REPO/blob/main/Docs/CHANGELOG.md"
-        $changelog    = Get-Content "Docs/CHANGELOG.md" -Raw
+        $changelogUrl = "https://github.com/$REPO/blob/main/CHANGELOG.md"
+        $changelog    = Get-Content "CHANGELOG.md" -Raw
 
         # Ambil section versi ini dari CHANGELOG
         $pattern = "(?s)## \[v?$([regex]::Escape($VERNUM))\].*?(?=\n## \[|\z)"

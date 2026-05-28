@@ -1,22 +1,38 @@
 <Window x:Class="ZeroMix.Features.ZeroConnect.UI.SettingsWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Settings" Height="360" Width="320" WindowStartupLocation="CenterOwner" ResizeMode="NoResize">
-    <Grid Margin="12">
-        <StackPanel>
-            <TextBlock Text="Welcome Area: Show/Hide features" FontWeight="Bold" Margin="0,0,0,12"/>
+        Title="Welcome Area Settings" Height="380" Width="360" WindowStartupLocation="CenterOwner" ResizeMode="NoResize" Background="#08111F">
+    <Grid Margin="16">
+        <Border Background="{StaticResource GlassBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" CornerRadius="16" Padding="18" Effect="{StaticResource SubtleShadow}">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
 
-            <CheckBox x:Name="Cb1" Content="Feature 1" Margin="0,4"/>
-            <CheckBox x:Name="Cb2" Content="Feature 2" Margin="0,4"/>
-            <CheckBox x:Name="Cb3" Content="Feature 3" Margin="0,4"/>
-            <CheckBox x:Name="Cb4" Content="Feature 4" Margin="0,4"/>
-            <CheckBox x:Name="Cb5" Content="Feature 5" Margin="0,4"/>
-            <CheckBox x:Name="Cb6" Content="Feature 6" Margin="0,4"/>
+                <StackPanel Grid.Row="0">
+                    <TextBlock Text="Welcome Area" FontSize="18" FontWeight="Bold" Foreground="{StaticResource TextBrush}"/>
+                    <TextBlock Text="Choose which quick actions appear on the welcome dashboard." FontSize="11" Foreground="{StaticResource SubTextBrush}" Margin="0,6,0,0" TextWrapping="Wrap"/>
+                </StackPanel>
 
-            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,16,0,0">
-                <Button Width="80" Margin="0,0,8,0" Click="BtnCancel_Click">Cancel</Button>
-                <Button Width="80" Click="BtnSave_Click">Save</Button>
-            </StackPanel>
-        </StackPanel>
+                <Border Grid.Row="1" Height="1" Background="{StaticResource BorderSubtleBrush}" Margin="0,16,0,16" />
+
+                <UniformGrid Grid.Row="2" Columns="2" Rows="3" Margin="0,0,0,16">
+                    <CheckBox x:Name="Cb1" Content="System Health" Style="{StaticResource ModernCheckBox}" />
+                    <CheckBox x:Name="Cb2" Content="Neural Clock" Style="{StaticResource ModernCheckBox}" />
+                    <CheckBox x:Name="Cb3" Content="Ghost Taskbar" Style="{StaticResource ModernCheckBox}" />
+                    <CheckBox x:Name="Cb4" Content="ZeroRecord" Style="{StaticResource ModernCheckBox}" />
+                    <CheckBox x:Name="Cb5" Content="Sleep Mode" Style="{StaticResource ModernCheckBox}" />
+                    <CheckBox x:Name="Cb6" Content="56Editor" Style="{StaticResource ModernCheckBox}" />
+                </UniformGrid>
+
+                <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right">
+                    <Button Content="Cancel" Width="90" Margin="0,0,10,0" Click="BtnCancel_Click" Style="{StaticResource ActionButton}" />
+                    <Button Content="Save" Width="90" Click="BtnSave_Click" Style="{StaticResource ActionButton}" Background="{StaticResource NeonBlueBrush}" Foreground="White" />
+                </StackPanel>
+            </Grid>
+        </Border>
     </Grid>
 </Window>
