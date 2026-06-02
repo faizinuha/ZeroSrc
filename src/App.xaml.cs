@@ -235,7 +235,10 @@ namespace ZeroMix
             mainWindow.Show();
 
             HotkeyCoreInstance = new HotkeyCore();
-            HotkeyCoreInstance.Show();
+            // Keep HotkeyCore window hidden (runs in background for hotkey handling)
+            // HotkeyCoreInstance.Show();
+
+            
 
             // Restore video wallpaper dari session terakhir
             WallpaperManager.RestoreSession();
@@ -260,11 +263,13 @@ namespace ZeroMix
 
         protected override void OnExit(ExitEventArgs e)
         {
-            if (_mutexOwned) {
+            if (_mutexOwned)
+            {
                 try { _mutex?.ReleaseMutex(); } catch (ApplicationException) { }
             }
             _mutex?.Dispose();
             base.OnExit(e);
         }
+        
     }
 }

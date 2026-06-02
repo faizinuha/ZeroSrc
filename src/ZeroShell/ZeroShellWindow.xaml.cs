@@ -33,6 +33,37 @@ namespace ZeroMix.ZeroShell
         public string CurrentDirectory { get; set; } = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
     }
 
+    public class SuggestionItem
+    {
+        public string DisplayText { get; set; } = "";
+        public string Category { get; set; } = "";
+        public string FullPath { get; set; } = "";
+    }
+
+    public class FolderHistory
+    {
+        public Dictionary<string, int> Folders { get; set; } = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+        
+        public void AddFolder(string path)
+        {
+            if (string.IsNullOrWhiteSpace(path)) return;
+            path = Path.GetFullPath(path);
+            if (Folders.ContainsKey(path))
+                Folders[path]++;
+            else
+                Folders[path] = 1;
+        }
+
+        public List<string> GetTopFolders(int count = 10)
+        {
+            return Folders
+                .OrderByDescending(x => x.Value)
+                .Take(count)
+                .Select(x => x.Key)
+                .ToList();
+        }
+    }
+
     public partial class ZeroShellWindow : Wpf.Ui.Controls.FluentWindow
     {
         private const string CURRENT_VERSION = "6.7.0";
@@ -42,6 +73,10 @@ namespace ZeroMix.ZeroShell
         private List<string> _commandHistory = new List<string>();
         private int _historyIndex = -1;
         private System.Windows.Threading.DispatcherTimer? _clockTimer;
+        private ZeroMix.ZeroShell.Commands.ZeroShellCommandRouter? _router;
+        private DateTime _sessionStartTime = DateTime.MinValue;
+        private FolderHistory _folderHistory = new FolderHistory();
+        private readonly string _folderHistoryPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "ZeroMix", "folder-history.json");
 
         // Alias system
         private Dictionary<string, string> _aliases = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
@@ -137,7 +172,112 @@ namespace ZeroMix.ZeroShell
             InitializeComponent(); 
             LoadSettings();
             LoadAliases();
+            LoadFolderHistory();
             InitializeSettingsUI();
+
+            // Register command handlers (Command Pattern)
+            try
+            {
+                _router = new ZeroMix.ZeroShell.Commands.ZeroShellCommandRouter();
+                
+                // Core commands: cls, clear, !help, ?, !clock
+                _router.Register(new ZeroMix.ZeroShell.Commands.CoreCommands(
+                    PrintHeader,
+                    (action, param1, param2) => {
+                        if (action == "toggle") {
+                            if (ClockArea.Visibility == Visibility.Visible) {
+                                ClockArea.Visibility = Visibility.Collapsed;
+                                ClockRow.Height = new GridLength(0);
+                            } else {
+                                ClockArea.Visibility = Visibility.Visible;
+                                ClockRow.Height = new GridLength(180);
+                            }
+                        }
+                    }
+                ));
+
+                // Tab management: !tab, !close, !settings
+                _router.Register(new ZeroMix.ZeroShell.Commands.TabCommands(
+                    () => AddTab($"Session {_tabs.Count + 1}"),
+                    CloseActiveTab,
+                    () => GearBtn_Click(this, new RoutedEventArgs())
+                ));
+
+                // System info: !task, !sys, !wifi, !ip, !battery, !disk, !apps, !startup
+                _router.Register(new ZeroMix.ZeroShell.Commands.SystemInfoCommands());
+
+                // Visual commands: !font, !layout, !alias, !unalias
+                _router.Register(new ZeroMix.ZeroShell.Commands.VisualCommands(
+                    (tab) => ShowSelectionMenu(),
+                    _aliases,
+                    SaveAliases,
+                    (idx) => _currentFont = idx,
+                    (idx) => _currentLayout = idx,
+                    ApplyFont,
+                    ApplyLayout
+                ));
+
+                // Tools commands: !install, !wdm, !startmenu, !restore, !desktop, !notepad, !everglass, !exit, !tasks
+                _router.Register(new ZeroMix.ZeroShell.Commands.ToolsCommands(
+                    (tab) => ShowSelectionMenu(),
+                    () => this.Close(),
+                    (wdm, tab) => { 
+                        if (wdm != null) { 
+                            if (_wdmWindow == null || !_wdmWindow.IsVisible) { 
+                                _wdmWindow = wdm; 
+                                _wdmWindow.Show(); 
+                            } else { 
+                                _wdmWindow.Activate(); 
+                            } 
+                        } 
+                    },
+                    (tab) => {
+                        if (_desktopWidget == null || !_desktopWidget.IsVisible) { 
+                            _desktopWidget = new ZeroMix.Widgets.DesktopWidget(); 
+                            _desktopWidget.Show(); 
+                        } else { 
+                            _desktopWidget.Shutdown(); 
+                            _desktopWidget = null; 
+                        }
+                    },
+                    (tab) => {
+                        if (_startMenuInterceptor.IsEnabled) 
+                            _startMenuInterceptor.Disable(); 
+                        else 
+                            _startMenuInterceptor.Enable();
+                    },
+                    (tab) => {
+                        // restore all styles (used by !restore)
+                        ShellHelper.EnumAllWindows((hwnd, cls) => {
+                            switch (cls) { 
+                                case "Shell_TrayWnd": 
+                                case "Shell_SecondaryTrayWnd": 
+                                case "CabinetWClass": 
+                                case "ExplorerWClass": 
+                                    ShellHelper.DisableAccent(hwnd); 
+                                    break; 
+                            }
+                        });
+                        ShellHelper.ApplyNotificationStyle(new WdmEntry { Style = WdmStyle.None });
+                        ShellHelper.StopWatcher();
+                        _startMenuInterceptor.Disable();
+                        _desktopWidget?.Shutdown();
+                        _desktopWidget = null;
+                    },
+                    (tab) => {
+                        // apply everglass
+                        var taskbarEntry = new WdmEntry { Style = WdmStyle.AcrylicDark, Alpha = 0xDD, ColorHex = "#000000", AutoApply = false };
+                        var explorerEntry = new WdmEntry { Style = WdmStyle.AcrylicDark, Alpha = 0xBB, ColorHex = "#000000", AutoApply = false };
+                        ShellHelper.EnumAllWindows((hwnd, cls) => {
+                            if (cls == "Shell_TrayWnd" || cls == "Shell_SecondaryTrayWnd") ShellHelper.ApplyStyle(hwnd, taskbarEntry);
+                            else if (cls == "CabinetWClass" || cls == "ExplorerWClass") ShellHelper.ApplyStyle(hwnd, explorerEntry);
+                        });
+                    },
+                    (cmd) => RunProfessionalTasks(),
+                    AutoRunCommand
+                ));
+            }
+            catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"Router registration error: {ex.Message}"); }
         }
 
         private void InitializeSettingsUI()
@@ -253,6 +393,29 @@ namespace ZeroMix.ZeroShell
         }
         #endregion
 
+        #region Folder History
+        private void LoadFolderHistory()
+        {
+            try {
+                if (File.Exists(_folderHistoryPath)) {
+                    string json = File.ReadAllText(_folderHistoryPath);
+                    var loaded = JsonSerializer.Deserialize<FolderHistory>(json);
+                    if (loaded != null) _folderHistory = loaded;
+                }
+            } catch { }
+        }
+
+        private void SaveFolderHistory()
+        {
+            try {
+                string dir = Path.GetDirectoryName(_folderHistoryPath) ?? "";
+                if (!Directory.Exists(dir)) Directory.CreateDirectory(dir);
+                string json = JsonSerializer.Serialize(_folderHistory, new JsonSerializerOptions { WriteIndented = true });
+                File.WriteAllText(_folderHistoryPath, json);
+            } catch { }
+        }
+        #endregion
+
         #region Tab Management
         private void AddTab(string title = "Terminal")
         {
@@ -318,6 +481,7 @@ namespace ZeroMix.ZeroShell
             if (PromptUserText != null) PromptUserText.Text = $" {Environment.UserName} ";
             if (PromptText != null) PromptText.Text = $" {displayPath.Replace("\\", "/")} ";
             if (StatusPathText != null) StatusPathText.Text = $" {displayPath} ";
+            if (InfoPathText != null) InfoPathText.Text = displayPath.Replace("\\", "/");
             
             // Tab button text sync
             if (_activeTab.TabButton != null) _activeTab.TabButton.Content = _activeTab.Title;
@@ -673,14 +837,27 @@ Clear-Host
             }
         }
 
-        private void TerminalInput_KeyDown(object sender, System.Windows.Input.KeyEventArgs e)
+        private async void TerminalInput_KeyDown(object sender, System.Windows.Input.KeyEventArgs e)
         {
             if (e.Key == Key.Enter) {
                 string cmd = TerminalInput.Text.Trim();
                 if (!string.IsNullOrWhiteSpace(cmd)) { 
                     _commandHistory.Add(cmd); 
                     _historyIndex = _commandHistory.Count; 
-                    ProcessCommand(cmd); 
+
+                    bool handled = false;
+                    try
+                    {
+                        if (_router != null)
+                            handled = await _router.HandleCommand(cmd, _activeTab, AppendToTab);
+                    }
+                    catch { handled = false; }
+
+                    if (!handled)
+                    {
+                        // Fallback to legacy handler (keeps broad behavior intact)
+                        ProcessCommand(cmd);
+                    }
                 }
                 TerminalInput.Text = ""; e.Handled = true;
             }
@@ -765,6 +942,28 @@ Clear-Host
         {
             string low = cmd.ToLower().Trim();
             if (_activeTab == null) return;
+
+            // Track command in history
+            if (!string.IsNullOrWhiteSpace(cmd)) {
+                _commandHistory.Insert(0, cmd);
+                if (_commandHistory.Count > 100) _commandHistory.RemoveAt(_commandHistory.Count - 1);
+            }
+
+            // Track CD commands for folder recommendations
+            if (low.StartsWith("cd ") && low.Length > 3) {
+                string folderPath = cmd.Substring(3).Trim();
+                // Remove quotes if present
+                if (folderPath.StartsWith("\"") && folderPath.EndsWith("\"")) {
+                    folderPath = folderPath.Substring(1, folderPath.Length - 2);
+                }
+                try {
+                    string fullPath = Path.GetFullPath(folderPath);
+                    if (Directory.Exists(fullPath)) {
+                        _folderHistory.AddFolder(fullPath);
+                        SaveFolderHistory();
+                    }
+                } catch { }
+            }
 
             // Alias check
             string firstWord = cmd.Split(' ')[0];
@@ -1338,14 +1537,35 @@ Clear-Host
             ApplyLayout(); 
             TerminalInput.Focus();
 
+            // Initialize User Info Card
+            if (InfoUserText != null) InfoUserText.Text = Environment.UserName;
+            if (InfoPathText != null) InfoPathText.Text = "~";
+            if (InfoSessionText != null) {
+                _sessionStartTime = DateTime.Now;
+                InfoSessionText.Text = _sessionStartTime.ToString("HH:mm");
+            }
+
             _clockTimer = new System.Windows.Threading.DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
             _clockTimer.Tick += (s, ev) => {
                 var now = DateTime.Now;
                 if (CurrentTimeText != null) CurrentTimeText.Text = now.ToString("HH:mm");
                 if (BigClockText != null) BigClockText.Text = now.ToString("HH:mm");
                 if (BigDateText != null) BigDateText.Text = now.ToString("yyyy-MM-dd");
+                
+                // Update session duration
+                if (InfoSessionText != null && _sessionStartTime != DateTime.MinValue) {
+                    var elapsed = now - _sessionStartTime;
+                    if (elapsed.TotalHours < 1) {
+                        InfoSessionText.Text = $"{elapsed.Minutes:D2}:{elapsed.Seconds:D2}";
+                    } else {
+                        InfoSessionText.Text = $"{elapsed.Hours:D2}:{elapsed.Minutes:D2}";
+                    }
+                }
             };
             _clockTimer.Start();
+
+            // Load and display recommendations
+            RefreshRecommendations();
 
             // Auto-Run logic (for !tasks and others)
             if (!string.IsNullOrEmpty(AutoRunCommand))
@@ -1383,6 +1603,8 @@ Clear-Host
         protected override void OnClosed(EventArgs e)
         {
             _clockTimer?.Stop();
+            SaveFolderHistory();
+            SaveAliases();
             _startMenuInterceptor.Dispose();
             foreach (var t in _tabs) { try { if (t.Process != null && !t.Process.HasExited) t.Process.Kill(); } catch { } }
             base.OnClosed(e);
@@ -1447,6 +1669,175 @@ Clear-Host
             AppendToTab(_activeTab, "  ✨ [ SEMUA TUGAS SELESAI DENGAN SUKSES ]\n", success);
             AppendToTab(_activeTab, "  Sistem ZeroMix sekarang berjalan pada performa puncak.\n", "#CCCCCC");
             AppendToTab(_activeTab, "  Kakak bisa tutup terminal ini kapan saja.\n\n", "#888888");
+        }
+
+        private void HelpBtn_Click(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        {
+            AppendToTab(_activeTab, "\n  📖 ZEROMIX SHELL HELP\n", "#00D4FF");
+            AppendToTab(_activeTab, "  =====================================\n", "#00D4FF");
+            AppendToTab(_activeTab, "  !help              - Show this help message\n", "#E0E0E0");
+            AppendToTab(_activeTab, "  !tasks             - Run system maintenance tasks\n", "#E0E0E0");
+            AppendToTab(_activeTab, "  alias <name>=<cmd> - Create a shell alias\n", "#E0E0E0");
+            AppendToTab(_activeTab, "  clear              - Clear terminal screen\n", "#E0E0E0");
+            AppendToTab(_activeTab, "  exit               - Close terminal\n\n", "#E0E0E0");
+        }
+
+        private void TerminalInput_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
+        {
+            if (TerminalInput == null || SuggestionsListBox == null) return;
+
+            string input = TerminalInput.Text.ToLower().Trim();
+            if (string.IsNullOrWhiteSpace(input))
+            {
+                SuggestionsListBox.Visibility = Visibility.Collapsed;
+                return;
+            }
+
+            var suggestions = new List<SuggestionItem>();
+
+            // 1. COMMAND HISTORY - show recent commands that match
+            var matchingCommands = _commandHistory
+                .Where(c => c.ToLower().StartsWith(input))
+                .Distinct()
+                .Take(5)
+                .Select(c => new SuggestionItem { 
+                    DisplayText = c, 
+                    Category = "History", 
+                    FullPath = c 
+                })
+                .ToList();
+            suggestions.AddRange(matchingCommands);
+
+            // 2. BUILT-IN COMMANDS - show commands matching input
+            var builtInCommands = new[] { "!help", "!tasks", "!sys", "!wifi", "alias", "clear", "exit", "dir", "cd", "cls", "ls", "pwd" };
+            var matchingBuiltIn = builtInCommands
+                .Where(c => c.ToLower().StartsWith(input))
+                .Select(c => new SuggestionItem { 
+                    DisplayText = c, 
+                    Category = "Command", 
+                    FullPath = c 
+                })
+                .ToList();
+            suggestions.AddRange(matchingBuiltIn);
+
+            // 3. FOLDER RECOMMENDATIONS - if input looks like a path or "cd "
+            if (input.Contains("cd ") || input.Contains("\\") || input.Contains("/") || input == "cd")
+            {
+                string searchPrefix = input.Contains("cd ") ? input.Substring(3).Trim() : input;
+                
+                var topFolders = _folderHistory.GetTopFolders(5);
+                var matchingFolders = topFolders
+                    .Where(f => f.ToLower().Contains(searchPrefix) && !string.IsNullOrEmpty(searchPrefix))
+                    .Select(f => new SuggestionItem { 
+                        DisplayText = Path.GetFileName(f) ?? f, 
+                        Category = "Folder", 
+                        FullPath = f 
+                    })
+                    .Take(3)
+                    .ToList();
+                
+                // If no matching folders, show top folders
+                if (matchingFolders.Count == 0 && (searchPrefix == "" || searchPrefix.Length < 3))
+                {
+                    matchingFolders = topFolders
+                        .Take(3)
+                        .Select(f => new SuggestionItem { 
+                            DisplayText = Path.GetFileName(f) ?? f, 
+                            Category = "Folder", 
+                            FullPath = f 
+                        })
+                        .ToList();
+                }
+                
+                suggestions.AddRange(matchingFolders);
+            }
+
+            SuggestionsListBox.ItemsSource = suggestions;
+            SuggestionsListBox.Visibility = suggestions.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
+            
+            // Hide recommendations when typing
+            if (RecommendationsPanel != null) {
+                RecommendationsPanel.Visibility = string.IsNullOrWhiteSpace(TerminalInput.Text) ? Visibility.Visible : Visibility.Collapsed;
+            }
+        }
+
+        private void SuggestionsListBox_MouseDoubleClick(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        {
+            if (SuggestionsListBox.SelectedItem is SuggestionItem selected)
+            {
+                string completion = selected.FullPath;
+                
+                // Handle folder selection
+                if (selected.Category == "Folder")
+                {
+                    string currentInput = TerminalInput.Text.ToLower().Trim();
+                    if (currentInput.StartsWith("cd "))
+                    {
+                        completion = $"cd \"{selected.FullPath}\"";
+                    }
+                    else
+                    {
+                        completion = $"cd \"{selected.FullPath}\"";
+                    }
+                }
+                else
+                {
+                    completion = selected.DisplayText + " ";
+                }
+
+                TerminalInput.Text = completion;
+                TerminalInput.CaretIndex = TerminalInput.Text.Length;
+                SuggestionsListBox.Visibility = Visibility.Collapsed;
+            }
+        }
+
+        private void RefreshRecommendations()
+        {
+            if (TopFoldersListBox == null || TopCommandsListBox == null) return;
+
+            // Ensure no direct items exist before assigning ItemsSource
+            TopFoldersListBox.ItemsSource = null;
+            TopFoldersListBox.Items.Clear();
+
+            // Get top 5 folders
+            var topFolders = _folderHistory.GetTopFolders(5);
+            var folderItems = topFolders
+                .Select(f => Path.GetFileName(f) ?? f)
+                .ToList();
+            TopFoldersListBox.ItemsSource = folderItems;
+
+            // Ensure TopCommands has no direct items before assigning ItemsSource
+            TopCommandsListBox.ItemsSource = null;
+            TopCommandsListBox.Items.Clear();
+
+            // Get top 5 recent commands
+            var topCommands = _commandHistory
+                .Distinct()
+                .Take(5)
+                .ToList();
+            TopCommandsListBox.ItemsSource = topCommands;
+        }
+
+        private void TopFoldersListBox_MouseLeftButtonDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        {
+            if (TopFoldersListBox.SelectedItem is string folder)
+            {
+                var fullPath = _folderHistory.GetTopFolders(5)
+                    .FirstOrDefault(f => Path.GetFileName(f) == folder || f == folder) ?? folder;
+                TerminalInput.Text = $"cd \"{fullPath}\"";
+                TerminalInput.CaretIndex = TerminalInput.Text.Length;
+                e.Handled = true;
+            }
+        }
+
+        private void TopCommandsListBox_MouseLeftButtonDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        {
+            if (TopCommandsListBox.SelectedItem is string command)
+            {
+                TerminalInput.Text = command;
+                TerminalInput.CaretIndex = TerminalInput.Text.Length;
+                e.Handled = true;
+            }
         }
     }
 }

@@ -11,8 +11,9 @@ namespace ZeroMix.Recorder
     /// <summary>
     /// Screen Studio Style Recorder.
     /// GPU-first architecture with physics-based camera.
+    /// Implements IScreenActivityMonitor for coordination with wallpaper smart pause system.
     /// </summary>
-    public class ScreenStudioRecorder : IDisposable
+    public class ScreenStudioRecorder : IScreenActivityMonitor, IDisposable
     {
         // Core components
         private DXGICapturer? _dxgiCapturer;
@@ -33,6 +34,11 @@ namespace ZeroMix.Recorder
         // Shared lock: D3D11 immediate context is NOT thread-safe
         internal readonly object _d3dContextLock = new object();
         public bool IsZoomEnabled { get; set; } = true;
+
+        // IScreenActivityMonitor implementation
+        public event EventHandler<FullscreenAppEventArgs>? FullscreenAppDetected;
+        public event EventHandler<FullscreenAppEventArgs>? FullscreenAppClosed;
+        public bool IsFullscreenActive { get; private set; } = false;
 
         public bool IsRecording => _isRecording;
         public bool IsPaused => _encoder?.IsPaused ?? false;
@@ -89,6 +95,45 @@ namespace ZeroMix.Recorder
                 Console.WriteLine("[ScreenStudioRecorder] ✓ All systems GO!");
             else
                 Console.WriteLine("[ScreenStudioRecorder] CRITICAL: No capture system initialized!");
+            
+            // Initialize GameDetector untuk fullscreen app detection
+            Console.WriteLine("[ScreenStudioRecorder] Initializing fullscreen app detector...");
+            GameDetector.FullscreenAppDetected += HandleFullscreenAppDetected;
+            GameDetector.FullscreenAppClosed += HandleFullscreenAppClosed;
+            GameDetector.Start();
+            Console.WriteLine("[ScreenStudioRecorder] ✓ Fullscreen app detector started!");
+        }
+
+        private void HandleFullscreenAppDetected(object? sender, FullscreenAppEventArgs e)
+        {
+            IsFullscreenActive = true;
+            Console.WriteLine($"[ScreenStudioRecorder] Fullscreen app detected: {e.AppName} on screen {e.ScreenIndex}");
+            
+            // Fire event untuk subscribers (misalnya wallpaper system)
+            FullscreenAppDetected?.Invoke(this, e);
+            
+            // Auto-pause recording saat fullscreen app detected
+            if (_isRecording && !IsPaused)
+            {
+                Console.WriteLine("[ScreenStudioRecorder] Auto-pausing recording due to fullscreen app...");
+                Pause();
+            }
+        }
+
+        private void HandleFullscreenAppClosed(object? sender, FullscreenAppEventArgs e)
+        {
+            IsFullscreenActive = false;
+            Console.WriteLine($"[ScreenStudioRecorder] Fullscreen app closed: {e.AppName}");
+            
+            // Fire event untuk subscribers
+            FullscreenAppClosed?.Invoke(this, e);
+            
+            // Auto-resume recording if was paused due to fullscreen app
+            if (_isRecording && IsPaused)
+            {
+                Console.WriteLine("[ScreenStudioRecorder] Auto-resuming recording...");
+                Resume();
+            }
         }
 
         public void Pause()  { _encoder?.Pause();  _recordingTimer.Stop(); }
@@ -329,6 +374,19 @@ namespace ZeroMix.Recorder
 
         public void Dispose()
         {
+            // Cleanup fullscreen app detector
+            try
+            {
+                GameDetector.FullscreenAppDetected -= HandleFullscreenAppDetected;
+                GameDetector.FullscreenAppClosed -= HandleFullscreenAppClosed;
+                GameDetector.Stop();
+                Console.WriteLine("[ScreenStudioRecorder] GameDetector stopped.");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[ScreenStudioRecorder] Error cleaning up GameDetector: {ex.Message}");
+            }
+            
             StopRecording();
             _compositor?.Dispose();
             _dxgiCapturer?.Dispose();

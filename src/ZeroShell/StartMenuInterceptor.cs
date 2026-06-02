@@ -2,41 +2,19 @@ using System;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Windows;
+using ZeroMix.Native;
 
 namespace ZeroMix.ZeroShell
 {
     /// <summary>
     /// Intercepts Start button clicks via WH_MOUSE_LL global hook.
     /// When Start button is clicked: hides Windows Start Menu, shows ZeroLaunchpad.
+    /// Uses centralized Win32 API from ZeroMix.Native.Win32 for P/Invoke declarations.
+    /// Includes health check timer to validate hook is alive and re-install if dead.
     /// </summary>
     public class StartMenuInterceptor : IDisposable
     {
-        #region P/Invoke
-        private delegate IntPtr LowLevelMouseProc(int nCode, IntPtr wParam, IntPtr lParam);
-
-        [DllImport("user32.dll", CharSet = CharSet.Auto, SetLastError = true)]
-        static extern IntPtr SetWindowsHookEx(int idHook, LowLevelMouseProc lpfn, IntPtr hMod, uint dwThreadId);
-
-        [DllImport("user32.dll", CharSet = CharSet.Auto, SetLastError = true)]
-        static extern bool UnhookWindowsHookEx(IntPtr hhk);
-
-        [DllImport("user32.dll", CharSet = CharSet.Auto, SetLastError = true)]
-        static extern IntPtr CallNextHookEx(IntPtr hhk, int nCode, IntPtr wParam, IntPtr lParam);
-
-        [DllImport("kernel32.dll", CharSet = CharSet.Auto, SetLastError = true)]
-        static extern IntPtr GetModuleHandle(string lpModuleName);
-
-        [DllImport("user32.dll")]
-        static extern IntPtr FindWindow(string lpClassName, string lpWindowName);
-
-        [DllImport("user32.dll")]
-        static extern IntPtr FindWindowEx(IntPtr hwndParent, IntPtr hwndChildAfter, string lpszClass, string lpszWindow);
-
-        [DllImport("user32.dll")]
-        static extern bool GetWindowRect(IntPtr hWnd, out RECT lpRect);
-
-        [DllImport("user32.dll")]
-        static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
+        #region Structures & Constants
 
         [StructLayout(LayoutKind.Sequential)]
         struct POINT { public int x, y; }
@@ -49,19 +27,17 @@ namespace ZeroMix.ZeroShell
             public IntPtr dwExtraInfo;
         }
 
-        [StructLayout(LayoutKind.Sequential)]
-        struct RECT { public int Left, Top, Right, Bottom; }
-
-        const int WH_MOUSE_LL  = 14;
-        const int WM_LBUTTONDOWN = 0x0201;
         const int SW_HIDE = 0;
         const int SW_SHOW = 5;
         #endregion
 
         private IntPtr _hookHandle = IntPtr.Zero;
-        private LowLevelMouseProc? _proc;
+        private Win32.Shell.LowLevelMouseProc? _proc;
         private ZeroLaunchpad? _launchpad;
         private bool _enabled = false;
+        private System.Windows.Threading.DispatcherTimer? _healthCheckTimer;
+        // Timestamp of last hook callback — used to detect stale/timeout of WH_MOUSE_LL
+        private DateTime _lastCallbackUtc = DateTime.MinValue;
 
         public bool IsEnabled => _enabled;
 
@@ -71,25 +47,68 @@ namespace ZeroMix.ZeroShell
             _proc = HookCallback;
             using var curProcess = Process.GetCurrentProcess();
             using var curModule  = curProcess.MainModule!;
-            _hookHandle = SetWindowsHookEx(WH_MOUSE_LL, _proc,
-                GetModuleHandle(curModule.ModuleName), 0);
+            _hookHandle = Win32.Shell.SetWindowsHookEx(Win32.Shell.WH_MOUSE_LL, _proc,
+                Win32.Shell.GetModuleHandle(curModule.ModuleName), 0);
+
+            // record initial callback time if hook installed successfully
+            if (_hookHandle != IntPtr.Zero) _lastCallbackUtc = DateTime.UtcNow;
             _enabled = true;
+
+            // Start health check timer to validate hook is alive
+            StartHealthCheck();
         }
 
         public void Disable()
         {
             if (!_enabled) return;
+            
+            // Stop health check
+            if (_healthCheckTimer != null)
+            {
+                _healthCheckTimer.Stop();
+                _healthCheckTimer = null;
+            }
+
             if (_hookHandle != IntPtr.Zero)
             {
-                UnhookWindowsHookEx(_hookHandle);
+                Win32.Shell.UnhookWindowsHookEx(_hookHandle);
                 _hookHandle = IntPtr.Zero;
             }
             _enabled = false;
         }
 
+        private void StartHealthCheck()
+        {
+            _healthCheckTimer = new System.Windows.Threading.DispatcherTimer 
+            { 
+                Interval = TimeSpan.FromSeconds(5) 
+            };
+            _healthCheckTimer.Tick += (s, e) => ValidateHook();
+            _healthCheckTimer.Start();
+        }
+
+        private void ValidateHook()
+        {
+            try
+            {
+                // If hook handle is gone or we haven't seen callbacks for a while, re-install
+                var now = DateTime.UtcNow;
+                if (_hookHandle == IntPtr.Zero || (now - _lastCallbackUtc) > TimeSpan.FromSeconds(12))
+                {
+                    // Re-install the low-level mouse hook (best-effort)
+                    Disable();
+                    Enable();
+                }
+            }
+            catch { /* swallow errors — this is a resiliency check */ }
+        }
+
         private IntPtr HookCallback(int nCode, IntPtr wParam, IntPtr lParam)
         {
-            if (nCode >= 0 && wParam == (IntPtr)WM_LBUTTONDOWN)
+            // Update last callback time for health checks
+            _lastCallbackUtc = DateTime.UtcNow;
+
+            if (nCode >= 0 && wParam == (IntPtr)Win32.Shell.WM_LBUTTONDOWN)
             {
                 var hookStruct = Marshal.PtrToStructure<MSLLHOOKSTRUCT>(lParam);
                 int x = hookStruct.pt.x;
@@ -103,23 +122,23 @@ namespace ZeroMix.ZeroShell
                     return new IntPtr(1);
                 }
             }
-            return CallNextHookEx(_hookHandle, nCode, wParam, lParam);
+            return Win32.Shell.CallNextHookEx(_hookHandle, nCode, wParam, lParam);
         }
 
         private bool IsStartButtonClick(int x, int y)
         {
             // Find Start button — Win10: "Start" button inside Shell_TrayWnd
-            IntPtr taskbar = FindWindow("Shell_TrayWnd", null);
+            IntPtr taskbar = Win32.Window.FindWindow("Shell_TrayWnd", null);
             if (taskbar == IntPtr.Zero) return false;
 
             // Try to find the Start button child
-            IntPtr startBtn = FindWindowEx(taskbar, IntPtr.Zero, "Start", null);
+            IntPtr startBtn = Win32.Window.FindWindowEx(taskbar, IntPtr.Zero, "Start", null);
             if (startBtn == IntPtr.Zero)
-                startBtn = FindWindowEx(taskbar, IntPtr.Zero, "Button", null);
+                startBtn = Win32.Window.FindWindowEx(taskbar, IntPtr.Zero, "Button", null);
 
             if (startBtn != IntPtr.Zero)
             {
-                if (GetWindowRect(startBtn, out RECT r))
+                if (Win32.Window.GetWindowRect(startBtn, out Win32.Window.RECT r))
                     return x >= r.Left && x <= r.Right && y >= r.Top && y <= r.Bottom;
             }
 
@@ -156,12 +175,15 @@ namespace ZeroMix.ZeroShell
                 foreach (var p in System.Diagnostics.Process.GetProcessesByName("StartMenuExperienceHost"))
                 {
                     if (p.MainWindowHandle != IntPtr.Zero)
-                        ShowWindow(p.MainWindowHandle, SW_HIDE);
+                        Win32.Window.ShowWindow(p.MainWindowHandle, SW_HIDE);
                 }
             }
             catch { }
         }
 
-        public void Dispose() => Disable();
+        public void Dispose()
+        {
+            Disable();
+        }
     }
 }

@@ -1,5 +1,7 @@
 using System;
+using System.Collections.Generic;
 using System.Numerics;
+using System.Runtime.InteropServices;
 using Vortice.Direct3D11;
 using Vortice.Direct2D1;
 using Vortice.DXGI;
@@ -17,8 +19,10 @@ namespace ZeroMix.Recorder
         
         private ID3D11Texture2D? _outputTexture;
         private ID2D1Bitmap1? _outputBitmap;
-        private ID2D1Bitmap1? _inputBitmapCached;
-        private ID3D11Texture2D? _lastInputTexture;
+        
+        // Cache bitmap per texture pointer untuk reduce GC pressure
+        private readonly Dictionary<IntPtr, ID2D1Bitmap1> _bitmapCache = new();
+        private IntPtr _lastCachedTexturePtr = IntPtr.Zero;
         
         private int _width;
         private int _height;
@@ -71,6 +75,43 @@ namespace ZeroMix.Recorder
             catch { IsInitialized = false; }
         }
 
+        /// <summary>
+        /// Get atau create bitmap dari texture. Cache per texture pointer untuk reduce allocations.
+        /// </summary>
+        private ID2D1Bitmap1? GetOrCreateBitmap(ID3D11Texture2D inputTexture)
+        {
+            if (inputTexture == null || _d2dContext == null) return null;
+
+            try
+            {
+                // Get texture pointer sebagai cache key
+                IntPtr texturePtr = Marshal.GetIUnknownForObject(inputTexture);
+                
+                // Check cache apakah bitmap sudah ada untuk texture ini
+                if (_bitmapCache.TryGetValue(texturePtr, out var cachedBitmap))
+                {
+                    _lastCachedTexturePtr = texturePtr;
+                    return cachedBitmap;
+                }
+
+                // Create new bitmap jika belum ada di cache
+                using var dxgiSurface = inputTexture.QueryInterface<IDXGISurface>();
+                var newBitmap = _d2dContext.CreateBitmapFromDxgiSurface(dxgiSurface);
+                
+                // Store di cache
+                _bitmapCache[texturePtr] = newBitmap;
+                _lastCachedTexturePtr = texturePtr;
+                
+                Console.WriteLine($"[GPUCompositor] Created new bitmap for texture {texturePtr:X8}. Cache size: {_bitmapCache.Count}");
+                return newBitmap;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[GPUCompositor] Failed to get/create bitmap: {ex.Message}");
+                return null;
+            }
+        }
+
         public void Compose(ID3D11Texture2D inputTexture, float camX, float camY, float zoom, float cursorX, float cursorY, bool isClick, System.Drawing.RectangleF? crop = null)
         {
             if (!IsInitialized) return;
@@ -80,24 +121,11 @@ namespace ZeroMix.Recorder
             {
                 try
                 {
-                    // Always recreate input bitmap — texture content changes every frame
-                    // even if the pointer is the same (DXGI CopyResource updates in-place)
-                    try { _inputBitmapCached?.Dispose(); } catch { }
-                    _inputBitmapCached = null;
+                    // Get/Create bitmap dari cache
+                    var inputBitmap = GetOrCreateBitmap(inputTexture);
+                    if (inputBitmap == null) return;
 
-                    try
-                    {
-                        using var dxgiSurfaceIn = inputTexture.QueryInterface<IDXGISurface>();
-                        _inputBitmapCached = _d2dContext!.CreateBitmapFromDxgiSurface(dxgiSurfaceIn);
-                        _lastInputTexture = inputTexture;
-                    }
-                    catch (Exception ex)
-                    {
-                        Console.WriteLine($"[GPUCompositor] Failed to create bitmap: {ex.Message}");
-                        return;
-                    }
-
-                    _d2dContext.Target = _outputBitmap;
+                    _d2dContext!.Target = _outputBitmap;
                     
                     bool drawingStarted = false;
                     try
@@ -121,18 +149,18 @@ namespace ZeroMix.Recorder
                         _d2dContext.Transform = transform;
                         _d2dContext.UnitMode = UnitMode.Pixels;
                         
-                        if (_inputBitmapCached != null)
+                        if (inputBitmap != null)
                         {
                             if (crop.HasValue)
                             {
                                 // Draw only the cropped area to fill the output size
                                 var c = crop.Value;
                                 var destRect = new System.Drawing.RectangleF(0, 0, _width, _height);
-                                _d2dContext.DrawBitmap(_inputBitmapCached, destRect, 1.0f, InterpolationMode.Linear, c, System.Numerics.Matrix4x4.Identity);
+                                _d2dContext.DrawBitmap(inputBitmap, destRect, 1.0f, InterpolationMode.Linear, c, System.Numerics.Matrix4x4.Identity);
                             }
                             else
                             {
-                                _d2dContext.DrawBitmap(_inputBitmapCached, 1.0f, InterpolationMode.Linear);
+                                _d2dContext.DrawBitmap(inputBitmap, 1.0f, InterpolationMode.Linear);
                             }
                         }
                         
@@ -201,7 +229,13 @@ namespace ZeroMix.Recorder
 
         public void Dispose()
         {
-            _inputBitmapCached?.Dispose();
+            // Cleanup bitmap cache
+            foreach (var bitmap in _bitmapCache.Values)
+            {
+                try { bitmap?.Dispose(); } catch { }
+            }
+            _bitmapCache.Clear();
+
             _outputBitmap?.Dispose();
             _outputTexture?.Dispose();
             _d2dContext?.Dispose();

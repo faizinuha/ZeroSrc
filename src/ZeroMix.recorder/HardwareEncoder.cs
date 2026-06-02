@@ -5,6 +5,7 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using System.Collections.Concurrent;
 using System.Linq;
+using System.Threading.Tasks;
 using Vortice.Direct3D11;
 using Vortice.DXGI;
 
@@ -37,6 +38,11 @@ namespace ZeroMix.Recorder
         
         // Pre-allocated buffer pool
         private ConcurrentBag<byte[]> _bufferPool = new();
+
+        // ManualResetEventSlim untuk async FFmpeg initialization (replace Thread.Sleep)
+        private readonly ManualResetEventSlim _encoderInitialized = new ManualResetEventSlim(false);
+        private bool _encoderInitFailed = false;
+        private string _encoderErrorMsg = "";
 
         public bool IsInitialized { get; private set; }
         public long FramesWritten => _framesWritten;
@@ -286,7 +292,9 @@ namespace ZeroMix.Recorder
                                 e.Data.Contains("Cannot load") ||
                                 e.Data.Contains("Unknown encoder"))
                             {
-                                encoderErrorMsg = e.Data;
+                                _encoderErrorMsg = e.Data;
+                                _encoderInitFailed = true;
+                                _encoderInitialized.Set(); // Signal init complete (with error)
                             }
                         }
                     };
@@ -298,7 +306,8 @@ namespace ZeroMix.Recorder
                             // Encoder successfully initialized when we see Stream mapping
                             if (e.Data.Contains("Stream mapping"))
                             {
-                                encoderInitialized = true;
+                                _encoderInitFailed = false;
+                                _encoderInitialized.Set(); // Signal init complete (success)
                                 Console.WriteLine($"[HardwareEncoder] ✓ Encoder {_encoder} initialized successfully!");
                             }
                         }
@@ -306,18 +315,24 @@ namespace ZeroMix.Recorder
                     _ffmpegProcess.BeginErrorReadLine();
                     _ffmpegProcess.BeginOutputReadLine();
                     
-                    // Give FFmpeg a moment to initialize and check for errors
-                    Thread.Sleep(500);
+                    // Wait untuk FFmpeg initialization menggunakan ManualResetEventSlim (async, non-blocking)
+                    // Max 5 seconds timeout
+                    bool initCompleted = _encoderInitialized.Wait(5000);
                     
-                    // Add timeout check
+                    if (!initCompleted)
+                    {
+                        Console.WriteLine("[HardwareEncoder] ⚠ FFmpeg initialization timeout (but process may be running)");
+                    }
+                    
+                    // Add timeout check untuk process exit
                     int timeoutMs = 5000; // 5 seconds
                     int elapsed = 0;
                     while (!_ffmpegProcess.HasExited && elapsed < timeoutMs)
                     {
-                        Thread.Sleep(100);
+                        System.Threading.Tasks.Task.Delay(100).Wait();
                         elapsed += 100;
                         
-                        if (encoderInitialized)
+                        if (_encoderInitialized.IsSet)
                             break;
                     }
                     
@@ -326,12 +341,12 @@ namespace ZeroMix.Recorder
                         Console.WriteLine($"[HardwareEncoder] ✗ FFmpeg exited during initialization (exit code: {_ffmpegProcess.ExitCode})");
                         
                         // If selected encoder failed, fallback to libx264
-                        if (!encoderInitialized && _encoder != "libx264")
+                        if (_encoderInitFailed && _encoder != "libx264")
                         {
                             Console.WriteLine($"[HardwareEncoder] WARNING: Encoder {_encoder} failed!");
-                            if (!string.IsNullOrEmpty(encoderErrorMsg))
+                            if (!string.IsNullOrEmpty(_encoderErrorMsg))
                             {
-                                Console.WriteLine($"[HardwareEncoder] Error: {encoderErrorMsg}");
+                                Console.WriteLine($"[HardwareEncoder] Error: {_encoderErrorMsg}");
                             }
                             Console.WriteLine("[HardwareEncoder] Falling back to libx264 (CPU encoding)...");
                             
@@ -346,10 +361,34 @@ namespace ZeroMix.Recorder
                                                 $"{fallbackEncoderArgs} -pix_fmt yuv420p -vsync cfr -r {_framerate} {mapArgs} {audioCodecArgs.Trim()} -y \"{_outputPath}\"";
                             
                             psi.Arguments = fallbackArgs;
+                            
+                            // Reset event untuk retry
+                            _encoderInitialized.Reset();
+                            _encoderInitFailed = false;
+                            _encoderErrorMsg = "";
+                            
                             _ffmpegProcess = Process.Start(psi);
                             
                             if (_ffmpegProcess == null) 
                                 throw new InvalidOperationException("Failed to start FFmpeg with fallback encoder.");
+                            
+                            // Attach event handlers untuk retry
+                            _ffmpegProcess.ErrorDataReceived += (s, e) => {
+                                if (!string.IsNullOrEmpty(e.Data))
+                                {
+                                    Console.WriteLine($"[FFMPEG-LOG] {e.Data}");
+                                }
+                            };
+                            _ffmpegProcess.OutputDataReceived += (s, e) => {
+                                if (!string.IsNullOrEmpty(e.Data))
+                                {
+                                    Console.WriteLine($"[FFMPEG-LOG] {e.Data}");
+                                    if (e.Data.Contains("Stream mapping"))
+                                    {
+                                        _encoderInitialized.Set();
+                                    }
+                                }
+                            };
                             
                             _ffmpegProcess.BeginErrorReadLine();
                             _ffmpegProcess.BeginOutputReadLine();
@@ -360,7 +399,7 @@ namespace ZeroMix.Recorder
                             throw new InvalidOperationException($"FFmpeg initialization failed with exit code {_ffmpegProcess.ExitCode}");
                         }
                     }
-                    else if (!encoderInitialized)
+                    else if (!_encoderInitialized.IsSet)
                     {
                         Console.WriteLine("[HardwareEncoder] WARNING: Encoder may not be properly initialized, but process is running.");
                     }
@@ -598,6 +637,7 @@ namespace ZeroMix.Recorder
             Stop();
             _stagingTexture?.Dispose();
             _ffmpegProcess?.Dispose();
+            _encoderInitialized?.Dispose();
         }
     }
 }

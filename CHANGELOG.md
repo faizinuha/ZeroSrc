@@ -5,26 +5,22 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) | [Semantic Ver
 
 ---
 
-## [v7.2.0] - 2026-05-24
-
-### ✨ Features
-- feat: add WinGet integration and restructure project layout
-
-### 🐛 Bug Fixes
-- fix(tray+ui): robust tray init, studio sizing, lang combobox style, docs/winget
-
-- Avoid NotifyIcon type load crash using safe fallback
-- Register ContentRendered handler to init tray after window rendered
-- Adjust StudioWindow initial size to fit display
-- Apply ModernComboBox style to language selector
-- Add docs/winget.md with winget publish guidance
-
 
 ---
 
+## [v7.2.2]
+
+###  (v7.2.2) 
+
+- Memperbaiki beberapa maslaah
+- refactor Bugs Beberapa fitur Penting 
+
+### 🔧 Bugs
+- ZeroShell Issue Bugs Invisibel Features
+
 ## [v7.2.0]
 
-###  (v7.2.0) - UNRELEASED
+###  (v7.2.0) - 2026-05-24
 
 ### ✨ Improvements
 - UI: Hide ZeroConnect entry from main sidebar to declutter navigation; Settings moved to sidebar footer and Settings modal layout improved.
