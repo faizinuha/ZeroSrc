@@ -214,8 +214,6 @@ namespace ZeroMix.Wallpapers
             }
         }
 
-        private static VideoWallpaperWindow? _videoWallpaperWindow;
-
         private async void SetWallpaperButton_Click(object sender, RoutedEventArgs e)
         {
             if (string.IsNullOrEmpty(_selectedImagePath) || !File.Exists(_selectedImagePath))
@@ -233,13 +231,13 @@ namespace ZeroMix.Wallpapers
                 if (type == WallpaperType.Video)
                 {
                     StatusLabel.Text = "🎬 Memuat Video Wallpaper...";
-                    LaunchVideoWallpaper(_selectedImagePath);
+                    WallpaperManager.LaunchVideoWallpaper(_selectedImagePath);
                     StatusLabel.Text = "✅ Video Wallpaper Aktif! (Optimizing in background...)";
                 }
                 else
                 {
                     StatusLabel.Text = "Menerapkan Wallpaper...";
-                    StopVideoWallpaper();
+                    WallpaperManager.StopVideoWallpaper();
                     await Task.Run(() => NativeMethods.SetWallpaper(_selectedImagePath));
                     StatusLabel.Text = "✅ Wallpaper Berhasil Diterapkan!";
                 }
@@ -253,71 +251,6 @@ namespace ZeroMix.Wallpapers
             {
                 SetWallpaperButton.IsEnabled = true;
             }
-        }
-
-        private void LaunchVideoWallpaper(string path)
-        {
-            StopVideoWallpaper();
-            
-            _videoWallpaperWindow = new VideoWallpaperWindow(path);
-            _videoWallpaperWindow.Show();
-        }
-
-        private void StopVideoWallpaper()
-        {
-            if (_videoWallpaperWindow != null)
-            {
-                _videoWallpaperWindow.Close();
-                _videoWallpaperWindow = null;
-            }
-        }
-        
-        private string? OptimizeVideoForWallpaper(string inputPath, string ffmpegPath)
-        {
-            try
-            {
-                var roamingDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "ZeroMix", "Temp");
-                Directory.CreateDirectory(roamingDir);
-                
-                var fileName = Path.GetFileNameWithoutExtension(inputPath);
-                var outputPath = Path.Combine(roamingDir, $"{fileName}_optimized.mp4");
-
-                if (File.Exists(outputPath)) return outputPath;
-
-                // Simple copy if optimization is too complex for this context, or implement full ffmpeg command
-                // For now, let's just return inputPath if we can't optimize, or try a copy.
-                // But the original code had resize/crop. 
-                // Let's just return inputPath to be safe and fast if optimization fails, 
-                // or assume input is okay if FFMPEG fails.
-                
-                // Full logic from original file:
-                 var arguments = $"-i \"{inputPath}\" -vf \"scale=1920:1080:force_original_aspect_ratio=increase,crop=1920:1080,fps=60\" -c:v libx264 -preset fast -crf 20 -an -y \"{outputPath}\"";
-                 var psi = new ProcessStartInfo
-                 {
-                     FileName = ffmpegPath,
-                     Arguments = arguments,
-                     UseShellExecute = false,
-                     CreateNoWindow = true
-                 };
-                 using (var p = Process.Start(psi)) {
-                     p?.WaitForExit(60000);
-                 }
-                 
-                 return File.Exists(outputPath) ? outputPath : inputPath;
-            }
-            catch { return inputPath; }
-        }
-
-        private string? FindFFmpeg()
-        {
-            // Simplified search - Updated paths
-            var baseDir = AppDomain.CurrentDomain.BaseDirectory;
-            var possiblePaths = new[] {
-                Path.Combine(baseDir, "Tools", "FFMPEG", "ffmpeg.exe"),
-                Path.Combine(baseDir, "FFMPEG", "ffmpeg.exe"),
-                @"C:\ffmpeg\bin\ffmpeg.exe"
-            };
-            return possiblePaths.FirstOrDefault(File.Exists);
         }
 
         // --- HELPERS ---

@@ -3,71 +3,16 @@ using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Windows.Media;
+using ZeroMix.Native;
 
 namespace ZeroMix.ZeroShell
 {
     public static class ShellHelper
     {
-        #region P/Invoke Declarations
+        #region Win32 Bridge
 
-        [DllImport("user32.dll", SetLastError = true)]
-        static extern IntPtr FindWindow(string lpClassName, string lpWindowName);
-
-        [DllImport("user32.dll")]
-        static extern int SetWindowCompositionAttribute(IntPtr hwnd, ref WindowCompositionAttributeData data);
-
-        [DllImport("user32.dll")]
-        public static extern uint GetWindowThreadProcessId(IntPtr hWnd, out uint lpdwProcessId);
-
-        [DllImport("user32.dll")]
-        [return: MarshalAs(UnmanagedType.Bool)]
-        static extern bool EnumWindows(EnumWindowsProc lpEnumFunc, IntPtr lParam);
-
-        [DllImport("user32.dll", CharSet = CharSet.Auto, SetLastError = true)]
-        static extern int GetClassName(IntPtr hWnd, StringBuilder lpClassName, int nMaxCount);
-
-        [DllImport("user32.dll")]
-        [return: MarshalAs(UnmanagedType.Bool)]
-        static extern bool EnumChildWindows(IntPtr hwndParent, EnumWindowsProc lpEnumFunc, IntPtr lParam);
-
-        [DllImport("user32.dll", CharSet = CharSet.Auto, SetLastError = true)]
-        static extern int GetWindowText(IntPtr hWnd, StringBuilder lpString, int nMaxCount);
-
-        [DllImport("user32.dll")]
-        static extern IntPtr SendMessage(IntPtr hWnd, uint Msg, IntPtr wParam, IntPtr lParam);
-
-        [DllImport("user32.dll", SetLastError = true)]
-        static extern IntPtr FindWindowEx(IntPtr hwndParent, IntPtr hwndChildAfter, string lpszClass, string lpszWindow);
-
-        [DllImport("user32.dll")]
-        static extern IntPtr SetParent(IntPtr hWndChild, IntPtr hWndNewParent);
-
-        [DllImport("user32.dll")]
-        static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
-
-        [DllImport("user32.dll")]
-        static extern bool SetWindowPos(IntPtr hWnd, IntPtr hWndInsertAfter, int X, int Y, int cx, int cy, uint uFlags);
-
-        [DllImport("gdi32.dll", CharSet = CharSet.Auto)]
-        static extern IntPtr CreateFont(int nHeight, int nWidth, int nEscapement, int nOrientation, int fnWeight,
-            uint fdwItalic, uint fdwUnderline, uint fdwStrikeOut, uint fdwCharSet, uint fdwOutputPrecision,
-            uint fdwClipPrecision, uint fdwQuality, uint fdwPitchAndFamily, string lpszFace);
-
-        [DllImport("user32.dll")]
-        static extern IntPtr SetWinEventHook(uint eventMin, uint eventMax,
-            IntPtr hmodWinEventProc, WinEventDelegate lpfnWinEventProc,
-            uint idProcess, uint idThread, uint dwFlags);
-
-        [DllImport("user32.dll")]
-        static extern bool UnhookWinEvent(IntPtr hWinEventHook);
-
-        [DllImport("dwmapi.dll")]
-        static extern int DwmSetWindowAttribute(IntPtr hwnd, int dwAttribute, ref int pvAttribute, int cbAttribute);
-
-        delegate bool EnumWindowsProc(IntPtr hWnd, IntPtr lParam);
-
-        public delegate void WinEventDelegate(IntPtr hWinEventHook, uint eventType, IntPtr hwnd,
-            int idObject, int idChild, uint dwEventThread, uint dwmsEventTime);
+        // All Win32 interop is now centralized in ZeroMix.Native.Win32.
+        // This file references the Win32 helpers directly instead of redeclaring DllImport signatures.
 
         #endregion
 
@@ -121,14 +66,14 @@ namespace ZeroMix.ZeroShell
             var ptr = Marshal.AllocHGlobal(size);
             Marshal.StructureToPtr(accent, ptr, false);
 
-            var data = new WindowCompositionAttributeData
+            var data = new Win32.DWM.WindowCompositionAttributeData
             {
-                Attribute = WindowCompositionAttribute.WCA_ACCENT_POLICY,
+                Attribute = Win32.DWM.WindowCompositionAttribute.WCA_ACCENT_POLICY,
                 SizeOfData = size,
                 Data = ptr
             };
 
-            SetWindowCompositionAttribute(hwnd, ref data);
+            Win32.DWM.SetWindowCompositionAttribute(hwnd, ref data);
             Marshal.FreeHGlobal(ptr);
         }
 
@@ -138,13 +83,13 @@ namespace ZeroMix.ZeroShell
             var size = Marshal.SizeOf(accent);
             var ptr = Marshal.AllocHGlobal(size);
             Marshal.StructureToPtr(accent, ptr, false);
-            var data = new WindowCompositionAttributeData
+            var data = new Win32.DWM.WindowCompositionAttributeData
             {
-                Attribute = WindowCompositionAttribute.WCA_ACCENT_POLICY,
+                Attribute = Win32.DWM.WindowCompositionAttribute.WCA_ACCENT_POLICY,
                 SizeOfData = size,
                 Data = ptr
             };
-            SetWindowCompositionAttribute(hwnd, ref data);
+            Win32.DWM.SetWindowCompositionAttribute(hwnd, ref data);
             Marshal.FreeHGlobal(ptr);
         }
 
@@ -154,13 +99,13 @@ namespace ZeroMix.ZeroShell
             var size = Marshal.SizeOf(accent);
             var ptr = Marshal.AllocHGlobal(size);
             Marshal.StructureToPtr(accent, ptr, false);
-            var data = new WindowCompositionAttributeData
+            var data = new Win32.DWM.WindowCompositionAttributeData
             {
-                Attribute = WindowCompositionAttribute.WCA_ACCENT_POLICY,
+                Attribute = Win32.DWM.WindowCompositionAttribute.WCA_ACCENT_POLICY,
                 SizeOfData = size,
                 Data = ptr
             };
-            SetWindowCompositionAttribute(hwnd, ref data);
+            Win32.DWM.SetWindowCompositionAttribute(hwnd, ref data);
             Marshal.FreeHGlobal(ptr);
         }
 
@@ -211,7 +156,7 @@ namespace ZeroMix.ZeroShell
             try
             {
                 int color = unchecked((int)0x00FFD400); // ABGR: A=0, B=0xFF, G=0xD4, R=0x00
-                DwmSetWindowAttribute(hwnd, 34, ref color, sizeof(int));
+                Win32.DWM.DwmSetWindowAttribute(hwnd, 34, ref color, sizeof(int));
             }
             catch { }
         }
@@ -228,20 +173,20 @@ namespace ZeroMix.ZeroShell
 
             if (pids.Count == 0) return;
 
-            EnumWindows((hwnd, _) =>
+            Win32.Window.EnumWindows((hwnd, _) =>
             {
-                GetWindowThreadProcessId(hwnd, out uint pid);
+                Win32.Window.GetWindowThreadProcessId(hwnd, out uint pid);
                 if (!pids.Contains(pid)) return true;
 
                 var sb = new StringBuilder(256);
-                GetClassName(hwnd, sb, sb.Capacity);
+                Win32.Window.GetClassName(hwnd, sb, sb.Capacity);
                 string cls = sb.ToString();
 
                 if (System.Array.IndexOf(classNames, cls) >= 0)
                 {
                     ApplyStyle(hwnd, entry);
                     // Apply ke children juga — penting untuk XAML Islands
-                    EnumChildWindows(hwnd, (child, _2) =>
+                    Win32.Window.EnumChildWindows(hwnd, (child, _2) =>
                     {
                         ApplyStyle(child, entry);
                         return true;
@@ -275,7 +220,7 @@ namespace ZeroMix.ZeroShell
 
         public static void ApplyStyleToChildren(IntPtr parent, WdmEntry entry)
         {
-            EnumChildWindows(parent, (child, lParam) =>
+            Win32.Window.EnumChildWindows(parent, (child, lParam) =>
             {
                 ApplyStyle(child, entry);
                 return true;
@@ -292,12 +237,12 @@ namespace ZeroMix.ZeroShell
             foreach (var p in Process.GetProcessesByName("explorer"))
                 pids.Add((uint)p.Id);
 
-            EnumWindows((hwnd, _) =>
+            Win32.Window.EnumWindows((hwnd, _) =>
             {
-                GetWindowThreadProcessId(hwnd, out uint pid);
+                Win32.Window.GetWindowThreadProcessId(hwnd, out uint pid);
                 if (!pids.Contains(pid)) return true;
                 var sb = new StringBuilder(256);
-                GetClassName(hwnd, sb, sb.Capacity);
+                Win32.Window.GetClassName(hwnd, sb, sb.Capacity);
                 string cls = sb.ToString();
                 if (cls == "CabinetWClass" || cls == "ExplorerWClass")
                 {
@@ -314,10 +259,10 @@ namespace ZeroMix.ZeroShell
 
         public static void EnumAllWindows(Action<IntPtr, string> callback)
         {
-            EnumWindows((hWnd, lParam) =>
+            Win32.Window.EnumWindows((hWnd, lParam) =>
             {
                 var sb = new StringBuilder(256);
-                GetClassName(hWnd, sb, sb.Capacity);
+                Win32.Window.GetClassName(hWnd, sb, sb.Capacity);
                 callback(hWnd, sb.ToString());
                 return true;
             }, IntPtr.Zero);
@@ -329,7 +274,7 @@ namespace ZeroMix.ZeroShell
 
         // Multiple hooks for different event ranges
         private static readonly System.Collections.Generic.List<IntPtr> _hooks = new();
-        private static WinEventDelegate? _winEventDelegate;
+        private static Win32.Shell.WinEventDelegate? _winEventDelegate;
 
         // Pulse timer fallback — re-apply every 3s for taskbar redraws
         private static System.Threading.Timer? _pulseTimer;
@@ -345,7 +290,7 @@ namespace ZeroMix.ZeroShell
                 // idObj == 0 = OBJID_WINDOW, but also allow -4 (OBJID_CLIENT) for taskbar redraws
                 if (idObj != 0 && idObj != -4) return;
                 var sb = new StringBuilder(256);
-                GetClassName(hwnd, sb, sb.Capacity);
+                Win32.Window.GetClassName(hwnd, sb, sb.Capacity);
                 onWindow(hwnd, sb.ToString());
             };
 
@@ -360,16 +305,16 @@ namespace ZeroMix.ZeroShell
             // Hook 4: Object namechange (Start Menu open)
             const uint EVENT_OBJECT_NAMECHANGE  = 0x800C;
 
-            _hooks.Add(SetWinEventHook(EVENT_OBJECT_SHOW, EVENT_OBJECT_SHOW,
+            _hooks.Add(Win32.Shell.SetWinEventHook(EVENT_OBJECT_SHOW, EVENT_OBJECT_SHOW,
                 IntPtr.Zero, _winEventDelegate, 0, 0, WINEVENT_OUTOFCONTEXT));
 
-            _hooks.Add(SetWinEventHook(EVENT_SYSTEM_FOREGROUND, EVENT_SYSTEM_FOREGROUND,
+            _hooks.Add(Win32.Shell.SetWinEventHook(EVENT_SYSTEM_FOREGROUND, EVENT_SYSTEM_FOREGROUND,
                 IntPtr.Zero, _winEventDelegate, 0, 0, WINEVENT_OUTOFCONTEXT));
 
-            _hooks.Add(SetWinEventHook(EVENT_OBJECT_REORDER, EVENT_OBJECT_REORDER,
+            _hooks.Add(Win32.Shell.SetWinEventHook(EVENT_OBJECT_REORDER, EVENT_OBJECT_REORDER,
                 IntPtr.Zero, _winEventDelegate, 0, 0, WINEVENT_OUTOFCONTEXT));
 
-            _hooks.Add(SetWinEventHook(EVENT_OBJECT_NAMECHANGE, EVENT_OBJECT_NAMECHANGE,
+            _hooks.Add(Win32.Shell.SetWinEventHook(EVENT_OBJECT_NAMECHANGE, EVENT_OBJECT_NAMECHANGE,
                 IntPtr.Zero, _winEventDelegate, 0, 0, WINEVENT_OUTOFCONTEXT));
 
             // Pulse timer: re-apply taskbar every 3 seconds as safety net
@@ -378,14 +323,14 @@ namespace ZeroMix.ZeroShell
                 try
                 {
                     // Re-apply to taskbar (most likely to reset)
-                    var taskbarHwnd = FindWindow("Shell_TrayWnd", null);
+                    var taskbarHwnd = Win32.Window.FindWindow("Shell_TrayWnd", null);
                     if (taskbarHwnd != IntPtr.Zero)
                         onWindow(taskbarHwnd, "Shell_TrayWnd");
 
-                    EnumWindows((hWnd, lParam) =>
+                    Win32.Window.EnumWindows((hWnd, lParam) =>
                     {
                         var sb = new StringBuilder(256);
-                        GetClassName(hWnd, sb, sb.Capacity);
+                        Win32.Window.GetClassName(hWnd, sb, sb.Capacity);
                         string cls = sb.ToString();
                         if (cls == "Shell_SecondaryTrayWnd")
                             onWindow(hWnd, cls);
@@ -403,7 +348,7 @@ namespace ZeroMix.ZeroShell
             _currentCallback = null;
 
             foreach (var h in _hooks)
-                if (h != IntPtr.Zero) UnhookWinEvent(h);
+                if (h != IntPtr.Zero) Win32.Shell.UnhookWinEvent(h);
             _hooks.Clear();
             _winEventDelegate = null;
         }
@@ -441,17 +386,17 @@ namespace ZeroMix.ZeroShell
             if (_customFontPtr == IntPtr.Zero)
             {
                 // FW_NORMAL = 400, DEFAULT_CHARSET = 1, CLEARTYPE_QUALITY = 5
-                _customFontPtr = CreateFont(16, 0, 0, 0, 400, 0, 0, 0, 1, 0, 0, 5, 0, "JetBrains Mono");
+                _customFontPtr = Win32.Graphics.CreateFont(16, 0, 0, 0, 400, 0, 0, 0, 1, 0, 0, 5, 0, "JetBrains Mono");
             }
 
             if (_customFontPtr != IntPtr.Zero)
             {
                 const uint WM_SETFONT = 0x0030;
-                SendMessage(hwnd, WM_SETFONT, _customFontPtr, new IntPtr(1));
+                Win32.Window.SendMessage(hwnd, WM_SETFONT, _customFontPtr, new IntPtr(1));
 
-                EnumChildWindows(hwnd, (childHwnd, lParam) =>
+                Win32.Window.EnumChildWindows(hwnd, (childHwnd, lParam) =>
                 {
-                    SendMessage(childHwnd, WM_SETFONT, _customFontPtr, new IntPtr(1));
+                    Win32.Window.SendMessage(childHwnd, WM_SETFONT, _customFontPtr, new IntPtr(1));
                     return true;
                 }, IntPtr.Zero);
             }
@@ -463,29 +408,29 @@ namespace ZeroMix.ZeroShell
 
         public static void ForceBottom(IntPtr hwnd)
         {
-            SetWindowPos(hwnd, new IntPtr(1), 0, 0, 0, 0, 0x0001 | 0x0002 | 0x0010);
+            Win32.Window.SetWindowPos(hwnd, new IntPtr(1), 0, 0, 0, 0, 0x0001 | 0x0002 | 0x0010);
         }
 
         public static void SetAsDesktopLayer(IntPtr hwnd)
         {
-            IntPtr progman = FindWindow("Progman", null);
-            SendMessage(progman, 0x052C, new IntPtr(0x0000000D), new IntPtr(0));
-            SendMessage(progman, 0x052C, new IntPtr(0x0000000D), new IntPtr(1));
+            IntPtr progman = Win32.Window.FindWindow("Progman", null);
+            Win32.Window.SendMessage(progman, 0x052C, new IntPtr(0x0000000D), new IntPtr(0));
+            Win32.Window.SendMessage(progman, 0x052C, new IntPtr(0x0000000D), new IntPtr(1));
 
             IntPtr workerw = IntPtr.Zero;
-            EnumWindows((tophandle, topparamhandle) =>
+            Win32.Window.EnumWindows((tophandle, topparamhandle) =>
             {
-                IntPtr p = FindWindowEx(tophandle, IntPtr.Zero, "SHELLDLL_DefView", null);
+                IntPtr p = Win32.Window.FindWindowEx(tophandle, IntPtr.Zero, "SHELLDLL_DefView", null);
                 if (p != IntPtr.Zero)
                 {
-                    workerw = FindWindowEx(IntPtr.Zero, tophandle, "WorkerW", null);
+                    workerw = Win32.Window.FindWindowEx(IntPtr.Zero, tophandle, "WorkerW", null);
                 }
                 return true;
             }, IntPtr.Zero);
 
             if (workerw != IntPtr.Zero)
             {
-                SetParent(hwnd, workerw);
+            Win32.Window.SetParent(hwnd, workerw);
             }
         }
 
@@ -494,22 +439,30 @@ namespace ZeroMix.ZeroShell
 
         public static void SetDesktopIconsVisibility(int nCmdShow)
         {
-            IntPtr progman = FindWindow("Progman", null);
-            IntPtr shellView = FindWindowEx(progman, IntPtr.Zero, "SHELLDLL_DefView", null);
+            IntPtr progman = Win32.Window.FindWindow("Progman", null);
+            IntPtr shellView = Win32.Window.FindWindowEx(progman, IntPtr.Zero, "SHELLDLL_DefView", null);
             if (shellView == IntPtr.Zero)
             {
-                EnumWindows((hwnd, lParam) =>
+                Win32.Window.EnumWindows((hwnd, lParam) =>
                 {
-                    shellView = FindWindowEx(hwnd, IntPtr.Zero, "SHELLDLL_DefView", null);
+                    shellView = Win32.Window.FindWindowEx(hwnd, IntPtr.Zero, "SHELLDLL_DefView", null);
                     return shellView == IntPtr.Zero;
                 }, IntPtr.Zero);
             }
 
             if (shellView != IntPtr.Zero)
             {
-                IntPtr listView = FindWindowEx(shellView, IntPtr.Zero, "SysListView32", null);
-                if (listView != IntPtr.Zero) ShowWindow(listView, nCmdShow);
+            IntPtr listView = Win32.Window.FindWindowEx(shellView, IntPtr.Zero, "SysListView32", null);
+            if (listView != IntPtr.Zero) Win32.Window.ShowWindow(listView, nCmdShow);
             }
+        }
+
+        internal static void GetWindowThreadProcessId(nint hwnd, out uint pid)
+        {
+            pid = 0;
+            try {
+                Win32.Window.GetWindowThreadProcessId(new IntPtr(hwnd), out pid);
+            } catch { pid = 0; }
         }
 
         #endregion

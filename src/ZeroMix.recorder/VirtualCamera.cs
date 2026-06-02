@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 
 namespace ZeroMix.Recorder
 {
@@ -15,6 +16,9 @@ namespace ZeroMix.Recorder
         private float _velX = 0;
         private float _velY = 0;
         private float _velZoom = 0;
+
+        // Stopwatch untuk frame-rate agnostic deltaTime tracking
+        private readonly Stopwatch _frameTimer = new Stopwatch();
 
         // Tuning untuk FEELS PREMIUM (Target: Ease In-Out ala Screen Studio)
         private const float SMOOTH_TIME_ACTIVE = 0.22f; // Slower follow to avoid jarring jumps
@@ -36,11 +40,19 @@ namespace ZeroMix.Recorder
             _screenHeight = screenHeight;
             X = screenWidth / 2f;
             Y = screenHeight / 2f;
+            
+            // Start frame timer untuk tracking deltaTime
+            _frameTimer.Start();
         }
 
         public void Update(CursorTracker cursor, bool isZoomEnabled = true)
         {
-            float deltaTime = 1f / 60f; // Asumsi loop 60fps
+            // Calculate deltaTime dari Stopwatch (frame-rate agnostic)
+            float deltaTime = (float)_frameTimer.Elapsed.TotalSeconds;
+            _frameTimer.Restart();
+            
+            // Clamp deltaTime untuk stabilitas (max 1/30s)
+            deltaTime = Math.Min(deltaTime, 1f / 30f);
 
             if (!isZoomEnabled)
             {

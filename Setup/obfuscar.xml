@@ -24,5 +24,6 @@
     
     <!-- Skip XAML-based search overlay to avoid binding breaks -->
     <SkipType name="ZeroMix.Search.SearchOverlay" />
+    
   </Module>
 </Obfuscator>

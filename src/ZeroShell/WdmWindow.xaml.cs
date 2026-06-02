@@ -5,6 +5,8 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
+using System.ComponentModel;
+using System.Collections.ObjectModel;
 
 using Brushes         = System.Windows.Media.Brushes;
 using Color           = System.Windows.Media.Color;
@@ -144,17 +146,20 @@ namespace ZeroMix.ZeroShell
         private void SelectCategory(string cat)
         {
             _selectedCategory = cat;
-            ContentPanel.Children.Clear();
+            // Clear the ContentControl so MVVM DataTemplate can be applied fresh
+            if (CategoryContent != null) CategoryContent.Content = null;
             switch (cat)
             {
-                case "Layouts": BuildLayoutsPanel(); return;
-                case "Desktop": BuildDesktopPanel(); return;
-                default:        BuildStylePanel(cat); return;
+                case "Layouts": BuildLayoutsPanelMVVM(); return;
+                case "Desktop": BuildDesktopPanelMVVM(); return;
+                default:        BuildStylePanelMVVM(cat); return;
             }
         }
 
         private void BuildStylePanel(string cat)
         {
+            var ContentPanel = new StackPanel();
+
             WdmEntry? existing = null;
             if (cat == "Notification") _state.Entries.TryGetValue("__Notification__", out existing);
             else
@@ -210,6 +215,8 @@ namespace ZeroMix.ZeroShell
                 };
                 ContentPanel.Children.Add(infoCard);
             }
+
+            CategoryContent.Content = ContentPanel;
         }
 
         private string GetCategoryDesc(string cat) => cat switch
@@ -222,6 +229,7 @@ namespace ZeroMix.ZeroShell
 
         private void BuildDesktopPanel()
         {
+            var ContentPanel = new StackPanel();
             ContentPanel.Children.Add(MakeHeader("Desktop", "Manage desktop icons"));
             ContentPanel.Children.Add(MakeDivider());
             ContentPanel.Children.Add(MakeSectionLabel("DESKTOP ICONS"));
@@ -245,10 +253,13 @@ namespace ZeroMix.ZeroShell
                 FontSize = 11, TextWrapping = System.Windows.TextWrapping.Wrap,
                 Margin = new Thickness(0, 6, 0, 0)
             });
+
+            CategoryContent.Content = ContentPanel;
         }
 
         private void BuildLayoutsPanel()
         {
+            var ContentPanel = new StackPanel();
             ContentPanel.Children.Add(MakeHeader("Layouts", "One-click style presets for your entire desktop"));
             ContentPanel.Children.Add(MakeDivider());
 
@@ -275,9 +286,11 @@ namespace ZeroMix.ZeroShell
                 "Dark acrylic taskbar · Light acrylic explorer · Standard look",
                 "#1A0A1A2E", "#3A1A2A4E", "#8BE9FD",
                 WdmPresets.ClassicWindows, launchWidget: false, enableLaunchpad: false);
+
+            CategoryContent.Content = ContentPanel;
         }
 
-        private void AddPresetCard(string icon, string title, string desc,
+        private Border AddPresetCard(string icon, string title, string desc,
             string bgHex, string borderHex, string accentHex,
             WdmState preset, bool launchWidget, bool enableLaunchpad)
         {
@@ -341,7 +354,94 @@ namespace ZeroMix.ZeroShell
 
             card.Child = grid;
             card.MouseLeftButtonDown += (s, e) => ApplyPreset(preset, launchWidget, enableLaunchpad);
-            ContentPanel.Children.Add(card);
+            return card;
+        }
+
+        // MVVM-backed builders used by the DataTemplate/ContentControl approach
+        private void BuildStylePanelMVVM(string cat)
+        {
+            WdmEntry? existing = null;
+            if (cat == "Notification") _state.Entries.TryGetValue("__Notification__", out existing);
+            else
+            {
+                var classes = WdmCategories.ClassMap.TryGetValue(cat, out var cls) ? cls : Array.Empty<string>();
+                existing = classes.Select(c => _state.Entries.TryGetValue(c, out var e) ? e : null)
+                                  .FirstOrDefault(e => e != null);
+            }
+            existing ??= new WdmEntry();
+
+            string displayName = WdmCategories.DisplayNames.TryGetValue(cat, out var dn) ? dn : cat;
+            var vm = new StylePanelViewModel
+            {
+                Title = displayName,
+                Subtitle = GetCategoryDesc(cat),
+                Styles = new ObservableCollection<string> { "Acrylic Dark", "Acrylic Light", "Blur Only", "Glass Clear", "Full Transparent", "Floating macOS" },
+                SelectedStyleIndex = Math.Max(0, (int)existing.Style - 1),
+                Opacity = existing.Alpha,
+                ColorHex = existing.ColorHex ?? "#000000",
+                HasActive = IsCategoryActive(cat),
+                ActiveText = $"● Active — {existing.Style}  |  Opacity {(int)(existing.Alpha / 2.55)}%"
+            };
+            CategoryContent.Content = vm;
+        }
+
+        private void BuildLayoutsPanelMVVM()
+        {
+            var panel = new StackPanel();
+            panel.Children.Add(MakeHeader("Layouts", "One-click style presets for your entire desktop"));
+            panel.Children.Add(MakeDivider());
+
+            panel.Children.Add(AddPresetCard("🍎", "macOS Dock",
+                "Transparent taskbar · Acrylic explorer · Glass notification · Desktop widget · ZeroLaunchpad",
+                "#1A1E3A5C", "#3A2D5A8A", "#8BE9FD",
+                WdmPresets.MacOSDock, launchWidget: true, enableLaunchpad: true));
+
+            panel.Children.Add(AddPresetCard("🌑", "Minimal Dark",
+                "Fully transparent taskbar · Dark acrylic explorer · No distractions",
+                "#1A1A1A1A", "#3A333337", "#AAAAAA",
+                WdmPresets.MinimalDark, launchWidget: false, enableLaunchpad: false));
+
+            panel.Children.Add(AddPresetCard("⚡", "Cyberpunk",
+                "Purple acrylic taskbar · Purple explorer · Neon notification panel",
+                "#1A2D0A3A", "#3A4A1A5A", "#FF79C6",
+                WdmPresets.Cyberpunk, launchWidget: false, enableLaunchpad: false));
+
+            panel.Children.Add(AddPresetCard("🪟", "Classic Windows",
+                "Dark acrylic taskbar · Light acrylic explorer · Standard look",
+                "#1A0A1A2E", "#3A1A2A4E", "#8BE9FD",
+                WdmPresets.ClassicWindows, launchWidget: false, enableLaunchpad: false));
+
+            CategoryContent.Content = panel;
+        }
+
+        private void BuildDesktopPanelMVVM()
+        {
+            var panel = new StackPanel();
+            panel.Children.Add(MakeHeader("Desktop", "Manage desktop icons"));
+            panel.Children.Add(MakeDivider());
+            panel.Children.Add(MakeSectionLabel("DESKTOP ICONS"));
+
+           var row = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(0, 8, 0, 0) };
+            var hideBtn = MakeCardButton("Hide Icons", "🙈");
+            hideBtn.MouseLeftButtonDown += (s, e) => ShellHelper.HideDesktopIcons();
+            row.Children.Add(hideBtn);
+            var showBtn = MakeCardButton("Show Icons", "👁");
+            showBtn.MouseLeftButtonDown += (s, e) => ShellHelper.ShowDesktopIcons();
+            showBtn.Margin = new Thickness(10, 0, 0, 0);
+            row.Children.Add(showBtn);
+            panel.Children.Add(row);
+
+            panel.Children.Add(MakeDivider(new Thickness(0, 20, 0, 0)));
+            panel.Children.Add(MakeSectionLabel("NOTE", new Thickness(0, 4, 0, 0)));
+            panel.Children.Add(new TextBlock
+            {
+                Text = "Use !startmenu in terminal to enable ZeroLaunchpad (macOS-style app launcher).",
+                Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString(C_TEXT_MUTED)),
+                FontSize = 11, TextWrapping = System.Windows.TextWrapping.Wrap,
+                Margin = new Thickness(0, 6, 0, 0)
+            });
+
+           CategoryContent.Content = panel;
         }
 
         private void ApplyPreset(WdmState preset, bool launchWidget, bool enableLaunchpad)
@@ -470,17 +570,29 @@ namespace ZeroMix.ZeroShell
 
         private WdmEntry? BuildEntryFromUI()
         {
-            var styleCombo = ContentPanel.Children.OfType<ComboBox>().FirstOrDefault();
-            var opSlider   = ContentPanel.Children.OfType<Slider>().FirstOrDefault();
-            var colorBox   = ContentPanel.Children.OfType<TextBox>().FirstOrDefault();
-            if (styleCombo == null) return null;
-            return new WdmEntry
+            // If MVVM style panel is active, read directly from ViewModel
+            if (CategoryContent?.Content is StylePanelViewModel vm)
             {
-                Style    = (WdmStyle)(styleCombo.SelectedIndex + 1),
-                Alpha    = opSlider != null ? (int)opSlider.Value : 0xDD,
-                ColorHex = colorBox?.Text ?? "#000000",
-                AutoApply = true
-            };
+                return vm.ToWdmEntry();
+            }
+
+            // Fallback: if the content is a panel built imperatively, inspect its children
+            if (CategoryContent?.Content is System.Windows.Controls.Panel panel)
+            {
+                var styleCombo = panel.Children.OfType<ComboBox>().FirstOrDefault();
+                var opSlider = panel.Children.OfType<Slider>().FirstOrDefault();
+                var colorBox = panel.Children.OfType<TextBox>().FirstOrDefault();
+                if (styleCombo == null) return null;
+                return new WdmEntry
+                {
+                    Style = (WdmStyle)(styleCombo.SelectedIndex + 1),
+                    Alpha = opSlider != null ? (int)opSlider.Value : 0xDD,
+                    ColorHex = colorBox?.Text ?? "#000000",
+                    AutoApply = true
+                };
+            }
+
+            return null;
         }
 
         private void RestoreAllBtn_Click(object sender, RoutedEventArgs e)
@@ -668,5 +780,36 @@ namespace ZeroMix.ZeroShell
             return card;
         }
         #endregion
+
+    }
+
+    // ViewModel for the style panel (bound via DataTemplate in XAML)
+    public class StylePanelViewModel : INotifyPropertyChanged
+    {
+        public event PropertyChangedEventHandler? PropertyChanged;
+        private void OnPropertyChanged(string name) => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
+
+        public string Title { get; set; } = "";
+        public string Subtitle { get; set; } = "";
+        public ObservableCollection<string> Styles { get; set; } = new ObservableCollection<string>();
+
+        private int _selectedStyleIndex = 0;
+        public int SelectedStyleIndex { get => _selectedStyleIndex; set { _selectedStyleIndex = value; OnPropertyChanged(nameof(SelectedStyleIndex)); } }
+
+        private int _opacity = 220;
+        public int Opacity { get => _opacity; set { _opacity = value; OnPropertyChanged(nameof(Opacity)); OnPropertyChanged(nameof(OpacityPercent)); } }
+
+        public int OpacityPercent => (int)(Opacity / 2.55);
+
+        private string _colorHex = "#000000";
+        public string ColorHex { get => _colorHex; set { _colorHex = value; OnPropertyChanged(nameof(ColorHex)); } }
+
+        public bool HasActive { get; set; } = false;
+        public string ActiveText { get; set; } = "";
+
+        public WdmEntry ToWdmEntry()
+        {
+            return new WdmEntry { Style = (WdmStyle)(SelectedStyleIndex + 1), Alpha = Opacity, ColorHex = ColorHex, AutoApply = true };
+        }
     }
 }
