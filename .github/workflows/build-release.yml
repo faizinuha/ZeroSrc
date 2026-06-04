@@ -144,7 +144,7 @@ jobs:
         CERT_BASE64: ${{ secrets.CERT_BASE64 }}
         CERT_PASSWORD: ${{ secrets.CERT_PASSWORD }}
       run: |
-        $VER = "${{ steps.version.outputs.version }}"
+        $VER = "${{ steps.version.outputs.version }}" -replace '^v', ''
         $setupExe = "Exe/ZeroMix-Setup-v$VER.exe"
         
         if (Test-Path $setupExe) {
@@ -196,7 +196,7 @@ jobs:
     - name: 📦 Prepare Release Artifacts
       shell: pwsh
       run: |
-        $VER = "${{ steps.version.outputs.version }}"
+        $VER = "${{ steps.version.outputs.version }}" -replace '^v', ''
         
         # ZIP dari publish folder (Portable)
         if (Test-Path "publish/win-x64") {
@@ -230,7 +230,7 @@ jobs:
     - name: 🔧 Build ZeroMix.Installer (Bootstrap)
       shell: pwsh
       run: |
-        $VER = "${{ steps.version.outputs.version }}"
+        $VER = "${{ steps.version.outputs.version }}" -replace '^v', ''
         $REPO = "${{ github.repository }}"
         
         # Path installer relatif terhadap root repo (ZeroMix.Installer ada di root repo)
