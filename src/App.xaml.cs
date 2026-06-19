@@ -236,7 +236,10 @@ namespace ZeroMix
 
             HotkeyCoreInstance = new HotkeyCore();
             // Keep HotkeyCore window hidden (runs in background for hotkey handling)
-            // HotkeyCoreInstance.Show();
+            // WAJIB di-Show() agar message pump window aktif untuk menerima WM_HOTKEY
+            // Window sudah di-set Visibility=Hidden & ShowInTaskbar=false di constructor,
+            // jadi tidak akan muncul di layar.
+            HotkeyCoreInstance.Show();
 
             
 

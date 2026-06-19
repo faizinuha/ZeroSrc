@@ -1,60 +1,191 @@
-﻿<ui:FluentWindow x:Class="ZeroMix.ZeroShell.ZeroShellWindow"
+<ui:FluentWindow x:Class="ZeroMix.ZeroShell.ZeroShellWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
-        Title="ZeroShell" Height="700" Width="1200"
-        MinHeight="500" MinWidth="800"
+        Title="ZeroShell" Height="720" Width="1200"
+        MinHeight="480" MinWidth="700"
         WindowStartupLocation="CenterScreen"
         ExtendsContentIntoTitleBar="True"
         WindowBackdropType="Acrylic"
         WindowCornerPreference="Round"
-        Background="#0D1117"
+        Background="#0C0C0C"
         Loaded="Window_Loaded"
-        StateChanged="Window_StateChanged">
+        StateChanged="Window_StateChanged"
+        FontFamily="Segoe UI Variable, Segoe UI">
 
-    <Border x:Name="MainBorder" Background="#0D1117">
+    <Border x:Name="MainBorder" Background="#0C0C0C"
+            BorderBrush="#22222222" BorderThickness="1">
     <Grid>
         <Grid.RowDefinitions>
-            <RowDefinition Height="40"/>   <!-- Title bar -->
+            <RowDefinition Height="36"/>   <!-- Title bar (compact) -->
             <RowDefinition Height="*"/>    <!-- Content -->
-            <RowDefinition Height="48"/>   <!-- Input -->
+            <RowDefinition Height="44"/>   <!-- Input -->
         </Grid.RowDefinitions>
 
-        <!-- ── TITLE BAR ── -->
-        <Grid Grid.Row="0" Background="Transparent">
+        <!-- ═══════════════ TITLE BAR — macOS Style ═══════════════ -->
+        <Grid Grid.Row="0" Background="#0C0C0C">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="96" MinWidth="96"/>
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
 
-            <!-- Traffic light buttons + tabs (simplified, no white background) -->
-            <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center" Margin="10,6,0,6">
-                <Ellipse Width="10" Height="10" Fill="#FF5F56" Margin="0,0,6,0" Cursor="Hand" MouseLeftButtonDown="CloseButton_Click"/>
-                <Ellipse Width="10" Height="10" Fill="#FFBD2E" Margin="0,0,6,0" Cursor="Hand" MouseLeftButtonDown="MinimizeButton_Click"/>
-                <Ellipse Width="10" Height="10" Fill="#27C93F" Margin="0,0,12,0" Cursor="Hand" MouseLeftButtonDown="MaximizeButton_Click"/>
-                <StackPanel x:Name="TabBar" Orientation="Horizontal"/>
+            <!-- Left: macOS Traffic Lights (× − +) -->
+            <StackPanel Grid.Column="0" Orientation="Horizontal" Margin="12,0,0,0" VerticalAlignment="Center">
+                <!-- Close (red) → Border besar utk hit target, Ellipse 12px di dalamnya -->
+                <Border x:Name="CloseBtn" Cursor="Hand" MouseLeftButtonDown="CloseButton_Click"
+                        Width="22" Height="18" Padding="0"
+                        Background="Transparent" CornerRadius="9" ToolTip="Close"
+                        VerticalAlignment="Center" HorizontalAlignment="Center">
+                    <Grid Width="12" Height="12" VerticalAlignment="Center" HorizontalAlignment="Center">
+                        <Ellipse Fill="#FF5F57"/>
+                        <Ellipse>
+                            <Ellipse.Style>
+                                <Style TargetType="Ellipse">
+                                    <Setter Property="Fill" Value="Transparent"/>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding IsMouseOver, RelativeSource={RelativeSource AncestorType=Border}}" Value="True">
+                                            <Setter Property="Fill" Value="#44000000"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Ellipse.Style>
+                        </Ellipse>
+                        <TextBlock Text="×" Foreground="#44000000" FontSize="10" FontWeight="Bold"
+                                   HorizontalAlignment="Center" VerticalAlignment="Center"
+                                   FontFamily="Segoe UI">
+                            <TextBlock.Style>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="Opacity" Value="0"/>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding IsMouseOver, RelativeSource={RelativeSource AncestorType=Border}}" Value="True">
+                                            <Setter Property="Opacity" Value="1"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </TextBlock.Style>
+                        </TextBlock>
+                    </Grid>
+                </Border>
+
+                <!-- Minimize (yellow) -->
+                <Border x:Name="MinBtn" Cursor="Hand" MouseLeftButtonDown="MinimizeButton_Click"
+                        Width="22" Height="18" Padding="0"
+                        Background="Transparent" CornerRadius="9" ToolTip="Minimize"
+                        VerticalAlignment="Center" HorizontalAlignment="Center">
+                    <Grid Width="12" Height="12" VerticalAlignment="Center" HorizontalAlignment="Center">
+                        <Ellipse Fill="#FFBD2E"/>
+                        <Ellipse>
+                            <Ellipse.Style>
+                                <Style TargetType="Ellipse">
+                                    <Setter Property="Fill" Value="Transparent"/>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding IsMouseOver, RelativeSource={RelativeSource AncestorType=Border}}" Value="True">
+                                            <Setter Property="Fill" Value="#44000000"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Ellipse.Style>
+                        </Ellipse>
+                        <TextBlock Text="−" Foreground="#44000000" FontSize="10" FontWeight="Bold"
+                                   HorizontalAlignment="Center" VerticalAlignment="Center"
+                                   FontFamily="Segoe UI">
+                            <TextBlock.Style>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="Opacity" Value="0"/>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding IsMouseOver, RelativeSource={RelativeSource AncestorType=Border}}" Value="True">
+                                            <Setter Property="Opacity" Value="1"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </TextBlock.Style>
+                        </TextBlock>
+                    </Grid>
+                </Border>
+
+                <!-- Maximize (green) -->
+                <Border x:Name="MaxBtn" Cursor="Hand" MouseLeftButtonDown="MaximizeButton_Click"
+                        Width="22" Height="18" Padding="0"
+                        Background="Transparent" CornerRadius="9" ToolTip="Maximize"
+                        VerticalAlignment="Center" HorizontalAlignment="Center">
+                    <Grid Width="12" Height="12" VerticalAlignment="Center" HorizontalAlignment="Center">
+                        <Ellipse Fill="#28C840"/>
+                        <Ellipse>
+                            <Ellipse.Style>
+                                <Style TargetType="Ellipse">
+                                    <Setter Property="Fill" Value="Transparent"/>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding IsMouseOver, RelativeSource={RelativeSource AncestorType=Border}}" Value="True">
+                                            <Setter Property="Fill" Value="#44000000"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Ellipse.Style>
+                        </Ellipse>
+                        <TextBlock Text="+" Foreground="#44000000" FontSize="10" FontWeight="Bold"
+                                   HorizontalAlignment="Center" VerticalAlignment="Center"
+                                   FontFamily="Segoe UI">
+                            <TextBlock.Style>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="Opacity" Value="0"/>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding IsMouseOver, RelativeSource={RelativeSource AncestorType=Border}}" Value="True">
+                                            <Setter Property="Opacity" Value="1"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </TextBlock.Style>
+                        </TextBlock>
+                    </Grid>
+                </Border>
             </StackPanel>
 
-            <!-- Clock + stats (simplified, no white background) -->
-            <StackPanel Grid.Column="1" HorizontalAlignment="Center" VerticalAlignment="Center" Orientation="Horizontal" Margin="8,6">
-                <TextBlock x:Name="CurrentTimeText" Text="00:00" Foreground="#CCE0E0E0" FontSize="11" VerticalAlignment="Center"/>
-                <TextBlock x:Name="StatusPathText" Text=" ~ " Foreground="#8800D4FF" FontSize="10" VerticalAlignment="Center" Margin="10,0"/>
-            </StackPanel>
+            <!-- Center: Tab bar — segmented control style -->
+            <ScrollViewer Grid.Column="1" HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Disabled"
+                         VerticalAlignment="Center">
+                <StackPanel x:Name="TabBar" Orientation="Horizontal" HorizontalAlignment="Center"/>
+            </ScrollViewer>
 
-            <!-- Help + Gear (simplified, no white background) -->
-            <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center" Margin="0,6,10,6">
-                <TextBlock x:Name="HelpBtn" Text="?" Foreground="#88E0E0E0" FontSize="14"
-                           VerticalAlignment="Center" Cursor="Hand" FontWeight="Bold"
-                           MouseLeftButtonDown="HelpBtn_Click" ToolTip="Show help (!help)" Margin="0,0,8,0"/>
-                <ui:SymbolIcon x:Name="GearBtn" Symbol="Settings32" Foreground="#88E0E0E0"
-                               FontSize="14" VerticalAlignment="Center" Cursor="Hand"
-                               MouseLeftButtonDown="GearBtn_Click"/>
+            <!-- Right: clock + help/settings -->
+            <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,14,0">
+                <Border x:Name="HelpBtn" Padding="6,4" Cursor="Hand" MouseLeftButtonDown="HelpBtn_Click"
+                        Background="Transparent" CornerRadius="4"
+                        ToolTip="Help (!help)">
+                    <Border.Style>
+                        <Style TargetType="Border">
+                            <Style.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter Property="Background" Value="#18FFFFFF"/>
+                                </Trigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Border.Style>
+                    <TextBlock Text="?" Foreground="#44E0E0E0" FontSize="11" FontWeight="SemiBold" FontFamily="Segoe UI"/>
+                </Border>
+
+                <Border x:Name="GearBtn" Padding="6,4" Cursor="Hand" MouseLeftButtonDown="GearBtn_Click"
+                        Background="Transparent" CornerRadius="4"
+                        ToolTip="Settings">
+                    <Border.Style>
+                        <Style TargetType="Border">
+                            <Style.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter Property="Background" Value="#18FFFFFF"/>
+                                </Trigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Border.Style>
+                    <TextBlock Text="⚙" Foreground="#44E0E0E0" FontSize="11" FontFamily="Segoe UI"/>
+                </Border>
+
+                <TextBlock x:Name="CurrentTimeText" Text="00:00" Foreground="#33E0E0E0" FontSize="10"
+                           FontFamily="Menlo, SF Mono, Cascadia Mono, Consolas" Margin="8,0,0,0"/>
             </StackPanel>
         </Grid>
 
-        <!-- ── MAIN CONTENT ── -->
-        <Grid Grid.Row="1" x:Name="MainContentArea" Margin="12,6">
+        <!-- ═══════════════ MAIN CONTENT ═══════════════ -->
+        <Grid Grid.Row="1" Margin="0,0,0,0">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition x:Name="RightColumn" Width="0"/>
@@ -63,302 +194,282 @@
             <Grid Grid.Column="0">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="*"/>
-                    <RowDefinition x:Name="ClockRow" Height="0"/>
                     <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
 
-                <!-- Terminal -->
-                <ui:Card x:Name="TermBorder" Grid.Row="0" Margin="0,0,0,4" Padding="0">
-                    <Grid x:Name="TerminalsContainer" Margin="10"/>
-                </ui:Card>
+                <!-- Terminal Area -->
+                <Border x:Name="TermBorder" Grid.Row="0" Margin="8,4,8,2"
+                        Background="#0AFFFFFF" CornerRadius="6"
+                        BorderBrush="#15FFFFFF" BorderThickness="1">
+                    <Grid x:Name="TerminalsContainer" Margin="8"/>
+                </Border>
 
-                <!-- Clock (hidden by default) -->
-                <ui:Card x:Name="ClockArea" Grid.Row="1" Visibility="Collapsed" Margin="0,4,0,0">
-                    <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
-                        <TextBlock x:Name="BigClockText" Text="00:00" Foreground="#27C93F"
-                                   FontSize="80" FontFamily="JetBrains Mono, Consolas"
-                                   FontWeight="Bold" HorizontalAlignment="Center"/>
-                        <TextBlock x:Name="BigDateText" Text="2026-01-01" Foreground="#88E0E0E0"
-                                   FontSize="14" HorizontalAlignment="Center" Margin="0,-10,0,0"/>
-                    </StackPanel>
-                </ui:Card>
-
-                <!-- Recommendations Panel -->
-                <Border Grid.Row="2" x:Name="RecommendationsPanel" Background="Transparent" Margin="0,4,0,0" Visibility="Visible">
+                <!-- Recommendations Panel (bottom, compact) -->
+                <Border x:Name="RecommendationsPanel" Grid.Row="1" Background="#080C0C0C"
+                        Margin="8,0,8,2" Padding="8,4" CornerRadius="4"
+                        BorderBrush="#10FFFFFF" BorderThickness="1"
+                        Visibility="Visible">
                     <Grid>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="4"/>
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
 
-                        <!-- Top Folders -->
-                        <ui:Card Grid.Column="0" Margin="0,0,4,0" Padding="12">
+                        <Border Grid.Column="0" Padding="6,2">
                             <StackPanel>
-                                <TextBlock Text="📁 TOP FOLDERS" Foreground="#00D4FF" FontSize="11" FontWeight="Bold" Margin="0,0,0,8"/>
-                                <ListBox x:Name="TopFoldersListBox" Background="Transparent" BorderThickness="0" 
-                                         Foreground="#E0E0E0" FontSize="11" FontFamily="JetBrains Mono, Consolas"
-                                         Padding="0" MouseLeftButtonDown="TopFoldersListBox_MouseLeftButtonDown">
+                                <TextBlock Text="FOLDERS" Foreground="#3300D4FF" FontSize="9" FontWeight="SemiBold" Margin="0,0,0,2"/>
+                                <ListBox x:Name="TopFoldersListBox" Background="Transparent" BorderThickness="0"
+                                         Foreground="#66E0E0E0" FontSize="9" FontFamily="Menlo, SF Mono, Cascadia Mono, Consolas"
+                                         Padding="0" MouseLeftButtonDown="TopFoldersListBox_MouseLeftButtonDown"
+                                         MaxHeight="80">
                                     <ListBox.ItemContainerStyle>
                                         <Style TargetType="ListBoxItem">
-                                            <Setter Property="Padding" Value="4,2"/>
+                                            <Setter Property="Padding" Value="2,0"/>
                                             <Setter Property="Background" Value="Transparent"/>
                                             <Setter Property="Cursor" Value="Hand"/>
                                             <Style.Triggers>
                                                 <Trigger Property="IsMouseOver" Value="True">
-                                                    <Setter Property="Background" Value="#1800D4FF"/>
+                                                    <Setter Property="Foreground" Value="#00D4FF"/>
                                                 </Trigger>
                                             </Style.Triggers>
                                         </Style>
                                     </ListBox.ItemContainerStyle>
                                 </ListBox>
                             </StackPanel>
-                        </ui:Card>
+                        </Border>
 
-                        <!-- Top Commands -->
-                        <ui:Card Grid.Column="1" Margin="4,0,0,0" Padding="12">
+                        <Border Grid.Column="2" Padding="6,2">
                             <StackPanel>
-                                <TextBlock Text="💻 RECENT COMMANDS" Foreground="#FF27C93F" FontSize="11" FontWeight="Bold" Margin="0,0,0,8"/>
-                                <ListBox x:Name="TopCommandsListBox" Background="Transparent" BorderThickness="0" 
-                                         Foreground="#E0E0E0" FontSize="11" FontFamily="JetBrains Mono, Consolas"
-                                         Padding="0" MouseLeftButtonDown="TopCommandsListBox_MouseLeftButtonDown">
+                                <TextBlock Text="COMMANDS" Foreground="#3327C93F" FontSize="9" FontWeight="SemiBold" Margin="0,0,0,2"/>
+                                <ListBox x:Name="TopCommandsListBox" Background="Transparent" BorderThickness="0"
+                                         Foreground="#66E0E0E0" FontSize="9" FontFamily="Menlo, SF Mono, Cascadia Mono, Consolas"
+                                         Padding="0" MouseLeftButtonDown="TopCommandsListBox_MouseLeftButtonDown"
+                                         MaxHeight="80">
                                     <ListBox.ItemContainerStyle>
                                         <Style TargetType="ListBoxItem">
-                                            <Setter Property="Padding" Value="4,2"/>
+                                            <Setter Property="Padding" Value="2,0"/>
                                             <Setter Property="Background" Value="Transparent"/>
                                             <Setter Property="Cursor" Value="Hand"/>
                                             <Style.Triggers>
                                                 <Trigger Property="IsMouseOver" Value="True">
-                                                    <Setter Property="Background" Value="#1827C93F"/>
+                                                    <Setter Property="Foreground" Value="#27C93F"/>
                                                 </Trigger>
                                             </Style.Triggers>
                                         </Style>
                                     </ListBox.ItemContainerStyle>
                                 </ListBox>
                             </StackPanel>
-                        </ui:Card>
+                        </Border>
                     </Grid>
                 </Border>
             </Grid>
 
-            <!-- Right panel (ASCII art, toggleable) -->
-            <ui:Card Grid.Column="1" x:Name="RightArea" Visibility="Collapsed" Margin="8,0,0,0" Padding="0">
+            <!-- Right panel -->
+            <Border Grid.Column="1" x:Name="RightArea" Visibility="Collapsed" Margin="4,0,0,0" Padding="0"
+                    Background="#0AFFFFFF" CornerRadius="8" BorderBrush="#15FFFFFF" BorderThickness="1">
                 <Grid x:Name="RightContentArea"/>
-            </ui:Card>
+            </Border>
 
-            <!-- Settings overlay - Simplified UI -->
+            <!-- ═══ SETTINGS OVERLAY ═══ -->
             <Border x:Name="SettingsOverlay" Grid.ColumnSpan="2" Visibility="Collapsed"
-                    Background="#F0101820" Margin="80,40"
-                    BorderBrush="#22FFFFFF" BorderThickness="0">
+                    Background="#E80C0C0C" CornerRadius="10"
+                    BorderBrush="#22FFFFFF" BorderThickness="1"
+                    Margin="40,20" MaxWidth="640"
+                    HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Padding="0">
                 <Grid>
                     <Grid.RowDefinitions>
-                        <RowDefinition Height="48"/>
+                        <RowDefinition Height="44"/>
                         <RowDefinition Height="*"/>
-                        <RowDefinition Height="56"/>
+                        <RowDefinition Height="52"/>
                     </Grid.RowDefinitions>
 
-                    <Border Grid.Row="0" BorderBrush="#22FFFFFF" BorderThickness="0,0,0,1" Padding="24,0">
-                        <TextBlock Text="⚙️  SETTINGS" Foreground="#00D4FF" FontWeight="Bold"
-                                   FontSize="14" VerticalAlignment="Center"/>
+                    <!-- Settings Header -->
+                    <Border Grid.Row="0" Padding="20,0" BorderBrush="#15FFFFFF" BorderThickness="0,0,0,1">
+                        <Grid>
+                            <TextBlock Text="⚙ TERMINAL SETTINGS" Foreground="#00D4FF" FontWeight="SemiBold"
+                                       FontSize="13" VerticalAlignment="Center"/>
+                            <TextBlock Text="✕" Foreground="#55E0E0E0" HorizontalAlignment="Right" VerticalAlignment="Center"
+                                       Cursor="Hand" MouseLeftButtonDown="GearBtn_Click" FontSize="18"/>
+                        </Grid>
                     </Border>
 
+                    <!-- Settings Content -->
                     <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Padding="24,16">
                         <StackPanel>
-                            <!-- Font Settings -->
-                            <TextBlock Text="Font" Foreground="#00D4FF" FontSize="12" FontWeight="Bold" Margin="0,0,0,8"/>
-                            <TextBlock Text="Font Family" Foreground="#88E0E0E0" FontSize="10" Margin="0,0,0,4"/>
-                            <ComboBox x:Name="FontCombo" Margin="0,0,0,12" Background="#1AFFFFFF" Foreground="#E0E0E0"/>
-
-                            <TextBlock Text="Font Size" Foreground="#88E0E0E0" FontSize="10" Margin="0,0,0,4"/>
-                            <Slider x:Name="FontSizeSlider" Minimum="10" Maximum="30" Value="14"
-                                    Foreground="#00D4FF" Margin="0,0,0,16"/>
-
-                            <!-- Display Settings -->
-                            <TextBlock Text="Display" Foreground="#00D4FF" FontSize="12" FontWeight="Bold" Margin="0,16,0,8"/>
-                            <TextBlock Text="Background Opacity" Foreground="#88E0E0E0" FontSize="10" Margin="0,0,0,4"/>
-                            <Slider x:Name="OpacitySlider" Minimum="0.1" Maximum="1.0" Value="0.95"
-                                    Foreground="#00D4FF" Margin="0,0,0,16"/>
-
-                            <TextBlock Text="Cursor Style" Foreground="#88E0E0E0" FontSize="10" Margin="0,0,0,6"/>
-                            <StackPanel Orientation="Horizontal">
-                                <RadioButton x:Name="CurBlock"  Content="Block"     Foreground="#E0E0E0" IsChecked="True" Margin="0,0,16,0"/>
-                                <RadioButton x:Name="CurLine"   Content="Line"      Foreground="#E0E0E0" Margin="0,0,16,0"/>
-                                <RadioButton x:Name="CurUnder"  Content="Underline" Foreground="#E0E0E0"/>
-                            </StackPanel>
-
-                            <!-- Wallpaper -->
-                            <TextBlock Text="Wallpaper" Foreground="#00D4FF" FontSize="12" FontWeight="Bold" Margin="0,16,0,8"/>
-                            <Grid Margin="0,0,0,16">
+                            <!-- ── APPEARANCE ── -->
+                            <TextBlock Text="APPEARANCE" Foreground="#00D4FF" FontSize="11" FontWeight="Bold" Margin="0,0,0,10"/>
+                            <Grid>
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="*"/>
-                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
                                 </Grid.ColumnDefinitions>
-                                <TextBlock x:Name="WallpaperPathText" Text="No image selected"
-                                           Foreground="#88E0E0E0" FontSize="10" VerticalAlignment="Center"
-                                           TextTrimming="CharacterEllipsis"/>
-                                <ui:Button Grid.Column="1" Content="Browse" Appearance="Secondary"
-                                           Click="BrowseWallpaper_Click" Margin="8,0,0,0"/>
+
+                                <!-- Left Column -->
+                                <StackPanel Grid.Column="0" Margin="0,0,12,0">
+                                    <TextBlock Text="Font Family" Foreground="#66E0E0E0" FontSize="9" Margin="0,0,0,4"/>
+                                    <ComboBox x:Name="FontCombo" Background="#1AFFFFFF" Foreground="#E0E0E0" Height="30"
+                                              FontSize="11" BorderBrush="#22FFFFFF"/>
+
+                                    <TextBlock Text="Font Size" Foreground="#66E0E0E0" FontSize="9" Margin="0,12,0,4"/>
+                                    <Slider x:Name="FontSizeSlider" Minimum="10" Maximum="30" Value="14"
+                                            Foreground="#00D4FF" Margin="0,0,0,0"/>
+                                </StackPanel>
+
+                                <!-- Right Column -->
+                                <StackPanel Grid.Column="1" Margin="12,0,0,0">
+                                    <TextBlock Text="Background Opacity" Foreground="#66E0E0E0" FontSize="9" Margin="0,0,0,4"/>
+                                    <Slider x:Name="OpacitySlider" Minimum="0.1" Maximum="1.0" Value="0.92"
+                                            Foreground="#00D4FF" Margin="0,0,0,0"/>
+
+                                    <TextBlock Text="Cursor Style" Foreground="#66E0E0E0" FontSize="9" Margin="0,12,0,6"/>
+                                    <StackPanel Orientation="Horizontal">
+                                        <RadioButton x:Name="CurBlock"  Content="Block"     Foreground="#E0E0E0" IsChecked="True" Margin="0,0,14,0" FontSize="10"/>
+                                        <RadioButton x:Name="CurLine"   Content="Line"      Foreground="#E0E0E0" Margin="0,0,14,0" FontSize="10"/>
+                                        <RadioButton x:Name="CurUnder"  Content="Underline" Foreground="#E0E0E0" FontSize="10"/>
+                                    </StackPanel>
+                                </StackPanel>
                             </Grid>
-                        </StackPanel>
-                    </ScrollViewer>
 
-                    <Border Grid.Row="2" BorderBrush="#22FFFFFF" BorderThickness="0,1,0,0" Padding="16,0">
-                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
-                            <ui:Button Content="Cancel" Appearance="Secondary" Margin="0,0,8,0" Click="GearBtn_Click"/>
-                            <ui:Button Content="Save" Appearance="Primary" Click="SaveSettings_Click"/>
-                        </StackPanel>
-                    </Border>
+                            <Border Height="1" Background="#10FFFFFF" Margin="0,16,0,16"/>
 
-                    <TextBlock Text="✕" Foreground="#44E0E0E0" HorizontalAlignment="Right" VerticalAlignment="Top"
-                               Margin="16" Cursor="Hand" MouseLeftButtonDown="GearBtn_Click" FontSize="16"/>
-                </Grid>
-            </Border>
-
-            <!-- Selection overlay -->
-            <Border x:Name="SelectionOverlay" Grid.ColumnSpan="2" Visibility="Collapsed"
-                    Background="#F0101820" CornerRadius="14" Margin="60,20" Padding="40,24"
-                    BorderBrush="#FF6BDDFF" BorderThickness="1"
-                    VerticalAlignment="Center" HorizontalAlignment="Center">
-                <StackPanel>
-                    <TextBlock x:Name="SelectionTitle" Text="SELECT" Foreground="#FFFFDA6B"
-                               FontWeight="Bold" FontSize="18" Margin="0,0,0,20" HorizontalAlignment="Center"/>
-                    <TextBlock x:Name="SelectionItems" Text="Loading..." Foreground="#E0E0E0"
-                               FontFamily="Consolas" FontSize="15" LineHeight="30"
-                               HorizontalAlignment="Center" TextAlignment="Center"/>
-                    <TextBlock Text="[ ↑↓ Navigate  |  Enter OK  |  Esc Cancel ]"
-                               Foreground="#55E0E0E0" FontSize="11" Margin="0,20,0,0" HorizontalAlignment="Center"/>
-                </StackPanel>
-            </Border>
-        </Grid>
-
-        <!-- ── INPUT BAR with AUTOCOMPLETE ── -->
-        <Border Grid.Row="2" x:Name="InputBorder"
-                Background="#0AFFFFFF" BorderBrush="#18FFFFFF" BorderThickness="0,1,0,0">
-            <Grid>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="48"/>
-                </Grid.RowDefinitions>
-
-                <!-- ── USER INFO CARD ── -->
-                <Border Grid.Row="0" Background="#15FFFFFF" BorderBrush="#33FFFFFF" BorderThickness="0,0,0,1" Padding="16,6">
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto"/>
-                            <ColumnDefinition Width="Auto"/>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="Auto"/>
-                        </Grid.ColumnDefinitions>
-
-                        <!-- User -->
-                        <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,16,0">
-                            <ui:SymbolIcon Symbol="Person32" Foreground="#00D4FF" FontSize="14" Margin="0,0,6,0"/>
-                            <StackPanel>
-                                <TextBlock Text="User" Foreground="#8800D4FF" FontSize="9"/>
-                                <TextBlock x:Name="InfoUserText" Text="unknown" Foreground="#E0E0E0" FontSize="11" FontWeight="Bold"/>
-                            </StackPanel>
-                        </StackPanel>
-
-                        <!-- Path -->
-                        <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,16,0">
-                            <ui:SymbolIcon Symbol="Folder32" Foreground="#00D4FF" FontSize="14" Margin="0,0,6,0"/>
-                            <StackPanel>
-                                <TextBlock Text="Path" Foreground="#8800D4FF" FontSize="9"/>
-                                <TextBlock x:Name="InfoPathText" Text="~" Foreground="#E0E0E0" FontSize="11" FontWeight="Bold"/>
-                            </StackPanel>
-                        </StackPanel>
-
-                        <!-- Spacer -->
-                        <Grid Grid.Column="2"/>
-
-                        <!-- Session Info -->
-                        <StackPanel Grid.Column="3" Orientation="Horizontal" VerticalAlignment="Center">
-                            <ui:SymbolIcon Symbol="Clock32" Foreground="#00D4FF" FontSize="14" Margin="0,0,6,0"/>
-                            <StackPanel>
-                                <TextBlock Text="Session" Foreground="#8800D4FF" FontSize="9"/>
-                                <TextBlock x:Name="InfoSessionText" Text="00:00" Foreground="#E0E0E0" FontSize="11" FontWeight="Bold"/>
-                            </StackPanel>
-                        </StackPanel>
-                    </Grid>
-                </Border>
-
-                <!-- Autocomplete Suggestions Dropdown (ABOVE input) -->
-                <ListBox Grid.Row="1" x:Name="SuggestionsListBox"
-                         Background="#15FFFFFF" BorderBrush="#33FFFFFF" BorderThickness="0,0,0,1"
-                         Foreground="#E0E0E0" FontSize="12" FontFamily="JetBrains Mono, Consolas"
-                         MaxHeight="200" Margin="60,0,16,0" Padding="4,2"
-                         Visibility="Collapsed" MouseDoubleClick="SuggestionsListBox_MouseDoubleClick">
-                    <ListBox.ItemTemplate>
-                        <DataTemplate>
+                            <!-- ── WALLPAPER ── -->
+                            <Border Height="1" Background="#10FFFFFF" Margin="0,16,0,16"/>
+                            <TextBlock Text="BACKGROUND IMAGE" Foreground="#00D4FF" FontSize="11" FontWeight="Bold" Margin="0,0,0,10"/>
                             <Grid>
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="*"/>
                                     <ColumnDefinition Width="Auto"/>
                                 </Grid.ColumnDefinitions>
-                                <TextBlock Grid.Column="0" Text="{Binding DisplayText}" VerticalAlignment="Center"/>
-                                <TextBlock Grid.Column="1" Text="{Binding Category}" Foreground="#8800D4FF" 
-                                          FontSize="10" VerticalAlignment="Center" Margin="8,0,0,0"/>
+                                <TextBlock x:Name="WallpaperPathText" Text="No image selected"
+                                           Foreground="#55E0E0E0" FontSize="10" VerticalAlignment="Center"
+                                           TextTrimming="CharacterEllipsis"/>
+                                <ui:Button Grid.Column="1" Content="Browse" Appearance="Secondary"
+                                           Click="BrowseWallpaper_Click" Margin="8,0,0,0" FontSize="11"
+                                           Height="28" MinWidth="60"/>
                             </Grid>
-                        </DataTemplate>
-                    </ListBox.ItemTemplate>
-                    <ListBox.ItemContainerStyle>
-                        <Style TargetType="ListBoxItem">
-                            <Setter Property="Padding" Value="4"/>
-                            <Setter Property="Background" Value="Transparent"/>
-                            <Style.Triggers>
-                                <Trigger Property="IsSelected" Value="True">
-                                    <Setter Property="Background" Value="#2200D4FF"/>
-                                    <Setter Property="Foreground" Value="#00D4FF"/>
-                                </Trigger>
-                                <Trigger Property="IsMouseOver" Value="True">
-                                    <Setter Property="Background" Value="#1800D4FF"/>
-                                </Trigger>
-                            </Style.Triggers>
-                        </Style>
-                    </ListBox.ItemContainerStyle>
-                </ListBox>
 
-                <!-- Input -->
-                <Grid Grid.Row="2" Margin="16,0">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto"/>
-                        <ColumnDefinition Width="*"/>
-                    </Grid.ColumnDefinitions>
+                            <!-- ── KEY BINDINGS ── -->
+                            <Border Height="1" Background="#10FFFFFF" Margin="0,16,0,16"/>
+                            <TextBlock Text="KEY BINDINGS" Foreground="#00D4FF" FontSize="11" FontWeight="Bold" Margin="0,0,0,10"/>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="140"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Text="Ctrl+L" Foreground="#66E0E0E0" FontSize="9" Margin="0,0,0,6"/>
+                                <TextBlock Grid.Column="1" Text="Clear terminal" Foreground="#88E0E0E0" FontSize="9" Margin="0,0,0,6"/>
+                                <TextBlock Grid.Column="0" Text="Tab" Foreground="#66E0E0E0" FontSize="9" Margin="0,0,0,6"/>
+                                <TextBlock Grid.Column="1" Text="Auto-complete path/command" Foreground="#88E0E0E0" FontSize="9" Margin="0,0,0,6"/>
+                                <TextBlock Grid.Column="0" Text="↑ ↓" Foreground="#66E0E0E0" FontSize="9" Margin="0,0,0,6"/>
+                                <TextBlock Grid.Column="1" Text="Command history" Foreground="#88E0E0E0" FontSize="9" Margin="0,0,0,6"/>
+                                <TextBlock Grid.Column="0" Text="Esc" Foreground="#66E0E0E0" FontSize="9"/>
+                                <TextBlock Grid.Column="1" Text="Cancel selection" Foreground="#88E0E0E0" FontSize="9"/>
+                            </Grid>
+                        </StackPanel>
+                    </ScrollViewer>
 
-                    <!-- Powerline prompt -->
-                    <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
-                        <Border Background="#00D4FF" CornerRadius="4,0,0,4" Padding="10,4">
-                            <StackPanel Orientation="Horizontal">
-                                <ui:SymbolIcon Symbol="Person32" Foreground="Black" FontSize="10" VerticalAlignment="Center" Margin="0,0,4,0"/>
-                                <TextBlock x:Name="PromptUserText" Text="user" Foreground="Black" FontSize="11" FontWeight="ExtraBold"/>
-                            </StackPanel>
-                        </Border>
-                        <TextBlock Text="❯" Foreground="#00D4FF" FontSize="14" VerticalAlignment="Center" Margin="4,0"/>
-                        <Border Background="#20FFFFFF" CornerRadius="0,4,4,0" Padding="10,4">
-                            <TextBlock x:Name="PromptText" Text="~" Foreground="#00D4FF" FontSize="11" FontWeight="Bold"/>
-                        </Border>
-                        <TextBlock Text=" ❯ " Foreground="#00D4FF" VerticalAlignment="Center" Margin="4,0" FontWeight="ExtraBold"/>
-                    </StackPanel>
-
-                    <TextBox Grid.Column="1" x:Name="TerminalInput"
-                             Background="Transparent" BorderThickness="0"
-                             Foreground="#E0E0E0" FontSize="14"
-                             FontFamily="JetBrains Mono, Consolas" FontWeight="Bold"
-                             VerticalContentAlignment="Center" CaretBrush="#00D4FF"
-                             PreviewKeyDown="TerminalInput_PreviewKeyDown"
-                             KeyDown="TerminalInput_KeyDown"
-                             TextChanged="TerminalInput_TextChanged"/>
+                    <!-- Settings Footer -->
+                    <Border Grid.Row="2" Padding="16,0" BorderBrush="#15FFFFFF" BorderThickness="0,1,0,0">
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                            <ui:Button Content="Cancel" Appearance="Secondary" Margin="0,0,8,0" Click="GearBtn_Click" FontSize="11" Height="30"/>
+                            <ui:Button Content="Save" Appearance="Primary" Click="SaveSettings_Click" FontSize="11" Height="30"/>
+                        </StackPanel>
+                    </Border>
                 </Grid>
+            </Border>
+
+            <!-- ═══ AUTOCOMPLETE SUGGESTIONS (floating above input bar) ═══ -->
+            <ListBox Grid.ColumnSpan="2" x:Name="SuggestionsListBox"
+                     Background="#FF0C0C0C" BorderBrush="#22FFFFFF" BorderThickness="0,1,0,0"
+                     Foreground="#E0E0E0" FontSize="11" FontFamily="Menlo, SF Mono, Cascadia Mono, Consolas"
+                     MaxHeight="200" Margin="60,0,16,0" Padding="6,2"
+                     VerticalAlignment="Bottom"
+                     Visibility="Collapsed" MouseDoubleClick="SuggestionsListBox_MouseDoubleClick">
+                <ListBox.ItemTemplate>
+                    <DataTemplate>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" Text="{Binding DisplayText}" VerticalAlignment="Center"/>
+                            <TextBlock Grid.Column="1" Text="{Binding Category}" Foreground="#6600D4FF"
+                                      FontSize="9" VerticalAlignment="Center" Margin="8,0,0,0"/>
+                        </Grid>
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+                <ListBox.ItemContainerStyle>
+                    <Style TargetType="ListBoxItem">
+                        <Setter Property="Padding" Value="4"/>
+                        <Setter Property="Background" Value="Transparent"/>
+                        <Style.Triggers>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter Property="Background" Value="#2200D4FF"/>
+                                <Setter Property="Foreground" Value="#00D4FF"/>
+                            </Trigger>
+                        </Style.Triggers>
+                    </Style>
+                </ListBox.ItemContainerStyle>
+            </ListBox>
+
+            <!-- ═══ SELECTION OVERLAY ═══ -->
+            <Border x:Name="SelectionOverlay" Grid.ColumnSpan="2" Visibility="Collapsed"
+                    Background="#E00C0C0C" CornerRadius="10"
+                    BorderBrush="#222222" BorderThickness="1"
+                    VerticalAlignment="Center" HorizontalAlignment="Center"
+                    MaxWidth="500" MinWidth="280"
+                    Margin="40,20">
+                <StackPanel Margin="28,20">
+                    <TextBlock x:Name="SelectionTitle" Text="SELECT" Foreground="#00D4FF"
+                               FontWeight="SemiBold" FontSize="13" Margin="0,0,0,14" HorizontalAlignment="Center"/>
+                    <TextBlock x:Name="SelectionItems" Text="Loading..." Foreground="#E0E0E0"
+                               FontFamily="Menlo, SF Mono, Cascadia Mono, Consolas" FontSize="13" LineHeight="26"
+                               HorizontalAlignment="Center" TextAlignment="Center"/>
+                    <TextBlock Text="[ ↑↓ Navigate  |  Enter OK  |  Esc Cancel ]"
+                               Foreground="#44E0E0E0" FontSize="9" Margin="0,12,0,0" HorizontalAlignment="Center"/>
+                </StackPanel>
+            </Border>
+        </Grid>
+
+        <!-- ═══════════════ INPUT BAR ═══════════════ -->
+        <Border Grid.Row="2" Background="#0C0C0C" BorderBrush="#15FFFFFF" BorderThickness="0,1,0,0">
+            <Grid Margin="12,0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <!-- Prompt — zsh macOS style: user@hostname ~ % -->
+                <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center" Margin="10,0,0,0">
+                    <TextBlock x:Name="PromptUserText" Text="user" Foreground="#00D4FF" FontSize="11" FontWeight="SemiBold"
+                               FontFamily="Menlo, SF Mono, Cascadia Mono, Consolas"/>
+                    <TextBlock Text="@" Foreground="#FF5F57" FontSize="11" FontFamily="Menlo, SF Mono, Cascadia Mono, Consolas" Margin="1,0"/>
+                    <TextBlock x:Name="PromptHostText" Text="hostname" Foreground="#FF5F57" FontSize="11"
+                               FontFamily="Menlo, SF Mono, Cascadia Mono, Consolas"/>
+                    <TextBlock Text=" " FontSize="11" FontFamily="Menlo, SF Mono, Cascadia Mono, Consolas"/>
+                    <TextBlock x:Name="PromptText" Text="~" Foreground="#50FA7B" FontSize="11" FontWeight="SemiBold"
+                               FontFamily="Menlo, SF Mono, Cascadia Mono, Consolas"/>
+                    <TextBlock Text=" % " Foreground="#00D4FF" FontSize="11" FontWeight="Bold"
+                               FontFamily="Menlo, SF Mono, Cascadia Mono, Consolas" Margin="1,0,8,0"/>
+                </StackPanel>
+
+                <TextBox Grid.Column="1" x:Name="TerminalInput"
+                         Background="Transparent" BorderThickness="0"
+                         Foreground="#E0E0E0" FontSize="13"
+                         FontFamily="Menlo, SF Mono, Cascadia Mono, Consolas"
+                         VerticalContentAlignment="Center" CaretBrush="#00D4FF"
+                         PreviewKeyDown="TerminalInput_PreviewKeyDown"
+                         KeyDown="TerminalInput_KeyDown"
+                         TextChanged="TerminalInput_TextChanged"/>
             </Grid>
         </Border>
 
-        <!-- Unused named elements kept for code-behind compatibility -->
+        <!-- Hidden elements for code-behind compat -->
         <Grid Visibility="Collapsed">
             <Grid x:Name="RootLayout"/>
-            <TextBlock x:Name="StatusBarRow" Visibility="Collapsed"/>
-            <TextBlock x:Name="MainContentRow" Visibility="Collapsed"/>
+            <Grid x:Name="ClockArea" Visibility="Collapsed"/>
         </Grid>
-
     </Grid>
     </Border>
 </ui:FluentWindow>

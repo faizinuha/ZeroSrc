@@ -3,6 +3,7 @@ using System.Net.Http;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
+using System.Collections.Generic;
 
 namespace ZeroMix.Services
 {
@@ -11,11 +12,85 @@ namespace ZeroMix.Services
         private readonly HttpClient _client;
         private readonly string _apiKey;
 
+        // Character system prompts (mirip WaifuChatService)
+        private static readonly Dictionary<string, string> CharacterPrompts = new()
+        {
+            ["Frieren"] = "Kamu adalah Frieren, elf penyihir yang sudah hidup ribuan tahun. Kamu dingin, stoic, dan bijaksana. Bicara singkat dan padat. Panggil user 'kamu'. Gunakan bahasa Indonesia santai. Maksimal 25 kata.",
+            ["Fern"] = "Kamu adalah Fern, murid Frieren yang serius dan tsundere. Galak di luar tapi perhatian di dalam. Panggil user 'kamu'. Gunakan bahasa Indonesia santai. Maksimal 25 kata.",
+            ["Huohuo"] = "Kamu adalah Huohuo, foxian girl yang playful dan suka godain orang. Panggil user 'Kakak'. Gunakan bahasa Indonesia santai. Maksimal 25 kata."
+        };
+
         public GroqAIService()
         {
             _client = new HttpClient();
             _apiKey = ApiKeys.OPENAI_API_KEY; // Groq API key dari ApiKeys.cs
             _client.DefaultRequestHeaders.Add("Authorization", $"Bearer {_apiKey}");
+            _client.Timeout = TimeSpan.FromSeconds(15);
+        }
+
+        /// <summary>
+        /// Chat dengan AI menggunakan Groq (cepat, cocok untuk chat ringan)
+        /// </summary>
+        public async Task<string> ChatAsync(string userMessage, string character, List<(string Role, string Message)>? history = null)
+        {
+            if (string.IsNullOrEmpty(_apiKey) || !_apiKey.StartsWith("gsk_"))
+                return "API key Groq belum diatur dengan benar.";
+
+            if (!CharacterPrompts.ContainsKey(character))
+                character = "Frieren";
+
+            try
+            {
+                var messagesList = new List<object>
+                {
+                    new { role = "system", content = CharacterPrompts[character] }
+                };
+
+                // Tambah chat history untuk context
+                if (history != null)
+                {
+                    foreach (var (role, msg) in history)
+                        messagesList.Add(new { role, content = msg });
+                }
+
+                messagesList.Add(new { role = "user", content = userMessage });
+
+                var requestBody = new
+                {
+                    model = "llama-3.3-70b-versatile",
+                    messages = messagesList.ToArray(),
+                    max_tokens = 100,
+                    temperature = 0.9
+                };
+
+                var json = JsonSerializer.Serialize(requestBody);
+                var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+                var response = await _client.PostAsync("https://api.groq.com/openai/v1/chat/completions", content);
+                var responseText = await response.Content.ReadAsStringAsync();
+
+                if (!response.IsSuccessStatusCode)
+                    return $"Maaf, sedang sibuk. Coba lagi ya.";
+
+                var result = JsonDocument.Parse(responseText);
+                return result.RootElement
+                    .GetProperty("choices")[0]
+                    .GetProperty("message")
+                    .GetProperty("content")
+                    .GetString()?.Trim() ?? "...";
+            }
+            catch (HttpRequestException)
+            {
+                return "Koneksi terputus. Coba lagi nanti.";
+            }
+            catch (TaskCanceledException)
+            {
+                return "Terlalu lama menunggu. Coba lagi ya.";
+            }
+            catch
+            {
+                return "Error teknis. Maaf.";
+            }
         }
 
         public async Task<string> AnalyzeVideoForEditing(string videoDescription, double duration)

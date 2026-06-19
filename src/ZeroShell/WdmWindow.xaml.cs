@@ -156,69 +156,8 @@ namespace ZeroMix.ZeroShell
             }
         }
 
-        private void BuildStylePanel(string cat)
-        {
-            var ContentPanel = new StackPanel();
-
-            WdmEntry? existing = null;
-            if (cat == "Notification") _state.Entries.TryGetValue("__Notification__", out existing);
-            else
-            {
-                var classes = WdmCategories.ClassMap.TryGetValue(cat, out var cls) ? cls : Array.Empty<string>();
-                existing = classes.Select(c => _state.Entries.TryGetValue(c, out var e) ? e : null)
-                                  .FirstOrDefault(e => e != null);
-            }
-            existing ??= new WdmEntry();
-
-            string displayName = WdmCategories.DisplayNames.TryGetValue(cat, out var dn) ? dn : cat;
-            ContentPanel.Children.Add(MakeHeader(displayName, GetCategoryDesc(cat)));
-            ContentPanel.Children.Add(MakeDivider());
-
-            ContentPanel.Children.Add(MakeSectionLabel("STYLE"));
-            var styleCombo = new ComboBox { Margin = new Thickness(0, 6, 0, 0) };
-            styleCombo.Items.Add("Acrylic Dark");
-            styleCombo.Items.Add("Acrylic Light");
-            styleCombo.Items.Add("Blur Only");
-            styleCombo.Items.Add("Glass Clear");
-            styleCombo.Items.Add("Full Transparent");
-            styleCombo.Items.Add("Floating macOS");
-            styleCombo.SelectedIndex = Math.Max(0, (int)existing.Style - 1);
-            ContentPanel.Children.Add(styleCombo);
-
-            ContentPanel.Children.Add(MakeSectionLabel($"OPACITY  —  {(int)(existing.Alpha / 2.55)}%", new Thickness(0, 16, 0, 0)));
-            var opSlider = new Slider { Minimum = 0, Maximum = 255, Value = existing.Alpha, Margin = new Thickness(0, 6, 0, 0) };
-            opSlider.ValueChanged += (s, ev) =>
-            {
-                var lbl = ContentPanel.Children.OfType<TextBlock>().FirstOrDefault(t => t.Text.StartsWith("OPACITY"));
-                if (lbl != null) lbl.Text = $"OPACITY  —  {(int)(ev.NewValue / 2.55)}%";
-            };
-            ContentPanel.Children.Add(opSlider);
-
-            ContentPanel.Children.Add(MakeSectionLabel("COLOR TINT (HEX)", new Thickness(0, 16, 0, 0)));
-            ContentPanel.Children.Add(new TextBox { Text = existing.ColorHex, Margin = new Thickness(0, 6, 0, 0) });
-
-            if (IsCategoryActive(cat))
-            {
-                ContentPanel.Children.Add(MakeDivider(new Thickness(0, 20, 0, 0)));
-                var infoCard = new Border
-                {
-                    Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#1A4EC94E")),
-                    BorderBrush = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#334EC94E")),
-                    BorderThickness = new Thickness(1), CornerRadius = new CornerRadius(6),
-                    Padding = new Thickness(12, 8, 12, 8), Margin = new Thickness(0, 8, 0, 0)
-                };
-                infoCard.Child = new TextBlock
-                {
-                    Text = $"● Active — {existing.Style}  |  Opacity {(int)(existing.Alpha / 2.55)}%",
-                    Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString(C_GREEN)),
-                    FontSize = 11
-                };
-                ContentPanel.Children.Add(infoCard);
-            }
-
-            CategoryContent.Content = ContentPanel;
-        }
-
+        // Dead code removed: BuildStylePanel, BuildDesktopPanel, BuildLayoutsPanel legacy methods.
+        // Semua panel building menggunakan MVVM pattern (BuildStylePanelMVVM, dll).
         private string GetCategoryDesc(string cat) => cat switch
         {
             "Taskbar"      => "Style the Windows taskbar",
@@ -653,41 +592,57 @@ namespace ZeroMix.ZeroShell
 
             ShellHelper.StartWatcher((hwnd, cls) =>
             {
-                Dispatcher.Invoke(() =>
+                try
                 {
-                    if (_state.Entries.TryGetValue(cls, out var entry))
+                    Dispatcher.Invoke(() =>
                     {
-                        // Explorer: apply with delay
-                        if (cls == "CabinetWClass" || cls == "ExplorerWClass")
-                            _ = Task.Delay(300).ContinueWith(_ =>
-                                Dispatcher.Invoke(() => ShellHelper.ApplyStyle(hwnd, entry)));
-                        else
-                            ShellHelper.ApplyStyle(hwnd, entry);
-                        return;
-                    }
-
-                    // Notification
-                    if (cls == "Windows.UI.Core.CoreWindow" &&
-                        _state.Entries.TryGetValue("__Notification__", out var notifEntry))
-                    {
-                        ShellHelper.GetWindowThreadProcessId(hwnd, out uint pid);
-                        foreach (var p in System.Diagnostics.Process.GetProcessesByName("ShellExperienceHost"))
+                        try
                         {
-                            if ((uint)p.Id == pid)
+                            if (_state.Entries.TryGetValue(cls, out var entry))
                             {
-                                ShellHelper.ApplyStyle(hwnd, notifEntry);
-                                ShellHelper.ApplyStyleToChildren(hwnd, notifEntry);
-                                break;
+                                // Explorer: apply with delay
+                                if (cls == "CabinetWClass" || cls == "ExplorerWClass")
+                                {
+                                    var capturedEntry = entry;
+                                    var capturedHwnd = hwnd;
+                                    _ = Task.Delay(300).ContinueWith(_ =>
+                                    {
+                                        try { Dispatcher.Invoke(() => ShellHelper.ApplyStyle(capturedHwnd, capturedEntry)); }
+                                        catch { }
+                                    });
+                                }
+                                else
+                                    ShellHelper.ApplyStyle(hwnd, entry);
+                                return;
+                            }
+
+                            // Notification
+                            if (cls == "Windows.UI.Core.CoreWindow" &&
+                                _state.Entries.TryGetValue("__Notification__", out var notifEntry))
+                            {
+                                ShellHelper.GetWindowThreadProcessId(hwnd, out uint pid);
+                                foreach (var p in System.Diagnostics.Process.GetProcessesByName("ShellExperienceHost"))
+                                {
+                                    if ((uint)p.Id == pid)
+                                    {
+                                        ShellHelper.ApplyStyle(hwnd, notifEntry);
+                                        ShellHelper.ApplyStyleToChildren(hwnd, notifEntry);
+                                        break;
+                                    }
+                                }
                             }
                         }
-                    }
-                });
+                        catch { }
+                    });
+                }
+                catch { }
             });
         }
 
         protected override void OnClosed(EventArgs e)
         {
             ShellHelper.StopWatcher();
+            CloseDesktopWidget();
             base.OnClosed(e);
         }
         #endregion

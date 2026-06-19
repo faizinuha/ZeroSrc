@@ -364,45 +364,116 @@ namespace ZeroMix.Search
             if (strip != null) strip.Visibility = Visibility.Collapsed;
             SearchBox.Tag = "Type to search...";
 
-            ShowToast("&#xEB9F;", "Opening Google Lens...", "#007AFF");
+            ShowToast("&#xEB9F;", "Uploading image for search...", "#007AFF");
 
             try
             {
-                // Buka Google Lens upload langsung — lebih reliable dari reverse search via URL
-                string lensUrl = "https://lens.google.com/upload";
-                Process.Start(new ProcessStartInfo(lensUrl) { UseShellExecute = true });
+                // Step 1: Upload gambar ke hosting sementara untuk dapat URL publik
+                string? uploadedUrl = await UploadImageToTempHostAsync(imagePath);
 
-                // Copy path ke clipboard agar user bisa drag/paste gambar
-                System.Windows.Clipboard.SetText(imagePath);
-                ShowToast("&#xE8FB;", "Google Lens dibuka — gambar di-copy ke clipboard", "#4CAF50");
+                if (!string.IsNullOrEmpty(uploadedUrl))
+                {
+                    // Step 2: Buka Google Lens dengan URL publik (satu tab, cukup)
+                    string lensUrl = $"https://lens.google.com/uploadbyurl?url={Uri.EscapeDataString(uploadedUrl)}";
+                    
+                    try
+                    {
+                        Process.Start(new ProcessStartInfo(lensUrl) { UseShellExecute = true });
+                    }
+                    catch (Exception ex)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"[ImageSearch] Failed to open browser: {ex.Message}");
+                    }
+                    
+                    // Copy URL ke clipboard sebagai cadangan
+                    System.Windows.Clipboard.SetText(uploadedUrl);
+
+                    ShowToast("&#xE8FB;", "Google Lens opened with your image ✓", "#4CAF50");
+                }
+                else
+                {
+                    // Fallback: buka Google Lens upload langsung jika upload gagal
+                    ShowToast("&#xEB9F;", "Upload failed, opening Google Lens...", "#FFBD2E");
+                    
+                    try
+                    {
+                        Process.Start(new ProcessStartInfo("https://lens.google.com/upload") { UseShellExecute = true });
+                    }
+                    catch { }
+                    
+                    System.Windows.Clipboard.SetText(imagePath);
+                    ShowToast("&#xE8FB;", "Gambar di-copy — tempel manual di Google Lens", "#FFBD2E");
+                }
             }
             catch (Exception ex)
             {
                 ShowToast("&#xEA39;", $"Error: {ex.Message}", "#FF5555");
             }
 
+            // Tunggu agar toast terlihat sebelum close
+            await System.Threading.Tasks.Task.Delay(1500);
             BeginFadeOutAndClose();
         }
 
         private async Task<string?> UploadImageToTempHostAsync(string imagePath)
         {
+            // Validasi ukuran file — max 10MB
+            var fileInfo = new FileInfo(imagePath);
+            if (fileInfo.Length > 10 * 1024 * 1024)
+            {
+                System.Diagnostics.Debug.WriteLine($"[ImageSearch] File too large: {fileInfo.Length} bytes");
+                ShowToast("&#xEA39;", "Image too large (max 10MB)", "#FF5555");
+                return null;
+            }
+
+            // Baca bytes sekali saja di luar loop
+            byte[] fileBytes;
             try
             {
-                using var form = new MultipartFormDataContent();
-                var fileBytes = await File.ReadAllBytesAsync(imagePath);
-                var fileContent = new ByteArrayContent(fileBytes);
-                fileContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(
-                    GetMimeType(Path.GetExtension(imagePath)));
-                form.Add(fileContent, "file", Path.GetFileName(imagePath));
+                fileBytes = await File.ReadAllBytesAsync(imagePath);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[ImageSearch] Failed to read file: {ex.Message}");
+                return null;
+            }
 
-                var response = await _httpClient.PostAsync("https://0x0.st", form);
-                if (response.IsSuccessStatusCode)
+            // Coba beberapa hosting service secara berurutan
+            string[] hosts = new[]
+            {
+                "https://0x0.st",    // Fast, no API key, reliable untuk file < 512MB
+                "https://tmp.ninja",  // Fallback 1 — simple file hosting
+            };
+
+            foreach (var host in hosts)
+            {
+                try
                 {
-                    string url = (await response.Content.ReadAsStringAsync()).Trim();
-                    if (url.StartsWith("https://")) return url;
+                    using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(15));
+                    using var form = new MultipartFormDataContent();
+                    
+                    var fileContent = new ByteArrayContent(fileBytes);
+                    fileContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(
+                        GetMimeType(Path.GetExtension(imagePath)));
+                    
+                    form.Add(fileContent, "file", Path.GetFileName(imagePath));
+
+                    var response = await _httpClient.PostAsync(host, form, cts.Token);
+                    if (response.IsSuccessStatusCode)
+                    {
+                        string url = (await response.Content.ReadAsStringAsync()).Trim();
+                        if (!string.IsNullOrEmpty(url) && (url.StartsWith("https://") || url.StartsWith("http://")))
+                        {
+                            System.Diagnostics.Debug.WriteLine($"[ImageSearch] Uploaded to {host}: {url}");
+                            return url;
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"[ImageSearch] Upload to {host} failed: {ex.Message}");
                 }
             }
-            catch { }
 
             return null;
         }

@@ -127,24 +127,46 @@ namespace ZeroMix.ZeroShell
 
         private bool IsStartButtonClick(int x, int y)
         {
-            // Find Start button — Win10: "Start" button inside Shell_TrayWnd
-            IntPtr taskbar = Win32.Window.FindWindow("Shell_TrayWnd", null);
-            if (taskbar == IntPtr.Zero) return false;
+            // Step 1: Cari Shell_TrayWnd di ALL monitors via EnumWindows
+            // Multi-monitor: Win10 creates Shell_TrayWnd per monitor + Shell_SecondaryTrayWnd
+            bool found = false;
+            int btnLeft = 0, btnRight = 0, btnTop = 0, btnBottom = 0;
 
-            // Try to find the Start button child
-            IntPtr startBtn = Win32.Window.FindWindowEx(taskbar, IntPtr.Zero, "Start", null);
-            if (startBtn == IntPtr.Zero)
-                startBtn = Win32.Window.FindWindowEx(taskbar, IntPtr.Zero, "Button", null);
-
-            if (startBtn != IntPtr.Zero)
+            Win32.Window.EnumWindows((hwnd, _) =>
             {
-                if (Win32.Window.GetWindowRect(startBtn, out Win32.Window.RECT r))
-                    return x >= r.Left && x <= r.Right && y >= r.Top && y <= r.Bottom;
-            }
+                var sb = new System.Text.StringBuilder(256);
+                Win32.Window.GetClassName(hwnd, sb, sb.Capacity);
+                string cls = sb.ToString();
 
-            // Fallback: bottom-left corner heuristic (Win10 default Start button position)
+                // Check primary and secondary taskbars
+                if (cls == "Shell_TrayWnd" || cls == "Shell_SecondaryTrayWnd")
+                {
+                    IntPtr startBtn = Win32.Window.FindWindowEx(hwnd, IntPtr.Zero, "Start", null);
+                    if (startBtn == IntPtr.Zero)
+                        startBtn = Win32.Window.FindWindowEx(hwnd, IntPtr.Zero, "Button", null);
+
+                    if (startBtn != IntPtr.Zero && Win32.Window.GetWindowRect(startBtn, out Win32.Window.RECT r))
+                    {
+                        // Check if click falls within this Start button
+                        if (x >= r.Left && x <= r.Right && y >= r.Top && y <= r.Bottom)
+                        {
+                            btnLeft = r.Left; btnRight = r.Right;
+                            btnTop = r.Top; btnBottom = r.Bottom;
+                            found = true;
+                            return false; // stop enumeration
+                        }
+                    }
+                }
+                return true;
+            }, IntPtr.Zero);
+
+            if (found)
+                return true;
+
+            // Step 2 (LAST RESORT): bottom-left corner heuristic — hanya jika FindWindow gagal total
+            // Gunakan screen bounds dari monitor where click occurred, bukan PrimaryScreen
             double screenH = SystemParameters.PrimaryScreenHeight;
-            double taskbarH = 40; // typical taskbar height
+            double taskbarH = 40;
             return x < 60 && y > (screenH - taskbarH - 5);
         }
 

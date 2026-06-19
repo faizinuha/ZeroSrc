@@ -4,6 +4,7 @@
         xmlns:local="clr-namespace:ZeroMix.ZeroShell"
         Title="ZeroMix WDM"
         Width="900" Height="580"
+        MinWidth="700" MinHeight="480"
         WindowStyle="None"
         AllowsTransparency="True"
         Background="Transparent"
@@ -297,7 +298,7 @@
                 <!-- MAIN CONTENT -->
                 <Grid Grid.Row="2">
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="210"/>
+                        <ColumnDefinition Width="210" MinWidth="160"/>
                         <ColumnDefinition Width="1"/>
                         <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>

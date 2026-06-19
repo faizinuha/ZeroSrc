@@ -8,6 +8,59 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) | [Semantic Ver
 
 ---
 
+## [v7.4.1] - 2026-06-19
+
+### 🔧 ZeroShell — Settings Disederhanakan
+- **Hapus SHELL section**: `ShellTypeCombo` (pwsh/legacy/CMD/WSL) dihapus dari settings — tidak perlu pilih shell.
+- **Hapus THEME section**: `ThemePicker` cards + 5 tema (Default, Compact, Retro Green, Glass, macOS) dihapus — **cuma 1 tema Default** biar simpel.
+- **Font pilihan macOS/terminal**: Font combo tidak lagi nampilin semua system fonts — cuma 6 font berkualitas: *Menlo, SF Mono, Cascadia Mono, JetBrains Mono, Fira Code, Consolas*.
+- **Dead code cleanup**: Hapus `ThemeCardData`, `_sessionStartTime`, `_tabOriginal`, 6 utility methods (`RunWifiScan`, `RunNetworkInfo`, `RunBatteryInfo`, `RunDiskInfo`, `RunAppsList`, `RunStartupList`), dan `AutocompleteViewModel.cs`.
+
+### 🐛 ZeroShell — Auto-Suggestion Fix
+- **Fix suggestions nutupin input**: `SuggestionsListBox` dipindah dari dalam input bar (ke-clip height 44px) ke **floating overlay** di atas input bar.
+- **Fix suggestions transparan**: Background `#E8` → `#FF` (solid, tidak tembus terminal).
+- **Fix text tidak clear saat Enter**: `Text=""` dan `e.Handled=true` di-set **sebelum** `await` — text langsung hilang saat Enter ditekan.
+
+### ✨ Search — Google Lens Improvement
+- **Auto-upload ke temp hosting**: Upload gambar ke 0x0.st / tmp.ninja sebelum buka Google Lens.
+- **Validasi ukuran file**: Max 10MB, fallback copy path ke clipboard.
+
+### 🔧 GroqAIService — Character AI Prompts
+- **CharacterPrompts dictionary**: Prompt personality untuk Frieren, Fern, Huohuo.
+- **ChatAsync baru**: Method dengan persona support untuk character-based chat.
+
+### 🐛 Bug Fixes
+- Fix `App.xaml.cs` — `HotkeyCoreInstance.Show()` dipanggil agar message pump aktif untuk WM_HOTKEY.
+
+---
+
+## [v7.3.0] - 2026-06-17
+
+### ✨ Features
+
+- **ZeroShell — PowerShell Backend Nyata**: Spawn proses `pwsh.exe` beneran dengan piping stdin/stdout/stderr. Ganti simulasi terminal dengan session PowerShell live. Support auto-detect `pwsh.exe` → `powershell.exe` → fallback. PWD tracking via prompt marker `[ZS:PWD=...]`, thread safety dengan command lock, leftover buffer hanya di stdout.
+- **ZeroShell — Crash Recovery**: Process crash otomatis restart 500ms, wrapped try/catch agar tidak silent crash. Process restart menggunakan session yang sama, event handler tetap valid.
+- **ZeroShell — Resize Support**: Kirim `[Console]::BufferWidth = ...` ke stdin saat terminal di-resize.
+- **AI Companions — Inline Chat Panel**: Panel chat (TextBox + Send button) di Virtual Assistant yang bisa toggle via tombol 💬. Chat history 10 pesan terakhir dikirim sebagai context ke AI.
+- **AI Companions — Character Switching**: Ganti character Live2D (Frieren/Fern/Huohuo) + personality AI langsung dari context menu. Setiap character punya greeting dinamis.
+- **WaifuChatService — History Context**: ChatAsync() sekarang support parameter history opsional. Method BuildMessages() untuk compose array messages dengan history.
+- **GroqAIService — ChatAsync**: Method baru untuk character-based chat dengan 3 personality prompt. Support history context. Timeout 15s dengan fallback response.
+
+### 🔧 Changes
+
+- **ZeroShell**: `TerminalTab.Process`/`TerminalTab.Input` → diganti `PsSession? Session`. `StartShellProcess()` + `ReadOutputAsync()` dihapus, diganti PsSession. `AddTab()` wiring events: OutputData, ErrorData, DirectoryChanged, ProcessTerminated.
+- **ZeroShell**: PsSession.cs baru — PowerShell session manager dedicated dengan UTF-8 encoding, PWD tracking, auto-restart, resize support.
+- **AI Companions**: GroqAIService di-rollback dari AI Companions — tidak lagi jadi provider chat (tetap khusus SearchOverlay). Provider toggle (OpenRouter/Groq) dihapus dari context menu. HandleUserChat disederhanakan ke WaifuChatService doang.
+- **AI Companions**: AiVisionService tetap auto observe layar tiap 60 detik via Groq — ~24 req/jam, hemat kuota.
+- **Live2D WebView2**: Hapus SRI integrity hash palsu (BCMF pattern diulang) dari CDN script pixi.js — penyebab WebView2 reject load pixi.js → PIXI.Application undefined → Live2D crash.
+
+### 🐛 Bug Fixes
+
+- Fix Live2D WebView2 tidak bisa load — SRI integrity hash palsu di `live2d-viewer.html` (`sha512-ch3Dwn...BCMFBCMF...`) menyebabkan browser reject pixi.js CDN script. Remove integrity attribute fix.
+- Fix GroqAIService pemakaian boncos — rollback dari AI Companions, Groq hanya dipakai SearchOverlay + screen observation (1 req/menit).
+
+---
+
 ## [v7.2.2]
 
 ###  (v7.2.2) 

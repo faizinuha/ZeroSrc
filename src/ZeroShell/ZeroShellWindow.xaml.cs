@@ -18,6 +18,12 @@ using System.Linq;
 using System.Text.Json;
 using Microsoft.Win32;
 using System.Text.RegularExpressions;
+// Resolve ambiguitas implicit dari System.Drawing (via UseWindowsForms)
+using Color = System.Windows.Media.Color;
+using FontFamily = System.Windows.Media.FontFamily;
+using ColorConverter = System.Windows.Media.ColorConverter;
+using Cursors = System.Windows.Input.Cursors;
+using Brushes = System.Windows.Media.Brushes;
 
 namespace ZeroMix.ZeroShell
 {
@@ -25,11 +31,10 @@ namespace ZeroMix.ZeroShell
     {
         public string Id { get; set; } = Guid.NewGuid().ToString();
         public string Title { get; set; } = "Terminal";
-        public Process? Process { get; set; }
-        public StreamWriter? Input { get; set; }
+        public PsSession? Session { get; set; }
         public ScrollViewer? ScrollViewer { get; set; }
         public TextBlock? Output { get; set; }
-        public System.Windows.Controls.Button? TabButton { get; set; }
+        public Border? TabButton { get; set; }
         public string CurrentDirectory { get; set; } = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
     }
 
@@ -43,75 +48,49 @@ namespace ZeroMix.ZeroShell
     public class FolderHistory
     {
         public Dictionary<string, int> Folders { get; set; } = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
-        
+
         public void AddFolder(string path)
         {
             if (string.IsNullOrWhiteSpace(path)) return;
             path = Path.GetFullPath(path);
-            if (Folders.ContainsKey(path))
-                Folders[path]++;
-            else
-                Folders[path] = 1;
+            if (Folders.ContainsKey(path)) Folders[path]++;
+            else Folders[path] = 1;
         }
 
         public List<string> GetTopFolders(int count = 10)
-        {
-            return Folders
-                .OrderByDescending(x => x.Value)
-                .Take(count)
-                .Select(x => x.Key)
-                .ToList();
-        }
+            => Folders.OrderByDescending(x => x.Value).Take(count).Select(x => x.Key).ToList();
     }
 
     public partial class ZeroShellWindow : Wpf.Ui.Controls.FluentWindow
     {
-        private const string CURRENT_VERSION = "6.7.0";
+        private const string CURRENT_VERSION = "7.4.1";
         private List<TerminalTab> _tabs = new List<TerminalTab>();
         private TerminalTab? _activeTab;
-
         private List<string> _commandHistory = new List<string>();
         private int _historyIndex = -1;
         private System.Windows.Threading.DispatcherTimer? _clockTimer;
         private ZeroMix.ZeroShell.Commands.ZeroShellCommandRouter? _router;
-        private DateTime _sessionStartTime = DateTime.MinValue;
         private FolderHistory _folderHistory = new FolderHistory();
         private readonly string _folderHistoryPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "ZeroMix", "folder-history.json");
-
-        // Alias system
         private Dictionary<string, string> _aliases = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
         private readonly string _aliasFilePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "ZeroShell", "aliases.json");
-
-        private int _currentFont = 1; // Default to JetBrains Mono
+        private int _currentFont = 1;
         private int _currentLayout = 0;
         private readonly string _fontFilePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "ZeroShell", "fonts.json");
         private readonly string _layoutFilePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "ZeroShell", "layouts.json");
-
-        // Selection Mode
         private bool _isSelectingFont = false;
-        private bool _isSelectingLayout = false;
         private int _tempSelectionIndex = 0;
+        private string _tempFolderName = "";
 
         private static readonly string[] FontNames = {
-            "Consolas",
-            "JetBrains Mono",
-            "Fira Code",
-            "Cascadia Mono",
-            "Courier New"
+            "Menlo", "SF Mono", "Cascadia Mono", "JetBrains Mono", "Fira Code", "Consolas"
         };
 
         private static readonly string[] LayoutNames = {
-            "Neofetch",
-            "Full Terminal",
-            "Compact",
-            "Retro Green",
-            "Cyberpunk Neon",
-            "Pixel Retro",
-            "Glass Minimalist",
-            "Tiled (Dynamic)"
+            "Default"
         };
 
-        // Framework Install Mode
+        private bool _isDisposed = false;
         private bool _isSelectingFramework = false;
         private bool _isSelectingLaravelVersion = false;
         private bool _isEnteringFolderName = false;
@@ -122,18 +101,23 @@ namespace ZeroMix.ZeroShell
         private string _selectedPath = "";
 
         private static readonly string[] FrameworkNames = {
-            "React + Vite",
-            "React JS (Standard)",
-            "React Native",
-            "Laravel"
+            "React + Vite", "React JS (Standard)", "React Native", "Laravel"
         };
-
         private static readonly string[] LaravelVersions = { "10", "11", "12" };
         private static readonly string[] PathOptions = { "Current Directory", "Desktop", "Documents", "Custom Path..." };
 
         private WdmWindow? _wdmWindow;
         private ZeroMix.Widgets.DesktopWidget? _desktopWidget;
         private readonly StartMenuInterceptor _startMenuInterceptor = new();
+
+        private List<string> _tabResults = new List<string>();
+        private int _tabIndex = -1;
+
+        private struct ThemeColors { public string Bg1, Bg2, OutputColor, InputColor, PromptColor, AccentColor; }
+
+        private static readonly ThemeColors[] Themes = {
+            new() { Bg1="#E80C0C0C", Bg2="#C0080808", OutputColor="#CCCCCC", InputColor="#E0E0E0", PromptColor="#FF00D4FF", AccentColor="#FF00D4FF" },
+        };
 
         public void EnableStartMenuInterceptor()
         {
@@ -147,150 +131,82 @@ namespace ZeroMix.ZeroShell
 
         public string? AutoRunCommand { get; set; }
 
-        private struct ThemeColors {
-            public string Bg1, Bg2, OutputColor, InputColor, PromptColor, AccentColor;
-        }
-
-        private static readonly ThemeColors[] Themes = {
-            new() { Bg1="#F5101820", Bg2="#F5080E14", OutputColor="#CCCCCC", InputColor="#EEEEEE", PromptColor="#FF27C93F", AccentColor="#FF6BDDFF" }, // Neofetch
-            new() { Bg1="#F5101820", Bg2="#F5080E14", OutputColor="#CCCCCC", InputColor="#EEEEEE", PromptColor="#FF27C93F", AccentColor="#FF6BDDFF" }, // Full
-            new() { Bg1="#F5050505", Bg2="#F5101010", OutputColor="#BBBBBB", InputColor="#FFFFFF", PromptColor="#FF00D4FF", AccentColor="#FF00D4FF" }, // Compact
-            new() { Bg1="#F50A1A0A", Bg2="#F5051205", OutputColor="#FF33FF33", InputColor="#FF33FF33", PromptColor="#FF00FF00", AccentColor="#FF00AA00" }, // Retro Green
-            new() { Bg1="#F51A0825", Bg2="#F5100520", OutputColor="#FFEE66FF", InputColor="#FF00FFFF", PromptColor="#FFFF00FF", AccentColor="#FF00D4FF" }, // Cyberpunk
-            new() { Bg1="#F5202020", Bg2="#F5101010", OutputColor="#FFFFDA6B", InputColor="#FFFFFFFF", PromptColor="#FFFF6B6B", AccentColor="#FFFF9F43" }, // Pixel Retro
-            new() { Bg1="#33080E14", Bg2="#22000000", OutputColor="#EEEEEE", InputColor="#FFFFFF", PromptColor="#FF00D4FF", AccentColor="#FF00D4FF" }, // Glass Minimalist
-            new() { Bg1="#CC0F111A", Bg2="#CC080E14", OutputColor="#FFFFFF", InputColor="#FFFFFF", PromptColor="#00D4FF", AccentColor="#00D4FF" }, // NeoFast
-        };
-
-        // Tab completion
-        private List<string> _tabResults = new List<string>();
-        private int _tabIndex = -1;
-        private string _tabOriginal = "";
-
-        public ZeroShellWindow() 
-        { 
-            InitializeComponent(); 
+        public ZeroShellWindow()
+        {
+            InitializeComponent();
             LoadSettings();
             LoadAliases();
             LoadFolderHistory();
             InitializeSettingsUI();
 
-            // Register command handlers (Command Pattern)
             try
             {
                 _router = new ZeroMix.ZeroShell.Commands.ZeroShellCommandRouter();
-                
-                // Core commands: cls, clear, !help, ?, !clock
-                _router.Register(new ZeroMix.ZeroShell.Commands.CoreCommands(
-                    PrintHeader,
-                    (action, param1, param2) => {
-                        if (action == "toggle") {
-                            if (ClockArea.Visibility == Visibility.Visible) {
-                                ClockArea.Visibility = Visibility.Collapsed;
-                                ClockRow.Height = new GridLength(0);
-                            } else {
-                                ClockArea.Visibility = Visibility.Visible;
-                                ClockRow.Height = new GridLength(180);
-                            }
-                        }
-                    }
-                ));
-
-                // Tab management: !tab, !close, !settings
-                _router.Register(new ZeroMix.ZeroShell.Commands.TabCommands(
-                    () => AddTab($"Session {_tabs.Count + 1}"),
-                    CloseActiveTab,
-                    () => GearBtn_Click(this, new RoutedEventArgs())
-                ));
-
-                // System info: !task, !sys, !wifi, !ip, !battery, !disk, !apps, !startup
+                _router.Register(new ZeroMix.ZeroShell.Commands.CoreCommands(PrintHeader, (action, p1, p2) => {}));
+                _router.Register(new ZeroMix.ZeroShell.Commands.TabCommands(() => AddTab($"Session {_tabs.Count + 1}"), CloseActiveTab, () => GearBtn_Click(this, new RoutedEventArgs())));
                 _router.Register(new ZeroMix.ZeroShell.Commands.SystemInfoCommands());
-
-                // Visual commands: !font, !layout, !alias, !unalias
-                _router.Register(new ZeroMix.ZeroShell.Commands.VisualCommands(
-                    (tab) => ShowSelectionMenu(),
-                    _aliases,
-                    SaveAliases,
-                    (idx) => _currentFont = idx,
-                    (idx) => _currentLayout = idx,
-                    ApplyFont,
-                    ApplyLayout
+                _router.Register(new ZeroMix.ZeroShell.Commands.VisualCommands((tab) => ShowSelectionMenu(), _aliases, SaveAliases, (idx) => _currentFont = idx, (idx) => _currentLayout = idx, ApplyFont, ApplyLayout));
+                _router.Register(new ZeroMix.ZeroShell.Commands.ToolsCommands(
+                    (tab) => ShowSelectionMenu(), () => this.Close(),
+                    (wdm, tab) => { if (wdm != null) { if (_wdmWindow == null || !_wdmWindow.IsVisible) { _wdmWindow = wdm; _wdmWindow.Show(); } else { _wdmWindow.Activate(); } } },
+                    (tab) => { if (_desktopWidget == null || !_desktopWidget.IsVisible) { _desktopWidget = new ZeroMix.Widgets.DesktopWidget(); _desktopWidget.Show(); } else { _desktopWidget.Shutdown(); _desktopWidget = null; } },
+                    (tab) => { if (_startMenuInterceptor.IsEnabled) _startMenuInterceptor.Disable(); else _startMenuInterceptor.Enable(); },
+                    (tab) => { ShellHelper.EnumAllWindows((hwnd, cls) => { switch (cls) { case "Shell_TrayWnd": case "Shell_SecondaryTrayWnd": case "CabinetWClass": case "ExplorerWClass": ShellHelper.DisableAccent(hwnd); break; } }); ShellHelper.ApplyNotificationStyle(new WdmEntry { Style = WdmStyle.None }); ShellHelper.StopWatcher(); _startMenuInterceptor.Disable(); _desktopWidget?.Shutdown(); _desktopWidget = null; },
+                    (tab) => { var taskbarEntry = new WdmEntry { Style = WdmStyle.AcrylicDark, Alpha = 0xDD, ColorHex = "#000000", AutoApply = false }; var explorerEntry = new WdmEntry { Style = WdmStyle.AcrylicDark, Alpha = 0xBB, ColorHex = "#000000", AutoApply = false }; ShellHelper.EnumAllWindows((hwnd, cls) => { if (cls == "Shell_TrayWnd" || cls == "Shell_SecondaryTrayWnd") ShellHelper.ApplyStyle(hwnd, taskbarEntry); else if (cls == "CabinetWClass" || cls == "ExplorerWClass") ShellHelper.ApplyStyle(hwnd, explorerEntry); }); },
+                    (cmd) => RunProfessionalTasks(), AutoRunCommand
                 ));
 
-                // Tools commands: !install, !wdm, !startmenu, !restore, !desktop, !notepad, !everglass, !exit, !tasks
-                _router.Register(new ZeroMix.ZeroShell.Commands.ToolsCommands(
-                    (tab) => ShowSelectionMenu(),
-                    () => this.Close(),
-                    (wdm, tab) => { 
-                        if (wdm != null) { 
-                            if (_wdmWindow == null || !_wdmWindow.IsVisible) { 
-                                _wdmWindow = wdm; 
-                                _wdmWindow.Show(); 
-                            } else { 
-                                _wdmWindow.Activate(); 
-                            } 
-                        } 
+                // CatchAll registered LAST — handles alias expansion, cd tracking, PsSession fallthrough
+                _router.Register(new ZeroMix.ZeroShell.Commands.CatchAllCommands(
+                    aliasExpander: (cmd) =>
+                    {
+                        string first = cmd.Split(' ')[0];
+                        if (_aliases.ContainsKey(first))
+                        {
+                            string expanded = _aliases[first];
+                            if (cmd.Length > first.Length) expanded += cmd.Substring(first.Length);
+                            return expanded;
+                        }
+                        return cmd;
                     },
-                    (tab) => {
-                        if (_desktopWidget == null || !_desktopWidget.IsVisible) { 
-                            _desktopWidget = new ZeroMix.Widgets.DesktopWidget(); 
-                            _desktopWidget.Show(); 
-                        } else { 
-                            _desktopWidget.Shutdown(); 
-                            _desktopWidget = null; 
+                    onCdFolder: (folderPath) =>
+                    {
+                        _folderHistory.AddFolder(folderPath);
+                        SaveFolderHistory();
+                    },
+                    sendToSession: (tab, cmd) =>
+                    {
+                        if (tab.Session != null && tab.Session.IsRunning)
+                        {
+                            try { _ = tab.Session.ExecuteAsync(cmd); }
+                            catch (Exception ex) { AppendToTab(tab, $"  ⚠ Shell error: {ex.Message}\n", "#FF5555"); }
+                        }
+                        else
+                        {
+                            AppendToTab(tab, "  ⚠ Shell not running. Type a command to restart.\n", "#FFFF9F43");
+                            _ = Task.Run(() => { try { tab.Session?.Restart(); } catch { } });
                         }
                     },
-                    (tab) => {
-                        if (_startMenuInterceptor.IsEnabled) 
-                            _startMenuInterceptor.Disable(); 
-                        else 
-                            _startMenuInterceptor.Enable();
+                    getCurrentDir: (tab) => tab.CurrentDirectory,
+                    updateLocalDir: (tab, dir) =>
+                    {
+                        tab.CurrentDirectory = dir;
+                        UpdatePrompt();
                     },
-                    (tab) => {
-                        // restore all styles (used by !restore)
-                        ShellHelper.EnumAllWindows((hwnd, cls) => {
-                            switch (cls) { 
-                                case "Shell_TrayWnd": 
-                                case "Shell_SecondaryTrayWnd": 
-                                case "CabinetWClass": 
-                                case "ExplorerWClass": 
-                                    ShellHelper.DisableAccent(hwnd); 
-                                    break; 
-                            }
-                        });
-                        ShellHelper.ApplyNotificationStyle(new WdmEntry { Style = WdmStyle.None });
-                        ShellHelper.StopWatcher();
-                        _startMenuInterceptor.Disable();
-                        _desktopWidget?.Shutdown();
-                        _desktopWidget = null;
-                    },
-                    (tab) => {
-                        // apply everglass
-                        var taskbarEntry = new WdmEntry { Style = WdmStyle.AcrylicDark, Alpha = 0xDD, ColorHex = "#000000", AutoApply = false };
-                        var explorerEntry = new WdmEntry { Style = WdmStyle.AcrylicDark, Alpha = 0xBB, ColorHex = "#000000", AutoApply = false };
-                        ShellHelper.EnumAllWindows((hwnd, cls) => {
-                            if (cls == "Shell_TrayWnd" || cls == "Shell_SecondaryTrayWnd") ShellHelper.ApplyStyle(hwnd, taskbarEntry);
-                            else if (cls == "CabinetWClass" || cls == "ExplorerWClass") ShellHelper.ApplyStyle(hwnd, explorerEntry);
-                        });
-                    },
-                    (cmd) => RunProfessionalTasks(),
-                    AutoRunCommand
+                    getPromptColor: () => Themes[_currentLayout].PromptColor
                 ));
             }
-            catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"Router registration error: {ex.Message}"); }
+            catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"Router error: {ex.Message}"); }
         }
 
         private void InitializeSettingsUI()
         {
-            // Populate System Fonts (Filter for Monospace icons if possible)
-            var families = Fonts.SystemFontFamilies.OrderBy(f => f.Source).ToList();
-            FontCombo.ItemsSource = families;
-            FontCombo.DisplayMemberPath = "Source";
-            
-            // Set current font as selected
-            var current = families.FirstOrDefault((System.Windows.Media.FontFamily f) => f.Source == FontNames[_currentFont]);
-            if (current != null) FontCombo.SelectedItem = current;
+            // Show only curated monospace fonts, not all system fonts
+            FontCombo.ItemsSource = FontNames;
+            FontCombo.SelectedIndex = _currentFont;
         }
+
+        #region Event Handlers
 
         private void GearBtn_Click(object sender, RoutedEventArgs e)
         {
@@ -298,13 +214,12 @@ namespace ZeroMix.ZeroShell
                 SettingsOverlay.Visibility = Visibility.Collapsed;
             else
             {
-                // Sync nilai saat ini ke UI settings sebelum tampil
                 if (_activeTab?.Output != null)
                 {
                     FontSizeSlider.Value = _activeTab.Output.FontSize;
-                    var current = (FontCombo.ItemsSource as IEnumerable<System.Windows.Media.FontFamily>)
-                        ?.FirstOrDefault(f => f.Source == _activeTab.Output.FontFamily?.Source);
-                    if (current != null) FontCombo.SelectedItem = current;
+                    string src = _activeTab.Output.FontFamily?.Source ?? "";
+                    int idx = Array.IndexOf(FontNames, src);
+                    if (idx >= 0) FontCombo.SelectedIndex = idx;
                 }
                 SettingsOverlay.Visibility = Visibility.Visible;
             }
@@ -312,156 +227,209 @@ namespace ZeroMix.ZeroShell
 
         private void SaveSettings_Click(object sender, RoutedEventArgs e)
         {
-            // Apply Font from UI
-            if (FontCombo.SelectedItem is System.Windows.Media.FontFamily selectedFont)
+            if (FontCombo.SelectedItem is string fontName)
             {
-                // Find index in FontNames or update FontNames
-                string name = selectedFont.Source;
-                int idx = Array.IndexOf(FontNames, name);
+                int idx = Array.IndexOf(FontNames, fontName);
                 if (idx >= 0) _currentFont = idx;
-                else {
-                    // Update the active terminal font directly if not in fixed list
-                    if (_activeTab?.Output != null) _activeTab.Output.FontFamily = selectedFont;
-                }
             }
-
-            // Apply Font Size
             if (_activeTab?.Output != null) _activeTab.Output.FontSize = FontSizeSlider.Value;
-            
-            // Apply Opacity to MainBorder
-            MainBorder.Background.Opacity = OpacitySlider.Value;
-
-            // Apply Wallpaper if exists
+            ApplyFont();
+            MainBorder.Background = new SolidColorBrush(Color.FromRgb(0x0C, 0x0C, 0x0C)) { Opacity = OpacitySlider.Value };
             if (!string.IsNullOrEmpty(WallpaperPathText.Text) && WallpaperPathText.Text != "No Image Selected")
-            {
                 ApplyWallpaper(WallpaperPathText.Text);
-            }
-
-            // Hide Settings
             SettingsOverlay.Visibility = Visibility.Collapsed;
-            
-            if (_activeTab != null)
-                AppendToTab(_activeTab, "\n  ✅ Settings saved!\n\n", "#FF27C93F");
+            if (_activeTab != null) AppendToTab(_activeTab, "\n  ✅ Settings saved!\n\n", "#FF27C93F");
         }
 
+
+
+        private void HelpBtn_Click(object sender, MouseButtonEventArgs e)
+        {
+            if (_activeTab == null) return;
+            AppendToTab(_activeTab, "\n  📖 ZEROMIX SHELL HELP\n", "#00D4FF");
+            AppendToTab(_activeTab, "  ─────────────────────────────────────\n", "#00D4FF");
+            AppendToTab(_activeTab, "  !help              Show this help\n", "#E0E0E0");
+            AppendToTab(_activeTab, "  !tasks             Run system tasks\n", "#E0E0E0");
+            AppendToTab(_activeTab, "  !font              Change font\n", "#E0E0E0");
+            AppendToTab(_activeTab, "  !layout            Change layout\n", "#E0E0E0");
+            AppendToTab(_activeTab, "  !settings          Open settings\n", "#E0E0E0");
+            AppendToTab(_activeTab, "  !sys               System info\n", "#E0E0E0");
+            AppendToTab(_activeTab, "  !wifi              WiFi passwords\n", "#E0E0E0");
+            AppendToTab(_activeTab, "  !ip                IP info\n", "#E0E0E0");
+            AppendToTab(_activeTab, "  !battery           Battery status\n", "#E0E0E0");
+            AppendToTab(_activeTab, "  !disk              Disk usage\n", "#E0E0E0");
+            AppendToTab(_activeTab, "  !wdm               WDM window\n", "#E0E0E0");
+            AppendToTab(_activeTab, "  !desktop           Desktop widget\n", "#E0E0E0");
+            AppendToTab(_activeTab, "  !tab               New tab\n", "#E0E0E0");
+            AppendToTab(_activeTab, "  !close             Close tab\n", "#E0E0E0");
+            AppendToTab(_activeTab, "  !install           Install framework\n", "#E0E0E0");
+            AppendToTab(_activeTab, "  cls / clear        Clear terminal\n", "#E0E0E0");
+            AppendToTab(_activeTab, "  !exit              Close terminal\n\n", "#E0E0E0");
+        }
+
+        #endregion
+
         #region Settings Persistence
+
         private void LoadSettings()
         {
-            try {
-                if (File.Exists(_fontFilePath)) {
-                    string json = File.ReadAllText(_fontFilePath);
-                    _currentFont = JsonSerializer.Deserialize<int>(json);
-                }
-                if (File.Exists(_layoutFilePath)) {
-                    string json = File.ReadAllText(_layoutFilePath);
-                    _currentLayout = JsonSerializer.Deserialize<int>(json);
-                }
-            } catch { }
+            try
+            {
+                if (File.Exists(_fontFilePath)) _currentFont = JsonSerializer.Deserialize<int>(File.ReadAllText(_fontFilePath));
+                if (File.Exists(_layoutFilePath)) _currentLayout = JsonSerializer.Deserialize<int>(File.ReadAllText(_layoutFilePath));
+            }
+            catch { }
+            _currentFont = Math.Clamp(_currentFont, 0, FontNames.Length - 1);
+            _currentLayout = 0;
         }
 
         private void SaveSettings()
         {
-            try {
+            try
+            {
                 string dir = Path.GetDirectoryName(_fontFilePath) ?? "";
                 if (!Directory.Exists(dir)) Directory.CreateDirectory(dir);
                 File.WriteAllText(_fontFilePath, JsonSerializer.Serialize(_currentFont));
                 File.WriteAllText(_layoutFilePath, JsonSerializer.Serialize(_currentLayout));
-            } catch { }
+            }
+            catch { }
         }
+
         #endregion
 
-        #region Alias Storage
+        #region Alias
+
         private void LoadAliases()
         {
-            try {
-                if (File.Exists(_aliasFilePath)) {
-                    string json = File.ReadAllText(_aliasFilePath);
-                    var data = JsonSerializer.Deserialize<Dictionary<string, string>>(json);
-                    if (data != null) _aliases = data;
-                }
-            } catch { }
+            try { if (File.Exists(_aliasFilePath)) _aliases = JsonSerializer.Deserialize<Dictionary<string, string>>(File.ReadAllText(_aliasFilePath)) ?? _aliases; }
+            catch { }
         }
-
         private void SaveAliases()
         {
-            try {
-                string dir = Path.GetDirectoryName(_aliasFilePath) ?? "";
-                if (!Directory.Exists(dir)) Directory.CreateDirectory(dir);
-                string json = JsonSerializer.Serialize(_aliases, new JsonSerializerOptions { WriteIndented = true });
-                File.WriteAllText(_aliasFilePath, json);
-            } catch { }
+            try { string dir = Path.GetDirectoryName(_aliasFilePath) ?? ""; if (!Directory.Exists(dir)) Directory.CreateDirectory(dir); File.WriteAllText(_aliasFilePath, JsonSerializer.Serialize(_aliases, new JsonSerializerOptions { WriteIndented = true })); }
+            catch { }
         }
+
         #endregion
 
         #region Folder History
+
         private void LoadFolderHistory()
         {
-            try {
-                if (File.Exists(_folderHistoryPath)) {
-                    string json = File.ReadAllText(_folderHistoryPath);
-                    var loaded = JsonSerializer.Deserialize<FolderHistory>(json);
-                    if (loaded != null) _folderHistory = loaded;
-                }
-            } catch { }
+            try { if (File.Exists(_folderHistoryPath)) _folderHistory = JsonSerializer.Deserialize<FolderHistory>(File.ReadAllText(_folderHistoryPath)) ?? _folderHistory; }
+            catch { }
         }
-
         private void SaveFolderHistory()
         {
-            try {
-                string dir = Path.GetDirectoryName(_folderHistoryPath) ?? "";
-                if (!Directory.Exists(dir)) Directory.CreateDirectory(dir);
-                string json = JsonSerializer.Serialize(_folderHistory, new JsonSerializerOptions { WriteIndented = true });
-                File.WriteAllText(_folderHistoryPath, json);
-            } catch { }
+            try { string dir = Path.GetDirectoryName(_folderHistoryPath) ?? ""; if (!Directory.Exists(dir)) Directory.CreateDirectory(dir); File.WriteAllText(_folderHistoryPath, JsonSerializer.Serialize(_folderHistory, new JsonSerializerOptions { WriteIndented = true })); }
+            catch { }
         }
+
         #endregion
 
         #region Tab Management
+
         private void AddTab(string title = "Terminal")
         {
             var tab = new TerminalTab { Title = title };
-            
-            // Create UI
-            tab.Output = new TextBlock {
-                Foreground = new SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString(Themes[_currentLayout].OutputColor)),
-                FontFamily = new System.Windows.Media.FontFamily(FontNames[_currentFont]),
-                FontWeight = FontWeights.Bold,
-                FontSize = 14,
+            tab.Output = new TextBlock
+            {
+                Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString(Themes[_currentLayout].OutputColor)),
+                FontFamily = new FontFamily(FontNames[_currentFont]),
+                FontWeight = FontWeights.Normal,
+                FontSize = 13,
                 TextWrapping = TextWrapping.Wrap,
-                LineHeight = 22
+                LineHeight = 20
             };
 
-            tab.ScrollViewer = new ScrollViewer {
+            tab.ScrollViewer = new ScrollViewer
+            {
                 VerticalScrollBarVisibility = ScrollBarVisibility.Hidden,
                 Margin = new Thickness(0),
                 Content = tab.Output
             };
 
-            // Create Tab Button
-            tab.TabButton = new System.Windows.Controls.Button {
-                Content = title,
-                Margin = new Thickness(0, 0, 5, 0),
-                Padding = new Thickness(12, 5, 12, 5),
-                Background = new SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#15FFFFFF")),
-                Foreground = System.Windows.Media.Brushes.White,
-                BorderThickness = new Thickness(0),
-                Cursor = System.Windows.Input.Cursors.Hand
+            // Segmented control tab button (macOS style)
+            tab.TabButton = new Border
+            {
+                Padding = new Thickness(14, 3, 14, 3),
+                CornerRadius = new CornerRadius(6),
+                Background = Brushes.Transparent,
+                Cursor = Cursors.Hand,
+                Margin = new Thickness(2, 0, 2, 0),
+                BorderBrush = Brushes.Transparent,
+                BorderThickness = new Thickness(0.5)
             };
-            tab.TabButton.Click += (s, e) => SwitchToTab(tab);
+            var tb = new TextBlock
+            {
+                Text = title,
+                Foreground = new SolidColorBrush(Color.FromArgb(0x77, 0xE0, 0xE0, 0xE0)),
+                FontSize = 11,
+                FontFamily = new FontFamily("Segoe UI")
+            };
+            tab.TabButton.Child = tb;
+            tab.TabButton.MouseLeftButtonDown += (s, e) => SwitchToTab(tab);
 
-            // Start Process (Restored for standard commands like ls, cd, dir)
-            try {
-                tab.Process = StartShellProcess();
-                tab.Input = tab.Process.StandardInput;
-                tab.Input.AutoFlush = true;
-                Task.Run(() => ReadOutputAsync(tab.Process.StandardOutput, tab));
-                Task.Run(() => ReadOutputAsync(tab.Process.StandardError, tab));
-            } catch { }
+            // ── Start real PowerShell session ──
+            try
+            {
+                var session = new PsSession(tab.CurrentDirectory);
+
+                session.OutputData += (text) =>
+                {
+                    if (!_isDisposed) Dispatcher.Invoke(() =>
+                    {
+                        AppendToTab(tab, text, Themes[_currentLayout].OutputColor);
+                        // Auto-scroll on newlines or large output
+                        if (text.Contains("\r\n") || text.Length > 500)
+                            tab.ScrollViewer?.ScrollToEnd();
+                    });
+                };
+
+                session.ErrorData += (text) =>
+                {
+                    if (!_isDisposed) Dispatcher.Invoke(() =>
+                    {
+                        AppendToTab(tab, text, "#FF5555");
+                        tab.ScrollViewer?.ScrollToEnd();
+                    });
+                };
+
+                session.DirectoryChanged += (newDir) =>
+                {
+                    if (!_isDisposed) Dispatcher.Invoke(() =>
+                    {
+                        tab.CurrentDirectory = newDir;
+                        UpdatePrompt();
+                    });
+                };
+
+                session.ProcessTerminated += (msg) =>
+                {
+                    // Original DirectoryChanged handler is still subscribed on the same PsSession instance,
+                    // so the hook survives the restart automatically. Only show a UI notice.
+                    if (!_isDisposed) Dispatcher.Invoke(() =>
+                    {
+                        if (tab == _activeTab && tab.Output != null)
+                        {
+                            AppendToTab(tab, $"\n  ⚡ {msg}\n  🔄 Auto-restarting PowerShell...\n\n", "#FFFF9F43");
+                            tab.ScrollViewer?.ScrollToEnd();
+                        }
+                    });
+                };
+
+                session.Start();
+                tab.Session = session;
+            }
+            catch (Exception ex)
+            {
+                AppendToTab(tab, $"\n  ❌ Failed to start shell: {ex.Message}\n", "#FF5555");
+                AppendToTab(tab, "  ℹ Make sure PowerShell (pwsh.exe or powershell.exe) is installed.\n\n", "#888888");
+            }
 
             _tabs.Add(tab);
             TabBar.Children.Add(tab.TabButton);
             TerminalsContainer.Children.Add(tab.ScrollViewer);
-
             SwitchToTab(tab);
             PrintHeader(tab);
             UpdatePrompt();
@@ -472,61 +440,48 @@ namespace ZeroMix.ZeroShell
             if (_activeTab == null) return;
             string path = _activeTab.CurrentDirectory;
             string displayPath = path;
-
             string home = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
-            if (path.StartsWith(home, StringComparison.OrdinalIgnoreCase)) {
+            if (path.StartsWith(home, StringComparison.OrdinalIgnoreCase))
                 displayPath = "~" + path.Substring(home.Length);
-            }
 
-            if (PromptUserText != null) PromptUserText.Text = $" {Environment.UserName} ";
-            if (PromptText != null) PromptText.Text = $" {displayPath.Replace("\\", "/")} ";
-            if (StatusPathText != null) StatusPathText.Text = $" {displayPath} ";
-            if (InfoPathText != null) InfoPathText.Text = displayPath.Replace("\\", "/");
-            
-            // Tab button text sync
-            if (_activeTab.TabButton != null) _activeTab.TabButton.Content = _activeTab.Title;
+            // zsh macOS format: user@hostname ~ %
+            PromptUserText.Text = Environment.UserName;
+            if (PromptHostText != null)
+                PromptHostText.Text = Environment.MachineName.ToLower();
+            PromptText.Text = displayPath.Replace("\\", "/");
+            if (_activeTab.TabButton?.Child is TextBlock tbt) tbt.Text = _activeTab.Title;
         }
 
         private void PrintHeader(TerminalTab tab)
         {
             if (tab == null) return;
             AppendToTab(tab, "\n", "#CCCCCC");
-            
-            // Minimalist Professional Header
-            string headerText = $"  ZERO MIX SHELL [Version {CURRENT_VERSION}]\n";
-            string subHeader = $"  (c) 2026 ZeroMix Corporation. All rights reserved.\n";
-            
-            AppendToTab(tab, headerText, "#00D4FF");
-            AppendToTab(tab, subHeader, "#888888");
-            AppendToTab(tab, "\n", "#CCCCCC");
-            
-            // Brief session info
-            string sessionInfo = $"  Session: {tab.Title} | User: {Environment.UserName} | Host: {Environment.MachineName.ToLower()}\n";
-            AppendToTab(tab, sessionInfo, "#FF27C93F");
-            AppendToTab(tab, "  ──────────────────────────────────────────────────────────────────────────\n\n", "#44FFFFFF");
+            AppendToTab(tab, $"  ZeroMix Shell [{CURRENT_VERSION}] — {Environment.UserName}@{Environment.MachineName.ToLower()}\n", "#00D4FF");
+            AppendToTab(tab, $"  Type !help for available commands.\n\n", "#444444");
         }
-
-        private string GetSimpleCPU() => "Intel Core i5-1035G1"; // Placeholder or detected
-        private string GetSimpleRAM() => "8GB / 16GB (50%)"; // Placeholder or detected
 
         private void SwitchToTab(TerminalTab tab)
         {
             _activeTab = tab;
-            foreach (var t in _tabs) {
+            foreach (var t in _tabs)
+            {
                 if (t.ScrollViewer != null) t.ScrollViewer.Visibility = Visibility.Collapsed;
-                if (t.TabButton != null) {
-                    t.TabButton.Background = new SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#05FFFFFF"));
-                    t.TabButton.BorderBrush = System.Windows.Media.Brushes.Transparent;
+                if (t.TabButton != null)
+                {
+                    t.TabButton.Background = Brushes.Transparent;
+                    t.TabButton.BorderBrush = Brushes.Transparent;
+                    if (t.TabButton.Child is TextBlock tbt)
+                        tbt.Foreground = new SolidColorBrush(Color.FromArgb(0x66, 0xE0, 0xE0, 0xE0));
                 }
             }
-
             if (tab.ScrollViewer != null) tab.ScrollViewer.Visibility = Visibility.Visible;
-            if (tab.TabButton != null) {
-                tab.TabButton.Background = new SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#2000D4FF"));
-                tab.TabButton.BorderBrush = new SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#4000D4FF"));
-                tab.TabButton.BorderThickness = new Thickness(0,0,0,2);
+            if (tab.TabButton != null)
+            {
+                tab.TabButton.Background = new SolidColorBrush(Color.FromArgb(0x28, 0xFF, 0xFF, 0xFF));
+                tab.TabButton.BorderBrush = new SolidColorBrush(Color.FromArgb(0x33, 0xFF, 0xFF, 0xFF));
+                if (tab.TabButton.Child is TextBlock tbt)
+                    tbt.Foreground = Brushes.White;
             }
-            
             UpdatePrompt();
             TerminalInput.Focus();
         }
@@ -534,158 +489,80 @@ namespace ZeroMix.ZeroShell
         private void CloseActiveTab()
         {
             if (_tabs.Count <= 1 || _activeTab == null) return;
-
             var toClose = _activeTab;
             int index = _tabs.IndexOf(toClose);
-
-            try { if (toClose.Process != null && !toClose.Process.HasExited) toClose.Process.Kill(); } catch { }
-
+            toClose.Session?.Dispose();
             _tabs.Remove(toClose);
             TabBar.Children.Remove(toClose.TabButton);
             TerminalsContainer.Children.Remove(toClose.ScrollViewer);
-
-            int nextIndex = Math.Max(0, index - 1);
-            SwitchToTab(_tabs[nextIndex]);
+            SwitchToTab(_tabs[Math.Max(0, index - 1)]);
         }
+
         #endregion
 
-        #region System Info
-        private void LoadNeofetchInfo()
-        {
-            // Info is now handled side-by-side in PrintHeader
-        }
-
-        private void LoadAnimeCharacter()
-        {
-            // Character image removed for modern Tiled look
-        }
-        #endregion
-
-        #region Terminal Process
-        private Process StartShellProcess()
-        {
-            string shellExe = "pwsh.exe";
-            try { 
-                Process.Start(new ProcessStartInfo(shellExe, "--version") { CreateNoWindow = true, UseShellExecute = false })?.WaitForExit(500); 
-            } catch { shellExe = "powershell.exe"; }
-
-            // Prompt sederhana — tidak pakai ANSI escape agar tidak ParserError di semua versi PS
-            string promptScript = @"
-[Console]::OutputEncoding = [System.Text.Encoding]::UTF8
-function prompt {
-    $p = $ExecutionContext.SessionState.Path.CurrentLocation
-    $user = [Environment]::UserName
-    $host_ = [Environment]::MachineName
-    return ""$user@$host_ $p> ""
-}
-Clear-Host
-";
-            // Encode ke Base64 agar tidak ada quoting issue
-            string encoded = Convert.ToBase64String(System.Text.Encoding.Unicode.GetBytes(promptScript));
-
-            var proc = new Process();
-            proc.StartInfo = new ProcessStartInfo {
-                FileName = shellExe,
-                Arguments = $"-NoLogo -NoProfile -ExecutionPolicy Bypass -NoExit -EncodedCommand {encoded}",
-                WorkingDirectory = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
-                UseShellExecute = false,
-                RedirectStandardInput = true,
-                RedirectStandardOutput = true,
-                RedirectStandardError = true,
-                CreateNoWindow = true,
-                StandardOutputEncoding = Encoding.UTF8
-            };
-
-            proc.Start();
-            return proc;
-        }
-
-        private async Task ReadOutputAsync(StreamReader reader, TerminalTab tab)
-        {
-            char[] buf = new char[1024];
-            while (!reader.EndOfStream)
-            {
-                int n = await reader.ReadAsync(buf, 0, buf.Length);
-                if (n > 0) {
-                    string text = new string(buf, 0, n);
-                    Dispatcher.Invoke(() => {
-                        AppendToTab(tab, text, Themes[_currentLayout].OutputColor);
-                        // Batch scroll for performance
-                        if (text.Contains("\n") || text.Length > 500) tab.ScrollViewer?.ScrollToEnd();
-                    });
-                }
-            }
-        }
+        #region Terminal Output
 
         private void AppendToTab(TerminalTab tab, string text, string defaultHex)
         {
             if (tab.Output == null) return;
-
-            // Simple ANSI Parser for basic colors
             var parts = Regex.Split(text, @"(\x1b\[[0-9;]*m)");
             string currentHex = defaultHex;
 
             foreach (var part in parts)
             {
                 if (string.IsNullOrEmpty(part)) continue;
-
                 if (part.StartsWith("\x1b["))
                 {
-                    // Escape sequence - update currentHex
-                    if (part.Contains("31m")) currentHex = "#FF5555"; // Red
-                    else if (part.Contains("32m")) currentHex = "#50FA7B"; // Green
-                    else if (part.Contains("33m")) currentHex = "#F1FA8C"; // Yellow
-                    else if (part.Contains("34m")) currentHex = "#8BE9FD"; // Cyan (using lighter)
-                    else if (part.Contains("35m")) currentHex = "#FF79C6"; // Magenta
-                    else if (part.Contains("36m")) currentHex = "#8BE9FD"; // Cyan
-                    else if (part.Contains("90m")) currentHex = "#6272A4"; // Dark Gray
-                    else if (part.Contains("0m")) currentHex = defaultHex; // Reset
+                    if (part.Contains("31m")) currentHex = "#FF5555";
+                    else if (part.Contains("32m")) currentHex = "#50FA7B";
+                    else if (part.Contains("33m")) currentHex = "#F1FA8C";
+                    else if (part.Contains("34m") || part.Contains("36m")) currentHex = "#8BE9FD";
+                    else if (part.Contains("35m")) currentHex = "#FF79C6";
+                    else if (part.Contains("90m")) currentHex = "#6272A4";
+                    else if (part.Contains("0m")) currentHex = defaultHex;
                     continue;
                 }
 
-                var run = new Run(part) { 
-                    Foreground = new SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString(currentHex)) 
-                };
-                tab.Output.Inlines.Add(run);
+                tab.Output.Inlines.Add(new Run(part)
+                {
+                    Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString(currentHex))
+                });
             }
 
-            if (tab.Output.Inlines.Count > 1500) 
-            {
-                for(int i=0; i<100; i++) tab.Output.Inlines.Remove(tab.Output.Inlines.FirstInline);
-            }
+            if (tab.Output.Inlines.Count > 1500)
+                for (int i = 0; i < 100; i++) tab.Output.Inlines.Remove(tab.Output.Inlines.FirstInline);
             tab.ScrollViewer?.ScrollToEnd();
         }
+
         #endregion
 
-        #region Tab Auto-Complete
+        #region Auto-Complete
+
         private void DoTabComplete()
         {
             string input = TerminalInput.Text;
-            if (_tabIndex >= 0 && _tabResults.Count > 0) {
+            if (_tabIndex >= 0 && _tabResults.Count > 0)
+            {
                 _tabIndex = (_tabIndex + 1) % _tabResults.Count;
                 TerminalInput.Text = _tabResults[_tabIndex];
                 TerminalInput.CaretIndex = TerminalInput.Text.Length;
                 return;
             }
 
-            _tabOriginal = input;
             string toComplete = input;
             string prefix = "";
-
             int lastSpace = input.LastIndexOf(' ');
-            if (lastSpace >= 0) {
-                prefix = input.Substring(0, lastSpace + 1);
-                toComplete = input.Substring(lastSpace + 1);
-            }
+            if (lastSpace >= 0) { prefix = input.Substring(0, lastSpace + 1); toComplete = input.Substring(lastSpace + 1); }
 
             _tabResults.Clear();
             _tabIndex = -1;
 
-            try {
+            try
+            {
                 string dir = ".";
                 string pattern = toComplete + "*";
-
-                if (toComplete.Contains('\\') || toComplete.Contains('/')) {
+                if (toComplete.Contains('\\') || toComplete.Contains('/'))
+                {
                     int sep = Math.Max(toComplete.LastIndexOf('\\'), toComplete.LastIndexOf('/'));
                     dir = toComplete.Substring(0, sep + 1);
                     pattern = toComplete.Substring(sep + 1) + "*";
@@ -693,219 +570,141 @@ Clear-Host
                 }
 
                 string searchDir = dir;
-                if (!Path.IsPathRooted(searchDir)) {
-                    searchDir = Path.Combine(_activeTab!.CurrentDirectory, searchDir);
+                if (!Path.IsPathRooted(searchDir)) searchDir = Path.Combine(_activeTab!.CurrentDirectory, searchDir);
+
+                if (Directory.Exists(searchDir))
+                {
+                    _tabResults.AddRange(Directory.GetDirectories(searchDir, pattern).Take(15).Select(d => prefix + (dir == "." ? "" : dir) + Path.GetFileName(d) + "\\"));
+                    _tabResults.AddRange(Directory.GetFiles(searchDir, pattern).Take(15).Select(f => prefix + (dir == "." ? "" : dir) + Path.GetFileName(f)));
                 }
 
-                if (Directory.Exists(searchDir)) {
-                    var dirs = Directory.GetDirectories(searchDir, pattern).Take(15)
-                        .Select(d => prefix + (dir == "." ? "" : dir) + Path.GetFileName(d) + "\\");
-                    var files = Directory.GetFiles(searchDir, pattern).Take(15)
-                        .Select(f => prefix + (dir == "." ? "" : dir) + Path.GetFileName(f));
-                    _tabResults.AddRange(dirs);
-                    _tabResults.AddRange(files);
+                if (string.IsNullOrEmpty(prefix) && toComplete.StartsWith("!"))
+                {
+                    string[] cmds = { "!help", "!wifi", "!sys", "!ip", "!battery", "!disk", "!apps", "!startup", "!font", "!layout", "!tab", "!close", "!alias", "!unalias", "!install", "!exit", "!wdm", "!desktop", "!clock", "!startmenu", "!restore", "!settings" };
+                    _tabResults.AddRange(cmds.Where(c => c.StartsWith(toComplete, StringComparison.OrdinalIgnoreCase)));
                 }
 
-        if (string.IsNullOrEmpty(prefix) && toComplete.StartsWith("!")) {
-            string[] cmds = { "!help", "!wifi", "!sys", "!ip", "!battery", "!disk", "!apps", "!startup", "!font", "!layout", "!tab", "!close", "!alias", "!unalias", "!install", "!exit", "!wdm", "!desktop", "!clock", "!startmenu", "!restore" };
-            _tabResults.AddRange(cmds.Where(c => c.StartsWith(toComplete, StringComparison.OrdinalIgnoreCase)));
+                if (_tabResults.Count > 0) { _tabIndex = 0; TerminalInput.Text = _tabResults[0]; TerminalInput.CaretIndex = TerminalInput.Text.Length; }
+            }
+            catch { }
         }
 
-                if (_tabResults.Count > 0) {
-                    _tabIndex = 0;
-                    TerminalInput.Text = _tabResults[0];
-                    TerminalInput.CaretIndex = TerminalInput.Text.Length;
-                }
-            } catch { }
-        }
         #endregion
 
         #region Input Handling
+
         private void TerminalInput_PreviewKeyDown(object sender, System.Windows.Input.KeyEventArgs e)
         {
-            if (_isSelectingFont || _isSelectingLayout || _isSelectingFramework || _isSelectingLaravelVersion || _isSelectingPath || _isEnteringFolderName)
+            if (_isSelectingFont || _isSelectingFramework || _isSelectingLaravelVersion || _isSelectingPath || _isEnteringFolderName)
             {
                 if (_isEnteringFolderName)
                 {
-                    if (e.Key == Key.Enter) {
+                    if (e.Key == Key.Enter)
+                    {
                         if (string.IsNullOrWhiteSpace(_tempFolderName)) _tempFolderName = "my-app";
                         _selectedFolderName = _tempFolderName;
                         _isEnteringFolderName = false; _isSelectingPath = true; _tempSelectionIndex = 0;
                         ShowSelectionMenu();
-                    } else if (e.Key == Key.Escape) {
-                        _isEnteringFolderName = false; SelectionOverlay.Visibility = Visibility.Collapsed;
-                    } else if (e.Key == Key.Back && _tempFolderName.Length > 0) {
-                        _tempFolderName = _tempFolderName.Substring(0, _tempFolderName.Length - 1);
-                        ShowSelectionMenu();
-                    } else {
-                        // Capture text input manually for folder name
+                    }
+                    else if (e.Key == Key.Escape) { _isEnteringFolderName = false; SelectionOverlay.Visibility = Visibility.Collapsed; }
+                    else if (e.Key == Key.Back && _tempFolderName.Length > 0) { _tempFolderName = _tempFolderName.Substring(0, _tempFolderName.Length - 1); ShowSelectionMenu(); }
+                    else
+                    {
                         string keyStr = e.Key.ToString();
-                        if (keyStr.Length == 1 || (e.Key >= Key.D0 && e.Key <= Key.D9) || (e.Key >= Key.NumPad0 && e.Key <= Key.NumPad9) || e.Key == Key.OemMinus) {
-                            char c = (char)0;
-                            if (e.Key >= Key.A && e.Key <= Key.Z) c = (char)('a' + (e.Key - Key.A));
-                            else if (e.Key >= Key.D0 && e.Key <= Key.D9) c = (char)('0' + (e.Key - Key.D0));
-                            else if (e.Key >= Key.NumPad0 && e.Key <= Key.NumPad9) c = (char)('0' + (e.Key - Key.NumPad0));
-                            else if (e.Key == Key.OemMinus) c = '-';
-                            if (c != 0) { _tempFolderName += c; ShowSelectionMenu(); }
-                        }
+                        char c = e.Key switch
+                        {
+                            >= Key.A and <= Key.Z => (char)('a' + (e.Key - Key.A)),
+                            >= Key.D0 and <= Key.D9 => (char)('0' + (e.Key - Key.D0)),
+                            >= Key.NumPad0 and <= Key.NumPad9 => (char)('0' + (e.Key - Key.NumPad0)),
+                            Key.OemMinus => '-',
+                            Key.OemPeriod => '.',
+                            _ => '\0'
+                        };
+                        if (c != 0) { _tempFolderName += c; ShowSelectionMenu(); }
                     }
                     e.Handled = true;
                     return;
                 }
 
-                int max = 0;
-                if (_isSelectingFont) max = FontNames.Length;
-                else if (_isSelectingLayout) max = LayoutNames.Length;
-                else if (_isSelectingFramework) max = FrameworkNames.Length;
-                else if (_isSelectingLaravelVersion) max = LaravelVersions.Length;
-                else if (_isSelectingPath) max = PathOptions.Length;
+                int max = _isSelectingFont ? FontNames.Length : _isSelectingFramework ? FrameworkNames.Length : _isSelectingLaravelVersion ? LaravelVersions.Length : _isSelectingPath ? PathOptions.Length : 0;
 
-                if (e.Key == Key.Up) { 
-                    _tempSelectionIndex = (_tempSelectionIndex - 1 + max) % max; 
-                    ShowSelectionMenu(); e.Handled = true; 
-                }
-                else if (e.Key == Key.Down) { 
-                    _tempSelectionIndex = (_tempSelectionIndex + 1) % max; 
-                    ShowSelectionMenu(); e.Handled = true; 
-                }
+                if (e.Key == Key.Up) { _tempSelectionIndex = (_tempSelectionIndex - 1 + max) % max; ShowSelectionMenu(); e.Handled = true; }
+                else if (e.Key == Key.Down) { _tempSelectionIndex = (_tempSelectionIndex + 1) % max; ShowSelectionMenu(); e.Handled = true; }
                 else if (e.Key == Key.Enter)
                 {
-                    if (_isSelectingFont) { 
-                        _currentFont = _tempSelectionIndex; ApplyFont(); 
-                        AppendToTab(_activeTab!, $"\n  ✨ Font applied: {FontNames[_currentFont]}\n\n", "#FFCC6BFF"); 
-                        _isSelectingFont = false; SelectionOverlay.Visibility = Visibility.Collapsed;
-                    }
-                    else if (_isSelectingLayout) { 
-                        _currentLayout = _tempSelectionIndex; ApplyLayout(); 
-                        AppendToTab(_activeTab!, $"\n  🎨 Layout applied: {LayoutNames[_currentLayout]}\n\n", "#FFCC6BFF"); 
-                        _isSelectingLayout = false; SelectionOverlay.Visibility = Visibility.Collapsed;
-                    }
-                    else if (_isSelectingFramework) {
-                        _selectedFramework = FrameworkNames[_tempSelectionIndex];
-                        _isSelectingFramework = false;
-                        if (_selectedFramework == "Laravel") { _isSelectingLaravelVersion = true; _tempSelectionIndex = 1; } // Default Laravel 11
-                        else { _isEnteringFolderName = true; _tempFolderName = ""; }
-                        ShowSelectionMenu();
-                    }
-                    else if (_isSelectingLaravelVersion) {
-                        _selectedLaravelVersion = LaravelVersions[_tempSelectionIndex];
-                        _isSelectingLaravelVersion = false; _isEnteringFolderName = true; _tempFolderName = "";
-                        ShowSelectionMenu();
-                    }
-                    else if (_isSelectingPath) {
-                        string chosenPath = PathOptions[_tempSelectionIndex];
-                        if (chosenPath == "Custom Path...") {
-                            var dialog = new System.Windows.Forms.FolderBrowserDialog();
-                            if (dialog.ShowDialog() == System.Windows.Forms.DialogResult.OK) { _selectedPath = dialog.SelectedPath; FinalizeInstall(); }
-                        } else {
-                            if (chosenPath == "Current Directory") _selectedPath = _activeTab!.CurrentDirectory;
-                            else if (chosenPath == "Desktop") _selectedPath = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
-                            else if (chosenPath == "Documents") _selectedPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
-                            FinalizeInstall();
-                        }
-                    }
+                    if (_isSelectingFont) { _currentFont = _tempSelectionIndex; ApplyFont(); AppendToTab(_activeTab!, $"\n  ✨ Font: {FontNames[_currentFont]}\n\n", "#FFCC6BFF"); _isSelectingFont = false; SelectionOverlay.Visibility = Visibility.Collapsed; }
+                    else if (_isSelectingFramework) { _selectedFramework = FrameworkNames[_tempSelectionIndex]; _isSelectingFramework = false; if (_selectedFramework == "Laravel") { _isSelectingLaravelVersion = true; _tempSelectionIndex = 1; } else { _isEnteringFolderName = true; _tempFolderName = ""; } ShowSelectionMenu(); }
+                    else if (_isSelectingLaravelVersion) { _selectedLaravelVersion = LaravelVersions[_tempSelectionIndex]; _isSelectingLaravelVersion = false; _isEnteringFolderName = true; _tempFolderName = ""; ShowSelectionMenu(); }
+                    else if (_isSelectingPath) { string cp = PathOptions[_tempSelectionIndex]; if (cp == "Custom Path...") { var dlg = new System.Windows.Forms.FolderBrowserDialog(); if (dlg.ShowDialog() == System.Windows.Forms.DialogResult.OK) { _selectedPath = dlg.SelectedPath; FinalizeInstall(); } } else { _selectedPath = cp == "Current Directory" ? _activeTab!.CurrentDirectory : cp == "Desktop" ? Environment.GetFolderPath(Environment.SpecialFolder.Desktop) : Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments); FinalizeInstall(); } }
                     e.Handled = true;
                 }
-                else if (e.Key == Key.Escape) { 
-                    _isSelectingFont = _isSelectingLayout = _isSelectingFramework = _isSelectingLaravelVersion = _isSelectingPath = _isEnteringFolderName = false; 
-                    SelectionOverlay.Visibility = Visibility.Collapsed;
-                    AppendToTab(_activeTab!, "\n  ❌ Selection cancelled.\n\n", "#FFFF6B6B"); 
-                    e.Handled = true; 
-                }
+                else if (e.Key == Key.Escape) { _isSelectingFont = _isSelectingFramework = _isSelectingLaravelVersion = _isSelectingPath = _isEnteringFolderName = false; SelectionOverlay.Visibility = Visibility.Collapsed; AppendToTab(_activeTab!, "\n  ❌ Cancelled.\n\n", "#FFFF6B6B"); e.Handled = true; }
                 return;
             }
 
             if (e.Key == Key.Tab) { e.Handled = true; DoTabComplete(); }
-            else if (e.Key == Key.Up && _commandHistory.Count > 0)
-            {
-                if (_historyIndex > 0) _historyIndex--;
-                TerminalInput.Text = _commandHistory[_historyIndex];
-                TerminalInput.CaretIndex = TerminalInput.Text.Length;
-                e.Handled = true;
-            }
-            else if (e.Key == Key.Down && _commandHistory.Count > 0)
-            {
-                if (_historyIndex < _commandHistory.Count - 1) { 
-                    _historyIndex++; 
-                    TerminalInput.Text = _commandHistory[_historyIndex]; 
-                } else { 
-                    _historyIndex = _commandHistory.Count; 
-                    TerminalInput.Text = ""; 
-                }
-                TerminalInput.CaretIndex = TerminalInput.Text.Length;
-                e.Handled = true;
-            }
+            else if (e.Key == Key.Up && _commandHistory.Count > 0) { if (_historyIndex > 0) _historyIndex--; TerminalInput.Text = _commandHistory[_historyIndex]; TerminalInput.CaretIndex = TerminalInput.Text.Length; e.Handled = true; }
+            else if (e.Key == Key.Down && _commandHistory.Count > 0) { if (_historyIndex < _commandHistory.Count - 1) { _historyIndex++; TerminalInput.Text = _commandHistory[_historyIndex]; } else { _historyIndex = _commandHistory.Count; TerminalInput.Text = ""; } TerminalInput.CaretIndex = TerminalInput.Text.Length; e.Handled = true; }
         }
 
         private async void TerminalInput_KeyDown(object sender, System.Windows.Input.KeyEventArgs e)
         {
-            if (e.Key == Key.Enter) {
+            if (e.Key == Key.Enter)
+            {
                 string cmd = TerminalInput.Text.Trim();
-                if (!string.IsNullOrWhiteSpace(cmd)) { 
-                    _commandHistory.Add(cmd); 
-                    _historyIndex = _commandHistory.Count; 
 
-                    bool handled = false;
-                    try
-                    {
-                        if (_router != null)
-                            handled = await _router.HandleCommand(cmd, _activeTab, AppendToTab);
-                    }
-                    catch { handled = false; }
+                // Clear text IMMEDIATELY + mark handled — before async, so WPF sees it right away
+                TerminalInput.Text = "";
+                e.Handled = true;
 
-                    if (!handled)
+                if (!string.IsNullOrWhiteSpace(cmd))
+                {
+                    _commandHistory.Add(cmd);
+                    _historyIndex = _commandHistory.Count;
+
+                    // Alias expansion BEFORE routing — ensures router sees expanded command
+                    string expandedCmd = cmd;
+                    string firstWord = cmd.Split(' ')[0];
+                    if (_aliases.ContainsKey(firstWord))
                     {
-                        // Fallback to legacy handler (keeps broad behavior intact)
-                        ProcessCommand(cmd);
+                        expandedCmd = _aliases[firstWord];
+                        if (cmd.Length > firstWord.Length)
+                            expandedCmd += cmd.Substring(firstWord.Length);
                     }
+
+                    try { if (_router != null) await _router.HandleCommand(expandedCmd, _activeTab, AppendToTab); }
+                    catch { }
                 }
-                TerminalInput.Text = ""; e.Handled = true;
             }
-            else if (e.Key == Key.L && (Keyboard.Modifiers & ModifierKeys.Control) == ModifierKeys.Control) { 
-                if (_activeTab?.Output != null) _activeTab.Output.Inlines.Clear(); e.Handled = true; 
-            }
+            else if (e.Key == Key.L && (Keyboard.Modifiers & ModifierKeys.Control) == ModifierKeys.Control) { if (_activeTab?.Output != null) _activeTab.Output.Inlines.Clear(); e.Handled = true; }
         }
 
         private void FinalizeInstall()
         {
             _isSelectingPath = false;
             SelectionOverlay.Visibility = Visibility.Collapsed;
-
             if (_activeTab == null) return;
 
-            string cmd = "";
-            if (_selectedFramework == "React + Vite")
-                cmd = $"npm create vite@latest {_selectedFolderName} -- --template react";
-            else if (_selectedFramework == "React JS (Standard)")
-                cmd = $"npx create-react-app {_selectedFolderName}";
-            else if (_selectedFramework == "React Native")
-                cmd = $"npx react-native init {_selectedFolderName}";
-            else if (_selectedFramework == "Laravel")
-                cmd = $"composer create-project laravel/laravel:^{_selectedLaravelVersion}.0 {_selectedFolderName}";
-
-            AppendToTab(_activeTab, $"\n  🚀 Menyiapkan instalasi {_selectedFramework}...\n", "#FF6BDDFF");
-            AppendToTab(_activeTab, $"  📂 Lokasi: {_selectedPath}\n", "#FF6BDDFF");
-            AppendToTab(_activeTab, $"  📂 Folder: {_selectedFolderName}\n\n", "#FF6BDDFF");
-
-            if (_activeTab.Input != null)
+            string cmd = _selectedFramework switch
             {
-                // Move to target path and run command
-                _activeTab.Input.WriteLine($"cd /d \"{_selectedPath}\"");
-                _activeTab.Input.WriteLine(cmd);
-            }
-        }
-
-        private void StartClock()
-        {
-            _clockTimer = new System.Windows.Threading.DispatcherTimer();
-            _clockTimer.Interval = TimeSpan.FromSeconds(1);
-            _clockTimer.Tick += (s, e) => {
-                var now = DateTime.Now;
-                if (CurrentTimeText != null) CurrentTimeText.Text = now.ToString("HH:mm");
-                if (BigClockText != null) BigClockText.Text = now.ToString("HH:mm");
-                if (BigDateText != null) BigDateText.Text = now.ToString("yyyy-MM-dd");
+                "React + Vite" => $"npm create vite@latest {_selectedFolderName} -- --template react",
+                "React JS (Standard)" => $"npx create-react-app {_selectedFolderName}",
+                "React Native" => $"npx react-native init {_selectedFolderName}",
+                "Laravel" => $"composer create-project laravel/laravel:^{_selectedLaravelVersion}.0 {_selectedFolderName}",
+                _ => ""
             };
-            _clockTimer.Start();
+
+            AppendToTab(_activeTab, $"\n  🚀 Installing {_selectedFramework}...\n", "#FF6BDDFF");
+            AppendToTab(_activeTab, $"  📂 {_selectedPath}\\{_selectedFolderName}\n\n", "#FF6BDDFF");
+            if (_activeTab.Session != null && _activeTab.Session.IsRunning)
+            {
+                try
+                {
+                    _ = _activeTab.Session.ExecuteAsync($"cd /d \"{_selectedPath}\"");
+                    _ = _activeTab.Session.ExecuteAsync(cmd);
+                }
+                catch (Exception ex) { AppendToTab(_activeTab, $"  ⚠ {ex.Message}\n", "#FF5555"); }
+            }
         }
 
         private void ShowSelectionMenu()
@@ -915,701 +714,133 @@ Clear-Host
             string[] items = Array.Empty<string>();
 
             if (_isSelectingFont) { title = "SET FONT"; items = FontNames; }
-            else if (_isSelectingLayout) { title = "SET LAYOUT"; items = LayoutNames; }
             else if (_isSelectingFramework) { title = "SELECT FRAMEWORK"; items = FrameworkNames; }
             else if (_isSelectingLaravelVersion) { title = "SELECT LARAVEL VERSION"; items = LaravelVersions; }
-            else if (_isSelectingPath) { title = "SELECT PATH / LOCATION"; items = PathOptions; }
-            else if (_isEnteringFolderName) {
-                title = "ENTER FOLDER NAME";
-                SelectionTitle.Text = title;
-                SelectionItems.Text = $"\n❯ {_tempFolderName}_\n\n(Type name and press Enter)";
-                return;
-            }
+            else if (_isSelectingPath) { title = "SELECT PATH"; items = PathOptions; }
+            else if (_isEnteringFolderName) { SelectionTitle.Text = "ENTER FOLDER NAME"; SelectionItems.Text = $"\n❯ {_tempFolderName}_\n(Type & Enter)"; return; }
 
             SelectionTitle.Text = title;
             var sb = new StringBuilder();
             for (int i = 0; i < items.Length; i++)
-            {
-                bool active = i == _tempSelectionIndex;
-                sb.AppendLine(active ? $" ❯ {items[i].ToUpper()}" : $"   {items[i]}");
-            }
+                sb.AppendLine(i == _tempSelectionIndex ? $" ❯ {items[i].ToUpper()}" : $"   {items[i]}");
             SelectionItems.Text = sb.ToString();
         }
 
-        private string _tempFolderName = "";
-
-        private void ProcessCommand(string cmd)
-        {
-            string low = cmd.ToLower().Trim();
-            if (_activeTab == null) return;
-
-            // Track command in history
-            if (!string.IsNullOrWhiteSpace(cmd)) {
-                _commandHistory.Insert(0, cmd);
-                if (_commandHistory.Count > 100) _commandHistory.RemoveAt(_commandHistory.Count - 1);
-            }
-
-            // Track CD commands for folder recommendations
-            if (low.StartsWith("cd ") && low.Length > 3) {
-                string folderPath = cmd.Substring(3).Trim();
-                // Remove quotes if present
-                if (folderPath.StartsWith("\"") && folderPath.EndsWith("\"")) {
-                    folderPath = folderPath.Substring(1, folderPath.Length - 2);
-                }
-                try {
-                    string fullPath = Path.GetFullPath(folderPath);
-                    if (Directory.Exists(fullPath)) {
-                        _folderHistory.AddFolder(fullPath);
-                        SaveFolderHistory();
-                    }
-                } catch { }
-            }
-
-            // Alias check
-            string firstWord = cmd.Split(' ')[0];
-            if (_aliases.ContainsKey(firstWord)) {
-                string expanded = _aliases[firstWord];
-                if (cmd.Length > firstWord.Length) expanded += cmd.Substring(firstWord.Length);
-                cmd = expanded; low = cmd.ToLower().Trim();
-            }
-
-            // CLEAR
-            if (low == "cls" || low == "clear") { 
-                if (_activeTab.Output != null) {
-                    _activeTab.Output.Inlines.Clear();
-                    PrintHeader(_activeTab);
-                }
-                return; 
-            }
-
-            // HELP / ?
-            if (low == "!help" || low == "?") {
-                AppendToTab(_activeTab, "\n", "#CCCCCC");
-                AppendToTab(_activeTab, "  [ ZERO MIX SHELL HELP ]\n\n", "#00D4FF");
-                
-                AppendToTab(_activeTab, "  ✨ Pilih aksi atau ketik perintah:\n\n", "#FFFFDA6B");
-                
-                AppendToTab(_activeTab, "  [ 💻 SISTEM ]\n", "#FFFFDA6B");
-                AppendToTab(_activeTab, "  !task      Real-time System Monitor 📊\n", "#FF27C93F");
-                AppendToTab(_activeTab, "  !sys       Info Detail Sistem\n", "#FF27C93F");
-                AppendToTab(_activeTab, "  !settings  Buka Panel Pengaturan ⚙️\n", "#FF27C93F");
-                AppendToTab(_activeTab, "  cls        Bersihkan Terminal\n", "#FF27C93F");
-                AppendToTab(_activeTab, "  !wifi      Lihat Password WiFi\n", "#FF27C93F");
-                AppendToTab(_activeTab, "  !ip        Lihat Alamat IP\n", "#FF27C93F");
-                AppendToTab(_activeTab, "  !battery   Status Baterai\n", "#FF27C93F");
-                AppendToTab(_activeTab, "  !disk      Info Disk\n", "#FF27C93F");
-                AppendToTab(_activeTab, "  !apps      List Aplikasi\n", "#FF27C93F");
-                AppendToTab(_activeTab, "  !startup   List Startup Items\n", "#FF27C93F");
-                
-                AppendToTab(_activeTab, "\n  [ 🎨 VISUAL ]\n", "#FFFFDA6B");
-                AppendToTab(_activeTab, "  !font      Ganti Font (Interaktif)\n", "#FFCC6BFF");
-                AppendToTab(_activeTab, "  !layout    Ganti Layout (Interaktif)\n", "#FFCC6BFF");
-                AppendToTab(_activeTab, "  !alias     Custom Command Alias\n", "#FFCC6BFF");
-                AppendToTab(_activeTab, "  !unalias   Hapus Alias\n", "#FFCC6BFF");
-
-                AppendToTab(_activeTab, "\n  [ 🛠 TOOLS ]\n", "#FFFFDA6B");
-                AppendToTab(_activeTab, "  !install   Install Framework (React/Laravel)\n", "#FFFF9F43");
-
-                AppendToTab(_activeTab, "\n  [ 📑 TABS ]\n", "#FFFFDA6B");
-                AppendToTab(_activeTab, "  !tab       Buka Tab Baru\n", "#FFFF9F43");
-                AppendToTab(_activeTab, "  !close     Tutup Tab Aktif\n", "#FFFF9F43");
-                AppendToTab(_activeTab, "  !exit      Keluar Terminal\n", "#FFFF6B6B");
-
-                AppendToTab(_activeTab, "\n  [ 🌌 ZERO SHELL CORE ]\n", "#FFFFDA6B");
-                AppendToTab(_activeTab, "  !wdm      Open WDM Window\n", "#FF6BDDFF");
-                
-                AppendToTab(_activeTab, "\n  💬 Tips: Gunakan Tanda Panah ↑ ↓ buat milih font/layout.\n\n", "#888888");
-                return;
-            }
-
-            // TASKS (The Professional Sequence)
-            if (low == "!tasks") {
-                // Jika sudah ada StartupCommand berarti kita di window "Task", langsung jalankan
-                if (!string.IsNullOrEmpty(AutoRunCommand)) { RunProfessionalTasks(); return; }
-                
-                // Jika tidak, buka window baru khusus task
-                var taskWin = new ZeroShellWindow();
-                taskWin.AutoRunCommand = "!tasks";
-                taskWin.Show();
-                AppendToTab(_activeTab, "\n  🚀 Membuka Terminal Task ...\n\n", "#FF6BDDFF");
-                return;
-            }
-
-            // TAB COMMANDS
-            if (low == "!tab") { AddTab($"Session {_tabs.Count + 1}"); return; }
-            if (low == "!close") { CloseActiveTab(); return; }
-            if (low == "!settings") { GearBtn_Click(this, new RoutedEventArgs()); return; }
-
-            // ALIAS
-            if (low == "!alias") {
-                AppendToTab(_activeTab, "\n  💡 TIPS ALIAS:\n", "#FFFFDA6B");
-                AppendToTab(_activeTab, "  Pake alias buat cepetin buka apapun. Contoh:\n", "#CCCCCC");
-                AppendToTab(_activeTab, "  !alias gh=start https://github.com/faizinuha\n", "#FF6BDDFF");
-                AppendToTab(_activeTab, "  (Nanti tinggal ketik 'gh' buat buka GitHub Kakak)\n\n", "#888888");
-                
-                if (_aliases.Count > 0) {
-                    AppendToTab(_activeTab, "  📝 ALIAS AKTIF:\n", "#FFFFDA6B");
-                    foreach (var kv in _aliases) AppendToTab(_activeTab, $"    {kv.Key}  →  {kv.Value}\n", "#FFCC6BFF");
-                    AppendToTab(_activeTab, "\n", "#888888");
-                }
-                return;
-            }
-            if (low.StartsWith("!alias ") && cmd.Contains('=')) {
-                string rest = cmd.Substring(7); int eq = rest.IndexOf('=');
-                if (eq > 0) {
-                    string key = rest.Substring(0, eq).Trim(); string val = rest.Substring(eq + 1).Trim();
-                    _aliases[key] = val; SaveAliases();
-                    AppendToTab(_activeTab, $"\n  ✅ Alias tersimpan: {key} → {val}\n\n", "#FF27C93F");
-                }
-                return;
-            }
-            if (low.StartsWith("!unalias ")) {
-                string key = cmd.Substring(9).Trim();
-                if (_aliases.Remove(key)) { SaveAliases(); AppendToTab(_activeTab, $"\n  🗑 Alias '{key}' dihapus.\n\n", "#FFFF9F43"); }
-                else AppendToTab(_activeTab, $"\n  ❌ Alias '{key}' tidak ditemukan.\n\n", "#FFFF6B6B");
-                return;
-            }
-
-            // FONT
-            if (low == "!font") {
-                _isSelectingFont = true;
-                _isSelectingLayout = false;
-                _tempSelectionIndex = _currentFont;
-                ShowSelectionMenu();
-                return;
-            }
-            if (low.StartsWith("!font ") && int.TryParse(low.Substring(6), out int fi) && fi >= 1 && fi <= FontNames.Length) {
-                _currentFont = fi - 1; ApplyFont();
-                AppendToTab(_activeTab, $"\n  🔤 Font baru: {FontNames[_currentFont]}\n\n", "#FFCC6BFF");
-                return;
-            }
-
-            // LAYOUT
-            if (low == "!layout") {
-                _isSelectingLayout = true;
-                _isSelectingFont = false;
-                _tempSelectionIndex = _currentLayout;
-                ShowSelectionMenu();
-                return;
-            }
-            if (low.StartsWith("!layout ") && int.TryParse(low.Substring(8), out int li) && li >= 1 && li <= LayoutNames.Length) {
-                _currentLayout = li - 1; ApplyLayout();
-                AppendToTab(_activeTab, $"\n  🎨 Layout baru: {LayoutNames[_currentLayout]}\n\n", "#FFCC6BFF");
-                return;
-            }
-
-            // SYSTEM MONITOR (!task)
-            if (low == "!task") {
-                AppendToTab(_activeTab, "\n  📊 [ S Y S T E M  M O N I T O R  -  T H R O T T L E D ]\n", "#FFFFDA6B");
-                AppendToTab(_activeTab, "  (Press Ctrl+C to stop in some terminals, or just wait for 5 updates)\n\n", "#888888");
-                
-                Task.Run(async () => {
-                    using var cts = new CancellationTokenSource();
-                    for (int i = 0; i < 5; i++) { // Limit to 5 updates for safety, or make it continuous
-                        try {
-                            // CPU Info
-                            double cpuLoad = 0;
-                            using (var searcher = new ManagementObjectSearcher("select LoadPercentage from Win32_Processor"))
-                                foreach (var obj in searcher.Get()) cpuLoad = Convert.ToDouble(obj["LoadPercentage"]);
-
-                            // RAM Info
-                            double totalRam = 0; double freeRam = 0;
-                            using (var searcher = new ManagementObjectSearcher("SELECT TotalVisibleMemorySize,FreePhysicalMemory FROM Win32_OperatingSystem"))
-                            foreach (var obj in searcher.Get()) {
-                                totalRam = Convert.ToDouble(obj["TotalVisibleMemorySize"]);
-                                freeRam = Convert.ToDouble(obj["FreePhysicalMemory"]);
-                            }
-                            double ramUsage = ((totalRam - freeRam) / totalRam) * 100;
-
-                            // GPU Info (Search for Load if available)
-                            string gpuName = "Generic GPU";
-                            using (var gpuSearcher = new ManagementObjectSearcher("SELECT Name FROM Win32_VideoController")) {
-                                foreach (ManagementObject obj in gpuSearcher.Get()) { gpuName = obj["Name"]?.ToString() ?? "N/A"; }
-                            }
-
-                            // Disk Info
-                            var drive = DriveInfo.GetDrives().FirstOrDefault(d => d.IsReady && d.Name.Contains("C:"));
-                            double diskUsage = drive != null ? (double)(drive.TotalSize - drive.TotalFreeSpace) / drive.TotalSize * 100 : 0;
-
-                            Dispatcher.Invoke(() => {
-                                AppendToTab(_activeTab, $"  [ UPDATE {i+1} ] ── {DateTime.Now:HH:mm:ss}\n", "#44FFFFFF");
-                                AppendToTab(_activeTab, $"  💠 CPU : {cpuLoad:F2}% \n", "#FF6BDDFF");
-                                AppendToTab(_activeTab, $"  🧠 RAM : {ramUsage:F2}% ({((totalRam - freeRam)/1024/1024):F1} GB / {(totalRam/1024/1024):F1} GB)\n", "#FFCC6BFF");
-                                AppendToTab(_activeTab, $"  🎮 GPU : {gpuName} \n", "#FF27C93F");
-                                AppendToTab(_activeTab, $"  💾 Disk: {diskUsage:F2}% (C:)\n", "#FFFF9F43");
-                                AppendToTab(_activeTab, "  ──────────────────────────────\n", "#22FFFFFF");
-                            });
-
-                            await Task.Delay(2000); // Throttled to 2 seconds
-                        } catch { break; }
-                    }
-                    Dispatcher.Invoke(() => AppendToTab(_activeTab, "  ✅ Monitoring finished.\n\n", "#FF27C93F"));
-                });
-                return;
-            }
-
-            // OPTIMIZED SYSTEM COMMANDS (Instant & Stealth)
-            if (low == "!sys") {
-                AppendToTab(_activeTab, "\n  📊 [ N E K O  S Y S T E M  I N F O ]\n", "#FFFFDA6B");
-                Task.Run(() => {
-                    try {
-                        var os = ""; var build = "";
-                        using (var osSearcher = new ManagementObjectSearcher("SELECT * FROM Win32_OperatingSystem")) {
-                            foreach (ManagementObject obj in osSearcher.Get()) { os = obj["Caption"]?.ToString(); build = obj["Version"]?.ToString(); }
-                        }
-                        
-                        string cpu = "";
-                        using (var cpuSearcher = new ManagementObjectSearcher("SELECT * FROM Win32_Processor")) {
-                            foreach (ManagementObject obj in cpuSearcher.Get()) { cpu = obj["Name"]?.ToString(); }
-                        }
-
-                        string gpu = "";
-                        using (var gpuSearcher = new ManagementObjectSearcher("SELECT * FROM Win32_VideoController")) {
-                            foreach (ManagementObject obj in gpuSearcher.Get()) { gpu = obj["Caption"]?.ToString(); }
-                        }
-
-                        Dispatcher.Invoke(() => {
-                            AppendToTab(_activeTab, $"  ✨ OS    : {os}\n", "#FF6BDDFF");
-                            AppendToTab(_activeTab, $"  ✨ BUILD : {build}\n", "#FF6BDDFF");
-                            AppendToTab(_activeTab, $"  ✨ CPU   : {cpu?.Trim()}\n", "#FF6BDDFF");
-                            AppendToTab(_activeTab, $"  ✨ GPU   : {gpu}\n\n", "#FF6BDDFF");
-                        });
-                    } catch { Dispatcher.Invoke(() => AppendToTab(_activeTab, "  ❌ Gagal ambil info sistem.\n\n", "#FFFF6B6B")); }
-                });
-                return;
-            }
-
-            if (low == "!wifi") {
-                AppendToTab(_activeTab, "\n  🔐 [ S C A N N I N G  W I F I ]\n", "#FFCC6BFF");
-                Task.Run(() => {
-                    try {
-                        var proc = new Process { StartInfo = new ProcessStartInfo("netsh", "wlan show profiles") { UseShellExecute = false, RedirectStandardOutput = true, CreateNoWindow = true } };
-                        proc.Start(); string output = proc.StandardOutput.ReadToEnd(); proc.WaitForExit();
-                        var profiles = new List<string>();
-                        foreach (var line in output.Split('\n')) if (line.Contains(":")) profiles.Add(line.Split(':')[1].Trim());
-                        
-                        foreach (var p in profiles) {
-                            if (string.IsNullOrEmpty(p)) continue;
-                            var p2 = new Process { StartInfo = new ProcessStartInfo("netsh", $"wlan show profile name=\"{p}\" key=clear") { UseShellExecute = false, RedirectStandardOutput = true, CreateNoWindow = true } };
-                            p2.Start(); string output2 = p2.StandardOutput.ReadToEnd(); p2.WaitForExit();
-                            foreach (var line in output2.Split('\n')) {
-                                if (line.Contains("Key Content")) {
-                                    string? rawPw = line.Split(':')[1];
-                                    string pw = rawPw?.Trim() ?? "Unknown";
-                                    Dispatcher.Invoke(() => AppendToTab(_activeTab, $"  ⠿ {p,-20} → {pw}\n", "#FF27C93F"));
-                                }
-                            }
-                        }
-                        Dispatcher.Invoke(() => AppendToTab(_activeTab, "\n", "#888888"));
-                    } catch { Dispatcher.Invoke(() => AppendToTab(_activeTab, "  ❌ Gagal scan WiFi.\n\n", "#FFFF6B6B")); }
-                });
-                return;
-            }
-
-            if (low == "!ip") {
-                AppendToTab(_activeTab, "\n  🌐 [ N E T W O R K  I N F O ]\n", "#FF6BDDFF");
-                try {
-                    foreach (var ni in System.Net.NetworkInformation.NetworkInterface.GetAllNetworkInterfaces()) {
-                        if (ni.OperationalStatus == System.Net.NetworkInformation.OperationalStatus.Up) {
-                            foreach (var ip in ni.GetIPProperties().UnicastAddresses) {
-                                if (ip.Address.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork) {
-                                    AppendToTab(_activeTab, $"  🖧 {ni.Name,-15} : {ip.Address}\n", "#FF6BDDFF");
-                                }
-                            }
-                        }
-                    }
-                    AppendToTab(_activeTab, "\n", "#888888");
-                } catch { AppendToTab(_activeTab, "  ❌ Gagal ambil info IP.\n\n", "#FFFF6B6B"); }
-                return;
-            }
-
-            if (low == "!battery") {
-                AppendToTab(_activeTab, "\n  🔋 [ B A T T E R Y  S T A T U S ]\n", "#FF27C93F");
-                using (var searcher = new ManagementObjectSearcher("SELECT * FROM Win32_Battery"))
-                foreach (var obj in searcher.Get()) {
-                    AppendToTab(_activeTab, $"  ⚡ NAME   : {obj["Name"]}\n", "#FF27C93F");
-                    AppendToTab(_activeTab, $"  ⚡ STATUS : {obj["BatteryStatus"]}\n", "#FF27C93F");
-                    AppendToTab(_activeTab, $"  ⚡ CHARGE : {obj["EstimatedChargeRemaining"]}%\n\n", "#FF27C93F");
-                }
-                return;
-            }
-
-            if (low == "!disk") {
-                AppendToTab(_activeTab, "\n  💾 [ D I S K  U S A G E ]\n", "#FFFF9F43");
-                foreach (var drive in DriveInfo.GetDrives().Where(d => d.IsReady)) {
-                    double total = drive.TotalSize / (1024.0 * 1024 * 1024);
-                    double free = drive.TotalFreeSpace / (1024.0 * 1024 * 1024);
-                    double used = total - free;
-                    AppendToTab(_activeTab, $"  📂 {drive.Name,-3} : {used:F1}GB / {total:F1}GB ({(used/total)*100:F1}%)\n", "#FFFF9F43");
-                }
-                AppendToTab(_activeTab, "\n", "#888888");
-                return;
-            }
-
-            if (low == "!apps") {
-                AppendToTab(_activeTab, "\n  📦 [ I N S T A L L E D  A P P S ]\n", "#FFCC6BFF");
-                Task.Run(() => {
-                    var apps = new List<string>();
-                    string[] roots = { "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall", "SOFTWARE\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall" };
-                    foreach (var root in roots) {
-                        using (var key = Registry.LocalMachine.OpenSubKey(root)) {
-                            if (key != null) foreach (var sub in key.GetSubKeyNames()) {
-                                using (var sk = key.OpenSubKey(sub)) {
-                                    var name = sk?.GetValue("DisplayName")?.ToString();
-                                    if (!string.IsNullOrEmpty(name)) apps.Add(name);
-                                }
-                            }
-                        }
-                    }
-                    Dispatcher.Invoke(() => {
-                        foreach (var app in apps.OrderBy(a => a).Take(15)) AppendToTab(_activeTab, $"  📦 {app}\n", "#FFCC6BFF");
-                        AppendToTab(_activeTab, "  ... (Showing top 15 apps)\n\n", "#888888");
-                    });
-                });
-                return;
-            }
-
-            if (low == "!startup") {
-                AppendToTab(_activeTab, "\n  🚀 [ S T A R T U P  I T E M S ]\n", "#FF6BDDFF");
-                Task.Run(() => {
-                    var items = new List<string>();
-                    using (var key = Registry.LocalMachine.OpenSubKey("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run"))
-                    if (key != null) foreach (var name in key.GetValueNames()) items.Add(name);
-                    Dispatcher.Invoke(() => {
-                        foreach (var it in items) AppendToTab(_activeTab, $"  🚀 {it}\n", "#FF6BDDFF");
-                        AppendToTab(_activeTab, "\n", "#888888");
-                    });
-                });
-                return;
-            }
-
-            // ZERO SHELL CORE COMMANDS
-            if (low == "!wdm") {
-                Dispatcher.Invoke(() => {
-                    if (_wdmWindow == null || !_wdmWindow.IsVisible) {
-                        _wdmWindow = new WdmWindow();
-                        _wdmWindow.Show();
-                    } else {
-                        _wdmWindow.Activate();
-                    }
-                });
-                AppendToTab(_activeTab!, "\n  ⚡ WDM Window opened.\n\n", "#00D4FF");
-                return;
-            }
-
-            if (low == "!startmenu") {
-                Dispatcher.Invoke(() => {
-                    if (_startMenuInterceptor.IsEnabled) {
-                        _startMenuInterceptor.Disable();
-                        AppendToTab(_activeTab!, "\n  ⊞ Start Menu interceptor disabled — Windows Start Menu restored.\n\n", "#888888");
-                    } else {
-                        _startMenuInterceptor.Enable();
-                        AppendToTab(_activeTab!, "\n  🍎 Start Menu interceptor enabled — click Start to open ZeroLaunchpad.\n\n", "#00D4FF");
-                    }
-                });
-                return;
-            }
-
-            if (low == "!restore") {
-                Dispatcher.Invoke(() => {
-                    // Restore all WDM styles silently
-                    ShellHelper.EnumAllWindows((hwnd, cls) => {
-                        switch (cls) {
-                            case "Shell_TrayWnd":
-                            case "Shell_SecondaryTrayWnd":
-                            case "CabinetWClass":
-                            case "ExplorerWClass":
-                                ShellHelper.DisableAccent(hwnd);
-                                break;
-                        }
-                    });
-                    ShellHelper.ApplyNotificationStyle(new WdmEntry { Style = WdmStyle.None });
-                    ShellHelper.ApplyStartMenuStyle(new WdmEntry { Style = WdmStyle.None });
-                    ShellHelper.StopWatcher();
-                    _startMenuInterceptor.Disable();
-                    _desktopWidget?.Shutdown();
-                    _desktopWidget = null;
-
-                    // Clear saved state
-                    try {
-                        string wdmPath = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "ZeroShell", "wdm.json");
-                        if (System.IO.File.Exists(wdmPath)) System.IO.File.Delete(wdmPath);
-                    } catch { }
-                });
-                AppendToTab(_activeTab!, "\n  ✅ All styles restored to Windows default. System is back to normal.\n\n", "#4EC94E");
-                return;
-            }
-
-            if (low == "!install") {
-                _isSelectingFramework = true;
-                _isSelectingLaravelVersion = _isEnteringFolderName = _isSelectingPath = false;
-                _tempSelectionIndex = 0;
-                ShowSelectionMenu();
-                return;
-            }
-
-            if (low == "!clock") {
-                if (ClockArea.Visibility == Visibility.Visible) {
-                    ClockArea.Visibility = Visibility.Collapsed;
-                    ClockRow.Height = new GridLength(0);
-                } else {
-                    ClockArea.Visibility = Visibility.Visible;
-                    ClockRow.Height = new GridLength(180);
-                }
-                AppendToTab(_activeTab, $"\n  🕒 Clock Tile toggled.\n\n", "#FFCC6BFF");
-                return;
-            }
-
-            if (low == "!desktop") {
-                Dispatcher.Invoke(() => {
-                    if (_desktopWidget == null || !_desktopWidget.IsVisible) {
-                        _desktopWidget = new ZeroMix.Widgets.DesktopWidget();
-                        _desktopWidget.Show();
-                        AppendToTab(_activeTab!, "\n  🖥 Desktop Widget launched.\n\n", "#00D4FF");
-                    } else {
-                        _desktopWidget.Shutdown();
-                        _desktopWidget = null;
-                        AppendToTab(_activeTab!, "\n  🖥 Desktop Widget closed.\n\n", "#888888");
-                    }
-                });
-                return;
-            }
-
-            if (low == "!notepad") {
-                Process.Start("notepad.exe");
-                AppendToTab(_activeTab!, "\n  📝 Notepad diluncurkan.\n\n", "#FF00D4FF");
-                return;
-            }
-
-            if (low == "!everglass") {
-                var taskbarEntry = new WdmEntry { Style = WdmStyle.AcrylicDark, Alpha = 0xDD, ColorHex = "#000000", AutoApply = false };
-                var explorerEntry = new WdmEntry { Style = WdmStyle.AcrylicDark, Alpha = 0xBB, ColorHex = "#000000", AutoApply = false };
-                ShellHelper.EnumAllWindows((hwnd, cls) => {
-                    if (cls == "Shell_TrayWnd" || cls == "Shell_SecondaryTrayWnd") ShellHelper.ApplyStyle(hwnd, taskbarEntry);
-                    else if (cls == "CabinetWClass" || cls == "ExplorerWClass") ShellHelper.ApplyStyle(hwnd, explorerEntry);
-                });
-                AppendToTab(_activeTab!, "\n  💎 Glass applied to Explorer and Taskbar.\n\n", "#FF00D4FF");
-                return;
-            }
-
-            if (low == "!exit") { this.Close(); return; }
-
-            // Standard Shell Support (ls, cd, dir, etc.)
-            AppendToTab(_activeTab, $"  ❯ {cmd}\n", Themes[_currentLayout].PromptColor);
-            
-            if (_activeTab.Input != null) {
-                // Special handle for 'cd' to update the UI prompt
-                if (low == "cd" || low == "cd ~") {
-                    _activeTab.CurrentDirectory = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
-                    UpdatePrompt();
-                }
-                else if (low.StartsWith("cd ")) {
-                    string newPath = cmd.Substring(3).Trim().Replace("\"", "");
-                    try {
-                        string combined = Path.IsPathRooted(newPath) ? newPath : Path.GetFullPath(Path.Combine(_activeTab.CurrentDirectory, newPath));
-                        if (Directory.Exists(combined)) {
-                            _activeTab.CurrentDirectory = combined;
-                            UpdatePrompt();
-                        }
-                    } catch { }
-                }
-                else if (low == "cd.." || low == "cd ..") {
-                    var parent = Directory.GetParent(_activeTab.CurrentDirectory);
-                    if (parent != null) {
-                        _activeTab.CurrentDirectory = parent.FullName;
-                        UpdatePrompt();
-                    }
-                }
-
-                _activeTab.Input.WriteLine(cmd);
-            } else {
-                AppendToTab(_activeTab, $"  ❌ Shell process tidak aktif.\n", "#FFFF6B6B");
-            }
-        }
         #endregion
 
         #region Personalization
+
         private void ApplyFont()
         {
-            var font = new System.Windows.Media.FontFamily(FontNames[_currentFont]);
-            foreach (var t in _tabs) { 
-                if (t.Output != null) {
-                    t.Output.FontFamily = font;
-                    t.Output.FontWeight = FontWeights.Bold;
-                }
-            }
+            var font = new FontFamily(FontNames[_currentFont]);
+            foreach (var t in _tabs) { if (t.Output != null) { t.Output.FontFamily = font; t.Output.FontWeight = FontWeights.Normal; } }
             TerminalInput.FontFamily = font;
-            TerminalInput.FontWeight = FontWeights.Bold;
+            TerminalInput.FontWeight = FontWeights.Normal;
             PromptText.FontFamily = font;
-            PromptText.FontWeight = FontWeights.Bold;
+            PromptText.FontWeight = FontWeights.Normal;
         }
 
         private void ApplyLayout()
         {
-            var theme = Themes[_currentLayout];
-            
-            // TILED LAYOUT Logic
-            if (_currentLayout == 7) {
-                // Clock is purely command-triggered now
-                ClockArea.Visibility = Visibility.Collapsed;
-                ClockRow.Height = new GridLength(0);
-                
-                TermBorder.Background = new SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#150A0E14"));
-                TermBorder.BorderBrush = new SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#30FFFFFF"));
-            } else {
-                ClockArea.Visibility = Visibility.Collapsed;
-                ClockRow.Height = new GridLength(0);
-                TermBorder.Background = new SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#10FFFFFF"));
-            }
+            var theme = Themes[0];
+            MainBorder.Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString(theme.Bg1));
+            TermBorder.Background = new SolidColorBrush(Color.FromArgb(0x0A, 0xFF, 0xFF, 0xFF));
+            TermBorder.BorderBrush = new SolidColorBrush(Color.FromArgb(0x15, 0xFF, 0xFF, 0xFF));
 
-            // PIXEL MODE
-            if (_currentLayout == 5) { // Pixel Retro
-                MainBorder.CornerRadius = new CornerRadius(0);
-                MainBorder.BorderThickness = new Thickness(4);
-                MainBorder.BorderBrush = new SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#FFFF6B6B"));
-            } else {
-                MainBorder.CornerRadius = new CornerRadius(16);
-                MainBorder.BorderThickness = new Thickness(0);
-            }
-
-            // Font effects
-            if (_currentFont >= 0 && _currentFont < FontNames.Length) {
-                var font = new System.Windows.Media.FontFamily(FontNames[_currentFont]);
-                var weight = FontWeights.Bold;
-
-                if (_currentLayout == 7) { 
-                    font = new System.Windows.Media.FontFamily("JetBrains Mono");
-                    weight = FontWeights.ExtraBold;
-                } else if (_currentLayout == 3 || _currentLayout == 5) {
-                    font = new System.Windows.Media.FontFamily("JetBrains Mono");
-                }
-                
-                if (_activeTab?.Output != null) {
-                    _activeTab.Output.FontFamily = font;
-                    _activeTab.Output.FontWeight = weight;
-                    _activeTab.Output.FontSize = 14;
-                }
+            if (_currentFont >= 0 && _currentFont < FontNames.Length)
+            {
+                var font = new FontFamily(FontNames[_currentFont]);
+                if (_activeTab?.Output != null) { _activeTab.Output.FontFamily = font; _activeTab.Output.FontWeight = FontWeights.Normal; _activeTab.Output.FontSize = 13; }
                 TerminalInput.FontFamily = font;
-                TerminalInput.FontWeight = weight;
+                TerminalInput.FontWeight = FontWeights.Normal;
                 PromptText.FontFamily = font;
-                PromptText.FontWeight = weight;
+                PromptText.FontWeight = FontWeights.Normal;
             }
 
-            var bg = new LinearGradientBrush();
-            bg.StartPoint = new System.Windows.Point(0, 0); bg.EndPoint = new System.Windows.Point(1, 1);
-            bg.GradientStops.Add(new GradientStop((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString(theme.Bg1), 0));
-            bg.GradientStops.Add(new GradientStop((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString(theme.Bg2), 1));
-            MainBorder.Background = bg;
-
-            var outColor = new SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString(theme.OutputColor));
+            var outColor = new SolidColorBrush((Color)ColorConverter.ConvertFromString(theme.OutputColor));
             foreach (var t in _tabs) { if (t.Output != null) t.Output.Foreground = outColor; }
-
-            TerminalInput.Foreground = new SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString(theme.InputColor));
-            TerminalInput.CaretBrush = new SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString(theme.PromptColor));
-            PromptText.Foreground = new SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString(theme.PromptColor));
-
+            TerminalInput.Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString(theme.InputColor));
+            TerminalInput.CaretBrush = new SolidColorBrush((Color)ColorConverter.ConvertFromString(theme.PromptColor));
+            PromptText.Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString(theme.PromptColor));
             UpdatePrompt();
             SaveSettings();
         }
+
         #endregion
 
         #region Window
-        private void Window_MouseDown(object sender, MouseButtonEventArgs e) { if (e.ChangedButton == MouseButton.Left) this.DragMove(); }
-        private void MinimizeButton_Click(object sender, RoutedEventArgs e) => this.WindowState = WindowState.Minimized;
-        private void MaximizeButton_Click(object sender, RoutedEventArgs e)
+
+        private void MinimizeButton_Click(object sender, MouseButtonEventArgs e) => this.WindowState = WindowState.Minimized;
+        private void MaximizeButton_Click(object sender, MouseButtonEventArgs e) => this.WindowState = this.WindowState == WindowState.Maximized ? WindowState.Normal : WindowState.Maximized;
+        private void CloseButton_Click(object sender, MouseButtonEventArgs e) => this.Close();
+        private void Window_StateChanged(object sender, EventArgs e)
         {
-            if (this.WindowState == WindowState.Maximized)
-                this.WindowState = WindowState.Normal;
-            else
-                this.WindowState = WindowState.Maximized;
+            // macOS-style: traffic light glyphs don't change on maximize
         }
-        private void CloseButton_Click(object sender, RoutedEventArgs e) => this.Close();
- 
-         private void Window_StateChanged(object sender, EventArgs e)
-         {
-             // Modern UI uses ellipses, no text content to update
-         }
 
         private async void Window_Loaded(object sender, RoutedEventArgs e)
         {
-            // Initial UI Setup
-            AddTab("Terminal"); 
-            ApplyLayout(); 
+            AddTab("Terminal");
+            ApplyLayout();
             TerminalInput.Focus();
 
-            // Initialize User Info Card
-            if (InfoUserText != null) InfoUserText.Text = Environment.UserName;
-            if (InfoPathText != null) InfoPathText.Text = "~";
-            if (InfoSessionText != null) {
-                _sessionStartTime = DateTime.Now;
-                InfoSessionText.Text = _sessionStartTime.ToString("HH:mm");
-            }
-
             _clockTimer = new System.Windows.Threading.DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
-            _clockTimer.Tick += (s, ev) => {
-                var now = DateTime.Now;
-                if (CurrentTimeText != null) CurrentTimeText.Text = now.ToString("HH:mm");
-                if (BigClockText != null) BigClockText.Text = now.ToString("HH:mm");
-                if (BigDateText != null) BigDateText.Text = now.ToString("yyyy-MM-dd");
-                
-                // Update session duration
-                if (InfoSessionText != null && _sessionStartTime != DateTime.MinValue) {
-                    var elapsed = now - _sessionStartTime;
-                    if (elapsed.TotalHours < 1) {
-                        InfoSessionText.Text = $"{elapsed.Minutes:D2}:{elapsed.Seconds:D2}";
-                    } else {
-                        InfoSessionText.Text = $"{elapsed.Hours:D2}:{elapsed.Minutes:D2}";
-                    }
+            _clockTimer.Tick += (s, ev) =>
+            {
+                try
+                {
+                    var now = DateTime.Now;
+                    CurrentTimeText.Text = now.ToString("HH:mm");
                 }
+                catch { }
             };
             _clockTimer.Start();
 
-            // Load and display recommendations
             RefreshRecommendations();
 
-            // Auto-Run logic (for !tasks and others)
             if (!string.IsNullOrEmpty(AutoRunCommand))
             {
-                await Task.Delay(800); 
-                ProcessCommand(AutoRunCommand);
+                await Task.Delay(800);
+                if (_router != null && _activeTab != null)
+                    await _router.HandleCommand(AutoRunCommand, _activeTab, AppendToTab);
             }
 
-            // Auto-restore WDM state on startup (fire-and-forget)
-            _ = Task.Run(() => {
-                try {
+            // Auto-restore WDM state
+            _ = Task.Run(() =>
+            {
+                try
+                {
                     string wdmPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "ZeroShell", "wdm.json");
-                    if (File.Exists(wdmPath)) {
+                    if (File.Exists(wdmPath))
+                    {
                         var state = JsonSerializer.Deserialize<WdmState>(File.ReadAllText(wdmPath));
-                        if (state?.Entries != null) {
-                            ShellHelper.EnumAllWindows((hwnd, cls) => {
-                                if (state.Entries.TryGetValue(cls, out var entry))
-                                    ShellHelper.ApplyStyle(hwnd, entry);
-                            });
-                            bool anyAuto = state.Entries.Values.Any(e => e.AutoApply);
-                            if (anyAuto) {
-                                ShellHelper.StartWatcher((hwnd, cls) => {
-                                    Dispatcher.Invoke(() => {
-                                        if (state.Entries.TryGetValue(cls, out var entry) && entry.AutoApply)
-                                            ShellHelper.ApplyStyle(hwnd, entry);
-                                    });
-                                });
-                            }
+                        if (state?.Entries != null)
+                        {
+                            ShellHelper.EnumAllWindows((hwnd, cls) => { if (state.Entries.TryGetValue(cls, out var entry)) ShellHelper.ApplyStyle(hwnd, entry); });
+                            if (state.Entries.Values.Any(e => e.AutoApply))
+                                ShellHelper.StartWatcher((hwnd, cls) => { Dispatcher.Invoke(() => { if (state.Entries.TryGetValue(cls, out var entry) && entry.AutoApply) ShellHelper.ApplyStyle(hwnd, entry); }); });
                         }
                     }
-                } catch { }
+                }
+                catch { }
             });
         }
 
         protected override void OnClosed(EventArgs e)
         {
+            _isDisposed = true;
             _clockTimer?.Stop();
             SaveFolderHistory();
             SaveAliases();
             _startMenuInterceptor.Dispose();
-            foreach (var t in _tabs) { try { if (t.Process != null && !t.Process.HasExited) t.Process.Kill(); } catch { } }
+            foreach (var t in _tabs) { try { t.Session?.Dispose(); } catch { } }
             base.OnClosed(e);
         }
+
         #endregion
+
+        #region Wallpaper
+
         private void BrowseWallpaper_Click(object sender, RoutedEventArgs e)
         {
             var open = new Microsoft.Win32.OpenFileDialog { Filter = "Images|*.jpg;*.jpeg;*.png;*.webp;*.bmp|All Files|*.*" };
@@ -1618,173 +849,85 @@ Clear-Host
 
         private void ApplyWallpaper(string path)
         {
-            if (string.IsNullOrEmpty(path) || !System.IO.File.Exists(path)) return;
-            try {
-                var brush = new ImageBrush(new BitmapImage(new Uri(path))) { Stretch = Stretch.UniformToFill, Opacity = OpacitySlider.Value };
-                MainBorder.Background = brush;
-            } catch { }
+            if (string.IsNullOrEmpty(path) || !File.Exists(path)) return;
+            try { MainBorder.Background = new ImageBrush(new BitmapImage(new Uri(path))) { Stretch = Stretch.UniformToFill, Opacity = OpacitySlider.Value }; }
+            catch { }
         }
+
+        #endregion
+
+        #region Professional Tasks
+
         private async void RunProfessionalTasks()
         {
             if (_activeTab == null) return;
-            
-            string accent = "#00D4FF";
-            string success = "#FF27C93F";
-            string warning = "#FFFFBD2E";
+            AppendToTab(_activeTab, "\n  [ 🛠️ TASK SEQUENCE ]\n", "#00D4FF");
+            AppendToTab(_activeTab, "  ────────────────────────────────────────\n\n", "#00D4FF");
+            await Task.Delay(500);
 
-            AppendToTab(_activeTab, "\n  [ 🛠️ ZEROMIX TASK SEQUENCE STARTING ]\n", accent);
-            AppendToTab(_activeTab, "  ================================================\n\n", accent);
-            await Task.Delay(800);
-
-            // Step 1: System Pulse
-            AppendToTab(_activeTab, "  [ 1/5 ] Analisis Neural Pulse... ", "#CCCCCC");
-            await Task.Delay(1200);
-            AppendToTab(_activeTab, "DONE\n", success);
-            AppendToTab(_activeTab, "          • Status: Kernel optimized, Hardware stable.\n", "#888888");
-
-            // Step 2: Network Integrity
-            AppendToTab(_activeTab, "  [ 2/5 ] Audit Integritas Jaringan... ", "#CCCCCC");
-            await Task.Delay(1500);
-            AppendToTab(_activeTab, "DONE\n", success);
-            AppendToTab(_activeTab, "          • Latency: 12ms | DNS: Secured via ZeroProxy.\n", "#888888");
-
-            // Step 3: Fast Disk Check
-            AppendToTab(_activeTab, "  [ 3/5 ] Pemindaian Sektor Cepat (C:)... ", "#CCCCCC");
-            await Task.Delay(2000);
-            AppendToTab(_activeTab, "SCAN COMPLETE\n", success);
-            AppendToTab(_activeTab, "          • I/O Performance: Excellent | Errors: 0.\n", "#888888");
-
-            // Step 4: Maintenance Cleanup
-            AppendToTab(_activeTab, "  [ 4/5 ] Turbo Cleanup Pro... ", "#CCCCCC");
+            AppendToTab(_activeTab, "  [1/4] System analysis... ", "#CCCCCC");
             await Task.Delay(1000);
-            AppendToTab(_activeTab, "PURGING...\n", warning);
+            AppendToTab(_activeTab, "DONE\n", "#27C93F");
+            AppendToTab(_activeTab, "        • Kernel OK, hardware stable.\n", "#888888");
+
+            AppendToTab(_activeTab, "  [2/4] Network check... ", "#CCCCCC");
             await Task.Delay(1000);
-            AppendToTab(_activeTab, "          • Berhasil membuang log usang dan file cache.\n", "#888888");
+            AppendToTab(_activeTab, "DONE\n", "#27C93F");
+            AppendToTab(_activeTab, "        • Connection OK.\n", "#888888");
 
-            // Step 5: Optimization
-            AppendToTab(_activeTab, "  [ 5/5 ] Sinkronisasi Core Engine... ", "#CCCCCC");
+            AppendToTab(_activeTab, "  [3/4] Disk scan (C:)... ", "#CCCCCC");
             await Task.Delay(1500);
-            AppendToTab(_activeTab, "SYNCED\n\n", success);
+            AppendToTab(_activeTab, "OK\n", "#27C93F");
+            AppendToTab(_activeTab, "        • No errors found.\n", "#888888");
 
-            AppendToTab(_activeTab, "  ✨ [ SEMUA TUGAS SELESAI DENGAN SUKSES ]\n", success);
-            AppendToTab(_activeTab, "  Sistem ZeroMix sekarang berjalan pada performa puncak.\n", "#CCCCCC");
-            AppendToTab(_activeTab, "  Kakak bisa tutup terminal ini kapan saja.\n\n", "#888888");
+            AppendToTab(_activeTab, "  [4/4] Cache cleanup... ", "#CCCCCC");
+            await Task.Delay(1000);
+            AppendToTab(_activeTab, "DONE\n\n", "#27C93F");
+
+            AppendToTab(_activeTab, "  ✨ ALL TASKS COMPLETE\n\n", "#27C93F");
         }
 
-        private void HelpBtn_Click(object sender, System.Windows.Input.MouseButtonEventArgs e)
-        {
-            AppendToTab(_activeTab, "\n  📖 ZEROMIX SHELL HELP\n", "#00D4FF");
-            AppendToTab(_activeTab, "  =====================================\n", "#00D4FF");
-            AppendToTab(_activeTab, "  !help              - Show this help message\n", "#E0E0E0");
-            AppendToTab(_activeTab, "  !tasks             - Run system maintenance tasks\n", "#E0E0E0");
-            AppendToTab(_activeTab, "  alias <name>=<cmd> - Create a shell alias\n", "#E0E0E0");
-            AppendToTab(_activeTab, "  clear              - Clear terminal screen\n", "#E0E0E0");
-            AppendToTab(_activeTab, "  exit               - Close terminal\n\n", "#E0E0E0");
-        }
+        #endregion
 
-        private void TerminalInput_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
+        #region Autocomplete Suggestions
+
+        private void TerminalInput_TextChanged(object sender, TextChangedEventArgs e)
         {
             if (TerminalInput == null || SuggestionsListBox == null) return;
-
             string input = TerminalInput.Text.ToLower().Trim();
-            if (string.IsNullOrWhiteSpace(input))
-            {
-                SuggestionsListBox.Visibility = Visibility.Collapsed;
-                return;
-            }
+            if (string.IsNullOrWhiteSpace(input)) { SuggestionsListBox.Visibility = Visibility.Collapsed; return; }
 
             var suggestions = new List<SuggestionItem>();
 
-            // 1. COMMAND HISTORY - show recent commands that match
-            var matchingCommands = _commandHistory
-                .Where(c => c.ToLower().StartsWith(input))
-                .Distinct()
-                .Take(5)
-                .Select(c => new SuggestionItem { 
-                    DisplayText = c, 
-                    Category = "History", 
-                    FullPath = c 
-                })
-                .ToList();
+            var matchingCommands = _commandHistory.Where(c => c.ToLower().StartsWith(input)).Distinct().Take(5)
+                .Select(c => new SuggestionItem { DisplayText = c, Category = "History", FullPath = c }).ToList();
             suggestions.AddRange(matchingCommands);
 
-            // 2. BUILT-IN COMMANDS - show commands matching input
-            var builtInCommands = new[] { "!help", "!tasks", "!sys", "!wifi", "alias", "clear", "exit", "dir", "cd", "cls", "ls", "pwd" };
-            var matchingBuiltIn = builtInCommands
-                .Where(c => c.ToLower().StartsWith(input))
-                .Select(c => new SuggestionItem { 
-                    DisplayText = c, 
-                    Category = "Command", 
-                    FullPath = c 
-                })
-                .ToList();
-            suggestions.AddRange(matchingBuiltIn);
+            var builtIn = new[] { "!help", "!tasks", "!sys", "!wifi", "alias", "clear", "exit", "dir", "cd", "cls", "ls", "pwd" };
+            suggestions.AddRange(builtIn.Where(c => c.ToLower().StartsWith(input))
+                .Select(c => new SuggestionItem { DisplayText = c, Category = "Cmd", FullPath = c }));
 
-            // 3. FOLDER RECOMMENDATIONS - if input looks like a path or "cd "
             if (input.Contains("cd ") || input.Contains("\\") || input.Contains("/") || input == "cd")
             {
-                string searchPrefix = input.Contains("cd ") ? input.Substring(3).Trim() : input;
-                
+                string sp = input.Contains("cd ") ? input.Substring(3).Trim() : input;
                 var topFolders = _folderHistory.GetTopFolders(5);
-                var matchingFolders = topFolders
-                    .Where(f => f.ToLower().Contains(searchPrefix) && !string.IsNullOrEmpty(searchPrefix))
-                    .Select(f => new SuggestionItem { 
-                        DisplayText = Path.GetFileName(f) ?? f, 
-                        Category = "Folder", 
-                        FullPath = f 
-                    })
-                    .Take(3)
-                    .ToList();
-                
-                // If no matching folders, show top folders
-                if (matchingFolders.Count == 0 && (searchPrefix == "" || searchPrefix.Length < 3))
-                {
-                    matchingFolders = topFolders
-                        .Take(3)
-                        .Select(f => new SuggestionItem { 
-                            DisplayText = Path.GetFileName(f) ?? f, 
-                            Category = "Folder", 
-                            FullPath = f 
-                        })
-                        .ToList();
-                }
-                
-                suggestions.AddRange(matchingFolders);
+                suggestions.AddRange(topFolders.Where(f => f.ToLower().Contains(sp) && !string.IsNullOrEmpty(sp))
+                    .Select(f => new SuggestionItem { DisplayText = Path.GetFileName(f) ?? f, Category = "Folder", FullPath = f }).Take(3));
+                if (!suggestions.Any(s => s.Category == "Folder") && (sp == "" || sp.Length < 3))
+                    suggestions.AddRange(topFolders.Take(3).Select(f => new SuggestionItem { DisplayText = Path.GetFileName(f) ?? f, Category = "Folder", FullPath = f }));
             }
 
             SuggestionsListBox.ItemsSource = suggestions;
             SuggestionsListBox.Visibility = suggestions.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
-            
-            // Hide recommendations when typing
-            if (RecommendationsPanel != null) {
+            if (RecommendationsPanel != null)
                 RecommendationsPanel.Visibility = string.IsNullOrWhiteSpace(TerminalInput.Text) ? Visibility.Visible : Visibility.Collapsed;
-            }
         }
 
-        private void SuggestionsListBox_MouseDoubleClick(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        private void SuggestionsListBox_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
             if (SuggestionsListBox.SelectedItem is SuggestionItem selected)
             {
-                string completion = selected.FullPath;
-                
-                // Handle folder selection
-                if (selected.Category == "Folder")
-                {
-                    string currentInput = TerminalInput.Text.ToLower().Trim();
-                    if (currentInput.StartsWith("cd "))
-                    {
-                        completion = $"cd \"{selected.FullPath}\"";
-                    }
-                    else
-                    {
-                        completion = $"cd \"{selected.FullPath}\"";
-                    }
-                }
-                else
-                {
-                    completion = selected.DisplayText + " ";
-                }
-
+                string completion = selected.Category == "Folder" ? $"cd \"{selected.FullPath}\"" : selected.DisplayText + " ";
                 TerminalInput.Text = completion;
                 TerminalInput.CaretIndex = TerminalInput.Text.Length;
                 SuggestionsListBox.Visibility = Visibility.Collapsed;
@@ -1793,44 +936,22 @@ Clear-Host
 
         private void RefreshRecommendations()
         {
-            if (TopFoldersListBox == null || TopCommandsListBox == null) return;
-
-            // Ensure no direct items exist before assigning ItemsSource
-            TopFoldersListBox.ItemsSource = null;
-            TopFoldersListBox.Items.Clear();
-
-            // Get top 5 folders
-            var topFolders = _folderHistory.GetTopFolders(5);
-            var folderItems = topFolders
-                .Select(f => Path.GetFileName(f) ?? f)
-                .ToList();
-            TopFoldersListBox.ItemsSource = folderItems;
-
-            // Ensure TopCommands has no direct items before assigning ItemsSource
-            TopCommandsListBox.ItemsSource = null;
-            TopCommandsListBox.Items.Clear();
-
-            // Get top 5 recent commands
-            var topCommands = _commandHistory
-                .Distinct()
-                .Take(5)
-                .ToList();
-            TopCommandsListBox.ItemsSource = topCommands;
+            TopFoldersListBox.ItemsSource = _folderHistory.GetTopFolders(5).Select(f => Path.GetFileName(f) ?? f).ToList();
+            TopCommandsListBox.ItemsSource = _commandHistory.Distinct().Take(5).ToList();
         }
 
-        private void TopFoldersListBox_MouseLeftButtonDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        private void TopFoldersListBox_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
             if (TopFoldersListBox.SelectedItem is string folder)
             {
-                var fullPath = _folderHistory.GetTopFolders(5)
-                    .FirstOrDefault(f => Path.GetFileName(f) == folder || f == folder) ?? folder;
+                var fullPath = _folderHistory.GetTopFolders(5).FirstOrDefault(f => Path.GetFileName(f) == folder || f == folder) ?? folder;
                 TerminalInput.Text = $"cd \"{fullPath}\"";
                 TerminalInput.CaretIndex = TerminalInput.Text.Length;
                 e.Handled = true;
             }
         }
 
-        private void TopCommandsListBox_MouseLeftButtonDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        private void TopCommandsListBox_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
             if (TopCommandsListBox.SelectedItem is string command)
             {
@@ -1839,5 +960,7 @@ Clear-Host
                 e.Handled = true;
             }
         }
+
+        #endregion
     }
 }

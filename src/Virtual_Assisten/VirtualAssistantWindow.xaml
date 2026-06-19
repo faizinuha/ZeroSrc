@@ -16,11 +16,22 @@
     <Grid>
         <Grid.ContextMenu>
             <ContextMenu>
-                <MenuItem Header="Lihat Layarku Sekarang" Click="ManualVision_Click"/>
+                <MenuItem Header="💬 Chat Manual" Click="ManualChat_Click"/>
+                <MenuItem Header="👁 Lihat Layarku" Click="ManualVision_Click"/>
                 <Separator/>
-                <MenuItem Header="Tutup Asisten" Click="Close_Click"/>
+                <MenuItem Header="🎤 Voice Input" Click="ManualMic_Click"/>
+                <Separator/>
+                <!-- Character Selector -->
+                <MenuItem Header="🎭 Character">
+                    <MenuItem Header="Frieren (Cool Elf)" Click="SetFrieren_Click" IsCheckable="True" IsChecked="True" x:Name="CharFrieren"/>
+                    <MenuItem Header="Fern (Tsundere)" Click="SetFern_Click" IsCheckable="True" x:Name="CharFern"/>
+                    <MenuItem Header="Huohuo (Playful Fox)" Click="SetHuohuo_Click" IsCheckable="True" x:Name="CharHuohuo"/>
+                </MenuItem>
+                <Separator/>
+                <MenuItem Header="✕ Tutup Asisten" Click="Close_Click"/>
             </ContextMenu>
         </Grid.ContextMenu>
+        
         <!-- Chat Bubble -->
         <Border x:Name="ChatBubble"
                 VerticalAlignment="Top"
@@ -29,7 +40,8 @@
                 Padding="15,10"
                 CornerRadius="12"
                 Visibility="Collapsed"
-                MaxWidth="350">
+                MaxWidth="350"
+                IsHitTestVisible="False">
             <Border.Background>
                 <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
                     <GradientStop Color="#F0FFFFFF" Offset="0"/>
@@ -54,5 +66,68 @@
                      DefaultBackgroundColor="Transparent"
                      IsHitTestVisible="True"
                      Cursor="Hand"/>
+        
+        <!-- Inline Chat Panel (hidden by default, toggled via mic button) -->
+        <Border x:Name="ChatPanel"
+                VerticalAlignment="Bottom"
+                HorizontalAlignment="Stretch"
+                Margin="12,0,12,50"
+                Padding="6,6"
+                CornerRadius="10"
+                Background="#DD1A1A2E"
+                BorderBrush="#3300D4FF"
+                BorderThickness="1"
+                Visibility="Collapsed">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <TextBox x:Name="ChatInput"
+                         Grid.Column="0"
+                         Background="Transparent"
+                         BorderThickness="0"
+                         Foreground="#E0E0E0"
+                         FontSize="12"
+                         FontFamily="Segoe UI"
+                         VerticalContentAlignment="Center"
+                         Padding="6,2"
+                         AcceptsReturn="False"
+                         Text="Type a message..."
+                         GotFocus="ChatInput_GotFocus"
+                         LostFocus="ChatInput_LostFocus"
+                         KeyDown="ChatInput_KeyDown"/>
+                <Border x:Name="ChatSendBtn"
+                        Grid.Column="1"
+                        Width="28" Height="28"
+                        CornerRadius="14"
+                        Background="#2200D4FF"
+                        Cursor="Hand"
+                        MouseLeftButtonDown="ChatSendBtn_Click"
+                        Margin="4,0,0,0">
+                    <TextBlock Text="➤" FontSize="12" Foreground="#00D4FF"
+                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </Border>
+            </Grid>
+        </Border>
+
+        <!-- Control Bar (bottom) -->
+        <StackPanel VerticalAlignment="Bottom" HorizontalAlignment="Center" 
+                    Orientation="Horizontal" Margin="0,0,0,8">
+            <Border x:Name="ChatToggleBtn" Width="32" Height="32" CornerRadius="16"
+                    Background="#66000000" BorderBrush="#44FFFFFF" BorderThickness="1"
+                    Cursor="Hand" ToolTip="Open chat"
+                    MouseLeftButtonDown="ChatToggleBtn_Click" Margin="0,0,4,0">
+                <TextBlock Text="💬" FontSize="13" HorizontalAlignment="Center" 
+                           VerticalAlignment="Center"/>
+            </Border>
+            <Border x:Name="MicButton" Width="32" Height="32" CornerRadius="16"
+                    Background="#66000000" BorderBrush="#44FFFFFF" BorderThickness="1"
+                    Cursor="Hand" ToolTip="Voice chat"
+                    MouseLeftButtonDown="MicButton_Click">
+                <TextBlock Text="🎤" FontSize="14" HorizontalAlignment="Center" 
+                           VerticalAlignment="Center"/>
+            </Border>
+        </StackPanel>
     </Grid>
 </Window>

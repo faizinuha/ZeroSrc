@@ -2,7 +2,52 @@
 
 ---
 
-## 🚀 v5.5.0 — Latest
+## 🚀 v7.4.1 — Latest
+
+### 🔧 ZeroShell — Settings Disederhanakan
+- **Hapus SHELL section**: `ShellTypeCombo` (pwsh/legacy/CMD/WSL) dihapus dari settings — tidak perlu pilih shell.
+- **Hapus THEME section**: `ThemePicker` cards + 5 tema (Default, Compact, Retro Green, Glass, macOS) dihapus — **cuma 1 tema Default** biar simpel.
+- **Font pilihan macOS/terminal**: Font combo tidak lagi nampilin semua system fonts — cuma 6 font berkualitas: *Menlo, SF Mono, Cascadia Mono, JetBrains Mono, Fira Code, Consolas*.
+- **Dead code cleanup**: Hapus `ThemeCardData`, `_sessionStartTime`, `_tabOriginal`, 6 utility methods (`RunWifiScan`, `RunNetworkInfo`, `RunBatteryInfo`, `RunDiskInfo`, `RunAppsList`, `RunStartupList`), dan `AutocompleteViewModel.cs`.
+
+### 🐛 ZeroShell — Auto-Suggestion Fix
+- **Fix suggestions nutupin input**: `SuggestionsListBox` dipindah dari dalam input bar (ke-clip height 44px) ke **floating overlay** di atas input bar.
+- **Fix suggestions transparan**: Background `#E8` → `#FF` (solid, tidak tembus terminal).
+- **Fix text tidak clear saat Enter**: `Text=""` dan `e.Handled=true` di-set **sebelum** `await` — text langsung hilang saat Enter ditekan.
+
+### ✨ Search — Google Lens Improvement
+- **Auto-upload ke temp hosting**: Upload gambar ke 0x0.st / tmp.ninja sebelum buka Google Lens.
+- **Validasi ukuran file**: Max 10MB.
+- **Fallback clipboard**: Jika upload gagal, path file di-copy ke clipboard.
+
+### 🔧 GroqAIService — Character AI Prompts
+- **CharacterPrompts dictionary**: Prompt personality untuk Frieren, Fern, Huohuo.
+- **ChatAsync baru**: Method dengan persona support untuk character-based chat.
+
+### 🐛 Bug Fixes
+- Fix `App.xaml.cs` — `HotkeyCoreInstance.Show()` dipanggil agar message pump aktif untuk WM_HOTKEY.
+
+---
+
+## 🚀 v7.3.0
+
+### ✨ Features
+- **AI Companions — Inline Chat Panel**: Panel chat (TextBox + Send button) yang toggle via tombol 💬. Chat history 10 pesan terakhir dikirim sebagai context ke AI (WaifuChatService/OpenRouter).
+- **AI Companions — Character Switching**: Ganti character Live2D (Frieren/Fern/Huohuo) + personality AI langsung dari context menu. Greeting dinamis per character.
+- **WaifuChatService — History Context**: ChatAsync() support parameter history opsional + method BuildMessages() untuk compose array messages dengan history.
+- **GroqAIService — ChatAsync**: Method baru untuk character-based chat dengan 3 personality prompt + history context.
+
+### 🔧 Changes
+- **AI Companions**: GroqAIService di-rollback dari AI Companions — tetap khusus SearchOverlay. Provider toggle (OpenRouter/Groq) dihapus dari context menu.
+- **AI Companions**: AiVisionService tetap auto observe layar tiap 60 detik via Groq.
+- **Live2D WebView2**: Hapus SRI integrity hash palsu dari CDN script pixi.js.
+
+### 🐛 Bug Fixes
+- Fix Live2D WebView2 crash — SRI integrity hash palsu di pixi.js menyebabkan WebView2 reject script.
+
+---
+
+## 🚀 v5.5.0
 
 ### ✨ Features
 - **Charger Notif Plugin** (`ChargerBatterynotif.core`): Plugin baru khusus event charger — notifikasi animasi Lottie + suara saat charger dicolok, dicabut, dan baterai penuh.

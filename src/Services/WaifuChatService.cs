@@ -73,7 +73,7 @@ Contoh:
         /// <summary>
         /// Chat dengan waifu berdasarkan personality character
         /// </summary>
-        public async Task<string> ChatAsync(string userMessage, string character)
+        public async Task<string> ChatAsync(string userMessage, string character, List<(string Role, string Message)>? history = null)
         {
             // Validasi API key
             if (string.IsNullOrEmpty(_apiKey))
@@ -96,11 +96,7 @@ Contoh:
                 var requestBody = new
                 {
                     model = modelName,
-                    messages = new[]
-                    {
-                        new { role = "system", content = _systemPrompts[character] },
-                        new { role = "user", content = userMessage }
-                    },
+                    messages = BuildMessages(character, userMessage, history),
                     max_tokens = 100, // Naikkan dari 80 untuk Gemini Thinking
                     temperature = 0.9,
                     top_p = 0.95
@@ -152,6 +148,26 @@ Contoh:
             }
 
             return GetFallbackResponse(character, "unknown");
+        }
+
+        /// <summary>
+        /// Build messages array with optional history
+        /// </summary>
+        private Array BuildMessages(string character, string userMessage, List<(string Role, string Message)>? history)
+        {
+            var list = new List<object>
+            {
+                new { role = "system", content = _systemPrompts[character] }
+            };
+
+            if (history != null)
+            {
+                foreach (var (role, msg) in history)
+                    list.Add(new { role, content = msg });
+            }
+
+            list.Add(new { role = "user", content = userMessage });
+            return list.ToArray();
         }
 
         /// <summary>
