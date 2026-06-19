@@ -1,4 +1,4 @@
-<!doctype html>
+﻿<!doctype html>
 <html>
 
 <head>
@@ -52,14 +52,13 @@
 
 <body>
   <div id="loading">
-    <div class="emoji">🎭</div>
+    <div class="emoji">ðŸŽ­</div>
     <div class="text">Loading Live2D...</div>
   </div>
   <canvas id="canvas"></canvas>
 
-  <!-- PIXI.js — pinned version for stability, SRI hash untuk keamanan -->
+  <!-- PIXI.js â€” pinned version for stability, SRI hash untuk keamanan -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pixi.js/7.3.2/pixi.min.js"
-    integrity="sha512-ch3Dwn7DL4WMRFzBMFpCMhFmFBCMFBCMFBCMFBCMFBCMFBCMFBCMFBCMFBCMFBCMFBCMFBCMFBCMFBCMFBCMFA=="
     crossorigin="anonymous" referrerpolicy="no-referrer"></script>
   <!-- Live2D Cubism Core -->
   <script src="https://cubism.live2d.com/sdk-web/cubismcore/live2dcubismcore.min.js" crossorigin="anonymous"
@@ -69,7 +68,7 @@
     referrerpolicy="no-referrer"></script>
 
   <script>
-    // ── State ──────────────────────────────────────────────────────────────
+    // â”€â”€ State â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     let MODEL_PATH = "";
     let app = null;
     let model = null;
@@ -83,7 +82,7 @@
     let mouthOpenTimer = null;
     let isLoadingModel = false;   // guard against concurrent loads
 
-    // ── WPF log proxy ──────────────────────────────────────────────────────
+    // â”€â”€ WPF log proxy â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     function sendToWPF(type, args) {
       if (window.chrome && window.chrome.webview) {
         const msg = Array.from(args).map(a => typeof a === "object" ? JSON.stringify(a) : a).join(" ");
@@ -93,7 +92,7 @@
     const _log = console.log; console.log = function () { _log.apply(console, arguments); sendToWPF("info", arguments); };
     const _err = console.error; console.error = function () { _err.apply(console, arguments); sendToWPF("error", arguments); };
 
-    // ── Init ───────────────────────────────────────────────────────────────
+    // â”€â”€ Init â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     async function init() {
       const canvas = document.getElementById("canvas");
       const loading = document.getElementById("loading");
@@ -109,7 +108,7 @@
           resizeTo: window,
           antialias: false,
           powerPreference: "low-power",
-          autoDensity: false,          // matikan autoDensity — hemat RAM signifikan
+          autoDensity: false,          // matikan autoDensity â€” hemat RAM signifikan
           resolution: 1,               // paksa 1x, bukan devicePixelRatio
         });
 
@@ -118,7 +117,7 @@
 
         app.ticker.add(updateLoop);
 
-        // Throttle saat tidak aktif — gunakan visibility API untuk menghemat resources saat tersembunyi
+        // Throttle saat tidak aktif â€” gunakan visibility API untuk menghemat resources saat tersembunyi
         function updateTickerForVisibility() {
           if (document.hidden) { app.ticker.maxFPS = 8; }
           else { app.ticker.maxFPS = MODEL_PATH.toLowerCase().includes("huohuo") ? 18 : 24; }
@@ -133,7 +132,7 @@
           loading.style.display = "none";
         }
 
-        // Auto-expression every 6–12 s for natural idle feel
+        // Auto-expression every 6â€“12 s for natural idle feel
         startAutoMotion();
 
         console.log("[Live2D] Initialized");
@@ -143,7 +142,8 @@
       }
     }
 
-    // ── Load model ─────────────────────────────────────────────────────────
+    // â”€â”€ Load model â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€    let loadRetryCount = 0;
+    const MAX_RETRIES = 2;
 
     async function loadModel(path) {
       if (!path || isLoadingModel) return;
@@ -153,7 +153,7 @@
       const loading = document.getElementById("loading");
       const canvas = document.getElementById("canvas");
 
-      loading.querySelector(".emoji").textContent = "🎭";
+      loading.querySelector(".emoji").textContent = "ðŸŽ­";
       loading.querySelector(".text").textContent = "Loading model...";
       loading.style.display = "block";
       canvas.style.opacity = "0";
@@ -163,13 +163,15 @@
       stopAutoMotion();
       resetMotionFlags();
 
-      // Destroy previous model + aggressive cleanup      if (model) {
+      // Destroy previous model + aggressive cleanup
+      if (model) {
         app.stage.removeChild(model);
         try { model.destroy({ children: true, texture: true, baseTexture: true }); } catch (e) { }
         model = null;
       }
 
-      // Bersihkan semua texture cache      if (typeof PIXI.utils.clearTextureCache === "function") PIXI.utils.clearTextureCache();
+      // Bersihkan semua texture cache
+      if (typeof PIXI.utils.clearTextureCache === "function") PIXI.utils.clearTextureCache();
       if (typeof PIXI.utils.destroyTextureCache === "function") PIXI.utils.destroyTextureCache();
       PIXI.BaseTexture.removeFromCache && Object.keys(PIXI.utils.BaseTextureCache || {})
         .forEach(k => { try { PIXI.utils.BaseTextureCache[k]?.destroy(true); } catch (e) { } });
@@ -195,10 +197,20 @@
       const isHeavyModel = path.toLowerCase().includes("huohuo");
       await new Promise(r => setTimeout(r, isHeavyModel ? 500 : 200));
 
-      // Resume ticker sebelum load      app.ticker.start();      MODEL_PATH = path;
+      // Resume ticker sebelum load
+      app.ticker.start();
+      MODEL_PATH = path;
+
+      // Reset retry counter on fresh load
+      if (loadRetryCount > 0 && path.includes("?t=")) {
+        // This is a retry â€” keep existing retry count
+      } else {
+        loadRetryCount = 0;
+      }
 
       try {
-        // Cache-bust so stale files don't block reload        const loadPath = path + "?t=" + Date.now();
+        // Cache-bust so stale files don't block reload
+        const loadPath = path + "?t=" + Date.now() + "_r" + loadRetryCount;
 
         // Adjust renderer & options for heavy vs light models
         if (isHeavyModel) {
@@ -207,17 +219,51 @@
           app.ticker.maxFPS = 24;
         }
 
-        const options = {          autoInteract: true,          autoUpdate: true,          onError: (e) => console.error("[Live2D] Resource error:", e),        };
+        const options = {
+          autoInteract: true,
+          autoUpdate: true,
+          onError: (e) => console.error("[Live2D] Resource error:", e),
+        };
 
+        console.log("[Live2D] Loading from:", loadPath);
         model = await PIXI.live2d.Live2DModel.from(loadPath, options);
 
-        // Scale to fit window height with padding; smaller scale for heavy models to save VRAM        model.anchor.set(0.5, 1);        const basePadding = 50;        const scale = (app.screen.height - basePadding) / model.height * model.scale.x;        model.scale.set(scale);        model.x = app.screen.width / 2;        model.y = app.screen.height;
+        // Scale to fit window height with padding; smaller scale for heavy models to save VRAM
+        model.anchor.set(0.5, 1);
+        const basePadding = 50;
+        const scale = (app.screen.height - basePadding) / model.height * model.scale.x;
+        model.scale.set(scale);
+        model.x = app.screen.width / 2;
+        model.y = app.screen.height;
 
         app.stage.addChild(model);
 
-        // Hide watermark/credit text parts        try {          const core = model.internalModel.coreModel;          const partIds = model.internalModel.coreModel._partIds || [];          partIds.forEach((id, i) => {            const lower = id.toLowerCase();            if (lower.includes("illust") || lower.includes("text") ||              lower.includes("credit") || lower.includes("watermark") ||              lower.includes("logo") || lower.includes("copy"))              core.setPartOpacityByIndex(i, 0);          });          // Juga hide via drawable jika ada          const drawIds = core._drawableIds || [];          drawIds.forEach((id, i) => {            const lower = id.toLowerCase();            if (lower.includes("illust") || lower.includes("text") ||              lower.includes("credit") || lower.includes("watermark"))              try { core.setDrawableOpacityByIndex(i, 0); } catch (e) { }          });        } catch (e) { }
+        // Hide watermark/credit text parts
+        try {
+          const core = model.internalModel.coreModel;
+          const partIds = model.internalModel.coreModel._partIds || [];
+          partIds.forEach((id, i) => {
+            const lower = id.toLowerCase();
+            if (lower.includes("illust") || lower.includes("text") ||
+              lower.includes("credit") || lower.includes("watermark") ||
+              lower.includes("logo") || lower.includes("copy"))
+              core.setPartOpacityByIndex(i, 0);
+          });
+          // Juga hide via drawable jika ada
+          const drawIds = core._drawableIds || [];
+          drawIds.forEach((id, i) => {
+            const lower = id.toLowerCase();
+            if (lower.includes("illust") || lower.includes("text") ||
+              lower.includes("credit") || lower.includes("watermark"))
+              try { core.setDrawableOpacityByIndex(i, 0); } catch (e) { }
+          });
+        } catch (e) { }
 
-        // Fade in        canvas.style.opacity = "1";        loading.style.display = "none";        isModelLoaded = true;
+        // Fade in
+        canvas.style.opacity = "1";
+        loading.style.display = "none";
+        isModelLoaded = true;
+        loadRetryCount = 0; // Reset retry on success
 
         // Notify WPF
         if (window.chrome && window.chrome.webview)
@@ -228,22 +274,64 @@
           window.chrome.webview.postMessage({ type: "model_loaded", heavy: isHeavyModel, loadTimeMs: loadTimeMs, jsMemoryUsed: jsMem });
         }
 
-        model.on("pointerdown", onModelClick);        model.interactive = true;        model.cursor = "pointer";
+        model.on("pointerdown", onModelClick);
+        model.interactive = true;
+        model.cursor = "pointer";
 
-        // Start idle motions immediately        resetMotionFlags();        startAutoMotion();        setTimeout(() => { playIdleMotion(); playBodyMotion(); }, 500);
+        // Start idle motions immediately
+        resetMotionFlags();
+        startAutoMotion();
+        setTimeout(() => { playIdleMotion(); playBodyMotion(); }, 500);
 
-      } catch (err) {        console.error("[Live2D] Load error:", err);        showError();      } finally {        isLoadingModel = false;      }
+      } catch (err) {
+        console.error("[Live2D] Load error:", err);
+        
+        // Notify WPF of error
+        if (window.chrome && window.chrome.webview) {
+          window.chrome.webview.postMessage({ 
+            type: "model_error", 
+            error: err.message || "Unknown error",
+            path: path
+          });
+        }
+        
+        // Retry logic: reload with delay
+        if (loadRetryCount < MAX_RETRIES) {
+          loadRetryCount++;
+          console.log(`[Live2D] Retry ${loadRetryCount}/${MAX_RETRIES}...`);
+          loading.querySelector(".text").textContent = `Retry ${loadRetryCount}/${MAX_RETRIES}...`;
+          await new Promise(r => setTimeout(r, 1000));
+          isLoadingModel = false; // Reset so loadModel can be called again
+          await loadModel(path); // Retry
+        } else {
+          console.error("[Live2D] All retries exhausted");
+          showError();
+          if (window.chrome && window.chrome.webview) {
+            window.chrome.webview.postMessage({ 
+              type: "model_error", 
+              error: "All retries failed",
+              path: path
+            });
+          }
+          isLoadingModel = false;
+        }
+      } finally {
+        // Only reset loading flag if not retrying
+        if (loadRetryCount >= MAX_RETRIES || isModelLoaded) {
+          isLoadingModel = false;
+        }
+      }
     }
 
-    // ── Auto-motion (idle loop) ────────────────────────────────────────────
+    // â”€â”€ Auto-motion (idle loop) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     function startAutoMotion() {
       stopAutoMotion();
-      // Expression cycle: random interval 5–10 s
+      // Expression cycle: random interval 5â€“10 s
       autoMotionTimer = setInterval(() => {
         if (isModelLoaded) playIdleMotion();
       }, 5000 + Math.random() * 5000);
 
-      // Body motion cycle: every 8–15 s (plays the motion3.json animations)
+      // Body motion cycle: every 8â€“15 s (plays the motion3.json animations)
       idleMotionTimer = setInterval(() => {
         if (isModelLoaded) playBodyMotion();
       }, 8000 + Math.random() * 7000);
@@ -254,7 +342,7 @@
       if (idleMotionTimer) { clearInterval(idleMotionTimer); idleMotionTimer = null; }
     }
 
-    // ── Play expression (face) ─────────────────────────────────────────────
+    // â”€â”€ Play expression (face) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     async function playIdleMotion() {
       if (!model || !model.internalModel || isMotionPlaying) return;
       try {
@@ -268,7 +356,7 @@
           expressions = ["lh", "sq", "sy"];
         } else if (name.includes("huohuo")) {
           expressions = ["angry", "baozhen", "cry", "qizi1", "qizi2", "white eyes"];
-        } else if (name.includes("简__1_")) {
+        } else if (name.includes("ç®€__1_")) {
           expressions = ["angry", "baozhen", "cry", "qizi1", "qizi2", "white eyes"];
         }
 
@@ -280,7 +368,7 @@
       finally { setTimeout(() => { isMotionPlaying = false; }, 2000); }
     }
 
-    // ── Play body motion (motion3.json) ────────────────────────────────────
+    // â”€â”€ Play body motion (motion3.json) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     async function playBodyMotion() {
       if (!model || !model.internalModel || isBodyMotionPlaying) return;
       try {
@@ -302,13 +390,13 @@
       finally { setTimeout(() => { isBodyMotionPlaying = false; }, 4000); }
     }
 
-    // ── Reset flags saat ganti model ───────────────────────────────────────
+    // â”€â”€ Reset flags saat ganti model â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     function resetMotionFlags() {
       isMotionPlaying = false;
       isBodyMotionPlaying = false;
     }
 
-    // ── Model click ────────────────────────────────────────────────────────
+    // â”€â”€ Model click â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     function onModelClick() {
       if (window.chrome && window.chrome.webview)
         window.chrome.webview.postMessage({ type: "click" });
@@ -316,13 +404,13 @@
       playBodyMotion();
     }
 
-    // ── changeModel (called from WPF) ──────────────────────────────────────
+    // â”€â”€ changeModel (called from WPF) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     async function changeModel(path) {
       console.log("[Live2D] Changing model to:", path);
       await loadModel(path);
     }
 
-    // ── Eye tracking ───────────────────────────────────────────────────────
+    // â”€â”€ Eye tracking â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     function updateEyeTracking(x, y) {
       targetEyeX = x;
       targetEyeY = y;
@@ -349,7 +437,7 @@
       } catch (e) { }
     }
 
-    // ── Resize ─────────────────────────────────────────────────────────────
+    // â”€â”€ Resize â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     window.addEventListener("resize", () => {
       if (app && model) {
         model.x = app.screen.width / 2;
@@ -357,7 +445,7 @@
       }
     });
 
-    // ── Drag support ───────────────────────────────────────────────────────
+    // â”€â”€ Drag support â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     let isDragging = false, startX, startY;
     window.addEventListener("mousedown", e => { isDragging = true; startX = e.screenX; startY = e.screenY; });
     window.addEventListener("mousemove", e => {
@@ -370,15 +458,15 @@
     });
     window.addEventListener("mouseup", () => { isDragging = false; });
 
-    // ── Error display ──────────────────────────────────────────────────────
+    // â”€â”€ Error display â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     function showError() {
       const loading = document.getElementById("loading");
       loading.style.display = "block";
-      loading.querySelector(".emoji").textContent = "😢";
+      loading.querySelector(".emoji").textContent = "ðŸ˜¢";
       loading.querySelector(".text").textContent = "Model tidak ditemukan atau rusak";
     }
 
-    // ── TTS / Lip-sync ─────────────────────────────────────────────────────
+    // â”€â”€ TTS / Lip-sync â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     const synthesis = window.speechSynthesis;
     let availableVoices = [];
 
@@ -398,7 +486,7 @@
     const characterVoices = {
       "Frieren": {
         // Prefer: Google Japanese Female, Microsoft Ayumi, or any Japanese female
-        preferred: ["Google 日本語", "Microsoft Ayumi", "ja-JP-Female"],
+        preferred: ["Google æ—¥æœ¬èªž", "Microsoft Ayumi", "ja-JP-Female"],
         lang: "ja-JP",
         pitch: 1.0,  // Cool, calm voice
         rate: 0.95   // Slightly slower
@@ -412,7 +500,7 @@
       },
       "Huohuo": {
         // Prefer: Google Chinese Female, Microsoft Huihui
-        preferred: ["Google 普通话", "Microsoft Huihui", "zh-CN-Female"],
+        preferred: ["Google æ™®é€šè¯", "Microsoft Huihui", "zh-CN-Female"],
         lang: "zh-CN",
         pitch: 1.25, // Higher, playful voice
         rate: 1.1    // Faster, energetic
@@ -497,7 +585,7 @@
       }
     }
 
-    // ── STT ────────────────────────────────────────────────────────────────
+    // â”€â”€ STT â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     let recognition = null;
     if ("webkitSpeechRecognition" in window || "SpeechRecognition" in window) {
       const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -514,7 +602,7 @@
     function startSpeech(lang = "id-ID") { if (recognition) { recognition.lang = lang; try { recognition.start(); } catch (e) { } } }
     function stopSpeech() { if (recognition) { try { recognition.stop(); } catch (e) { } } }
 
-    // ── WebMessage from WPF ────────────────────────────────────────────────
+    // â”€â”€ WebMessage from WPF â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     if (window.chrome && window.chrome.webview) {
       window.chrome.webview.addEventListener("message", e => {
         try {

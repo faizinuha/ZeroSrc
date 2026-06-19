@@ -31,9 +31,13 @@ namespace ZeroMix.Virtual_Assisten
         private string _apiKey = ApiKeys.OPENAI_API_KEY; 
         private string _currentLang = "id-ID";
         
-        // WaifuChatService untuk AI chat interaktif
+        // AI Chat Service (OpenRouter via WaifuChatService)
         private WaifuChatService? _waifuChatService;
         private string _openRouterApiKey = ApiKeys.OPENROUTER_API_KEY;
+        
+        // Chat history untuk context
+        private readonly List<(string Role, string Message)> _chatHistory = new();
+        private const int MaxChatHistory = 10;
 
         private readonly Dictionary<string, List<string>> _characterMessages = new()
         {
@@ -76,7 +80,7 @@ namespace ZeroMix.Virtual_Assisten
             _visionTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(60) };
             _visionTimer.Tick += async (s, e) => await PerformAiObservation();
             
-            // Initialize WaifuChatService untuk AI chat
+            // Initialize WaifuChatService untuk AI chat (OpenRouter)
             try
             {
                 _waifuChatService = new WaifuChatService(_openRouterApiKey, WaifuChatService.ModelType.GeminiFlashThinking);
@@ -85,6 +89,8 @@ namespace ZeroMix.Virtual_Assisten
             {
                 Console.WriteLine($"[VA] Failed to init WaifuChatService: {ex.Message}");
             }
+            
+
         }
 
         private async void OnWindowLoaded(object sender, RoutedEventArgs e)
@@ -160,8 +166,11 @@ namespace ZeroMix.Virtual_Assisten
             if (!File.Exists(modelPath))
             {
                 Console.WriteLine($"[VA] Model not found: {modelPath}");
+                ShowNotification($"Model {characterName} tidak ditemukan di:\n{modelPath}");
                 return;
             }
+
+            Console.WriteLine($"[VA] Model file exists: {modelPath}");
 
             // Convert ke virtual host URL — konsisten dengan cara HTML di-load
             // Cari beberapa kandidat folder background (user mungkin memindahkan folder)
@@ -209,27 +218,46 @@ namespace ZeroMix.Virtual_Assisten
 
             string appBase = AppDomain.CurrentDomain.BaseDirectory.TrimEnd('\\', '/');
             string relativePath = modelPath.Replace(appBase, "").TrimStart('\\', '/').Replace("\\", "/");
-            string webPath = "https://zeromix.vercel.app/" + relativePath;
+            
+            // ★ FIX: URL-encode setiap segmen path secara eksplisit untuk karakter Unicode (China, Jepang, dll)
+            // Uri.EscapeUriString TIDAK meng-encode karakter non-ASCII yang sah dalam URI,
+            // tapi WebView2 virtual host membutuhkan percent-encoding untuk path Unicode.
+            string[] segments = relativePath.Split('/');
+            for (int i = 0; i < segments.Length; i++)
+            {
+                segments[i] = Uri.EscapeDataString(segments[i]);
+            }
+            string encodedRelativePath = string.Join("/", segments);
+            string webPath = "https://zeromix.vercel.app/" + encodedRelativePath;
             
             Console.WriteLine($"[VA] Loading model: {webPath}");
             
             try
             {
-                string escaped = Uri.EscapeUriString(webPath).Replace("'", "\\'");
+                string escaped = webPath.Replace("'", "\\'");
                 var sw = Stopwatch.StartNew();
                 Console.WriteLine($"[VA] Sending model to WebView: {webPath}");
                 long memBefore = GC.GetTotalMemory(false);
                 long wsBefore = Process.GetCurrentProcess().WorkingSet64;
                 Console.WriteLine($"[VA] Memory before send: GC={memBefore} bytes, WorkingSet={wsBefore} bytes");
-                await WebView.ExecuteScriptAsync($"if(typeof changeModel === 'function') changeModel('{escaped}');");
+                
+                // Simpan path ke JS agar bisa di-reload jika gagal
+                string js = $"if(typeof changeModel === 'function') changeModel('{escaped}');";
+                await WebView.ExecuteScriptAsync(js);
+                
                 sw.Stop();
                 long memAfter = GC.GetTotalMemory(false);
                 long wsAfter = Process.GetCurrentProcess().WorkingSet64;
                 Console.WriteLine($"[VA] Model send completed in {sw.ElapsedMilliseconds}ms. Memory after: GC={memAfter} bytes, WorkingSet={wsAfter} bytes");
+                
                 // Prompt .NET GC and working set trim after model change to free native resources
                 App.OptimizeMemory();
             }
-            catch (Exception ex) { Console.WriteLine($"[VA] SendModel error: {ex.Message}"); }
+            catch (Exception ex) 
+            { 
+                Console.WriteLine($"[VA] SendModel error: {ex.Message}");
+                ShowNotification($"Gagal memuat model {characterName}: {ex.Message}");
+            }
         }
 
         private async void OnWebMessageReceived(object? sender, CoreWebView2WebMessageReceivedEventArgs e)
@@ -349,23 +377,46 @@ namespace ZeroMix.Virtual_Assisten
         // Method untuk user chat dengan AI (bisa dipanggil dari UI atau voice input)
         public async Task HandleUserChat(string userMessage)
         {
-            if (_waifuChatService == null || string.IsNullOrWhiteSpace(userMessage)) return;
+            if (string.IsNullOrWhiteSpace(userMessage)) return;
             
             try
             {
                 // Show user message
-                ChatText.Text = $"💬: {userMessage}";
+                ChatText.Text = $"💬 {userMessage}";
                 ChatBubble.Visibility = Visibility.Visible;
                 
-                // Get AI response
-                string response = await _waifuChatService.ChatAsync(userMessage, _currentCharacter);
+                // Simpan ke history
+                _chatHistory.Add(("user", userMessage));
+                if (_chatHistory.Count > MaxChatHistory)
+                    _chatHistory.RemoveAt(0);
+                
+                string response;
+                
+                if (_waifuChatService != null)
+                {
+                    response = await _waifuChatService.ChatAsync(userMessage, _currentCharacter, _chatHistory);
+                }
+                else
+                {
+                    response = "Service AI belum tersedia. Cek API key di Settings.";
+                }
+                
+                // Simpan response ke history
+                _chatHistory.Add(("assistant", response));
+                if (_chatHistory.Count > MaxChatHistory)
+                    _chatHistory.RemoveAt(0);
                 
                 // Show AI response
                 ChatText.Text = response;
                 ChatBubble.Visibility = Visibility.Visible;
                 
                 // Speak the response
-                await WebView.ExecuteScriptAsync($"speakText('{response.Replace("'", "\\'")}', '{_currentLang}');");
+                try
+                {
+                    string escaped = response.Replace("'", "\\'");
+                    await WebView.ExecuteScriptAsync($"speakText('{escaped}', '{_currentLang}');");
+                }
+                catch { }
                 
                 _hideChatTimer?.Stop(); _hideChatTimer?.Start();
             }
@@ -431,6 +482,125 @@ namespace ZeroMix.Virtual_Assisten
         private async void ManualVision_Click(object sender, RoutedEventArgs e)
         {
             await PerformAiObservation();
+        }
+        
+        private void ManualChat_Click(object sender, RoutedEventArgs e)
+        {
+            // Toggle inline chat panel
+            ChatPanel.Visibility = ChatPanel.Visibility == Visibility.Visible
+                ? Visibility.Collapsed
+                : Visibility.Visible;
+            if (ChatPanel.Visibility == Visibility.Visible)
+            {
+                ChatInput.Text = "";
+                ChatInput.Focus();
+            }
+        }
+        
+        private async void ManualMic_Click(object sender, RoutedEventArgs e)
+        {
+            // Trigger WebView speech recognition
+            if (_isWebViewInitialized && !_isWebViewDisposed)
+            {
+                await WebView.ExecuteScriptAsync("if(typeof startSpeech === 'function') startSpeech('" + _currentLang + "');");
+                ShowNotification("🎤 Listening...");
+            }
+        }
+        
+        // ── Inline Chat Panel ────────────────────────────────────
+        
+        private void ChatToggleBtn_Click(object sender, MouseButtonEventArgs e)
+        {
+            ManualChat_Click(sender, null!);
+        }
+        
+        private void ChatInput_GotFocus(object sender, RoutedEventArgs e)
+        {
+            if (ChatInput.Text == "Type a message...")
+                ChatInput.Text = "";
+        }
+        
+        private void ChatInput_LostFocus(object sender, RoutedEventArgs e)
+        {
+            if (string.IsNullOrWhiteSpace(ChatInput.Text))
+                ChatInput.Text = "Type a message...";
+        }
+        
+        private async void ChatInput_KeyDown(object sender, System.Windows.Input.KeyEventArgs e)
+        {
+            if (e.Key == Key.Enter)
+            {
+                e.Handled = true;
+                await SendChatMessage();
+            }
+        }
+        
+        private async void ChatSendBtn_Click(object sender, MouseButtonEventArgs e)
+        {
+            await SendChatMessage();
+        }
+        
+        private async Task SendChatMessage()
+        {
+            string msg = ChatInput.Text.Trim();
+            if (string.IsNullOrWhiteSpace(msg) || msg == "Type a message...") return;
+            
+            ChatInput.Text = "";
+            ChatPanel.Visibility = Visibility.Collapsed;
+            await HandleUserChat(msg);
+        }
+        
+        // ── Character Switching ──────────────────────────────────
+        
+        private void SetFrieren_Click(object sender, RoutedEventArgs e)
+        {
+            _currentCharacter = "Frieren";
+            UpdateCharacterMenu();
+            SetCharacter("Frieren");
+        }
+        
+        private void SetFern_Click(object sender, RoutedEventArgs e)
+        {
+            _currentCharacter = "Fern";
+            UpdateCharacterMenu();
+            SetCharacter("Fern");
+        }
+        
+        private void SetHuohuo_Click(object sender, RoutedEventArgs e)
+        {
+            _currentCharacter = "Huohuo";
+            UpdateCharacterMenu();
+            SetCharacter("Huohuo");
+        }
+        
+        private void UpdateCharacterMenu()
+        {
+            CharFrieren.IsChecked = _currentCharacter == "Frieren";
+            CharFern.IsChecked = _currentCharacter == "Fern";
+            CharHuohuo.IsChecked = _currentCharacter == "Huohuo";
+            
+            // Welcome message for new character
+            if (_waifuChatService != null)
+            {
+                string greeting = _waifuChatService.GetGreeting(_currentCharacter);
+                ChatText.Text = greeting;
+                ChatBubble.Visibility = Visibility.Visible;
+                _hideChatTimer?.Stop(); _hideChatTimer?.Start();
+            }
+        }
+        private async void MicButton_Click(object sender, MouseButtonEventArgs e)
+        {
+            // Toggle speech recognition
+            if (_isWebViewInitialized && !_isWebViewDisposed)
+            {
+                await WebView.ExecuteScriptAsync("if(typeof startSpeech === 'function') startSpeech('" + _currentLang + "');");
+                ShowNotification("🎤 Listening...");
+
+                // Visual feedback — pulse mic button
+                MicButton.Background = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromArgb(0x99, 0x00, 0xD4, 0xFF));
+                await Task.Delay(2000);
+                MicButton.Background = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromArgb(0x66, 0x00, 0x00, 0x00));
+            }
         }
 
         private void Close_Click(object sender, RoutedEventArgs e) => this.Close();
