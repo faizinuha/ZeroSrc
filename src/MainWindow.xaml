@@ -1248,16 +1248,16 @@
                                             Margin="0,0,0,4"
                                             FontSize="12"
                                             Foreground="{StaticResource SubTextBrush}"
-                                            Text="� Klik pada karakter untuk mengobrol." />
+                                            Text="• Klik pada karakter untuk mengobrol." />
                                         <TextBlock
                                             Margin="0,0,0,4"
                                             FontSize="12"
                                             Foreground="{StaticResource SubTextBrush}"
-                                            Text="� Tahan klik dan tarik untuk memindahkan posisi." />
+                                            Text="• Tahan klik dan tarik untuk memindahkan posisi." />
                                         <TextBlock
                                             FontSize="12"
                                             Foreground="{StaticResource SubTextBrush}"
-                                            Text="� Matanya akan selalu mengikutimu~" />
+                                            Text="• Matanya akan selalu mengikutimu~" />
                                     </StackPanel>
                                 </Border>
                             </StackPanel>
@@ -1398,7 +1398,7 @@
                                                     FontSize="16"
                                                     FontWeight="Bold"
                                                     Foreground="#FF69B4"
-                                                    Text="Dukung ZeroMix ?" />
+                                                    Text="Dukung ZeroMix ☕" />
                                                 <TextBlock
                                                     Margin="0,0,0,14"
                                                     FontSize="13"
@@ -1465,10 +1465,10 @@
                                             TextWrapping="Wrap" />
                                         <StackPanel Margin="8,0,0,16">
                                             <TextBlock Margin="0,0,0,4" FontSize="12">
-                                                <Run Foreground="{StaticResource NeonBlueBrush}" Text="� " /><Hyperlink NavigateUri="https://pixabay.com/id/users/hans-2/" RequestNavigate="Hyperlink_RequestNavigate">Hans (Pixabay)</Hyperlink>
+                                                <Run Foreground="{StaticResource NeonBlueBrush}" Text="• " /><Hyperlink NavigateUri="https://pixabay.com/id/users/hans-2/" RequestNavigate="Hyperlink_RequestNavigate">Hans (Pixabay)</Hyperlink>
                                             </TextBlock>
                                             <TextBlock Margin="0,0,0,4" FontSize="12">
-                                                <Run Foreground="{StaticResource NeonBlueBrush}" Text="� " /><Hyperlink NavigateUri="https://pixabay.com/id/users/nickype-10327513/" RequestNavigate="Hyperlink_RequestNavigate">Nicky Pe (Pixabay)</Hyperlink>
+                                                <Run Foreground="{StaticResource NeonBlueBrush}" Text="• " /><Hyperlink NavigateUri="https://pixabay.com/id/users/nickype-10327513/" RequestNavigate="Hyperlink_RequestNavigate">Nicky Pe (Pixabay)</Hyperlink>
                                             </TextBlock>
                                         </StackPanel>
 
@@ -1478,7 +1478,7 @@
                                             FontSize="14"
                                             FontWeight="Bold"
                                             Foreground="White"
-                                            Text="?? Cat Gatekeeper" />
+                                            Text="🐱 Cat Gatekeeper" />
                                         <StackPanel Margin="8,0,0,16">
                                             <TextBlock
                                                 Margin="0,0,0,4"
@@ -1490,10 +1490,10 @@
                                                     FontWeight="Bold"
                                                     Foreground="White"
                                                     Text="@konekone2026 (ZOKUZOKU)" />
-                                                <Run Text=" � Cat Gatekeeper Chrome Extension." />
+                                                <Run Text=" — Cat Gatekeeper Chrome Extension." />
                                             </TextBlock>
                                             <TextBlock Margin="0,0,0,4" FontSize="12">
-                                                <Run Foreground="{StaticResource NeonBlueBrush}" Text="� " />
+                                                <Run Foreground="{StaticResource NeonBlueBrush}" Text="• " />
                                                 <Hyperlink NavigateUri="https://x.com/konekone2026" RequestNavigate="Hyperlink_RequestNavigate">
                                                     https://x.com/konekone2026
                                                 </Hyperlink>
@@ -1502,7 +1502,7 @@
                                                 Margin="0,0,0,4"
                                                 FontSize="12"
                                                 Foreground="{StaticResource SubTextBrush}">
-                                                <Run Text="� Ekstraksi &amp; Adaptasi ke WPF: " /><Run
+                                                <Run Text="• Ekstraksi &amp; Adaptasi ke WPF: " /><Run
                                                     FontWeight="Bold"
                                                     Foreground="White"
                                                     Text="Zaki" />
@@ -1974,7 +1974,7 @@
                                                             x:Name="BitrateLabel"
                                                             FontSize="9"
                                                             Foreground="{StaticResource NeonBlueBrush}"
-                                                            Text=" � 8 Mbps" />
+                                                            Text=" — 8 Mbps" />
                                                     </StackPanel>
                                                     <Slider
                                                         x:Name="BitrateSlider"
@@ -1990,7 +1990,7 @@
                                                     Grid.Column="2"
                                                     Margin="10,0,0,0"
                                                     Click="PauseResumeBtn_Click"
-                                                    Content="? Pause"
+                                                    Content="⏸ Pause"
                                                     FontSize="10"
                                                     Style="{StaticResource CasualBtn}"
                                                     Visibility="Collapsed" />
@@ -2115,7 +2115,7 @@
                                                                 HorizontalAlignment="Center"
                                                                 VerticalAlignment="Center"
                                                                 FontSize="20"
-                                                                Text="??" />
+                                                                Text="🎬" />
                                                         </Border>
                                                         <StackPanel Grid.Column="1" VerticalAlignment="Center">
                                                             <TextBlock
@@ -2128,7 +2128,7 @@
                                                                     FontSize="11"
                                                                     Foreground="{StaticResource SubTextBrush}"
                                                                     Text="{Binding CreationDate}" />
-                                                                <TextBlock Foreground="{StaticResource SubTextBrush}" Text=" � " />
+                                                                <TextBlock Foreground="{StaticResource SubTextBrush}" Text=" • " />
                                                                 <TextBlock
                                                                     FontSize="11"
                                                                     Foreground="{StaticResource SubTextBrush}"
@@ -2178,7 +2178,7 @@
                                                 Margin="0,0,12,0"
                                                 Padding="12,5"
                                                 Click="SleepBackBtn_Click"
-                                                Content="? Back"
+                                                Content="← Back"
                                                 FontSize="11"
                                                 Style="{StaticResource CasualBtn}" />
                                             <TextBlock
@@ -2402,7 +2402,7 @@
                                                 HorizontalAlignment="Center"
                                                 FontSize="18"
                                                 Foreground="#11FFFFFF"
-                                                Text="�" />
+                                                Text="■" />
                                             <TextBlock
                                                 Margin="0,4,0,0"
                                                 HorizontalAlignment="Center"
@@ -2431,7 +2431,7 @@
                                                 x:Name="SLP_BrightnessLabel"
                                                 FontSize="11"
                                                 Foreground="{StaticResource NeonBlueBrush}"
-                                                Text=" � 100%" />
+                                                Text=" — 100%" />
                                         </StackPanel>
                                         <Slider
                                             x:Name="SLP_BrightnessSld"
@@ -2513,7 +2513,7 @@
                                             Margin="0,0,0,10"
                                             FontSize="11"
                                             Foreground="{StaticResource SubTextBrush}"
-                                            Text="Putar musik saat Sleep Mode aktif � bisa dipakai dengan background apapun" />
+                                            Text="Putar musik saat Sleep Mode aktif — bisa dipakai dengan background apapun" />
                                         <Grid>
                                             <Grid.ColumnDefinitions>
                                                 <ColumnDefinition Width="*" />
