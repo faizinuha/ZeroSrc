@@ -1,4 +1,4 @@
-<ui:FluentWindow
+﻿<ui:FluentWindow
     x:Class="ZeroMix.MainWindow"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -10,6 +10,7 @@
     xmlns:translate="clr-namespace:ZeroMix.Plugins.Translate"
     xmlns:tray="clr-namespace:Wpf.Ui.Tray.Controls;assembly=Wpf.Ui.Tray"
     xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+    xmlns:snaplayout="clr-namespace:zeromix.SnapLayout"
     xmlns:wallpapers="clr-namespace:ZeroMix.Wallpapers"
     xmlns:weather="clr-namespace:ZeroMix.Plugins.Weather"
     xmlns:welcome="clr-namespace:ZeroMix.Plugins.Welcome"
@@ -232,7 +233,7 @@
                     <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
 
-                <!--  ════════ TITLE BAR (WPF-UI) ════════  -->
+                <!--  â•â•â•â•â•â•â•â• TITLE BAR (WPF-UI) â•â•â•â•â•â•â•â•  -->
                 <ui:TitleBar
                     Title="ZeroMix Hub"
                     Grid.Row="0"
@@ -281,7 +282,7 @@
                     Click="MaximizeRestore_Click"
                     Visibility="Collapsed" />
 
-                <!--  ════════ BODY ════════  -->
+                <!--  â•â•â•â•â•â•â•â• BODY â•â•â•â•â•â•â•â•  -->
                 <Grid Grid.Row="1">
                     <Grid.ColumnDefinitions>
                         <!--  Sidebar column set to Auto so it follows the Border's width  -->
@@ -289,7 +290,7 @@
                         <ColumnDefinition Width="*" />
                     </Grid.ColumnDefinitions>
 
-                    <!--  ──────────────── SIDEBAR ────────────────  -->
+                    <!--  â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ SIDEBAR â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€  -->
                     <Border
                         x:Name="SidebarPane"
                         Grid.Column="0"
@@ -541,10 +542,10 @@
                         </Grid>
                     </Border>
 
-                    <!--  ──────────────── CONTENT AREA (Glass Card Styles) ────────────────  -->
+                    <!--  â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ CONTENT AREA (Glass Card Styles) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€  -->
                     <Grid Grid.Column="1" Margin="25">
 
-                        <!--  ═══ HOME VIEW ═══  -->
+                        <!--  â•â•â• HOME VIEW â•â•â•  -->
                         <ScrollViewer
                             x:Name="HomeContent"
                             BorderThickness="0"
@@ -721,6 +722,7 @@
                                                 Text="56Editor" />
                                         </StackPanel>
                                     </Button>
+
                                 </Grid>
 
                                 <!--  Monitoring Panel  -->
@@ -954,12 +956,12 @@
                             </StackPanel>
                         </ScrollViewer>
 
-                        <!--  ═══ WALLPAPERS VIEW ═══  -->
+                        <!--  â•â•â• WALLPAPERS VIEW â•â•â•  -->
                         <Grid x:Name="WallpapersContent" Visibility="Collapsed">
                             <wallpapers:WallpapersView />
                         </Grid>
 
-                        <!--  ═══ ASSISTANT VIEW ═══  -->
+                        <!--  â•â•â• ASSISTANT VIEW â•â•â•  -->
                         <ScrollViewer
                             x:Name="AssistantContent"
                             VerticalScrollBarVisibility="Auto"
@@ -1246,22 +1248,22 @@
                                             Margin="0,0,0,4"
                                             FontSize="12"
                                             Foreground="{StaticResource SubTextBrush}"
-                                            Text="• Klik pada karakter untuk mengobrol." />
+                                            Text="� Klik pada karakter untuk mengobrol." />
                                         <TextBlock
                                             Margin="0,0,0,4"
                                             FontSize="12"
                                             Foreground="{StaticResource SubTextBrush}"
-                                            Text="• Tahan klik dan tarik untuk memindahkan posisi." />
+                                            Text="� Tahan klik dan tarik untuk memindahkan posisi." />
                                         <TextBlock
                                             FontSize="12"
                                             Foreground="{StaticResource SubTextBrush}"
-                                            Text="• Matanya akan selalu mengikutimu~" />
+                                            Text="� Matanya akan selalu mengikutimu~" />
                                     </StackPanel>
                                 </Border>
                             </StackPanel>
                         </ScrollViewer>
 
-                        <!--  ═══ ABOUT VIEW ═══  -->
+                        <!--  â•â•â• ABOUT VIEW â•â•â•  -->
                         <ScrollViewer
                             x:Name="AboutContent"
                             BorderThickness="0"
@@ -1396,7 +1398,7 @@
                                                     FontSize="16"
                                                     FontWeight="Bold"
                                                     Foreground="#FF69B4"
-                                                    Text="Dukung ZeroMix ☕" />
+                                                    Text="Dukung ZeroMix ?" />
                                                 <TextBlock
                                                     Margin="0,0,0,14"
                                                     FontSize="13"
@@ -1463,10 +1465,10 @@
                                             TextWrapping="Wrap" />
                                         <StackPanel Margin="8,0,0,16">
                                             <TextBlock Margin="0,0,0,4" FontSize="12">
-                                                <Run Foreground="{StaticResource NeonBlueBrush}" Text="• " /><Hyperlink NavigateUri="https://pixabay.com/id/users/hans-2/" RequestNavigate="Hyperlink_RequestNavigate">Hans (Pixabay)</Hyperlink>
+                                                <Run Foreground="{StaticResource NeonBlueBrush}" Text="� " /><Hyperlink NavigateUri="https://pixabay.com/id/users/hans-2/" RequestNavigate="Hyperlink_RequestNavigate">Hans (Pixabay)</Hyperlink>
                                             </TextBlock>
                                             <TextBlock Margin="0,0,0,4" FontSize="12">
-                                                <Run Foreground="{StaticResource NeonBlueBrush}" Text="• " /><Hyperlink NavigateUri="https://pixabay.com/id/users/nickype-10327513/" RequestNavigate="Hyperlink_RequestNavigate">Nicky ❤️🌿🐞🌿❤️ (Pixabay)</Hyperlink>
+                                                <Run Foreground="{StaticResource NeonBlueBrush}" Text="� " /><Hyperlink NavigateUri="https://pixabay.com/id/users/nickype-10327513/" RequestNavigate="Hyperlink_RequestNavigate">Nicky Pe (Pixabay)</Hyperlink>
                                             </TextBlock>
                                         </StackPanel>
 
@@ -1476,7 +1478,7 @@
                                             FontSize="14"
                                             FontWeight="Bold"
                                             Foreground="White"
-                                            Text="🐱 Cat Gatekeeper" />
+                                            Text="?? Cat Gatekeeper" />
                                         <StackPanel Margin="8,0,0,16">
                                             <TextBlock
                                                 Margin="0,0,0,4"
@@ -1488,10 +1490,10 @@
                                                     FontWeight="Bold"
                                                     Foreground="White"
                                                     Text="@konekone2026 (ZOKUZOKU)" />
-                                                <Run Text=" — Cat Gatekeeper Chrome Extension." />
+                                                <Run Text=" � Cat Gatekeeper Chrome Extension." />
                                             </TextBlock>
                                             <TextBlock Margin="0,0,0,4" FontSize="12">
-                                                <Run Foreground="{StaticResource NeonBlueBrush}" Text="• " />
+                                                <Run Foreground="{StaticResource NeonBlueBrush}" Text="� " />
                                                 <Hyperlink NavigateUri="https://x.com/konekone2026" RequestNavigate="Hyperlink_RequestNavigate">
                                                     https://x.com/konekone2026
                                                 </Hyperlink>
@@ -1500,7 +1502,7 @@
                                                 Margin="0,0,0,4"
                                                 FontSize="12"
                                                 Foreground="{StaticResource SubTextBrush}">
-                                                <Run Text="• Ekstraksi &amp; Adaptasi ke WPF: " /><Run
+                                                <Run Text="� Ekstraksi &amp; Adaptasi ke WPF: " /><Run
                                                     FontWeight="Bold"
                                                     Foreground="White"
                                                     Text="Zaki" />
@@ -1524,7 +1526,7 @@
                             </StackPanel>
                         </ScrollViewer>
 
-                        <!--  ═══ PLUGINS VIEW ═══  -->
+                        <!--  â•â•â• PLUGINS VIEW â•â•â•  -->
                         <ScrollViewer
                             x:Name="PluginsContent"
                             BorderThickness="0"
@@ -1581,6 +1583,8 @@
                                     <battery:BatteryPluginUI />
                                     <translate:TranslatePluginUI />
                                     <chargernotif:ChargerNotifUI />
+                                    <snaplayout:SnapLayoutUI />
+                                    
                                     <!--  CatGatekeeper: loaded lazily from code-behind  -->
                                     <ContentPresenter x:Name="CatGatekeeperContainer" />
                                     <StackPanel x:Name="UserPluginsContainer" Margin="0,12,0,0" />
@@ -1588,7 +1592,7 @@
                             </StackPanel>
                         </ScrollViewer>
 
-                        <!--  ═══ RECORDER VIEW ═══  -->
+                        <!--  â•â•â• RECORDER VIEW â•â•â•  -->
                         <ScrollViewer
                             x:Name="RecorderContent"
                             BorderThickness="0"
@@ -1785,7 +1789,7 @@
                                                     Margin="0,0,0,5"
                                                     HorizontalAlignment="Center"
                                                     FontSize="20"
-                                                    Text="🎮" />
+                                                    Text="📱" />
                                                 <TextBlock
                                                     HorizontalAlignment="Center"
                                                     FontSize="12"
@@ -1823,7 +1827,7 @@
                                                     Margin="0,0,0,5"
                                                     HorizontalAlignment="Center"
                                                     FontSize="20"
-                                                    Text="📐" />
+                                                    Text="✂️" />
                                                 <TextBlock
                                                     HorizontalAlignment="Center"
                                                     FontSize="12"
@@ -1970,7 +1974,7 @@
                                                             x:Name="BitrateLabel"
                                                             FontSize="9"
                                                             Foreground="{StaticResource NeonBlueBrush}"
-                                                            Text=" — 8 Mbps" />
+                                                            Text=" � 8 Mbps" />
                                                     </StackPanel>
                                                     <Slider
                                                         x:Name="BitrateSlider"
@@ -1986,7 +1990,7 @@
                                                     Grid.Column="2"
                                                     Margin="10,0,0,0"
                                                     Click="PauseResumeBtn_Click"
-                                                    Content="⏸ Pause"
+                                                    Content="? Pause"
                                                     FontSize="10"
                                                     Style="{StaticResource CasualBtn}"
                                                     Visibility="Collapsed" />
@@ -2111,7 +2115,7 @@
                                                                 HorizontalAlignment="Center"
                                                                 VerticalAlignment="Center"
                                                                 FontSize="20"
-                                                                Text="🎬" />
+                                                                Text="??" />
                                                         </Border>
                                                         <StackPanel Grid.Column="1" VerticalAlignment="Center">
                                                             <TextBlock
@@ -2124,7 +2128,7 @@
                                                                     FontSize="11"
                                                                     Foreground="{StaticResource SubTextBrush}"
                                                                     Text="{Binding CreationDate}" />
-                                                                <TextBlock Foreground="{StaticResource SubTextBrush}" Text=" • " />
+                                                                <TextBlock Foreground="{StaticResource SubTextBrush}" Text=" � " />
                                                                 <TextBlock
                                                                     FontSize="11"
                                                                     Foreground="{StaticResource SubTextBrush}"
@@ -2145,7 +2149,7 @@
                                                             <Button
                                                                 Padding="10,5"
                                                                 Click="DeleteRecording_Click"
-                                                                Content="✕"
+                                                                Content="?"
                                                                 FontSize="10"
                                                                 Foreground="#FF5555"
                                                                 Style="{StaticResource CasualBtn}" />
@@ -2159,7 +2163,7 @@
                             </StackPanel>
                         </ScrollViewer>
 
-                        <!--  ═══ SLEEP MODE SETTINGS VIEW ═══  -->
+                        <!--  â•â•â• SLEEP MODE SETTINGS VIEW â•â•â•  -->
                         <ScrollViewer
                             x:Name="SleepContent"
                             BorderThickness="0"
@@ -2174,7 +2178,7 @@
                                                 Margin="0,0,12,0"
                                                 Padding="12,5"
                                                 Click="SleepBackBtn_Click"
-                                                Content="← Back"
+                                                Content="? Back"
                                                 FontSize="11"
                                                 Style="{StaticResource CasualBtn}" />
                                             <TextBlock
@@ -2398,7 +2402,7 @@
                                                 HorizontalAlignment="Center"
                                                 FontSize="18"
                                                 Foreground="#11FFFFFF"
-                                                Text="■" />
+                                                Text="�" />
                                             <TextBlock
                                                 Margin="0,4,0,0"
                                                 HorizontalAlignment="Center"
@@ -2427,7 +2431,7 @@
                                                 x:Name="SLP_BrightnessLabel"
                                                 FontSize="11"
                                                 Foreground="{StaticResource NeonBlueBrush}"
-                                                Text=" — 100%" />
+                                                Text=" � 100%" />
                                         </StackPanel>
                                         <Slider
                                             x:Name="SLP_BrightnessSld"
@@ -2485,7 +2489,7 @@
                                                 Grid.Column="2"
                                                 Padding="10,6"
                                                 Click="SLP_ClearCustomBg_Click"
-                                                Content="✕"
+                                                Content="?"
                                                 Style="{StaticResource CasualBtn}" />
                                         </Grid>
                                         <TextBlock
@@ -2509,7 +2513,7 @@
                                             Margin="0,0,0,10"
                                             FontSize="11"
                                             Foreground="{StaticResource SubTextBrush}"
-                                            Text="Putar musik saat Sleep Mode aktif — bisa dipakai dengan background apapun" />
+                                            Text="Putar musik saat Sleep Mode aktif � bisa dipakai dengan background apapun" />
                                         <Grid>
                                             <Grid.ColumnDefinitions>
                                                 <ColumnDefinition Width="*" />
@@ -2541,7 +2545,7 @@
                                                 Grid.Column="2"
                                                 Padding="10,6"
                                                 Click="SLP_ClearMusic_Click"
-                                                Content="✕"
+                                                Content="?"
                                                 Style="{StaticResource CasualBtn}" />
                                         </Grid>
                                         <StackPanel Margin="0,10,0,0" Orientation="Horizontal">
@@ -2580,7 +2584,7 @@
                             </StackPanel>
                         </ScrollViewer>
 
-                        <!--  ═══ ZEROCONNECT VIEW ═══  -->
+                        <!--  â•â•â• ZEROCONNECT VIEW â•â•â•  -->
                         <ScrollViewer
                             x:Name="ZeroContent"
                             BorderThickness="0"

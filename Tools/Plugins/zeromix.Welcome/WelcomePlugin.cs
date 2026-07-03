@@ -27,6 +27,16 @@ namespace ZeroMix.Plugins.Welcome
             Disabled = 2          // Nonaktif
         }
 
+        /// <summary>
+        /// Pilihan GIF yang ditampilkan saat welcome screen muncul.
+        /// Welcome = animasi default, Hello = Hello.gif (baru ditambahkan user).
+        /// </summary>
+        public enum WelcomeGif
+        {
+            Welcome = 0,  // Welcome.gif (default)
+            Hello   = 1,  // Hello.gif
+        }
+
         public static void TryShowWelcome()
         {
             try
@@ -72,13 +82,10 @@ namespace ZeroMix.Plugins.Welcome
             {
                 using var key = Registry.CurrentUser.OpenSubKey(RegistryPath);
                 if (key?.GetValue("Mode") is int mode && Enum.IsDefined(typeof(WelcomeMode), mode))
-                {
                     return (WelcomeMode)mode;
-                }
             }
             catch { }
-            
-            return WelcomeMode.FreshBootOnly; // Default
+            return WelcomeMode.FreshBootOnly;
         }
 
         /// <summary>
@@ -96,6 +103,80 @@ namespace ZeroMix.Plugins.Welcome
             {
                 System.Diagnostics.Debug.WriteLine($"[Welcome] Failed to save mode: {ex.Message}");
             }
+        }
+
+        /// <summary>
+        /// Get selected GIF asset dari registry. Default = Welcome.
+        /// </summary>
+        public static WelcomeGif GetSelectedGif()
+        {
+            try
+            {
+                using var key = Registry.CurrentUser.OpenSubKey(RegistryPath);
+                if (key?.GetValue("GifAsset") is int gif && Enum.IsDefined(typeof(WelcomeGif), gif))
+                    return (WelcomeGif)gif;
+            }
+            catch { }
+            return WelcomeGif.Welcome;
+        }
+
+        /// <summary>
+        /// Simpan pilihan GIF asset ke registry.
+        /// </summary>
+        public static void SetSelectedGif(WelcomeGif gif)
+        {
+            try
+            {
+                using var key = Registry.CurrentUser.CreateSubKey(RegistryPath);
+                key?.SetValue("GifAsset", (int)gif);
+                System.Diagnostics.Debug.WriteLine($"[Welcome] GIF set to: {gif}");
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[Welcome] Failed to save gif: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Resolve absolute path ke file GIF yang dipilih. Returns null jika file tidak ada.
+        /// </summary>
+        public static string? ResolveGifPath(WelcomeGif gif)
+        {
+            string baseDir = AppDomain.CurrentDomain.BaseDirectory;
+            string pluginDir = Path.Combine(baseDir, "Tools", "Plugins", "zeromix.Welcome");
+
+            string fileName = gif == WelcomeGif.Hello ? "Hello.gif" : "Welcome.gif";
+
+            // Coba berbagai case variation supaya case-insensitive file system tidak masalah
+            string[] candidates = new[]
+            {
+                Path.Combine(pluginDir, fileName),
+                Path.Combine(pluginDir, fileName.ToLowerInvariant()),
+                Path.Combine(pluginDir, "gif", fileName),
+            };
+
+            foreach (var c in candidates)
+                if (File.Exists(c)) return c;
+
+            // Fallback ke Welcome.gif jika Hello.gif tidak ditemukan
+            if (gif == WelcomeGif.Hello)
+            {
+                string fallback = Path.Combine(pluginDir, "Welcome.gif");
+                if (File.Exists(fallback)) return fallback;
+            }
+
+            return null;
+        }
+
+        /// <summary>
+        /// Cek apakah Hello.gif tersedia di plugin folder.
+        /// </summary>
+        public static bool IsHelloGifAvailable()
+        {
+            string path = Path.Combine(
+                AppDomain.CurrentDomain.BaseDirectory,
+                "Tools", "Plugins", "zeromix.Welcome", "Hello.gif");
+            return File.Exists(path);
         }
 
         /// <summary>

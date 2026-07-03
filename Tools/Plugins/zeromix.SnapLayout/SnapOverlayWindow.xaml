@@ -1,0 +1,85 @@
+<Window x:Class="zeromix.SnapLayout.SnapOverlayWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Snap Layout"
+        WindowStyle="None"
+        AllowsTransparency="False"
+        WindowState="Maximized"
+        Topmost="True"
+        ShowInTaskbar="False"
+        ResizeMode="NoResize"
+        Background="#0D1117"
+        Loaded="Window_Loaded"
+        PreviewKeyDown="Window_PreviewKeyDown"
+        PreviewMouseLeftButtonDown="Window_PreviewMouseLeftButtonDown">
+
+    <Grid x:Name="RootGrid">
+        <!-- Background screenshot layer -->
+        <Image x:Name="BgImage" Stretch="Fill" />
+
+        <!-- Overlay darkening layer -->
+        <Border Background="#99000000" />
+
+        <!-- Zone preview canvas (di atas screenshot, di bawah card) -->
+        <Canvas x:Name="PreviewCanvas" IsHitTestVisible="True"
+                               MouseLeftButtonDown="PreviewCanvas_MouseLeftButtonDown" />
+
+        <!-- Center card panel -->
+        <Grid VerticalAlignment="Center" HorizontalAlignment="Center">
+            <Border x:Name="CardBorder"
+                    Background="#0D1117"
+                    BorderBrush="#1E2633"
+                    BorderThickness="1"
+                    CornerRadius="16"
+                    Padding="24,20"
+                    MaxWidth="700"
+                    MaxHeight="420">
+                <Border.Effect>
+                    <DropShadowEffect BlurRadius="16" ShadowDepth="0" Opacity="0.2" Color="Black"/>
+                </Border.Effect>
+                <Border.RenderTransform>
+                    <ScaleTransform x:Name="CardScale" ScaleX="0.9" ScaleY="0.9" />
+                </Border.RenderTransform>
+
+                <StackPanel>
+                    <!-- Header -->
+                    <Grid Margin="0,0,0,16">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <Border Grid.Column="0"
+                                Width="32" Height="32" CornerRadius="8"
+                                Background="#001A2E"
+                                Margin="0,0,12,0">
+                            <TextBlock Text="⊞" FontSize="18"
+                                       Foreground="#00D4FF"
+                                       HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                            <TextBlock Text="SNAP LAYOUT" FontSize="13" FontWeight="Bold"
+                                       Foreground="White" />
+                            <TextBlock x:Name="ShortcutText" Text="Ctrl+Win+Z"
+                                       Foreground="#00D4FF" FontSize="10" />
+                        </StackPanel>
+                    </Grid>
+
+                    <!-- Layout selector grid -->
+                    <TextBlock Text="PILIH ZONE" Foreground="#7A8494"
+                               FontSize="9" FontWeight="Bold" Margin="0,0,0,10" />
+
+                    <!-- Row 1: TwoColumns, ThreeColumns, TwoPlusOne, OnePlusTwo -->
+                    <WrapPanel x:Name="LayoutRow1" HorizontalAlignment="Center"
+                               Margin="0,0,0,8" />
+                    <!-- Row 2: TwoByTwo, TopBottom, slot kosong -->
+                    <WrapPanel x:Name="LayoutRow2" HorizontalAlignment="Center" />
+
+                    <!-- Keyboard hints -->
+                    <TextBlock Text="↑↓ pilih  ·  ↵ konfirmasi  ·  ESC batal  ·  1-6 shortcut"
+                               Foreground="#4A5468" FontSize="9"
+                               HorizontalAlignment="Center" Margin="0,12,0,0" />
+                </StackPanel>
+            </Border>
+        </Grid>
+    </Grid>
+</Window>

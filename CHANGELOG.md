@@ -8,6 +8,50 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) | [Semantic Ver
 
 ---
 
+## [v7.5.1] - 2026-06-30
+
+### 🗑️ Removed
+- **EdgeDim (Privacy Filter) dihapus total** — Fitur tidak stabil dan tidak bisa digunakan sesuai rencana awal.
+- `src/EdgeDim/` — seluruh folder dihapus (3 files)
+- `MainWindow.xaml` — tombol EdgeDim di Quick Actions dihapus
+- `MainWindow.xaml.cs` — semua field, method, dan hotkey EdgeDim dihapus
+- `SettingsService.cs` — properti EdgeDimShortcut dihapus
+- `SettingsWindow.xaml/.cs` — UI shortcut capture EdgeDim dihapus, grid rows disederhanakan
+
+---
+
+## [v7.5.0] - 2026-06-23
+
+### ⊞ Snap Layout — FancyZones-Style Window Snapping
+- **Fitur baru**: Dual-trigger window snapping — drag-to-zone dan keybind overlay (Ctrl+Win+Z).
+- **6 Layout Preset**: TwoColumns, ThreeColumns, TwoPlusOne, OnePlusTwo, TwoByTwo, TopBottom.
+- **Drag-to-Zone**: WinEvent hook deteksi window drag → zone indicators semi-transparan di layar → lepas mouse di zona untuk snap.
+- **Keybind Overlay**: Tekan Ctrl+Win+Z → overlay fullscreen dengan fake transparency (screenshot background) → pilih layout → klik zona individual untuk snap.
+- **Per-zone Clicking**: Zone preview di layar bisa diklik langsung — pilih zona spesifik, bukan cuma preset.
+- **Hotkey Configurable**: Bisa diubah dari settings panel (Ctrl+Win+Z default, fallback Ctrl+Alt+Z jika konflik).
+- **Multi-Monitor**: Overlay dan zone indicators muncul di monitor yang tepat.
+- **Maximized Window Handling**: Restore dulu sebelum SetWindowPos untuk mencegah layout broken.
+- **UWP Detection**: Skip UWP apps (Windows.UI.Core.CoreWindow) yang resist SetWindowPos dengan OnSnapFailed event.
+- **Snap History**: 3 log terakhir + daily counter di settings panel.
+- **JSON Persistence**: Konfigurasi disimpan di `%AppData%\ZeroMix\snap_layout_config.json`.
+- **ZeroShell Command**: `!snap status`, `!snap 2col`, `!snap 2x2`, `!snap off`.
+
+### 🔧 Perbaikan Build
+- **CS0579 (Duplicate Assembly Attributes)**: Tambah `<GenerateAssemblyInfo>false</GenerateAssemblyInfo>` ke `ZeroMix.PluginSDK.csproj` — mencegah konflik auto-generated attributes dari multi-target project.
+
+### 🔧 Changes
+- `ZeroMix.PluginSDK.csproj` — fix CS0579 duplicate assembly attributes
+- `Tools/Plugins/zeromix.SnapLayout/` — plugin baru (11 files):
+  - `Models/SnapZone.cs` + `SnapLayout.cs` — data model + 6 preset + zone calculation
+  - `SnapLayoutService.cs` — core engine: WinEvent hooks, global hotkey, SetWindowPos snap
+  - `SnapOverlayWindow.xaml/.cs` — fullscreen overlay dengan fake transparency & clickable zone preview
+  - `SnapZoneWindow.xaml/.cs` — zone indicator semi-transparan saat drag
+  - `SnapLayoutPlugin.cs` — entry point (CatGatekeeperPlugin pattern)
+  - `SnapLayoutUI.xaml/.cs` — settings panel + JSON persistence + snap history
+  - `SnapCommands.cs` — ZeroShell !snap command handler
+
+---
+
 ## [v7.4.1] - 2026-06-19
 
 ### 🔧 ZeroShell — Settings Disederhanakan

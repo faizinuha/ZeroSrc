@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.IO;
 using System.Windows;
 using System.Windows.Input;
@@ -30,6 +30,8 @@ namespace ZeroMix.Virtual_Assisten
         private DispatcherTimer? _visionTimer;
         private string _apiKey = ApiKeys.OPENAI_API_KEY; 
         private string _currentLang = "id-ID";
+        // null = auto-detect di JS (device-aware), "1" = force on, "0" = force off
+        private string? _antialiasOverride = null;
         
         // AI Chat Service (OpenRouter via WaifuChatService)
         private WaifuChatService? _waifuChatService;
@@ -133,7 +135,10 @@ namespace ZeroMix.Virtual_Assisten
 
                 // Pakai virtual host — lebih cepat karena tidak perlu resolve file:/// path
                 // Virtual host sudah di-map ke appBase folder
-                WebView.Source = new Uri("https://zeromix.vercel.app/Virtual_Assisten/live2d-viewer.html");
+                // Kirim antialias override ke JS via query string (null = auto-detect di JS)
+// Untuk toggle manual dari Settings: set _antialiasOverride = "1" atau "0"
+string aaQuery = _antialiasOverride != null ? $"?antialias={_antialiasOverride}" : "";
+WebView.Source = new Uri($"https://zeromix.vercel.app/Virtual_Assisten/live2d-viewer.html{aaQuery}");
 
                 // Wait for navigation to complete before marking initialized
                 var tcs = new TaskCompletionSource<bool>();
