@@ -1,0 +1,33 @@
+<Window x:Class="zeromix.SnapLayout.SnapZoneWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="SnapZone"
+        WindowStyle="None"
+        AllowsTransparency="True"
+        Background="Transparent"
+        Topmost="True"
+        ShowInTaskbar="False"
+        ResizeMode="NoResize"
+        MaxWidth="400"
+        MaxHeight="300"
+        Loaded="Window_Loaded">
+
+    <Border x:Name="ZoneBorder"
+            CornerRadius="8"
+            Background="#1A00D4FF"
+            BorderBrush="#00D4FF"
+            BorderThickness="2"
+            RenderTransformOrigin="0.5,0.5">
+        <Border.RenderTransform>
+            <ScaleTransform x:Name="ZoneScale" ScaleX="1.0" ScaleY="1.0" />
+        </Border.RenderTransform>
+        <TextBlock x:Name="ZoneLabel"
+                   Text="Snap"
+                   Foreground="#FFFFFF"
+                   FontSize="11"
+                   FontWeight="SemiBold"
+                   HorizontalAlignment="Center"
+                   VerticalAlignment="Center"
+                   Opacity="0.6" />
+    </Border>
+</Window>

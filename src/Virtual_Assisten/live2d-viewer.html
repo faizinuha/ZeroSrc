@@ -1,4 +1,4 @@
-﻿<!doctype html>
+﻿﻿﻿﻿<!doctype html>
 <html>
 
 <head>
@@ -82,6 +82,9 @@
     let mouthOpenTimer = null;
     let isLoadingModel = false;   // guard against concurrent loads
 
+    // Lipsync smooth state (lerp per ticker)
+    let mouthTarget = 0, mouthCurrent = 0;
+
     // â”€â”€ WPF log proxy â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     function sendToWPF(type, args) {
       if (window.chrome && window.chrome.webview) {
@@ -101,12 +104,26 @@
       const modelParam = urlParams.get("model");
       if (modelParam) MODEL_PATH = modelParam;
 
+      // Antialias: device-aware + override dari C# via query string ?antialias=1/0
+      const aaParam = urlParams.get("antialias");
+      let enableAntialias;
+      if (aaParam === "1") {
+        enableAntialias = true;   // user paksa ON di Settings
+      } else if (aaParam === "0") {
+        enableAntialias = false;  // user paksa OFF di Settings
+      } else {
+        // Auto-detect: non-aktifkan di perangkat low-end (<= 4 logical core)
+        const isLowEndDevice = navigator.hardwareConcurrency != null && navigator.hardwareConcurrency <= 4;
+        enableAntialias = !isLowEndDevice;
+      }
+      console.log("[Live2D] antialias=" + enableAntialias + " (cores=" + navigator.hardwareConcurrency + ", param=" + aaParam + ")");
+
       try {
         app = new PIXI.Application({
           view: canvas,
           backgroundAlpha: 0,
           resizeTo: window,
-          antialias: false,
+          antialias: enableAntialias,  // device-aware, override via ?antialias=1/0
           powerPreference: "low-power",
           autoDensity: false,          // matikan autoDensity â€” hemat RAM signifikan
           resolution: 1,               // paksa 1x, bukan devicePixelRatio
@@ -142,7 +159,23 @@
       }
     }
 
-    // â”€â”€ Load model â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€    let loadRetryCount = 0;
+    // â”€â”€ Load model â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // Fade PIXI stage alpha (tanpa library, raw rAF tween)
+    async function fadeCanvas(targetAlpha, ms) {
+      const start = app.stage.alpha;
+      const delta = targetAlpha - start;
+      const t0 = performance.now();
+      return new Promise(resolve => {
+        function step(now) {
+          const p = Math.min(1, (now - t0) / ms);
+          app.stage.alpha = start + delta * p;
+          if (p < 1) requestAnimationFrame(step);
+          else resolve();
+        }
+        requestAnimationFrame(step);
+      });
+    }
+    let loadRetryCount = 0;
     const MAX_RETRIES = 2;
 
     async function loadModel(path) {
@@ -165,6 +198,8 @@
 
       // Destroy previous model + aggressive cleanup
       if (model) {
+        // Fade-out singkat (150ms) sebelum destroy agar swap model tidak "kedip"
+        await fadeCanvas(0, 150);
         app.stage.removeChild(model);
         try { model.destroy({ children: true, texture: true, baseTexture: true }); } catch (e) { }
         model = null;
@@ -236,6 +271,8 @@
         model.x = app.screen.width / 2;
         model.y = app.screen.height;
 
+        // Stage alpha ke 0 dulu, lalu fade-in setelah addChild
+        app.stage.alpha = 0;
         app.stage.addChild(model);
 
         // Hide watermark/credit text parts
@@ -259,10 +296,11 @@
           });
         } catch (e) { }
 
-        // Fade in
-        canvas.style.opacity = "1";
+        // Fade in — via PIXI stage alpha (lebih halus dari CSS opacity)
         loading.style.display = "none";
+        canvas.style.opacity = "1";
         isModelLoaded = true;
+        await fadeCanvas(1, 200); // smooth fade-in 200ms setelah model siap
         loadRetryCount = 0; // Reset retry on success
 
         // Notify WPF
@@ -418,8 +456,10 @@
 
     function updateLoop() {
       if (!isModelLoaded || !model || !model.internalModel) return;
-      currentEyeX += (targetEyeX - currentEyeX) * 0.1;
-      currentEyeY += (targetEyeY - currentEyeY) * 0.1;
+      // Lerp 0.15 per frame — lebih responsif dari 0.1 sambil tetap halus
+      // C# mengirim raw targetEyeX/Y tiap 300ms, smoothing terjadi di sini tiap frame
+      currentEyeX += (targetEyeX - currentEyeX) * 0.15;
+      currentEyeY += (targetEyeY - currentEyeY) * 0.15;
       const core = model.internalModel.coreModel;
       if (!core) return;
       try {
@@ -568,17 +608,27 @@
       synthesis.speak(utt);
     }
 
+    // Lipsync lerp per-ticker tick — jauh lebih halus dari random lompat tiap 100ms
+    function lipSyncTick() {
+      if (!isModelLoaded || !model?.internalModel) return;
+      // Lerp dari current ke target (0.25 per frame ~= smooth settle ~8 frame)
+      mouthCurrent += (mouthTarget - mouthCurrent) * 0.25;
+      const i = model.internalModel.coreModel.getParameterIndex("ParamMouthOpenY");
+      if (i >= 0) model.internalModel.coreModel.setParameterValueByIndex(i, mouthCurrent);
+    }
+
     function startLipSync() {
       if (mouthOpenTimer) clearInterval(mouthOpenTimer);
-      mouthOpenTimer = setInterval(() => {
-        if (!isModelLoaded || !model?.internalModel) return;
-        const i = model.internalModel.coreModel.getParameterIndex("ParamMouthOpenY");
-        if (i >= 0) model.internalModel.coreModel.setParameterValueByIndex(i, Math.random() * 0.8);
-      }, 100);
+      // Update target setiap 180ms — cukup alami, tapi gerakannya halus karena di-lerp tiap frame
+      mouthOpenTimer = setInterval(() => { mouthTarget = Math.random() * 0.8; }, 180);
+      app.ticker.add(lipSyncTick);
     }
 
     function stopLipSync() {
       if (mouthOpenTimer) { clearInterval(mouthOpenTimer); mouthOpenTimer = null; }
+      app.ticker.remove(lipSyncTick);
+      mouthTarget = 0;
+      mouthCurrent = 0;
       if (isModelLoaded && model?.internalModel) {
         const i = model.internalModel.coreModel.getParameterIndex("ParamMouthOpenY");
         if (i >= 0) model.internalModel.coreModel.setParameterValueByIndex(i, 0);

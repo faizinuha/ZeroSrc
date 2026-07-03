@@ -38,6 +38,21 @@ namespace ZeroMix.Plugins.Welcome
             }
             AutoStartCheckbox.IsChecked = WelcomePlugin.IsAutoStartEnabled();
             ApplyCardHighlight(mode);
+
+            // Load GIF preference
+            var gif = WelcomePlugin.GetSelectedGif();
+            switch (gif)
+            {
+                case WelcomePlugin.WelcomeGif.Welcome: WelcomeGifRadio.IsChecked = true; break;
+                case WelcomePlugin.WelcomeGif.Hello:   HelloGifRadio.IsChecked   = true; break;
+            }
+            // Hide Hello card jika file tidak ada
+            if (!WelcomePlugin.IsHelloGifAvailable())
+            {
+                CardHelloGif.IsEnabled = false;
+                CardHelloGif.Opacity = 0.35;
+            }
+            ApplyGifHighlight(gif);
         }
 
         private void UpdateStatus()
@@ -76,6 +91,34 @@ namespace ZeroMix.Plugins.Welcome
             DisabledRadio.IsChecked = true;
         }
 
+        // GIF card click handlers
+        private void WelcomeGifCard_Click(object sender, MouseButtonEventArgs e)
+        {
+            WelcomeGifRadio.IsChecked = true;
+        }
+
+        private void HelloGifCard_Click(object sender, MouseButtonEventArgs e)
+        {
+            if (WelcomePlugin.IsHelloGifAvailable())
+                HelloGifRadio.IsChecked = true;
+        }
+
+        private void GifRadio_Checked(object sender, RoutedEventArgs e)
+        {
+            if (sender is not RadioButton radio || radio.IsChecked != true) return;
+            try
+            {
+                WelcomePlugin.WelcomeGif newGif;
+                if (radio == WelcomeGifRadio)      newGif = WelcomePlugin.WelcomeGif.Welcome;
+                else if (radio == HelloGifRadio)   newGif = WelcomePlugin.WelcomeGif.Hello;
+                else return;
+
+                WelcomePlugin.SetSelectedGif(newGif);
+                ApplyGifHighlight(newGif);
+            }
+            catch { }
+        }
+
         private void ModeRadio_Checked(object sender, RoutedEventArgs e)
         {
             if (sender is not RadioButton radio || radio.IsChecked != true) return;
@@ -104,6 +147,19 @@ namespace ZeroMix.Plugins.Welcome
             if (CardFreshBoot  != null) { CardFreshBoot.BorderBrush  = mode == WelcomePlugin.WelcomeMode.FreshBootOnly ? accent : borderDim; CardFreshBoot.BorderThickness  = mode == WelcomePlugin.WelcomeMode.FreshBootOnly ? new Thickness(1.5) : new Thickness(1); }
             if (CardEveryStart != null) { CardEveryStart.BorderBrush = mode == WelcomePlugin.WelcomeMode.EveryStart    ? accent : borderDim; CardEveryStart.BorderThickness = mode == WelcomePlugin.WelcomeMode.EveryStart    ? new Thickness(1.5) : new Thickness(1); }
             if (CardDisabled   != null) { CardDisabled.BorderBrush   = mode == WelcomePlugin.WelcomeMode.Disabled      ? accent : borderDim; CardDisabled.BorderThickness   = mode == WelcomePlugin.WelcomeMode.Disabled      ? new Thickness(1.5) : new Thickness(1); }
+        }
+
+        private void ApplyGifHighlight(WelcomePlugin.WelcomeGif gif)
+        {
+            if (CardWelcomeGif == null || CardHelloGif == null) return;
+            var accent    = (Brush)FindResource("NeonBlueBrush");
+            var borderDim = new SolidColorBrush(Color.FromRgb(22, 28, 40));
+
+            bool welcomeSelected = gif == WelcomePlugin.WelcomeGif.Welcome;
+            CardWelcomeGif.BorderBrush     = welcomeSelected ? accent    : borderDim;
+            CardWelcomeGif.BorderThickness = welcomeSelected ? new Thickness(1.5) : new Thickness(1);
+            CardHelloGif.BorderBrush       = !welcomeSelected ? accent   : borderDim;
+            CardHelloGif.BorderThickness   = !welcomeSelected ? new Thickness(1.5) : new Thickness(1);
         }
 
         private void TestButton_Click(object sender, RoutedEventArgs e)

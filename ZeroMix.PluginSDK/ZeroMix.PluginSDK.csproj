@@ -3,6 +3,8 @@
     <TargetFrameworks>net9.0;net9.0-windows</TargetFrameworks>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <GenerateTargetFrameworkAttribute>false</GenerateTargetFrameworkAttribute>
 
     <!-- NuGet Package Info -->
     <PackageId>ZeroMix.PluginSDK</PackageId>

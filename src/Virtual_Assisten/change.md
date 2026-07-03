@@ -2,7 +2,40 @@
 
 ---
 
-## 🚀 v7.4.1 — Latest
+## 🚀 v7.5.1 — Latest
+
+### 🗑️ Removed
+- **EdgeDim (Privacy Filter) dihapus total** — Fitur tidak stabil & tidak bisa digunakan sesuai rencana awal.
+- `src/EdgeDim/` — seluruh folder dihapus
+- `MainWindow.xaml` — tombol EdgeDim dihapus
+- `MainWindow.xaml.cs` — semua field, method, hotkey EdgeDim dihapus
+- `SettingsService.cs` — properti EdgeDimShortcut dihapus
+- `SettingsWindow.xaml/.cs` — UI shortcut capture EdgeDim dihapus
+
+---
+
+## 🚀 v7.5.0
+
+### ⊞ Snap Layout — FancyZones-Style Window Snapping
+- **Fitur baru**: Dual-trigger window snapping — drag-to-zone dan keybind overlay (Ctrl+Win+Z).
+- **6 Layout Preset**: TwoColumns, ThreeColumns, TwoPlusOne, OnePlusTwo, TwoByTwo, TopBottom.
+- **Drag-to-Zone**: WinEvent hook deteksi window drag → zone indicators → lepas mouse di zona untuk snap.
+- **Keybind Overlay**: Fullscreen dengan fake transparency → pilih layout → klik zona individual.
+- **Per-zone Clicking**: Zone preview di layar bisa diklik langsung.
+- **Hotkey Configurable**: Ctrl+Win+Z default, fallback Ctrl+Alt+Z.
+- **Multi-Monitor**: Overlay di monitor yang tepat.
+- **ZeroShell Command**: `!snap status`, `!snap 2col`, `!snap off`.
+
+### 🔧 Perbaikan Build
+- **CS0579 (Duplicate Assembly Attributes)**: Tambah `<GenerateAssemblyInfo>false</GenerateAssemblyInfo>` ke `ZeroMix.PluginSDK.csproj` — mencegah konflik auto-generated attributes dari multi-target project.
+
+### 🔧 Changes
+- `ZeroMix.PluginSDK.csproj` — fix CS0579 duplicate assembly attributes
+- `Tools/Plugins/zeromix.SnapLayout/` — plugin baru (11 files): SnapZone.cs, SnapLayout.cs, SnapLayoutService.cs, SnapOverlayWindow.xaml/.cs, SnapZoneWindow.xaml/.cs, SnapLayoutPlugin.cs, SnapLayoutUI.xaml/.cs, SnapCommands.cs
+
+---
+
+## 🚀 v7.4.1
 
 ### 🔧 ZeroShell — Settings Disederhanakan
 - **Hapus SHELL section**: `ShellTypeCombo` (pwsh/legacy/CMD/WSL) dihapus dari settings — tidak perlu pilih shell.

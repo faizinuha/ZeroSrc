@@ -5,6 +5,7 @@ namespace ZeroMix.Features.ZeroConnect.UI
     public partial class SettingsWindow : Window
     {
         private readonly SettingsModel _working;
+
         public SettingsWindow()
         {
             InitializeComponent();

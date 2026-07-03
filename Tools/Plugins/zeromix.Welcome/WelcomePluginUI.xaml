@@ -11,7 +11,7 @@
             <Storyboard x:Key="ExpandAnim">
                 <DoubleAnimation Storyboard.TargetName="SettingsPanel"
                                  Storyboard.TargetProperty="Height"
-                                 From="0" To="280" Duration="0:0:0.25">
+                                 From="0" To="390" Duration="0:0:0.25">
                     <DoubleAnimation.EasingFunction><QuadraticEase EasingMode="EaseOut"/></DoubleAnimation.EasingFunction>
                 </DoubleAnimation>
                 <DoubleAnimation Storyboard.TargetName="SettingsPanel"
@@ -21,7 +21,7 @@
             <Storyboard x:Key="CollapseAnim">
                 <DoubleAnimation Storyboard.TargetName="SettingsPanel"
                                  Storyboard.TargetProperty="Height"
-                                 From="280" To="0" Duration="0:0:0.2">
+                                 From="390" To="0" Duration="0:0:0.2">
                     <DoubleAnimation.EasingFunction><QuadraticEase EasingMode="EaseIn"/></DoubleAnimation.EasingFunction>
                 </DoubleAnimation>
                 <DoubleAnimation Storyboard.TargetName="SettingsPanel"
@@ -192,6 +192,47 @@
                                 <TextBlock Text="Never show" Foreground="{StaticResource SubTextBrush}" FontSize="9"/>
                                 <RadioButton x:Name="DisabledRadio" GroupName="WelcomeMode"
                                              Checked="ModeRadio_Checked" Visibility="Collapsed"/>
+                            </StackPanel>
+                        </Border>
+                    </Grid>
+
+                    <!-- Animation Selector -->
+                    <TextBlock Text="ANIMATION STYLE" Foreground="{StaticResource TextMutedBrush}"
+                               FontSize="9" FontWeight="Bold" Margin="0,14,0,10"/>
+
+                    <Grid Margin="0,0,0,12">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <!-- Welcome.gif -->
+                        <Border Grid.Column="0" x:Name="CardWelcomeGif"
+                                Background="#111620" CornerRadius="8" Padding="10,8"
+                                Margin="0,0,5,0" BorderThickness="1.5" Cursor="Hand"
+                                BorderBrush="{StaticResource NeonBlueBrush}"
+                                MouseLeftButtonDown="WelcomeGifCard_Click">
+                            <StackPanel>
+                                <TextBlock Text="👋" FontSize="16" Margin="0,0,0,4"/>
+                                <TextBlock Text="Welcome" Foreground="White" FontSize="11" FontWeight="SemiBold"/>
+                                <TextBlock Text="Original animation" Foreground="{StaticResource SubTextBrush}" FontSize="9"/>
+                                <RadioButton x:Name="WelcomeGifRadio" GroupName="GifAsset"
+                                             Checked="GifRadio_Checked" Visibility="Collapsed"/>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Hello.gif -->
+                        <Border Grid.Column="1" x:Name="CardHelloGif"
+                                Background="#111620" CornerRadius="8" Padding="10,8"
+                                Margin="0,0,0,0" BorderThickness="1" Cursor="Hand"
+                                BorderBrush="{StaticResource BorderSubtleBrush}"
+                                MouseLeftButtonDown="HelloGifCard_Click">
+                            <StackPanel>
+                                <TextBlock Text="🎉" FontSize="16" Margin="0,0,0,4"/>
+                                <TextBlock Text="Hello" Foreground="White" FontSize="11" FontWeight="SemiBold"/>
+                                <TextBlock Text="Alternative animation" Foreground="{StaticResource SubTextBrush}" FontSize="9"/>
+                                <RadioButton x:Name="HelloGifRadio" GroupName="GifAsset"
+                                             Checked="GifRadio_Checked" Visibility="Collapsed"/>
                             </StackPanel>
                         </Border>
                     </Grid>

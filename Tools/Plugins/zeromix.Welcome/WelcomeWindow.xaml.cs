@@ -1,5 +1,4 @@
 using System;
-using System.IO;
 using System.Windows;
 using System.Windows.Media.Animation;
 using System.Windows.Media.Imaging;
@@ -32,19 +31,9 @@ namespace ZeroMix.Plugins.Welcome
         {
             try
             {
-                string baseDir = AppDomain.CurrentDomain.BaseDirectory;
-                string[] candidates =
-                {
-                    Path.Combine(baseDir, "Tools", "Plugins", "zeromix.Welcome", "Welcome.gif"),
-                    Path.Combine(baseDir, "Tools", "Plugins", "zeromix.Welcome", "welcome.gif"),
-                    Path.Combine(baseDir, "Tools", "Plugins", "zeromix.Welcome", "gif", "Welcome.gif"),
-                };
-
-                string? gifPath = null;
-                foreach (var c in candidates)
-                {
-                    if (File.Exists(c)) { gifPath = c; break; }
-                }
+                // Ambil pilihan user dari registry
+                var selectedGif = WelcomePlugin.GetSelectedGif();
+                string? gifPath = WelcomePlugin.ResolveGifPath(selectedGif);
 
                 if (gifPath != null)
                 {

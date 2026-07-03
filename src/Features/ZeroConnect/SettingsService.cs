@@ -13,6 +13,7 @@ public class SettingsModel
     public bool ShowFeature5 { get; set; } = true;
     public bool ShowFeature6 { get; set; } = true;
 
+
     public SettingsModel Clone() => JsonSerializer.Deserialize<SettingsModel>(JsonSerializer.Serialize(this))!;
 }
 
