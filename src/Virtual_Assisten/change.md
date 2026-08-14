@@ -2,7 +2,7 @@
 
 ---
 
-## 🚀 v7.2.0 — Latest
+## 🚀 v7.7.0 — Latest
 
 ### 🖥️ Migrasi Rendering: WebView2 → Native OpenGL + Cubism Core
 - **WebView2 dihapus total dari flow Virtual Assistant** — render karakter langsung di proses native pakai OpenTK (OpenGL) + Live2D Cubism Core (P/Invoke `Live2DCubismCore.dll`).

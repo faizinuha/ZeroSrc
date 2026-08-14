@@ -8,7 +8,7 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) | [Semantic Ver
 
 ---
 
-## [v7.2.0] - 2026-08-14
+## [v7.7.0] - 2026-08-14
 
 ### 🖥️ Virtual Assistant — Migrasi Rendering: WebView2 → Native OpenGL + Cubism Core
 
