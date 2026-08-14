@@ -20,7 +20,7 @@
     Height="650"
     MinWidth="1000"
     MinHeight="650"
-    Background="Transparent"
+    Background="#FF141922"
     Closing="Window_Closing"
     ExtendsContentIntoTitleBar="True"
     Icon="../Assets/Icons/zeromix.ico"
@@ -33,6 +33,9 @@
     WindowCornerPreference="Round"
     WindowStartupLocation="CenterScreen"
     mc:Ignorable="d">
+
+    <!-- Fix C (Bagian 7): fallback gelap (#141922) bukan putih/transparan supaya frame
+         sebelum Mica ter-attach tidak menyilaukan. Mica menutup brush ini begitu aktif. -->
 
     <Window.Resources>
         <ResourceDictionary>

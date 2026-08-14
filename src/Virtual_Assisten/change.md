@@ -2,7 +2,20 @@
 
 ---
 
-## 🚀 v7.5.1 — Latest
+## 🚀 v7.6.0-Demo — Latest
+
+### 🖥️ Migrasi Rendering: WebView2 → Native OpenGL + Cubism Core
+- **WebView2 dihapus total dari flow Virtual Assistant** — render karakter langsung di proses native pakai OpenTK (OpenGL) + Live2D Cubism Core (P/Invoke `Live2DCubismCore.dll`).
+- **Tanpa jembatan JS**: ganti model, eye tracking, speak, mic → method C# langsung.
+- **Per-pixel alpha** via `WS_EX_LAYERED` + `UpdateLayeredWindow` (FBO readback) — tetap transparan ke desktop.
+- **Anti white/black flash**: window tersembunyi (`Opacity=0`) sampai frame pertama OpenGL sukses, lalu fade-in 300ms.
+- **TTS/STT native** (`System.Speech`) menggantikan Web Speech API.
+- **Drag window** dari area karakter (fitur baru).
+- Lip-sync (`ParamMouthOpenY`), idle motion, expression, physics tetap berjalan.
+
+---
+
+## 🚀 v7.5.1
 
 ### 🗑️ Removed
 - **EdgeDim (Privacy Filter) dihapus total** — Fitur tidak stabil & tidak bisa digunakan sesuai rencana awal.

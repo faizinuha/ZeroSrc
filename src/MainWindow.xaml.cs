@@ -47,7 +47,7 @@ namespace ZeroMix
 
     public partial class MainWindow : Wpf.Ui.Controls.FluentWindow, ZeroMix.Plugins.IZeroMixHost
     {
-        private const string CURRENT_VERSION = "7.5.0";
+        private const string CURRENT_VERSION = "7.6.0-Demo";
 
         // Windows API for Taskbar transparency
         [DllImport("user32.dll", SetLastError = true)]
@@ -300,8 +300,15 @@ namespace ZeroMix
 
             // set content rendered handler to init tray when render ready
             this.ContentRendered += OnContentRenderedInitTray;
-            // Set opacity 0 SEBELUM window render untuk cegah white flash
-            this.Opacity = 0;
+            // ★ Bagian 7 — Fix white flash:
+            // SEBELUMNYA: this.Opacity = 0 + fade-in di Window_Loaded.
+            // Ini justru MENYEBABKAN flash: Opacity < 1 memaksa WPF memakai
+            // WS_EX_LAYERED (layered window), dan DWM TIDAK menerapkan Mica
+            // (DWMWA_SYSTEMBACKDROP_TYPE) pada layered window. Akibatnya Mica
+            // baru ter-attach SETELAH animasi fade-in selesai (opacity kembali 1)
+            // → momen itulah flash putih muncul.
+            // FIX: hapus hack Opacity, dan ganti Background window jadi gelap
+            // (#FF141922 di XAML) sebagai fallback frame sebelum Mica siap.
             ApplicationThemeManager.Apply(this);
             StartGameDetection();
             // Tray icon diinisialisasi via XAML (ui:FluentWindow.Tray)
@@ -390,9 +397,8 @@ namespace ZeroMix
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
-            // Fade in — opacity sudah di-set 0 di constructor, tinggal animate ke 1
-            var fadeIn = new DoubleAnimation(0, 1, TimeSpan.FromMilliseconds(300));
-            this.BeginAnimation(OpacityProperty, fadeIn);
+            // Fade-in opacity DIHAPUS (Bagian 7) — animasi opacity < 1 membuat
+            // window layered, yang menghalangi DWM attach Mica (lihat constructor).
 
             // Set initial view after the window has loaded
             HomeButton_Click(this, new RoutedEventArgs());

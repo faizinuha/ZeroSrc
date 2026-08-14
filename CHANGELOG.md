@@ -8,6 +8,26 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) | [Semantic Ver
 
 ---
 
+## [v7.6.0-Demo] - 2026-08-14
+
+### 🖥️ Virtual Assistant — Migrasi Rendering: WebView2 → Native OpenGL + Cubism Core
+
+- **WebView2 dihapus dari flow Virtual Assistant** — tidak ada lagi proses `msedgewebview2.exe` saat VA dibuka (WebView2 tetap dipakai di bagian lain ZeroMix, mis. ZeroConnect PWA).
+- **Renderer native baru**: OpenTK (OpenGL 4.x) + Live2D Cubism Core (`Live2DCubismCore.dll` via P/Invoke, file `src/Native/CubismCoreNative.cs`).
+- **Tidak ada lagi jembatan JS** — semua interaksi (ganti karakter, eye tracking, speak, mic) jadi panggilan method C# langsung.
+- **Per-pixel alpha via layered window** (`WS_EX_LAYERED` + `UpdateLayeredWindow` dari FBO readback) — karakter tetap tembus ke desktop, tanpa flash putih/hitam saat load (window tersembunyi sampai frame pertama sukses, lalu fade-in 300ms).
+- **TTS native** (`System.Speech.Synthesis`) menggantikan Web Speech API; **STT native** (`System.Speech.Recognition`) menggantikan `webkitSpeechRecognition` (trade-off: API ini deprecated di Windows 11 tapi tetap jalan offline dengan language pack).
+- **Fitur drag window** langsung dari area karakter (baru, tidak ada di versi WebView2).
+- **Lip-sync & idle motion** dipertahankan (`ParamMouthOpenY`, motion3/exp3/physics3 di-parse native).
+- File baru: `src/Native/CubismCoreNative.cs`, `src/Rendering/` (model loader, physics, motion, renderer OpenGL, HwndHost).
+- `live2d-viewer.html` sengaja dipertahankan sebagai fallback sampai migrasi terverifikasi penuh.
+
+### 🎨 Perbaikan
+
+- **White flash MainWindow saat startup (Bagian 7)**: hack `Opacity=0` + fade-in dihapus — Opacity<1 memaksa window jadi layered dan DWM tidak menerapkan Mica pada layered window (Mica baru attach setelah fade selesai → justru itulah momen flash). Background fallback diganti gelap `#FF141922` sampai Mica siap.
+
+---
+
 ## [v7.5.1] - 2026-06-30
 
 ### 🗑️ Removed

@@ -9,7 +9,7 @@
     <UseWindowsForms>true</UseWindowsForms>
     <ApplicationIcon>Assets\Icons\zeromix.ico</ApplicationIcon>
     <EnableWindowsTargeting>true</EnableWindowsTargeting>
-   <Version>7.5.0</Version>
+   <Version>7.6.0-Demo</Version>
     
     <!-- Optimasi Ukuran & Portabilitas (Self-Contained & Kompresi) -->
     <PublishSingleFile>false</PublishSingleFile>
@@ -75,6 +75,8 @@
     <PackageReference Include="VideoLAN.LibVLC.Windows" Version="3.0.23.1" />
     <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.3650.58" />
     <PackageReference Include="MoonSharp" Version="2.0.0" />
+    <PackageReference Include="OpenTK" Version="4.9.4" />
+    <PackageReference Include="System.Speech" Version="10.0.11" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
     <PackageReference Include="QRCoder" Version="1.8.0" />
     <PackageReference Include="Vortice.D3DCompiler" Version="3.8.2" />

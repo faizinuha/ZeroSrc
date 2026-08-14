@@ -1,7 +1,7 @@
 <Window x:Class="ZeroMix.Virtual_Assisten.VirtualAssistantWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:wv2="clr-namespace:Microsoft.Web.WebView2.Wpf;assembly=Microsoft.Web.WebView2.Wpf"
+        xmlns:r="clr-namespace:ZeroMix.Rendering"
         Title="Virtual Assistant"
         Width="400"
         Height="500"
@@ -60,12 +60,11 @@
                        TextAlignment="Center"/>
         </Border>
         
-        <!-- Live2D WebView2 Surface -->
-        <wv2:WebView2 x:Name="WebView"
-                     Margin="0,0,0,0"
-                     DefaultBackgroundColor="Transparent"
-                     IsHitTestVisible="True"
-                     Cursor="Hand"/>
+        <!-- Live2D Native OpenGL Surface (HwndHost, per-pixel alpha via layered window) -->
+        <r:OpenGLHost x:Name="GlHost"
+                      Margin="0,0,0,0"
+                      IsHitTestVisible="True"
+                      Cursor="Hand"/>
         
         <!-- Inline Chat Panel (hidden by default, toggled via mic button) -->
         <Border x:Name="ChatPanel"

@@ -1,16 +1,12 @@
-﻿using System;
+using System;
 using System.IO;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Threading;
 using System.Diagnostics;
 using System.Collections.Generic;
-using Microsoft.Web.WebView2.Core;
-using System.Windows.Forms;
-using System.Windows.Controls;
-using Newtonsoft.Json.Linq;
-using System.Drawing;
-using System.Threading.Tasks;
+using System.Windows.Media.Animation;
+using ZeroMix.Rendering;
 using ZeroMix.Services;
 
 namespace ZeroMix.Virtual_Assisten
@@ -22,15 +18,14 @@ namespace ZeroMix.Virtual_Assisten
         private DispatcherTimer? _hideChatTimer;
         private DispatcherTimer? _autoTalkTimer;
         private DispatcherTimer? _eyeTrackingTimer;
+        private DispatcherTimer? _fadeInCheckTimer;
         private string _currentCharacter = "Frieren";
-        private bool _isWebViewDisposed = false;
-        private bool _isWebViewInitialized = false;
-        private bool _isScriptRunning = false;
+        private bool _isHostDisposed = false;
         private AiVisionService? _visionService;
         private DispatcherTimer? _visionTimer;
         private string _apiKey = ApiKeys.OPENAI_API_KEY; 
         private string _currentLang = "id-ID";
-        // null = auto-detect di JS (device-aware), "1" = force on, "0" = force off
+        // null = auto-detect (CPU cores, sama seperti JS lama), "1" = force on, "0" = force off
         private string? _antialiasOverride = null;
         
         // AI Chat Service (OpenRouter via WaifuChatService)
@@ -51,6 +46,13 @@ namespace ZeroMix.Virtual_Assisten
         
         private Random _random = new Random();
 
+        // ── TTS (pengganti Web Speech API — System.Speech.Synthesis) ──────
+        private System.Speech.Synthesis.SpeechSynthesizer? _synthesizer;
+
+        // ── STT (pengganti Web Speech API recognition — System.Speech.Recognition) ──
+        private System.Speech.Recognition.SpeechRecognitionEngine? _recognizer;
+        private bool _isListening;
+
         public VirtualAssistantWindow()
         {
             InitializeComponent();
@@ -59,6 +61,10 @@ namespace ZeroMix.Virtual_Assisten
             this.Left = workArea.Right - this.Width - 20;
             this.Top = workArea.Bottom - this.Height - 80;
             
+            // ★ 5.5 — cegah flash warna solid: window tetap tersembunyi
+            // sampai frame OpenGL pertama sukses ter-render.
+            this.Opacity = 0;
+
             this.Loaded += OnWindowLoaded;
             this.MouseLeftButtonDown += OnMouseLeftButtonDown;
             this.MouseLeftButtonUp += OnMouseLeftButtonUp;
@@ -71,14 +77,14 @@ namespace ZeroMix.Virtual_Assisten
 
             _autoTalkTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(60) };
             _autoTalkTimer.Tick += (s, e) => ShowNextChatMessage();
-            // Jangan start dulu — tunggu WebView siap
+            // Jangan start dulu — tunggu model siap
 
             _eyeTrackingTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(300) };
             _eyeTrackingTimer.Tick += UpdateEyeTracking;
             _eyeTrackingTimer.Start();
 
             _visionService = new AiVisionService(_apiKey);
-            // Vision timer — jangan start dulu, tunggu WebView siap
+            // Vision timer — jangan start dulu, tunggu model siap
             _visionTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(60) };
             _visionTimer.Tick += async (s, e) => await PerformAiObservation();
             
@@ -91,83 +97,165 @@ namespace ZeroMix.Virtual_Assisten
             {
                 Console.WriteLine($"[VA] Failed to init WaifuChatService: {ex.Message}");
             }
-            
 
+            // TTS native (System.Speech) — pengganti speechSynthesis WebView2
+            try
+            {
+                _synthesizer = new System.Speech.Synthesis.SpeechSynthesizer();
+                _synthesizer.SpeakCompleted += (s, e) =>
+                {
+                    if (GlHost != null) GlHost.IsSpeaking = false;
+                };
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[VA] TTS init error: {ex.Message}");
+            }
+
+            // STT native (System.Speech) — pengganti webkitSpeechRecognition
+            InitSpeechRecognition();
+        }
+
+        private void InitSpeechRecognition()
+        {
+            try
+            {
+                var cultures = new[]
+                {
+                    System.Globalization.CultureInfo.GetCultureInfo("id-ID"),
+                    System.Globalization.CultureInfo.GetCultureInfo("en-US")
+                };
+
+                _recognizer = null;
+                foreach (var c in cultures)
+                {
+                    try
+                    {
+                        _recognizer = new System.Speech.Recognition.SpeechRecognitionEngine(c);
+                        break;
+                    }
+                    catch { }
+                }
+
+                if (_recognizer == null)
+                {
+                    Console.WriteLine("[VA] STT: tidak ada recognizer yang tersedia (perlu language pack).");
+                    return;
+                }
+
+                _recognizer.LoadGrammar(new System.Speech.Recognition.DictationGrammar());
+                _recognizer.SetInputToDefaultAudioDevice();
+                _recognizer.SpeechRecognized += (s, e) =>
+                {
+                    _isListening = false;
+                    string text = e.Result?.Text ?? "";
+                    Dispatcher.BeginInvoke(new Action(() => ProcessUserVoice(text)));
+                };
+                _recognizer.SpeechRecognitionRejected += (s, e) =>
+                {
+                    _isListening = false;
+                    Console.WriteLine("[VA] STT: tidak mendengar dengan jelas.");
+                };
+                _recognizer.RecognizeCompleted += (s, e) =>
+                {
+                    _isListening = false;
+                };
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[VA] STT init error: {ex.Message}");
+            }
         }
 
         private async void OnWindowLoaded(object sender, RoutedEventArgs e)
         {
             try
             {
-                var userDataFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "ZeroMix", "WebView2_VA");
-                
-                var options = new CoreWebView2EnvironmentOptions();
-                // Minimal flags — avoid disabling GPU entirely as it breaks Live2D rendering
-                options.AdditionalBrowserArguments = "--disable-features=AudioServiceOutOfProcess,MediaRouter --disable-background-timer-throttling --disable-extensions --disable-default-apps --js-flags=--max-old-space-size=128";
-                
-                var env = await CoreWebView2Environment.CreateAsync(null, userDataFolder, options);
-                await WebView.EnsureCoreWebView2Async(env);
-                
-                WebView.CoreWebView2.Settings.AreDefaultScriptDialogsEnabled = false;
-                WebView.CoreWebView2.Settings.IsStatusBarEnabled = false;
-                WebView.CoreWebView2.Settings.IsZoomControlEnabled = false;
-                WebView.CoreWebView2.Settings.AreDevToolsEnabled = false;
-                WebView.CoreWebView2.Settings.IsGeneralAutofillEnabled = false;
-                WebView.CoreWebView2.Settings.IsPasswordAutosaveEnabled = false;
-                WebView.CoreWebView2.Settings.AreBrowserAcceleratorKeysEnabled = false;
-                WebView.CoreWebView2.Settings.IsSwipeNavigationEnabled = false;
-                WebView.CoreWebView2.MemoryUsageTargetLevel = CoreWebView2MemoryUsageTargetLevel.Low;
-                WebView.CoreWebView2.PermissionRequested += (s, args) => args.State = CoreWebView2PermissionState.Deny;
+                // Antialias: override dari Settings kalau ada, selain itu auto-detect (CPU cores)
+                if (_antialiasOverride != null)
+                    GlHost.Antialias = _antialiasOverride == "1";
+                else
+                    GlHost.Antialias = Environment.ProcessorCount > 4;
 
-                string appBase = AppDomain.CurrentDomain.BaseDirectory;
-                WebView.CoreWebView2.SetVirtualHostNameToFolderMapping("zeromix.vercel.app", appBase, CoreWebView2HostResourceAccessKind.Allow);
-                
-                WebView.WebMessageReceived += OnWebMessageReceived;
-
-                // Cek file HTML ada dulu sebelum navigate
-                string htmlLocalPath = Path.Combine(appBase, "Virtual_Assisten", "live2d-viewer.html");
-                
-                if (!File.Exists(htmlLocalPath))
+                // Drag window via child GL surface (fitur yang tidak ada di versi WebView2)
+                GlHost.DragDelta += (dx, dy) =>
                 {
-                    Console.WriteLine($"[VA] live2d-viewer.html not found at: {htmlLocalPath}");
-                    return;
-                }
+                    this.Left += dx;
+                    this.Top += dy;
+                };
 
-                // Pakai virtual host — lebih cepat karena tidak perlu resolve file:/// path
-                // Virtual host sudah di-map ke appBase folder
-                // Kirim antialias override ke JS via query string (null = auto-detect di JS)
-// Untuk toggle manual dari Settings: set _antialiasOverride = "1" atau "0"
-string aaQuery = _antialiasOverride != null ? $"?antialias={_antialiasOverride}" : "";
-WebView.Source = new Uri($"https://zeromix.vercel.app/Virtual_Assisten/live2d-viewer.html{aaQuery}");
-
-                // Wait for navigation to complete before marking initialized
-                var tcs = new TaskCompletionSource<bool>();
-                void OnNavCompleted(object? s2, CoreWebView2NavigationCompletedEventArgs args2)
+                GlHost.Clicked += OnGlHostClicked;
+                GlHost.ModelLoaded += () =>
                 {
-                    WebView.CoreWebView2.NavigationCompleted -= OnNavCompleted;
-                    tcs.TrySetResult(true);
-                }
-                WebView.CoreWebView2.NavigationCompleted += OnNavCompleted;
-                await tcs.Task;
+                    Console.WriteLine("[VA] Model loaded & frame pertama siap.");
+                    App.OptimizeMemory();
+                };
 
-                _isWebViewInitialized = true;
+                await LoadModelToHost(_currentCharacter);
 
-                // Start timers hanya setelah WebView siap
+                // ★ 5.5 — mulai timers & fade-in hanya setelah frame pertama benar-benar ada
                 _visionTimer?.Start();
                 _autoTalkTimer?.Start();
 
-                // Now safe to send the model path
-                await SendModelToWebView(_currentCharacter);
+                _fadeInCheckTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(50) };
+                _fadeInCheckTimer.Tick += (s2, e2) =>
+                {
+                    if (GlHost.FirstFrameRendered)
+                    {
+                        _fadeInCheckTimer?.Stop();
+                        FadeIn();
+                    }
+                };
+                _fadeInCheckTimer.Start();
+
+                ShowNextChatMessage();
             }
-            catch (Exception ex) { Console.WriteLine($"[VA] WebView init error: {ex.Message}"); }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[VA] Init error: {ex.Message}");
+                // Kalau gagal total, tetap tampilkan window biar user bisa lihat pesan error
+                FadeIn();
+            }
         }
 
-        private async Task SendModelToWebView(string characterName)
+        /// <summary>Fade-in window dari opacity 0 (dipakai setelah frame pertama sukses).</summary>
+        private void FadeIn()
         {
-            if (!_isWebViewInitialized || _isWebViewDisposed) return;
-            
+            var anim = new DoubleAnimation(0, 1, TimeSpan.FromMilliseconds(300))
+            {
+                EasingFunction = new QuadraticEase { EasingMode = EasingMode.EaseOut }
+            };
+            this.BeginAnimation(OpacityProperty, anim);
+        }
+
+        private void OnGlHostClicked(System.Windows.Point hostPoint)
+        {
+            // Klik di area chat panel → fokuskan input chat (bukan reaksi karakter)
+            if (ChatPanel.Visibility == Visibility.Visible && IsPointInChatPanel(hostPoint))
+            {
+                ChatInput.Focus();
+                return;
+            }
+
+            GlHost.PlayTapMotion();
+            ShowNextChatMessage();
+        }
+
+        private bool IsPointInChatPanel(System.Windows.Point hostPoint)
+        {
+            try
+            {
+                var origin = ChatPanel.TransformToAncestor(this).Transform(new System.Windows.Point(0, 0));
+                var size = new System.Windows.Size(ChatPanel.ActualWidth, ChatPanel.ActualHeight);
+                return hostPoint.X >= origin.X && hostPoint.X <= origin.X + size.Width
+                    && hostPoint.Y >= origin.Y && hostPoint.Y <= origin.Y + size.Height;
+            }
+            catch { return false; }
+        }
+
+        private async Task LoadModelToHost(string characterName)
+        {
             string modelPath = GetModelPath(characterName);
-            
             if (!File.Exists(modelPath))
             {
                 Console.WriteLine($"[VA] Model not found: {modelPath}");
@@ -176,136 +264,34 @@ WebView.Source = new Uri($"https://zeromix.vercel.app/Virtual_Assisten/live2d-vi
             }
 
             Console.WriteLine($"[VA] Model file exists: {modelPath}");
+            Console.WriteLine($"[VA] Loading model: {modelPath}");
 
-            // Convert ke virtual host URL — konsisten dengan cara HTML di-load
-            // Cari beberapa kandidat folder background (user mungkin memindahkan folder)
-            string[] bgCandidates = new[]
-            {
-                Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Virtual_Assisten", "Background", "img"),
-                Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Virtual_Assisten", "Background"),
-                Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Virtual_Assisten", "Va_Background"),
-                Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Virtual_Assisten", "VA_Background"),
-                Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Virtual_Assisten", "VA_Thumbnails"),
-                Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Virtual_Assisten", "VA_Thumbnails")
-            };
-            string? bgDir = null;
-            foreach (var cand in bgCandidates)
-            {
-                if (Directory.Exists(cand)) { bgDir = cand; break; }
-            }
-            if (!string.IsNullOrEmpty(bgDir))
-            {
-                Console.WriteLine($"[VA] Using background dir: {bgDir}");
-                try
-                {
-                    foreach (var jf in Directory.GetFiles(bgDir, "*.jfif"))
-                    {
-                        var png = Path.ChangeExtension(jf, ".png");
-                        if (!File.Exists(png))
-                        {
-                            try
-                            {
-                                using (var img = System.Drawing.Image.FromFile(jf))
-                                {
-                                    img.Save(png, System.Drawing.Imaging.ImageFormat.Png);
-                                }
-                            }
-                            catch (Exception ex) { Console.WriteLine($"[VA] Background convert error: {ex.Message}"); }
-                        }
-                    }
-                }
-                catch (Exception ex) { Console.WriteLine($"[VA] Background scan error: {ex.Message}"); }
-            }
-            else
-            {
-                Console.WriteLine("[VA] No background folder found in candidates.");
-            }
+            var sw = Stopwatch.StartNew();
+            long wsBefore = Process.GetCurrentProcess().WorkingSet64;
+            long gcBefore = GC.GetTotalMemory(false);
+            Console.WriteLine($"[VA] Memory before load: GC={gcBefore} bytes, WorkingSet={wsBefore} bytes");
 
-            string appBase = AppDomain.CurrentDomain.BaseDirectory.TrimEnd('\\', '/');
-            string relativePath = modelPath.Replace(appBase, "").TrimStart('\\', '/').Replace("\\", "/");
-            
-            // ★ FIX: URL-encode setiap segmen path secara eksplisit untuk karakter Unicode (China, Jepang, dll)
-            // Uri.EscapeUriString TIDAK meng-encode karakter non-ASCII yang sah dalam URI,
-            // tapi WebView2 virtual host membutuhkan percent-encoding untuk path Unicode.
-            string[] segments = relativePath.Split('/');
-            for (int i = 0; i < segments.Length; i++)
-            {
-                segments[i] = Uri.EscapeDataString(segments[i]);
-            }
-            string encodedRelativePath = string.Join("/", segments);
-            string webPath = "https://zeromix.vercel.app/" + encodedRelativePath;
-            
-            Console.WriteLine($"[VA] Loading model: {webPath}");
-            
-            try
-            {
-                string escaped = webPath.Replace("'", "\\'");
-                var sw = Stopwatch.StartNew();
-                Console.WriteLine($"[VA] Sending model to WebView: {webPath}");
-                long memBefore = GC.GetTotalMemory(false);
-                long wsBefore = Process.GetCurrentProcess().WorkingSet64;
-                Console.WriteLine($"[VA] Memory before send: GC={memBefore} bytes, WorkingSet={wsBefore} bytes");
-                
-                // Simpan path ke JS agar bisa di-reload jika gagal
-                string js = $"if(typeof changeModel === 'function') changeModel('{escaped}');";
-                await WebView.ExecuteScriptAsync(js);
-                
-                sw.Stop();
-                long memAfter = GC.GetTotalMemory(false);
-                long wsAfter = Process.GetCurrentProcess().WorkingSet64;
-                Console.WriteLine($"[VA] Model send completed in {sw.ElapsedMilliseconds}ms. Memory after: GC={memAfter} bytes, WorkingSet={wsAfter} bytes");
-                
-                // Prompt .NET GC and working set trim after model change to free native resources
-                App.OptimizeMemory();
-            }
-            catch (Exception ex) 
-            { 
-                Console.WriteLine($"[VA] SendModel error: {ex.Message}");
-                ShowNotification($"Gagal memuat model {characterName}: {ex.Message}");
-            }
-        }
+            await Dispatcher.InvokeAsync(() => GlHost.LoadModel(modelPath));
 
-        private async void OnWebMessageReceived(object? sender, CoreWebView2WebMessageReceivedEventArgs e)
-        {
-            try 
-            {
-                string jsonMessage = e.WebMessageAsJson;
-                JObject msg = JObject.Parse(jsonMessage);
-                var type = msg["type"]?.ToString();
-                if (type == "click")
-                {
-                    ShowNextChatMessage();
-                }
-                else if (type == "model_loaded")
-                {
-                    bool heavy = msg["heavy"]?.ToObject<bool>() ?? false;
-                    long? loadMs = msg["loadTimeMs"]?.ToObject<long?>();
-                    long? jsMem = msg["jsMemoryUsed"]?.ToObject<long?>();
-                    Console.WriteLine($"[VA] WebView model_loaded: heavy={heavy}, loadTimeMs={loadMs}ms, jsMemory={jsMem}");
-                    // Suggest GC/trim after model fully loaded in WebView
-                    App.OptimizeMemory();
-                    ShowNextChatMessage();
-                }
-                else if (type == "speech_result")
-                {
-                    JObject data = msg;
-                    ProcessUserVoice(data["text"]?.ToString() ?? "");
-                }
-            } 
-            catch (Exception ex) { Console.WriteLine($"[VA] OnWebMessageReceived parse error: {ex.Message}"); }
+            sw.Stop();
+            long wsAfter = Process.GetCurrentProcess().WorkingSet64;
+            long gcAfter = GC.GetTotalMemory(false);
+            Console.WriteLine($"[VA] Model load completed in {sw.ElapsedMilliseconds}ms. Memory after: GC={gcAfter} bytes, WorkingSet={wsAfter} bytes");
+
+            App.OptimizeMemory();
         }
 
         public async void SetCharacter(string characterName)
         {
             _currentCharacter = characterName;
-            if (!_isWebViewInitialized || _isWebViewDisposed) return;
+            if (_isHostDisposed) return;
 
-            // Stop eye tracking saat ganti model — cegah script conflict & freeze
+            // Stop eye tracking saat ganti model — cegah conflict & freeze
             _eyeTrackingTimer?.Stop();
 
-            await SendModelToWebView(characterName);
+            await LoadModelToHost(characterName);
 
-            // Resume setelah model dikirim ke WebView
+            // Resume setelah model di-load ke host
             _eyeTrackingTimer?.Start();
         }
 
@@ -324,9 +310,9 @@ WebView.Source = new Uri($"https://zeromix.vercel.app/Virtual_Assisten/live2d-vi
         }
 
         private System.Windows.Point _lastMousePoint;
-        private async void UpdateEyeTracking(object? sender, EventArgs e)
+        private void UpdateEyeTracking(object? sender, EventArgs e)
         {
-            if (!_isWebViewInitialized || !this.IsVisible || _isScriptRunning) return;
+            if (!this.IsVisible || _isHostDisposed || !GlHost.IsModelLoaded) return;
             var point = System.Windows.Forms.Control.MousePosition;
             
             // Optimization: Only update if mouse moved enough (> 5 pixels)
@@ -335,9 +321,7 @@ WebView.Source = new Uri($"https://zeromix.vercel.app/Virtual_Assisten/live2d-vi
 
             double diffX = Math.Max(-1, Math.Min(1, (point.X - (this.Left + Width/2)) / 400.0));
             double diffY = Math.Max(-1, Math.Min(1, -(point.Y - (this.Top + Height/2 + 50)) / 400.0));
-            _isScriptRunning = true;
-            try { await WebView.ExecuteScriptAsync($"if(typeof updateEyeTracking === 'function') updateEyeTracking({diffX:F2}, {diffY:F2});"); }
-            finally { _isScriptRunning = false; }
+            GlHost.SetEyeTarget((float)diffX, (float)diffY);
         }
 
         public void ShowNextChatMessage()
@@ -345,7 +329,7 @@ WebView.Source = new Uri($"https://zeromix.vercel.app/Virtual_Assisten/live2d-vi
             // Gunakan AI chat jika tersedia, fallback ke manual messages
             if (_waifuChatService != null)
             {
-                _ = ShowAiChatMessage();
+                ShowAiChatMessage();
             }
             else
             {
@@ -357,7 +341,7 @@ WebView.Source = new Uri($"https://zeromix.vercel.app/Virtual_Assisten/live2d-vi
             }
         }
         
-        private async Task ShowAiChatMessage()
+        private void ShowAiChatMessage()
         {
             if (_waifuChatService == null) return;
             
@@ -415,13 +399,8 @@ WebView.Source = new Uri($"https://zeromix.vercel.app/Virtual_Assisten/live2d-vi
                 ChatText.Text = response;
                 ChatBubble.Visibility = Visibility.Visible;
                 
-                // Speak the response
-                try
-                {
-                    string escaped = response.Replace("'", "\\'");
-                    await WebView.ExecuteScriptAsync($"speakText('{escaped}', '{_currentLang}');");
-                }
-                catch { }
+                // Speak the response (TTS native + lip-sync)
+                SpeakText(response, _currentLang);
                 
                 _hideChatTimer?.Stop(); _hideChatTimer?.Start();
             }
@@ -441,7 +420,7 @@ WebView.Source = new Uri($"https://zeromix.vercel.app/Virtual_Assisten/live2d-vi
             ChatBubble.Visibility = Visibility.Visible;
             
             // Speak the observation!
-            await WebView.ExecuteScriptAsync($"speakText('{aiComment.Replace("'", "\\'")}', '{_currentLang}');");
+            SpeakText(aiComment, _currentLang);
 
             _hideChatTimer?.Stop(); _hideChatTimer?.Start();
         }
@@ -450,6 +429,81 @@ WebView.Source = new Uri($"https://zeromix.vercel.app/Virtual_Assisten/live2d-vi
         public void PreConfigure(string lang, bool enableMic)
         {
             _currentLang = lang;
+        }
+
+        // ── TTS native (pengganti speakText di JS) ────────────────────────
+        private void SpeakText(string text, string lang = "id-ID")
+        {
+            try
+            {
+                if (_synthesizer == null || string.IsNullOrWhiteSpace(text)) return;
+
+                _synthesizer.SpeakAsyncCancelAll();
+
+                // Voice mapping per karakter (mirip JS lama)
+                var (langPref, rate) = GetVoiceSettings(_currentCharacter);
+                System.Speech.Synthesis.InstalledVoice? voice = null;
+
+                try
+                {
+                    foreach (var v in _synthesizer.GetInstalledVoices())
+                    {
+                        if (v.Enabled && (v.VoiceInfo.Culture?.Name ?? "").StartsWith(langPref, StringComparison.OrdinalIgnoreCase))
+                        {
+                            voice = v;
+                            break;
+                        }
+                    }
+                }
+                catch { }
+
+                _synthesizer.Rate = rate;
+                if (voice != null)
+                    _synthesizer.SelectVoice(voice.VoiceInfo.Name);
+
+                if (GlHost != null) GlHost.IsSpeaking = true;
+                _synthesizer.SpeakAsync(text);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[VA] TTS speak error: {ex.Message}");
+                if (GlHost != null) GlHost.IsSpeaking = false;
+            }
+        }
+
+        private (string LangPrefix, int Rate) GetVoiceSettings(string character)
+        {
+            return character switch
+            {
+                "Fern"   => ("en", 1),
+                "Huohuo" => ("zh", 2),
+                "Jian"   => ("zh", 2),
+                _        => ("ja", 0) // Frieren
+            };
+        }
+
+        // ── STT native (pengganti startSpeech di JS) ──────────────────────
+        private void StartListening()
+        {
+            try
+            {
+                if (_recognizer == null)
+                {
+                    ShowNotification("🎤 Speech recognition tidak tersedia (perlu language pack Windows).");
+                    return;
+                }
+                if (_isListening) return;
+
+                _isListening = true;
+                _recognizer.RecognizeAsync(System.Speech.Recognition.RecognizeMode.Single);
+                ShowNotification("🎤 Listening...");
+            }
+            catch (Exception ex)
+            {
+                _isListening = false;
+                Console.WriteLine($"[VA] STT start error: {ex.Message}");
+                ShowNotification("🎤 Gagal memulai voice input.");
+            }
         }
 
         private async void ProcessUserVoice(string text)
@@ -475,7 +529,7 @@ WebView.Source = new Uri($"https://zeromix.vercel.app/Virtual_Assisten/live2d-vi
                 ChatBubble.Visibility = Visibility.Visible;
                 
                 // Speak the response!
-                await WebView.ExecuteScriptAsync($"speakText('{aiResponse.Replace("'", "\\'")}', '{_currentLang}');");
+                SpeakText(aiResponse, _currentLang);
 
                 _hideChatTimer?.Stop();
                 _hideChatTimer?.Start();
@@ -502,14 +556,9 @@ WebView.Source = new Uri($"https://zeromix.vercel.app/Virtual_Assisten/live2d-vi
             }
         }
         
-        private async void ManualMic_Click(object sender, RoutedEventArgs e)
+        private void ManualMic_Click(object sender, RoutedEventArgs e)
         {
-            // Trigger WebView speech recognition
-            if (_isWebViewInitialized && !_isWebViewDisposed)
-            {
-                await WebView.ExecuteScriptAsync("if(typeof startSpeech === 'function') startSpeech('" + _currentLang + "');");
-                ShowNotification("🎤 Listening...");
-            }
+            StartListening();
         }
         
         // ── Inline Chat Panel ────────────────────────────────────
@@ -593,19 +642,19 @@ WebView.Source = new Uri($"https://zeromix.vercel.app/Virtual_Assisten/live2d-vi
                 _hideChatTimer?.Stop(); _hideChatTimer?.Start();
             }
         }
-        private async void MicButton_Click(object sender, MouseButtonEventArgs e)
+        private void MicButton_Click(object sender, MouseButtonEventArgs e)
         {
-            // Toggle speech recognition
-            if (_isWebViewInitialized && !_isWebViewDisposed)
-            {
-                await WebView.ExecuteScriptAsync("if(typeof startSpeech === 'function') startSpeech('" + _currentLang + "');");
-                ShowNotification("🎤 Listening...");
+            StartListening();
 
-                // Visual feedback — pulse mic button
-                MicButton.Background = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromArgb(0x99, 0x00, 0xD4, 0xFF));
-                await Task.Delay(2000);
+            // Visual feedback — pulse mic button
+            MicButton.Background = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromArgb(0x99, 0x00, 0xD4, 0xFF));
+            var resetTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(2000) };
+            resetTimer.Tick += (s2, e2) =>
+            {
+                resetTimer.Stop();
                 MicButton.Background = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromArgb(0x66, 0x00, 0x00, 0x00));
-            }
+            };
+            resetTimer.Start();
         }
 
         private void Close_Click(object sender, RoutedEventArgs e) => this.Close();
@@ -613,26 +662,27 @@ WebView.Source = new Uri($"https://zeromix.vercel.app/Virtual_Assisten/live2d-vi
         private void OnMouseLeftButtonDown(object sender, MouseButtonEventArgs e) { _isDragging = true; _dragOffset = e.GetPosition(this); CaptureMouse(); }
         private void OnMouseLeftButtonUp(object sender, MouseButtonEventArgs e) { _isDragging = false; ReleaseMouseCapture(); }
         private void OnMouseMove(object sender, System.Windows.Input.MouseEventArgs e) { if (_isDragging) { var pos = e.GetPosition(this); this.Left += pos.X - _dragOffset.X; this.Top += pos.Y - _dragOffset.Y; } }
-        protected override void OnClosed(EventArgs e) { _eyeTrackingTimer?.Stop(); _autoTalkTimer?.Stop(); _visionTimer?.Stop(); _hideChatTimer?.Stop(); _isWebViewDisposed = true; WebView?.Dispose(); base.OnClosed(e); App.OptimizeMemory(); }
-
-        private async void OnWindowDeactivated(object sender, EventArgs e)
+        protected override void OnClosed(EventArgs e)
         {
-            try
-            {
-                if (!_isWebViewDisposed && WebView?.CoreWebView2 != null)
-                    await WebView.CoreWebView2.TrySuspendAsync();
-            }
-            catch { }
+            _eyeTrackingTimer?.Stop(); _autoTalkTimer?.Stop(); _visionTimer?.Stop(); _hideChatTimer?.Stop();
+            _fadeInCheckTimer?.Stop();
+            _isHostDisposed = true;
+            try { _synthesizer?.SpeakAsyncCancelAll(); _synthesizer?.Dispose(); } catch { }
+            try { _recognizer?.RecognizeAsyncCancel(); _recognizer?.Dispose(); } catch { }
+            try { GlHost?.Dispose(); } catch { }
+            base.OnClosed(e);
+            App.OptimizeMemory();
         }
 
-        private void OnWindowActivated(object sender, EventArgs e)
+        private void OnWindowDeactivated(object? sender, EventArgs e)
         {
-            try
-            {
-                if (!_isWebViewDisposed && WebView?.CoreWebView2 != null)
-                    WebView.CoreWebView2.Resume();
-            }
-            catch { }
+            // Ganti TrySuspendAsync() WebView2 → pause render loop native (hemat CPU/GPU)
+            try { if (GlHost != null) GlHost.IsPaused = true; } catch { }
+        }
+
+        private void OnWindowActivated(object? sender, EventArgs e)
+        {
+            try { if (GlHost != null) GlHost.IsPaused = false; } catch { }
         }
     }
 }
