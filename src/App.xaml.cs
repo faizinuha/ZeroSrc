@@ -61,6 +61,22 @@ namespace ZeroMix
 
         protected override void OnStartup(StartupEventArgs e)
         {
+            // ── Crash Logger (diagnosa error VA / unhandled exception) ──
+            // Semua unhandled exception dicatat ke crash.log di samping exe,
+            // supaya error yang mematikan proses tidak lagi jadi misteri.
+            AppDomain.CurrentDomain.UnhandledException += (s, args) =>
+                LogCrash("AppDomain", args.ExceptionObject as Exception);
+            DispatcherUnhandledException += (s, args) =>
+            {
+                LogCrash("Dispatcher", args.Exception);
+                // Tidak di-handle — biarkan crash, tapi exception sudah tercatat.
+            };
+            System.Threading.Tasks.TaskScheduler.UnobservedTaskException += (s, args) =>
+            {
+                LogCrash("Task", args.Exception);
+                args.SetObserved();
+            };
+
             // ── Single Instance Guard ─────────────────────────────────────
             _mutex = new Mutex(true, "ZeroMix_SingleInstance", out bool isNewInstance);
             _mutexOwned = isNewInstance;
@@ -142,6 +158,35 @@ namespace ZeroMix
 
             // Skip onboarding — go straight to main app
             StartMainApp(e.Args);
+        }
+
+        /// <summary>Catat unhandled exception ke crash.log (di samping exe) untuk diagnosa.</summary>
+        internal static void LogCrash(string source, Exception? ex)
+        {
+            try
+            {
+                string path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "crash.log");
+                var sb = new System.Text.StringBuilder();
+                sb.AppendLine($"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] {source}");
+                if (ex == null)
+                {
+                    sb.AppendLine("(exception null)");
+                }
+                else
+                {
+                    sb.AppendLine($"Type: {ex.GetType().FullName}");
+                    sb.AppendLine($"Message: {ex.Message}");
+                    sb.AppendLine($"Stack: {ex.StackTrace}");
+                    for (Exception? inner = ex.InnerException; inner != null; inner = inner.InnerException)
+                    {
+                        sb.AppendLine($"Inner: {inner.GetType().FullName}: {inner.Message}");
+                        sb.AppendLine(inner.StackTrace);
+                    }
+                }
+                sb.AppendLine(new string('-', 70));
+                File.AppendAllText(path, sb.ToString());
+            }
+            catch { }
         }
 
         private void LoadLanguageResources()

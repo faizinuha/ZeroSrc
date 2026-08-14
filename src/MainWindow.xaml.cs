@@ -1242,9 +1242,48 @@ namespace ZeroMix
         {
             try
             {
-                var win = new ZeroMix.Features.ZeroConnect.UI.SettingsWindow { Owner = this };
-                var res = win.ShowDialog();
-                // SettingsService.Instance.Update will be called by the dialog when Save is pressed
+                LoadSettingsToUI();
+                DeactivateAllTabs();
+                SettingsContent.Visibility = Visibility.Visible;
+            }
+            catch { }
+        }
+
+        private void SettingsBackBtn_Click(object sender, RoutedEventArgs e)
+        {
+            SaveSettingsFromUI();
+            HomeButton_Click(this, new RoutedEventArgs());
+        }
+
+        private void SettingsSaveBtn_Click(object sender, RoutedEventArgs e)
+        {
+            SaveSettingsFromUI();
+            HomeButton_Click(this, new RoutedEventArgs());
+        }
+
+        private void LoadSettingsToUI()
+        {
+            var m = SettingsService.Instance.Model;
+            if (SettingsCb1 != null) SettingsCb1.IsChecked = m.ShowFeature1;
+            if (SettingsCb2 != null) SettingsCb2.IsChecked = m.ShowFeature2;
+            if (SettingsCb3 != null) SettingsCb3.IsChecked = m.ShowFeature3;
+            if (SettingsCb4 != null) SettingsCb4.IsChecked = m.ShowFeature4;
+            if (SettingsCb5 != null) SettingsCb5.IsChecked = m.ShowFeature5;
+            if (SettingsCb6 != null) SettingsCb6.IsChecked = m.ShowFeature6;
+        }
+
+        private void SaveSettingsFromUI()
+        {
+            try
+            {
+                var m = SettingsService.Instance.Model.Clone();
+                m.ShowFeature1 = SettingsCb1.IsChecked ?? false;
+                m.ShowFeature2 = SettingsCb2.IsChecked ?? false;
+                m.ShowFeature3 = SettingsCb3.IsChecked ?? false;
+                m.ShowFeature4 = SettingsCb4.IsChecked ?? false;
+                m.ShowFeature5 = SettingsCb5.IsChecked ?? false;
+                m.ShowFeature6 = SettingsCb6.IsChecked ?? false;
+                SettingsService.Instance.Update(m);
             }
             catch { }
         }
@@ -1408,6 +1447,7 @@ namespace ZeroMix
             if (PluginsContent != null) PluginsContent.Visibility = Visibility.Collapsed;
             if (RecorderContent != null) RecorderContent.Visibility = Visibility.Collapsed;
             if (SleepContent != null) SleepContent.Visibility = Visibility.Collapsed;
+            if (SettingsContent != null) SettingsContent.Visibility = Visibility.Collapsed;
             if (ZeroContent != null) ZeroContent.Visibility = Visibility.Collapsed; // Add ZeroConnect
             // Di dalam HamburgerBtn_Click, setelah baris NavTextAbout
             if (NavTextZeroConnect != null) NavTextZeroConnect.Visibility = Visibility;
@@ -2764,29 +2804,41 @@ end";
         private void OpenFrieren_Click(object sender, RoutedEventArgs e)
         {
             _lastCharacter = "Frieren";
-            AssistantMasterToggle.IsChecked = true;
-            AssistantMasterToggle_Checked(this, new RoutedEventArgs());
+            // Set IsChecked=true memicu event Checked → AssistantMasterToggle_Checked (tepat 1x).
+            // Kalau sudah checked (window bisa saja ditutup via ✕ sedangkan toggle tetap ON),
+            // panggil handler langsung sekali supaya window dibuka ulang — TANPA dobel panggil
+            // (dobel panggil dulu bikin 2x SetCharacter + load dari OnWindowLoaded = 3x load).
+            if (AssistantMasterToggle.IsChecked != true)
+                AssistantMasterToggle.IsChecked = true;
+            else
+                AssistantMasterToggle_Checked(this, new RoutedEventArgs());
         }
 
         private void OpenFern_Click(object sender, RoutedEventArgs e)
         {
             _lastCharacter = "Fern";
-            AssistantMasterToggle.IsChecked = true;
-            AssistantMasterToggle_Checked(this, new RoutedEventArgs());
+            if (AssistantMasterToggle.IsChecked != true)
+                AssistantMasterToggle.IsChecked = true;
+            else
+                AssistantMasterToggle_Checked(this, new RoutedEventArgs());
         }
 
         private void OpenHuohuo_Click(object sender, RoutedEventArgs e)
         {
             _lastCharacter = "Huohuo";
-            AssistantMasterToggle.IsChecked = true;
-            AssistantMasterToggle_Checked(this, new RoutedEventArgs());
+            if (AssistantMasterToggle.IsChecked != true)
+                AssistantMasterToggle.IsChecked = true;
+            else
+                AssistantMasterToggle_Checked(this, new RoutedEventArgs());
         }
 
         private void OpenJian_Click(object sender, RoutedEventArgs e)
         {
             _lastCharacter = "Jian";
-            AssistantMasterToggle.IsChecked = true;
-            AssistantMasterToggle_Checked(this, new RoutedEventArgs());
+            if (AssistantMasterToggle.IsChecked != true)
+                AssistantMasterToggle.IsChecked = true;
+            else
+                AssistantMasterToggle_Checked(this, new RoutedEventArgs());
         }
 
         private void OpenVideoEditor()

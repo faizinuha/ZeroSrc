@@ -18,7 +18,6 @@
             <ContextMenu>
                 <MenuItem Header="💬 Chat Manual" Click="ManualChat_Click"/>
                 <MenuItem Header="👁 Lihat Layarku" Click="ManualVision_Click"/>
-                <Separator/>
                 <MenuItem Header="🎤 Voice Input" Click="ManualMic_Click"/>
                 <Separator/>
                 <!-- Character Selector -->
@@ -60,11 +59,27 @@
                        TextAlignment="Center"/>
         </Border>
         
-        <!-- Live2D Native OpenGL Surface (HwndHost, per-pixel alpha via layered window) -->
+        <!-- Live2D Native OpenGL Surface (HwndHost untuk input; visual disajikan via WriteableBitmap) -->
         <r:OpenGLHost x:Name="GlHost"
                       Margin="0,0,0,0"
                       IsHitTestVisible="True"
                       Cursor="Hand"/>
+
+        <!-- Presentasi hasil render GL (per-pixel alpha). Di atas host tapi tidak menangkap klik. -->
+        <Image x:Name="GlSurfaceImage"
+               Source="{Binding Surface, ElementName=GlHost}"
+               Stretch="Fill"
+               IsHitTestVisible="False"/>
+
+        <!-- Loading indicator — hilang otomatis saat model selesai di-load -->
+        <TextBlock x:Name="LoadingText"
+                   Text="⏳ Memuat karakter..."
+                   Foreground="#999999"
+                   FontSize="13"
+                   FontFamily="Segoe UI"
+                   HorizontalAlignment="Center"
+                   VerticalAlignment="Center"
+                   IsHitTestVisible="False"/>
         
         <!-- Inline Chat Panel (hidden by default, toggled via mic button) -->
         <Border x:Name="ChatPanel"
@@ -113,18 +128,18 @@
         <!-- Control Bar (bottom) -->
         <StackPanel VerticalAlignment="Bottom" HorizontalAlignment="Center" 
                     Orientation="Horizontal" Margin="0,0,0,8">
+            <Border x:Name="MicButton" Width="32" Height="32" CornerRadius="16"
+                    Background="#66000000" BorderBrush="#44FFFFFF" BorderThickness="1"
+                    Cursor="Hand" ToolTip="Voice chat"
+                    MouseLeftButtonDown="MicButton_Click" Margin="0,0,4,0">
+                <TextBlock Text="🎤" FontSize="14" HorizontalAlignment="Center" 
+                           VerticalAlignment="Center"/>
+            </Border>
             <Border x:Name="ChatToggleBtn" Width="32" Height="32" CornerRadius="16"
                     Background="#66000000" BorderBrush="#44FFFFFF" BorderThickness="1"
                     Cursor="Hand" ToolTip="Open chat"
                     MouseLeftButtonDown="ChatToggleBtn_Click" Margin="0,0,4,0">
                 <TextBlock Text="💬" FontSize="13" HorizontalAlignment="Center" 
-                           VerticalAlignment="Center"/>
-            </Border>
-            <Border x:Name="MicButton" Width="32" Height="32" CornerRadius="16"
-                    Background="#66000000" BorderBrush="#44FFFFFF" BorderThickness="1"
-                    Cursor="Hand" ToolTip="Voice chat"
-                    MouseLeftButtonDown="MicButton_Click">
-                <TextBlock Text="🎤" FontSize="14" HorizontalAlignment="Center" 
                            VerticalAlignment="Center"/>
             </Border>
         </StackPanel>

@@ -14,8 +14,8 @@
 
             <Storyboard x:Key="ExpandAnim">
                 <DoubleAnimation Storyboard.TargetName="SettingsPanel"
-                                 Storyboard.TargetProperty="Height"
-                                 From="0" To="400" Duration="0:0:0.25">
+                                 Storyboard.TargetProperty="MaxHeight"
+                                 From="0" To="1200" Duration="0:0:0.25">
                     <DoubleAnimation.EasingFunction><QuadraticEase EasingMode="EaseOut"/></DoubleAnimation.EasingFunction>
                 </DoubleAnimation>
                 <DoubleAnimation Storyboard.TargetName="SettingsPanel"
@@ -24,8 +24,8 @@
             </Storyboard>
             <Storyboard x:Key="CollapseAnim">
                 <DoubleAnimation Storyboard.TargetName="SettingsPanel"
-                                 Storyboard.TargetProperty="Height"
-                                 From="400" To="0" Duration="0:0:0.2">
+                                 Storyboard.TargetProperty="MaxHeight"
+                                 From="1200" To="0" Duration="0:0:0.2">
                     <DoubleAnimation.EasingFunction><QuadraticEase EasingMode="EaseIn"/></DoubleAnimation.EasingFunction>
                 </DoubleAnimation>
                 <DoubleAnimation Storyboard.TargetName="SettingsPanel"

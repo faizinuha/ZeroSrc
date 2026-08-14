@@ -77,8 +77,82 @@ namespace ZeroMix.Rendering
             _model = model;
         }
 
+        /// <summary>Tekstur hasil decode (CPU-only, siap upload ke GL).</summary>
+        public sealed class DecodedTexture
+        {
+            public int Width;
+            public int Height;
+            public byte[] Data = Array.Empty<byte>(); // BGRA (32bpp ARGB little-endian)
+        }
+
+        /// <summary>Ukuran tekstur maksimal setelah downscale (window VA ~500px, jadi 2K lebih dari cukup).</summary>
+        private const int MaxTextureSize = 2048;
+
+        /// <summary>
+        /// Decode PNG/JPEG ke byte[] BGRA. Murni CPU (System.Drawing) — TANPA panggilan GL,
+        /// jadi aman dipanggil dari background thread. Ini bagian TERBERAT dari load model
+        /// (tekstur 8192x8192), dan tidak boleh memblokir UI thread.
+        /// Tekstur besar otomatis di-downscale ke maks 2048px supaya upload GL & memori jauh
+        /// lebih ringan (kualitas tetap tajam untuk ukuran tampilan ~500px).
+        /// </summary>
+        public static DecodedTexture? DecodeTextureFromFile(string path)
+        {
+            if (!File.Exists(path)) return null;
+            try
+            {
+                using (var src = new Bitmap(path))
+                {
+                    int width = src.Width;
+                    int height = src.Height;
+
+                    if (width > MaxTextureSize || height > MaxTextureSize)
+                    {
+                        float scale = Math.Min((float)MaxTextureSize / width, (float)MaxTextureSize / height);
+                        int nw = Math.Max(1, (int)(width * scale));
+                        int nh = Math.Max(1, (int)(height * scale));
+                        using var resized = new Bitmap(src, nw, nh);
+                        return ToDecodedTexture(resized);
+                    }
+
+                    return ToDecodedTexture(src);
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[CubismRenderer] Texture decode error {path}: {ex.Message}");
+                return null;
+            }
+        }
+
+        private static DecodedTexture ToDecodedTexture(Bitmap bmp)
+        {
+            int width = bmp.Width;
+            int height = bmp.Height;
+            var data = new byte[width * height * 4];
+            var rect = new Rectangle(0, 0, width, height);
+            var bmpData = bmp.LockBits(rect, ImageLockMode.ReadOnly, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
+            try
+            {
+                int stride = bmpData.Stride;
+                if (stride == width * 4)
+                {
+                    Marshal.Copy(bmpData.Scan0, data, 0, data.Length);
+                }
+                else
+                {
+                    for (int y = 0; y < height; y++)
+                        Marshal.Copy(bmpData.Scan0 + y * stride, data, y * width * 4, width * 4);
+                }
+            }
+            finally
+            {
+                bmp.UnlockBits(bmpData);
+            }
+            return new DecodedTexture { Width = width, Height = height, Data = data };
+        }
+
         /// <summary>Buat semua resource GL (shader, buffers, tekstur). Harus dipanggil saat context GL current.</summary>
-        public bool Initialize()
+        public bool Initialize(List<DecodedTexture>? preDecoded = null)
         {
             try
             {
@@ -102,7 +176,7 @@ namespace ZeroMix.Rendering
                 _maskUModel = GL.GetUniformLocation(_maskProgram, "uModel");
                 _maskUTexture = GL.GetUniformLocation(_maskProgram, "uTexture");
 
-                LoadTextures();
+                LoadTextures(preDecoded);
                 SetupDrawableBuffers();
                 CreateMaskFramebuffer(256, 256);
 
@@ -116,76 +190,42 @@ namespace ZeroMix.Rendering
             }
         }
 
-        private void LoadTextures()
+        private void LoadTextures(List<DecodedTexture>? preDecoded)
         {
-            foreach (string path in _model.TexturePaths)
+            for (int i = 0; i < _model.TexturePaths.Length; i++)
             {
-                int tex = LoadTextureFromFile(path);
+                int tex = 0;
+                if (preDecoded != null && i < preDecoded.Count)
+                {
+                    tex = UploadTexture(preDecoded[i]);
+                }
+                else if (DecodeTextureFromFile(_model.TexturePaths[i]) is DecodedTexture dt)
+                {
+                    tex = UploadTexture(dt);
+                }
+
                 if (tex != 0)
                     _model.GlTextures.Add(tex);
                 else
-                    Console.WriteLine($"[CubismRenderer] Texture gagal dimuat: {path}");
+                    Console.WriteLine($"[CubismRenderer] Texture gagal dimuat: {_model.TexturePaths[i]}");
             }
             if (_model.GlTextures.Count == 0)
                 Console.WriteLine("[CubismRenderer] WARNING: tidak ada tekstur yang berhasil dimuat!");
         }
 
-        private static int LoadTextureFromFile(string path)
+        /// <summary>Upload byte[] BGRA ke GL (tanpa konversi per-pixel — GL menangani channel).</summary>
+        private static int UploadTexture(DecodedTexture t)
         {
-            if (!File.Exists(path)) return 0;
-            try
-            {
-                using var bmp = new Bitmap(path);
-                int width = bmp.Width;
-                int height = bmp.Height;
-
-                // Konversi ke RGBA (baris pertama = top, seperti UV Cubism)
-                var data = new byte[width * height * 4];
-                var rect = new Rectangle(0, 0, width, height);
-                var bmpData = bmp.LockBits(rect, ImageLockMode.ReadOnly, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
-                try
-                {
-                    int stride = bmpData.Stride;
-                    unsafe
-                    {
-                        byte* src = (byte*)bmpData.Scan0.ToPointer();
-                        for (int y = 0; y < height; y++)
-                        {
-                            byte* row = src + y * stride;
-                            int dstRow = y * width * 4;
-                            for (int x = 0; x < width; x++)
-                            {
-                                int si = x * 4;
-                                // BGRA → RGBA
-                                data[dstRow + x * 4 + 0] = row[si + 2];
-                                data[dstRow + x * 4 + 1] = row[si + 1];
-                                data[dstRow + x * 4 + 2] = row[si + 0];
-                                data[dstRow + x * 4 + 3] = row[si + 3];
-                            }
-                        }
-                    }
-                }
-                finally
-                {
-                    bmp.UnlockBits(bmpData);
-                }
-
-                int tex = GL.GenTexture();
-                GL.BindTexture(TextureTarget.Texture2D, tex);
-                GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba8, width, height, 0,
-                    OpenTK.Graphics.OpenGL4.PixelFormat.Rgba, PixelType.UnsignedByte, data);
-                GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)All.Linear);
-                GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)All.Linear);
-                GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int)All.ClampToEdge);
-                GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapT, (int)All.ClampToEdge);
-                GL.BindTexture(TextureTarget.Texture2D, 0);
-                return tex;
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"[CubismRenderer] Texture load error {path}: {ex.Message}");
-                return 0;
-            }
+            int tex = GL.GenTexture();
+            GL.BindTexture(TextureTarget.Texture2D, tex);
+            GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba8, t.Width, t.Height, 0,
+                OpenTK.Graphics.OpenGL4.PixelFormat.Bgra, PixelType.UnsignedByte, t.Data);
+            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)All.Linear);
+            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)All.Linear);
+            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int)All.ClampToEdge);
+            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapT, (int)All.ClampToEdge);
+            GL.BindTexture(TextureTarget.Texture2D, 0);
+            return tex;
         }
 
         private unsafe void SetupDrawableBuffers()
@@ -571,7 +611,7 @@ out vec4 FragColor;
 uniform sampler2D uTexture;
 void main() {
     vec4 tex = texture(uTexture, vTexCoord);
-    // Output hanya alpha (warna 0) — diakumulasi secara additive di mask buffer
+    // Output hanya alpha (warna 0) - diakumulasi secara additive di mask buffer
     FragColor = vec4(0.0, 0.0, 0.0, tex.a);
 }";
 

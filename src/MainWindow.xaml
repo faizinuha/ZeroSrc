@@ -123,6 +123,45 @@
                 </Setter>
             </Style>
 
+            <!--  Recorder Mode Card Style (hover works via animation because selected colors are set in code)  -->
+            <Style x:Key="RecModeCard" TargetType="Border">
+                <Setter Property="Padding" Value="16" />
+                <Setter Property="CornerRadius" Value="12" />
+                <Setter Property="Cursor" Value="Hand" />
+                <Setter Property="Background" Value="#111620" />
+                <Setter Property="BorderBrush" Value="#1A2030" />
+                <Setter Property="BorderThickness" Value="1" />
+                <Style.Triggers>
+                    <EventTrigger RoutedEvent="MouseEnter">
+                        <BeginStoryboard x:Name="ModeHoverIn">
+                            <Storyboard>
+                                <ColorAnimation
+                                    Storyboard.TargetProperty="(Border.Background).(SolidColorBrush.Color)"
+                                    To="#1C2636"
+                                    Duration="0:0:0.12" />
+                            </Storyboard>
+                        </BeginStoryboard>
+                    </EventTrigger>
+                    <EventTrigger RoutedEvent="MouseLeave">
+                        <RemoveStoryboard BeginStoryboardName="ModeHoverIn" />
+                    </EventTrigger>
+                </Style.Triggers>
+            </Style>
+
+            <!--  Hover Card Style (Recorder history items)  -->
+            <Style x:Key="HoverCard" TargetType="Border">
+                <Setter Property="CornerRadius" Value="12" />
+                <Setter Property="Background" Value="#141922" />
+                <Setter Property="BorderBrush" Value="#1A2030" />
+                <Setter Property="BorderThickness" Value="1" />
+                <Style.Triggers>
+                    <Trigger Property="IsMouseOver" Value="True">
+                        <Setter Property="Background" Value="#1A2333" />
+                        <Setter Property="BorderBrush" Value="#2A3A52" />
+                    </Trigger>
+                </Style.Triggers>
+            </Style>
+
             <!--  Quick Action Card Style  -->
             <Style x:Key="QuickActionButton" TargetType="Button">
                 <Setter Property="Background" Value="#0D1117" />
@@ -1735,11 +1774,10 @@
                                     <Border
                                         x:Name="ModeFullScreen"
                                         Margin="0,0,8,8"
-                                        Padding="15"
-                                        Background="#141922"
+                                        Padding="16"
+                                        Style="{StaticResource RecModeCard}"
                                         BorderBrush="{StaticResource NeonBlueBrush}"
                                         BorderThickness="2"
-                                        CornerRadius="12"
                                         Cursor="Hand"
                                         MouseLeftButtonDown="RecordingMode_Click"
                                         Tag="FullScreen">
@@ -1773,11 +1811,8 @@
                                     <Border
                                         x:Name="ModeApp"
                                         Margin="0,0,8,8"
-                                        Padding="15"
-                                        Background="#111620"
-                                        BorderBrush="#1A2030"
-                                        BorderThickness="1"
-                                        CornerRadius="12"
+                                        Padding="16"
+                                        Style="{StaticResource RecModeCard}"
                                         Cursor="Hand"
                                         MouseLeftButtonDown="RecordingMode_Click"
                                         Tag="Application">
@@ -1811,11 +1846,8 @@
                                     <Border
                                         x:Name="ModeArea"
                                         Margin="0,0,8,8"
-                                        Padding="15"
-                                        Background="#111620"
-                                        BorderBrush="#1A2030"
-                                        BorderThickness="1"
-                                        CornerRadius="12"
+                                        Padding="16"
+                                        Style="{StaticResource RecModeCard}"
                                         Cursor="Hand"
                                         MouseLeftButtonDown="RecordingMode_Click"
                                         Tag="Area">
@@ -1849,11 +1881,8 @@
                                     <Border
                                         x:Name="ModeWindow"
                                         Margin="0,0,0,8"
-                                        Padding="15"
-                                        Background="#111620"
-                                        BorderBrush="#1A2030"
-                                        BorderThickness="1"
-                                        CornerRadius="12"
+                                        Padding="16"
+                                        Style="{StaticResource RecModeCard}"
                                         Cursor="Hand"
                                         MouseLeftButtonDown="RecordingMode_Click"
                                         Tag="Window">
@@ -2097,10 +2126,7 @@
                                                 <Border
                                                     Margin="0,0,0,8"
                                                     Padding="15"
-                                                    Background="#141922"
-                                                    BorderBrush="#1A2030"
-                                                    BorderThickness="1"
-                                                    CornerRadius="10">
+                                                    Style="{StaticResource HoverCard}">
                                                     <Grid>
                                                         <Grid.ColumnDefinitions>
                                                             <ColumnDefinition Width="Auto" />
@@ -2152,8 +2178,8 @@
                                                             <Button
                                                                 Padding="10,5"
                                                                 Click="DeleteRecording_Click"
-                                                                Content="?"
-                                                                FontSize="10"
+                                                                Content="🗑"
+                                                                FontSize="12"
                                                                 Foreground="#FF5555"
                                                                 Style="{StaticResource CasualBtn}" />
                                                         </StackPanel>
@@ -2584,6 +2610,105 @@
                                     Click="SLP_StartBtn_Click"
                                     Content="Start Sleep Mode"
                                     Style="{StaticResource PrimaryBtn}" />
+                            </StackPanel>
+                        </ScrollViewer>
+
+                        <!--  ═══ SETTINGS VIEW ═══  -->
+                        <ScrollViewer
+                            x:Name="SettingsContent"
+                            BorderThickness="0"
+                            VerticalScrollBarVisibility="Auto"
+                            Visibility="Collapsed">
+                            <StackPanel Margin="0,0,0,30">
+                                <!--  Header + Back  -->
+                                <Grid Margin="0,0,0,24">
+                                    <StackPanel>
+                                        <StackPanel Margin="0,0,0,6" Orientation="Horizontal">
+                                            <Button
+                                                Margin="0,0,12,0"
+                                                Padding="12,5"
+                                                Click="SettingsBackBtn_Click"
+                                                Content="← Back"
+                                                FontSize="11"
+                                                Style="{StaticResource CasualBtn}" />
+                                            <TextBlock
+                                                VerticalAlignment="Center"
+                                                FontSize="28"
+                                                FontWeight="Black"
+                                                Foreground="{StaticResource NeonBlueBrush}"
+                                                Text="Settings" />
+                                        </StackPanel>
+                                        <TextBlock
+                                            FontSize="13"
+                                            Foreground="{StaticResource SubTextBrush}"
+                                            Text="Customize which features appear on the dashboard" />
+                                    </StackPanel>
+                                </Grid>
+
+                                <!--  Welcome Area (Dashboard Quick Actions)  -->
+                                <TextBlock
+                                    Margin="0,0,0,12"
+                                    FontSize="11"
+                                    FontWeight="Bold"
+                                    Foreground="{StaticResource TextMutedBrush}"
+                                    Text="WELCOME AREA" />
+                                <Border Margin="0,0,0,20" Style="{StaticResource CardBorder}">
+                                    <StackPanel>
+                                        <TextBlock
+                                            Margin="0,0,0,4"
+                                            FontSize="14"
+                                            FontWeight="Bold"
+                                            Foreground="{StaticResource TextBrush}"
+                                            Text="Dashboard Quick Actions" />
+                                        <TextBlock
+                                            Margin="0,0,0,14"
+                                            FontSize="11"
+                                            Foreground="{StaticResource SubTextBrush}"
+                                            Text="Choose which quick actions appear on the welcome dashboard" />
+                                        <UniformGrid Columns="2">
+                                            <CheckBox
+                                                x:Name="SettingsCb1"
+                                                Margin="0,6,10,6"
+                                                Content="System Health"
+                                                Style="{StaticResource ModernCheckBox}" />
+                                            <CheckBox
+                                                x:Name="SettingsCb2"
+                                                Margin="10,6,0,6"
+                                                Content="Neural Clock"
+                                                Style="{StaticResource ModernCheckBox}" />
+                                            <CheckBox
+                                                x:Name="SettingsCb3"
+                                                Margin="0,6,10,6"
+                                                Content="Ghost Taskbar"
+                                                Style="{StaticResource ModernCheckBox}" />
+                                            <CheckBox
+                                                x:Name="SettingsCb4"
+                                                Margin="10,6,0,6"
+                                                Content="ZeroRecord"
+                                                Style="{StaticResource ModernCheckBox}" />
+                                            <CheckBox
+                                                x:Name="SettingsCb5"
+                                                Margin="0,6,10,6"
+                                                Content="Sleep Mode"
+                                                Style="{StaticResource ModernCheckBox}" />
+                                            <CheckBox
+                                                x:Name="SettingsCb6"
+                                                Margin="10,6,0,6"
+                                                Content="56Editor"
+                                                Style="{StaticResource ModernCheckBox}" />
+                                        </UniformGrid>
+                                    </StackPanel>
+                                </Border>
+
+                                <!--  Save  -->
+                                <StackPanel Orientation="Horizontal">
+                                    <Button
+                                        Width="180"
+                                        HorizontalAlignment="Left"
+                                        Click="SettingsSaveBtn_Click"
+                                        Content="Save Changes"
+                                        Style="{StaticResource PrimaryBtn}" />
+                                </StackPanel>
                             </StackPanel>
                         </ScrollViewer>
 

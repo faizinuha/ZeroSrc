@@ -1,8 +1,12 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Interop;
+using System.Windows.Media;
+using System.Windows.Media.Imaging;
 using System.Windows.Threading;
 using OpenTK.Graphics.OpenGL4;
 using ZeroMix.Native;
@@ -14,19 +18,20 @@ namespace ZeroMix.Rendering
     /// di dalam window WPF transparan (AllowsTransparency="True").
     ///
     /// ── Catatan teknis penting (verified, bukan asumsi) ──
-    /// OpenGL TIDAK bisa mempresentasikan per-pixel alpha langsung ke layered window
-    /// (WS_EX_LAYERED): MSDN/Khronos menyatakan hardware rendering tidak di-composite
-    /// dengan efek transparency layered window. Karena itu:
-    ///   1. GL context dibuat di window tersembunyi (non-layered) — murni untuk rendering.
+    /// Window VA memakai AllowsTransparency="True" (layered window WPF). Dokumentasi WPF
+    /// menyatakan HWND child (HwndHost) TIDAK pernah di-render di dalam window layered
+    /// ("HwndHost descendant controls cannot be displayed in WPF windows whose
+    /// AllowsTransparency property is true") — inilah alasan model dulu tidak muncul
+    /// walau render loop berjalan. Karena itu:
+    ///   1. GL context dibuat di window tersembunyi — murni untuk rendering.
     ///   2. Scene di-render ke MSAA FBO, di-resolve ke FBO readback.
-    ///   3. glReadPixels (400x500x4 ≈ 800KB/frame — kecil untuk widget sekecil ini),
-    ///      dikonversi ke premultiplied BGRA, lalu UpdateLayeredWindow ke child window
-    ///      ber-style WS_EX_LAYERED supaya alpha benar-benar tembus ke desktop/WPF di bawahnya.
-    /// Ini satu-satunya cara mendapat true per-pixel alpha dari GL; biaya readback jauh
-    /// lebih kecil daripada proses Chromium (msedgewebview2.exe) yang dihapus.
+    ///   3. glReadPixels (400x500x4 ≈ 800KB/frame), dikonversi ke premultiplied BGRA,
+    ///      lalu disajikan lewat WriteableBitmap (Surface) di pohon visual WPF — WPF sendiri
+    ///      yang meng-composite per-pixel alpha-nya ke layered window dengan benar.
+    ///   4. HwndHost child window tetap ada hanya untuk input (drag & klik).
     ///
     /// Alur frame (UI thread, DispatcherTimer ~60fps):
-    ///   motion → eye tracking → lip-sync → physics → csmUpdateModel → render → readback.
+    ///   motion → eye tracking → lip-sync → physics → csmUpdateModel → render → readback → present.
     /// </summary>
     public sealed class OpenGLHost : HwndHost, IDisposable
     {
@@ -53,6 +58,15 @@ namespace ZeroMix.Rendering
         public bool IsModelLoaded { get; private set; }
         public bool FirstFrameRendered { get; private set; }
         public CubismModel? Model => _model;
+
+        /// <summary>Bitmap WPF berisi hasil render GL (per-pixel alpha), disajikan oleh window.</summary>
+        public static readonly DependencyProperty SurfaceProperty =
+            DependencyProperty.Register(nameof(Surface), typeof(WriteableBitmap), typeof(OpenGLHost), new PropertyMetadata(null));
+        public WriteableBitmap? Surface
+        {
+            get => (WriteableBitmap?)GetValue(SurfaceProperty);
+            set => SetValue(SurfaceProperty, value);
+        }
 
         // ── Native / GL state ─────────────────────────────────────────────
 
@@ -83,9 +97,10 @@ namespace ZeroMix.Rendering
         private DispatcherTimer? _renderTimer;
         private readonly object _lock = new();
 
-        private bool _disposed;
+        private byte[] _readBuffer = Array.Empty<byte>();  // RGBA hasil glReadPixels (bottom-up)
+        private byte[] _pixelBuffer = Array.Empty<byte>(); // Pbgra32 premultiplied (top-down, untuk WriteableBitmap)
 
-        private readonly LayeredSurface _surface = new();
+        private bool _disposed;
 
         public OpenGLHost()
         {
@@ -97,13 +112,20 @@ namespace ZeroMix.Rendering
 
         protected override HandleRef BuildWindowCore(HandleRef hwndParent)
         {
-            // 1) Child window visible + layered (target UpdateLayeredWindow)
+            // 1) Child window plain — hanya untuk input (drag & klik). Visual model disajikan
+            //    lewat WriteableBitmap (Surface), karena HWND child tidak di-composite di dalam
+            //    window WPF AllowsTransparency=True (keterbatasan WPF yang terdokumentasi).
             _childWindow = CreateWindowEx(
-                WS_EX_LAYERED,
+                0,
                 "static", "",
                 WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS,
                 0, 0, 1, 1,
                 hwndParent.Handle, IntPtr.Zero, IntPtr.Zero, IntPtr.Zero);
+            if (_childWindow == IntPtr.Zero)
+            {
+                int err = Marshal.GetLastWin32Error();
+                Console.WriteLine($"[OpenGLHost] CRITICAL: CreateWindowEx child GAGAL (error {err}: {new System.ComponentModel.Win32Exception(err).Message}).");
+            }
 
             // 2) Window tersembunyi khusus GL context (non-layered, bebas quirk layered window)
             _glWindow = CreateWindowEx(
@@ -112,6 +134,11 @@ namespace ZeroMix.Rendering
                 WS_OVERLAPPED,
                 0, 0, 64, 64,
                 IntPtr.Zero, IntPtr.Zero, IntPtr.Zero, IntPtr.Zero);
+            if (_glWindow == IntPtr.Zero)
+            {
+                int err = Marshal.GetLastWin32Error();
+                Console.WriteLine($"[OpenGLHost] CreateWindowEx GL window gagal (error {err}).");
+            }
 
             InitOpenGL();
 
@@ -201,8 +228,19 @@ namespace ZeroMix.Rendering
             if (_fboWidth == w && _fboHeight == h) return;
             _fboWidth = w;
             _fboHeight = h;
-            _surface.EnsureSize(w, h);
             EnsureFramebuffers();
+            EnsureSurfaceBitmap(w, h);
+        }
+
+        private void EnsureSurfaceBitmap(int w, int h)
+        {
+            int size = w * h * 4;
+            if (_readBuffer.Length != size) _readBuffer = new byte[size];
+            if (_pixelBuffer.Length != size) _pixelBuffer = new byte[size];
+
+            var cur = Surface;
+            if (cur != null && cur.PixelWidth == w && cur.PixelHeight == h) return;
+            Surface = new WriteableBitmap(w, h, 96, 96, PixelFormats.Pbgra32, null);
         }
 
         private double DpiScale
@@ -270,7 +308,7 @@ namespace ZeroMix.Rendering
             _resolveColor = GL.GenTexture();
             GL.BindTexture(TextureTarget.Texture2D, _resolveColor);
             GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba8, w, h, 0,
-                PixelFormat.Rgba, PixelType.UnsignedByte, IntPtr.Zero);
+                OpenTK.Graphics.OpenGL4.PixelFormat.Rgba, PixelType.UnsignedByte, IntPtr.Zero);
             GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)All.Nearest);
             GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)All.Nearest);
             GL.BindFramebuffer(FramebufferTarget.Framebuffer, _resolveFbo);
@@ -284,25 +322,60 @@ namespace ZeroMix.Rendering
 
         // ── Public model API ──────────────────────────────────────────────
 
-        public void LoadModel(string modelJsonPath)
+        /// <summary>Hasil persiapan model di background thread (parse + decode tekstur).</summary>
+        private sealed class PreparedModel
         {
+            public CubismModel Model = null!;
+            public CubismPhysics? Physics;
+            public List<CubismOpenGLRenderer.DecodedTexture> Textures = new();
+        }
+
+        /// <summary>
+        /// Load model TANPA membekukan UI thread: bagian berat (parse moc3/model3.json,
+        /// decode tekstur 8192x8192) dijalankan di background thread, lalu GL init (cepat)
+        /// dikembalikan ke UI thread. Dipanggil dari UI thread.
+        /// </summary>
+        public async Task LoadModelAsync(string modelJsonPath)
+        {
+            if (_disposed) return;
+
+            PreparedModel? prep = null;
+            try
+            {
+                prep = await Task.Run(() => PrepareModelLoad(modelJsonPath));
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[OpenGLHost] Prepare model error: {ex.Message}");
+                ShowModelError(ex.Message);
+                return;
+            }
+            if (prep == null) return;
+
+            // Lanjutan di sini kembali ke UI thread (SynchronizationContext WPF).
+            if (_disposed)
+            {
+                prep.Model.Dispose();
+                return;
+            }
+
             lock (_lock)
             {
                 try
                 {
                     UnloadModel();
 
-                    _model = CubismModel.Load(modelJsonPath);
+                    _model = prep.Model;
                     _model.UpdateModel();
 
-                    _physics = _model.PhysicsPath != null ? CubismPhysics.Load(_model.PhysicsPath) : null;
+                    _physics = prep.Physics;
                     _physics?.AttachModel(_model);
 
                     if (!_bindingsLoaded) { Console.WriteLine("[OpenGLHost] GL bindings belum siap"); return; }
                     EnsureFramebuffers();
 
                     _renderer = new CubismOpenGLRenderer(_model) { Antialias = Antialias };
-                    if (!_renderer.Initialize())
+                    if (!_renderer.Initialize(prep.Textures))
                     {
                         Console.WriteLine("[OpenGLHost] Renderer.Initialize gagal");
                         return;
@@ -324,8 +397,28 @@ namespace ZeroMix.Rendering
                 {
                     Console.WriteLine($"[OpenGLHost] LoadModel error: {ex.Message}");
                     ShowModelError(ex.Message);
+                    prep.Model.Dispose();
                 }
             }
+        }
+
+        /// <summary>Bagian berat (CPU/native, TANPA GL) — aman dijalankan di background thread.</summary>
+        private static PreparedModel PrepareModelLoad(string modelJsonPath)
+        {
+            var model = CubismModel.Load(modelJsonPath);
+            model.UpdateModel();
+
+            var physics = model.PhysicsPath != null ? CubismPhysics.Load(model.PhysicsPath) : null;
+
+            var textures = new List<CubismOpenGLRenderer.DecodedTexture>();
+            foreach (string path in model.TexturePaths)
+            {
+                var t = CubismOpenGLRenderer.DecodeTextureFromFile(path);
+                if (t != null) textures.Add(t);
+                else Console.WriteLine($"[OpenGLHost] Texture gagal didecode: {path}");
+            }
+
+            return new PreparedModel { Model = model, Physics = physics, Textures = textures };
         }
 
         public void UnloadModel()
@@ -472,8 +565,8 @@ namespace ZeroMix.Rendering
                     ClearBufferMask.ColorBufferBit, BlitFramebufferFilter.Nearest);
                 GL.BindFramebuffer(FramebufferTarget.Framebuffer, _resolveFbo);
 
-                // Readback + present via layered window (per-pixel alpha)
-                _surface.UpdateFromFramebuffer(_childWindow, _fboWidth, _fboHeight);
+                // Readback + present via WriteableBitmap WPF (per-pixel alpha)
+                PresentSurface();
 
                 GL.BindFramebuffer(FramebufferTarget.Framebuffer, 0);
 
@@ -489,6 +582,42 @@ namespace ZeroMix.Rendering
                 Console.WriteLine($"[OpenGLHost] RenderFrame error: {ex.Message}");
                 IsPaused = true;
             }
+        }
+
+        // ── Presentasi ke WPF ─────────────────────────────────────────────
+
+        private void PresentSurface()
+        {
+            var bmp = Surface;
+            int w = _fboWidth, h = _fboHeight;
+            if (bmp == null || w <= 0 || h <= 0 || _readBuffer.Length < w * h * 4) return;
+
+            unsafe
+            {
+                fixed (byte* src = _readBuffer)
+                {
+                    GL.ReadPixels(0, 0, w, h, OpenTK.Graphics.OpenGL4.PixelFormat.Rgba, PixelType.UnsignedByte, (IntPtr)src);
+                }
+            }
+
+            // glReadPixels bottom-up; WriteableBitmap top-down → flip baris, lalu premultiply RGBA→Pbgra.
+            int stride = w * 4;
+            for (int row = 0; row < h; row++)
+            {
+                int srcRow = h - 1 - row;
+                Array.Copy(_readBuffer, srcRow * stride, _pixelBuffer, row * stride, stride);
+            }
+            for (int i = 0; i < w * h; i++)
+            {
+                int si = i * 4;
+                byte r = _pixelBuffer[si + 0], g = _pixelBuffer[si + 1], b = _pixelBuffer[si + 2], a = _pixelBuffer[si + 3];
+                _pixelBuffer[si + 0] = (byte)(b * a / 255);
+                _pixelBuffer[si + 1] = (byte)(g * a / 255);
+                _pixelBuffer[si + 2] = (byte)(r * a / 255);
+                _pixelBuffer[si + 3] = a;
+            }
+
+            bmp.WritePixels(new Int32Rect(0, 0, w, h), _pixelBuffer, stride, 0);
         }
 
         // ── Per-frame updates (meniru perilaku JS lama) ───────────────────
@@ -597,7 +726,7 @@ namespace ZeroMix.Rendering
             _disposed = true;
             UnloadModel();
             DisposeOpenGL();
-            _surface.Dispose();
+            Surface = null;
         }
 
         private void DisposeOpenGL()
@@ -621,7 +750,6 @@ namespace ZeroMix.Rendering
         private const uint WS_VISIBLE = 0x10000000;
         private const uint WS_CLIPSIBLINGS = 0x04000000;
         private const uint WS_OVERLAPPED = 0x00000000;
-        private const uint WS_EX_LAYERED = 0x00080000;
         private const int WM_SIZE = 0x0005;
         private const int WM_LBUTTONDOWN = 0x0201;
         private const int WM_LBUTTONUP = 0x0202;
@@ -629,7 +757,7 @@ namespace ZeroMix.Rendering
         private const int WM_MOUSEACTIVATE = 0x0021;
         private const int MA_NOACTIVATE = 3;
 
-        [DllImport("user32.dll", CharSet = CharSet.Unicode)]
+        [DllImport("user32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
         private static extern IntPtr CreateWindowEx(uint dwExStyle, string lpClassName, string lpWindowName,
             uint dwStyle, int x, int y, int nWidth, int nHeight, IntPtr hWndParent, IntPtr hMenu,
             IntPtr hInstance, IntPtr lpParam);
@@ -639,197 +767,5 @@ namespace ZeroMix.Rendering
 
         [DllImport("user32.dll")]
         private static extern bool GetCursorPos(out POINT lpPoint);
-    }
-
-    /// <summary>
-    /// Permukaan layered window (WS_EX_LAYERED) berisi bitmap premultiplied ARGB
-    /// yang di-update tiap frame dari hasil readback framebuffer OpenGL.
-    /// </summary>
-    internal sealed class LayeredSurface : IDisposable
-    {
-        private IntPtr _hdcSrc = IntPtr.Zero;   // memory DC
-        private IntPtr _hBitmap = IntPtr.Zero;  // DIB section
-        private IntPtr _bits = IntPtr.Zero;     // pointer ke pixel DIB
-        private int _width, _height;
-        private byte[] _pixelBuffer = Array.Empty<byte>();
-        private bool _disposed;
-
-        public void EnsureSize(int w, int h)
-        {
-            if (w == _width && h == _height && _hBitmap != IntPtr.Zero) return;
-
-            ReleaseDib();
-
-            _width = w;
-            _height = h;
-            _pixelBuffer = new byte[w * h * 4];
-
-            _hdcSrc = CreateCompatibleDC(IntPtr.Zero);
-            if (_hdcSrc == IntPtr.Zero) return;
-
-            var bmi = new BITMAPINFO();
-            bmi.bmiHeader.biSize = (uint)Marshal.SizeOf<BITMAPINFOHEADER>();
-            bmi.bmiHeader.biWidth = w;
-            bmi.bmiHeader.biHeight = h;   // bottom-up: cocok dengan urutan baris glReadPixels
-            bmi.bmiHeader.biPlanes = 1;
-            bmi.bmiHeader.biBitCount = 32;
-            bmi.bmiHeader.biCompression = 0; // BI_RGB
-
-            _hBitmap = CreateDIBSection(_hdcSrc, ref bmi, DIB_RGB_COLORS, out _bits, IntPtr.Zero, 0);
-            if (_hBitmap == IntPtr.Zero) return;
-
-            SelectObject(_hdcSrc, _hBitmap);
-        }
-
-        private void ReleaseDib()
-        {
-            if (_hBitmap != IntPtr.Zero) { DeleteObject(_hBitmap); _hBitmap = IntPtr.Zero; }
-            if (_hdcSrc != IntPtr.Zero) { DeleteDC(_hdcSrc); _hdcSrc = IntPtr.Zero; }
-            _bits = IntPtr.Zero;
-        }
-
-        /// <summary>
-        /// Baca framebuffer (harus dalam keadaan bind ke _resolveFbo, GL context current)
-        /// lalu tampilkan via UpdateLayeredWindow dengan per-pixel alpha.
-        /// </summary>
-        public unsafe void UpdateFromFramebuffer(IntPtr hwnd, int w, int h)
-        {
-            if (hwnd == IntPtr.Zero || _hBitmap == IntPtr.Zero || _bits == IntPtr.Zero) return;
-            if (w != _width || h != _height) EnsureSize(w, h);
-            if (_hBitmap == IntPtr.Zero) return;
-
-            // glReadPixels: RGBA, urutan baris bottom-up (baris pertama = bawah)
-            fixed (byte* dst = _pixelBuffer)
-            {
-                GL.ReadPixels(0, 0, w, h, OpenTK.Graphics.OpenGL4.PixelFormat.Rgba, PixelType.UnsignedByte, (IntPtr)dst);
-
-                // Konversi RGBA → premultiplied BGRA (UpdateLayeredWindow butuh AC_SRC_ALPHA premultiplied)
-                byte* src = dst;
-                byte* outBits = (byte*)_bits.ToPointer();
-                int count = w * h;
-                for (int i = 0; i < count; i++)
-                {
-                    int si = i * 4;
-                    byte r = src[si + 0], g = src[si + 1], b = src[si + 2], a = src[si + 3];
-                    if (a == 0)
-                    {
-                        outBits[si + 0] = 0; outBits[si + 1] = 0; outBits[si + 2] = 0; outBits[si + 3] = 0;
-                    }
-                    else if (a == 255)
-                    {
-                        outBits[si + 0] = b; outBits[si + 1] = g; outBits[si + 2] = r; outBits[si + 3] = 255;
-                    }
-                    else
-                    {
-                        outBits[si + 0] = (byte)(b * a / 255);
-                        outBits[si + 1] = (byte)(g * a / 255);
-                        outBits[si + 2] = (byte)(r * a / 255);
-                        outBits[si + 3] = a;
-                    }
-                }
-            }
-
-            POINT pptSrc = new POINT();
-            POINT pptDst = new POINT();
-            SIZE size = new SIZE { cx = w, cy = h };
-            GetWindowRect(hwnd, out var rect);
-            pptDst.X = rect.left;
-            pptDst.Y = rect.top;
-
-            BLENDFUNCTION blend = new BLENDFUNCTION
-            {
-                BlendOp = 0,           // AC_SRC_OVER
-                BlendFlags = 0,
-                SourceConstantAlpha = 255,
-                AlphaFormat = 1        // AC_SRC_ALPHA
-            };
-
-            IntPtr hdcDst = GetDC(hwnd);
-            if (hdcDst != IntPtr.Zero)
-            {
-                UpdateLayeredWindow(hwnd, hdcDst, ref pptDst, ref size, _hdcSrc, ref pptSrc, 0, ref blend, ULW_ALPHA);
-                ReleaseDC(hwnd, hdcDst);
-            }
-        }
-
-        public void Dispose()
-        {
-            if (_disposed) return;
-            _disposed = true;
-            ReleaseDib();
-        }
-
-        private const uint DIB_RGB_COLORS = 0;
-        private const uint ULW_ALPHA = 0x00000002;
-
-        [StructLayout(LayoutKind.Sequential)]
-        private struct BITMAPINFOHEADER
-        {
-            public uint biSize;
-            public int biWidth;
-            public int biHeight;
-            public ushort biPlanes;
-            public ushort biBitCount;
-            public uint biCompression;
-            public uint biSizeImage;
-            public int biXPelsPerMeter;
-            public int biYPelsPerMeter;
-            public uint biClrUsed;
-            public uint biClrImportant;
-        }
-
-        [StructLayout(LayoutKind.Sequential)]
-        private struct BITMAPINFO
-        {
-            public BITMAPINFOHEADER bmiHeader;
-            public uint bmiColors;
-        }
-
-        [StructLayout(LayoutKind.Sequential)]
-        private struct POINT { public int X, Y; }
-
-        [StructLayout(LayoutKind.Sequential)]
-        private struct SIZE { public int cx, cy; }
-
-        [StructLayout(LayoutKind.Sequential)]
-        private struct RECT { public int left, top, right, bottom; }
-
-        [StructLayout(LayoutKind.Sequential)]
-        private struct BLENDFUNCTION
-        {
-            public byte BlendOp;
-            public byte BlendFlags;
-            public byte SourceConstantAlpha;
-            public byte AlphaFormat;
-        }
-
-        [DllImport("gdi32.dll")]
-        private static extern IntPtr CreateCompatibleDC(IntPtr hdc);
-
-        [DllImport("gdi32.dll")]
-        private static extern IntPtr CreateDIBSection(IntPtr hdc, ref BITMAPINFO pbmi, uint usage,
-            out IntPtr ppvBits, IntPtr hSection, uint offset);
-
-        [DllImport("gdi32.dll")]
-        private static extern IntPtr SelectObject(IntPtr hdc, IntPtr hObject);
-
-        [DllImport("gdi32.dll")]
-        private static extern bool DeleteObject(IntPtr hObject);
-
-        [DllImport("gdi32.dll")]
-        private static extern bool DeleteDC(IntPtr hdc);
-
-        [DllImport("user32.dll")]
-        private static extern bool UpdateLayeredWindow(IntPtr hwnd, IntPtr hdcDst, ref POINT pptDst,
-            ref SIZE psize, IntPtr hdcSrc, ref POINT pptSrc, uint crKey, ref BLENDFUNCTION pblend, uint dwFlags);
-
-        [DllImport("user32.dll")]
-        private static extern IntPtr GetDC(IntPtr hwnd);
-
-        [DllImport("user32.dll")]
-        private static extern int ReleaseDC(IntPtr hwnd, IntPtr hdc);
-
-        [DllImport("user32.dll")]
-        private static extern bool GetWindowRect(IntPtr hwnd, out RECT lpRect);
     }
 }

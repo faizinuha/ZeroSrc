@@ -18,13 +18,15 @@ namespace ZeroMix.Virtual_Assisten
         private DispatcherTimer? _hideChatTimer;
         private DispatcherTimer? _autoTalkTimer;
         private DispatcherTimer? _eyeTrackingTimer;
-        private DispatcherTimer? _fadeInCheckTimer;
         private string _currentCharacter = "Frieren";
         private bool _isHostDisposed = false;
         private AiVisionService? _visionService;
+
+        // ── STT (mic) — karakter mendengar saat user bicara, balas via text (tanpa TTS) ──
+        private System.Speech.Recognition.SpeechRecognitionEngine? _recognizer;
+        private bool _isListening;
         private DispatcherTimer? _visionTimer;
         private string _apiKey = ApiKeys.OPENAI_API_KEY; 
-        private string _currentLang = "id-ID";
         // null = auto-detect (CPU cores, sama seperti JS lama), "1" = force on, "0" = force off
         private string? _antialiasOverride = null;
         
@@ -46,13 +48,6 @@ namespace ZeroMix.Virtual_Assisten
         
         private Random _random = new Random();
 
-        // ── TTS (pengganti Web Speech API — System.Speech.Synthesis) ──────
-        private System.Speech.Synthesis.SpeechSynthesizer? _synthesizer;
-
-        // ── STT (pengganti Web Speech API recognition — System.Speech.Recognition) ──
-        private System.Speech.Recognition.SpeechRecognitionEngine? _recognizer;
-        private bool _isListening;
-
         public VirtualAssistantWindow()
         {
             InitializeComponent();
@@ -61,9 +56,9 @@ namespace ZeroMix.Virtual_Assisten
             this.Left = workArea.Right - this.Width - 20;
             this.Top = workArea.Bottom - this.Height - 80;
             
-            // ★ 5.5 — cegah flash warna solid: window tetap tersembunyi
-            // sampai frame OpenGL pertama sukses ter-render.
-            this.Opacity = 0;
+            // Anti-flash: window langsung tampil dengan background transparan + teks
+            // "Memuat..." (tidak ada warna solid yang bisa nge-flash). Karakter muncul
+            // setelah model selesai di-load secara async (UI thread tetap responsif).
 
             this.Loaded += OnWindowLoaded;
             this.MouseLeftButtonDown += OnMouseLeftButtonDown;
@@ -98,73 +93,9 @@ namespace ZeroMix.Virtual_Assisten
                 Console.WriteLine($"[VA] Failed to init WaifuChatService: {ex.Message}");
             }
 
-            // TTS native (System.Speech) — pengganti speechSynthesis WebView2
-            try
-            {
-                _synthesizer = new System.Speech.Synthesis.SpeechSynthesizer();
-                _synthesizer.SpeakCompleted += (s, e) =>
-                {
-                    if (GlHost != null) GlHost.IsSpeaking = false;
-                };
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"[VA] TTS init error: {ex.Message}");
-            }
-
-            // STT native (System.Speech) — pengganti webkitSpeechRecognition
+            // STT (mic) diaktifkan — user bisa bicara, karakter mendengar & balas text.
+            // TTS (suara keluar) sengaja TIDAK dipakai — karakter tidak bersuara, text saja.
             InitSpeechRecognition();
-        }
-
-        private void InitSpeechRecognition()
-        {
-            try
-            {
-                var cultures = new[]
-                {
-                    System.Globalization.CultureInfo.GetCultureInfo("id-ID"),
-                    System.Globalization.CultureInfo.GetCultureInfo("en-US")
-                };
-
-                _recognizer = null;
-                foreach (var c in cultures)
-                {
-                    try
-                    {
-                        _recognizer = new System.Speech.Recognition.SpeechRecognitionEngine(c);
-                        break;
-                    }
-                    catch { }
-                }
-
-                if (_recognizer == null)
-                {
-                    Console.WriteLine("[VA] STT: tidak ada recognizer yang tersedia (perlu language pack).");
-                    return;
-                }
-
-                _recognizer.LoadGrammar(new System.Speech.Recognition.DictationGrammar());
-                _recognizer.SetInputToDefaultAudioDevice();
-                _recognizer.SpeechRecognized += (s, e) =>
-                {
-                    _isListening = false;
-                    string text = e.Result?.Text ?? "";
-                    Dispatcher.BeginInvoke(new Action(() => ProcessUserVoice(text)));
-                };
-                _recognizer.SpeechRecognitionRejected += (s, e) =>
-                {
-                    _isListening = false;
-                    Console.WriteLine("[VA] STT: tidak mendengar dengan jelas.");
-                };
-                _recognizer.RecognizeCompleted += (s, e) =>
-                {
-                    _isListening = false;
-                };
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"[VA] STT init error: {ex.Message}");
-            }
         }
 
         private async void OnWindowLoaded(object sender, RoutedEventArgs e)
@@ -188,44 +119,24 @@ namespace ZeroMix.Virtual_Assisten
                 GlHost.ModelLoaded += () =>
                 {
                     Console.WriteLine("[VA] Model loaded & frame pertama siap.");
+                    LoadingText.Visibility = Visibility.Collapsed;
                     App.OptimizeMemory();
                 };
 
                 await LoadModelToHost(_currentCharacter);
 
-                // ★ 5.5 — mulai timers & fade-in hanya setelah frame pertama benar-benar ada
+                // Timers mulai setelah load model dipanggil
                 _visionTimer?.Start();
                 _autoTalkTimer?.Start();
-
-                _fadeInCheckTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(50) };
-                _fadeInCheckTimer.Tick += (s2, e2) =>
-                {
-                    if (GlHost.FirstFrameRendered)
-                    {
-                        _fadeInCheckTimer?.Stop();
-                        FadeIn();
-                    }
-                };
-                _fadeInCheckTimer.Start();
 
                 ShowNextChatMessage();
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"[VA] Init error: {ex.Message}");
-                // Kalau gagal total, tetap tampilkan window biar user bisa lihat pesan error
-                FadeIn();
+                // Tampilkan error di window, jangan diam-diam gagal
+                LoadingText.Text = "Gagal memuat model: " + ex.Message;
             }
-        }
-
-        /// <summary>Fade-in window dari opacity 0 (dipakai setelah frame pertama sukses).</summary>
-        private void FadeIn()
-        {
-            var anim = new DoubleAnimation(0, 1, TimeSpan.FromMilliseconds(300))
-            {
-                EasingFunction = new QuadraticEase { EasingMode = EasingMode.EaseOut }
-            };
-            this.BeginAnimation(OpacityProperty, anim);
         }
 
         private void OnGlHostClicked(System.Windows.Point hostPoint)
@@ -253,7 +164,28 @@ namespace ZeroMix.Virtual_Assisten
             catch { return false; }
         }
 
+        private bool _isLoadingModel;
+
         private async Task LoadModelToHost(string characterName)
+        {
+            // Serialisasi load: OnWindowLoaded + event Checked + klik tombol karakter
+            // beruntun bisa memanggil method ini bersamaan (bug 3x model load yang
+            // membuat crash). Kalau load lain sedang jalan, tunggu giliran.
+            while (_isLoadingModel)
+                await Task.Delay(50);
+
+            _isLoadingModel = true;
+            try
+            {
+                await LoadModelCore(characterName);
+            }
+            finally
+            {
+                _isLoadingModel = false;
+            }
+        }
+
+        private async Task LoadModelCore(string characterName)
         {
             string modelPath = GetModelPath(characterName);
             if (!File.Exists(modelPath))
@@ -271,7 +203,8 @@ namespace ZeroMix.Virtual_Assisten
             long gcBefore = GC.GetTotalMemory(false);
             Console.WriteLine($"[VA] Memory before load: GC={gcBefore} bytes, WorkingSet={wsBefore} bytes");
 
-            await Dispatcher.InvokeAsync(() => GlHost.LoadModel(modelPath));
+            // Async: bagian berat (decode tekstur) jalan di background — UI tetap responsif
+            await GlHost.LoadModelAsync(modelPath);
 
             sw.Stop();
             long wsAfter = Process.GetCurrentProcess().WorkingSet64;
@@ -289,10 +222,19 @@ namespace ZeroMix.Virtual_Assisten
             // Stop eye tracking saat ganti model — cegah conflict & freeze
             _eyeTrackingTimer?.Stop();
 
-            await LoadModelToHost(characterName);
-
-            // Resume setelah model di-load ke host
-            _eyeTrackingTimer?.Start();
+            try
+            {
+                await LoadModelToHost(characterName);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[VA] SetCharacter error: {ex.Message}");
+            }
+            finally
+            {
+                // Resume setelah model di-load ke host
+                _eyeTrackingTimer?.Start();
+            }
         }
 
         private string GetModelPath(string characterName)
@@ -399,9 +341,6 @@ namespace ZeroMix.Virtual_Assisten
                 ChatText.Text = response;
                 ChatBubble.Visibility = Visibility.Visible;
                 
-                // Speak the response (TTS native + lip-sync)
-                SpeakText(response, _currentLang);
-                
                 _hideChatTimer?.Stop(); _hideChatTimer?.Start();
             }
             catch (Exception ex)
@@ -418,71 +357,82 @@ namespace ZeroMix.Virtual_Assisten
             string aiComment = await _visionService.AnalyzeAppsAsync(_visionService.GetActiveWindowTitle(), _currentCharacter);
             ChatText.Text = aiComment;
             ChatBubble.Visibility = Visibility.Visible;
-            
-            // Speak the observation!
-            SpeakText(aiComment, _currentLang);
 
             _hideChatTimer?.Stop(); _hideChatTimer?.Start();
         }
 
         private void ShowNotification(string msg) { ChatText.Text = msg; ChatBubble.Visibility = Visibility.Visible; _hideChatTimer?.Stop(); _hideChatTimer?.Start(); }
-        public void PreConfigure(string lang, bool enableMic)
-        {
-            _currentLang = lang;
-        }
 
-        // ── TTS native (pengganti speakText di JS) ────────────────────────
-        private void SpeakText(string text, string lang = "id-ID")
+        private async void ManualVision_Click(object sender, RoutedEventArgs e)
+        {
+            await PerformAiObservation();
+        }
+        
+        private void ManualChat_Click(object sender, RoutedEventArgs e)
+        {
+            // Toggle inline chat panel
+            ChatPanel.Visibility = ChatPanel.Visibility == Visibility.Visible
+                ? Visibility.Collapsed
+                : Visibility.Visible;
+            if (ChatPanel.Visibility == Visibility.Visible)
+            {
+                ChatInput.Text = "";
+                ChatInput.Focus();
+            }
+        }
+        
+        // ── STT (mic) — pengganti startSpeech di JS, TANPA TTS ─────────────
+        private void InitSpeechRecognition()
         {
             try
             {
-                if (_synthesizer == null || string.IsNullOrWhiteSpace(text)) return;
-
-                _synthesizer.SpeakAsyncCancelAll();
-
-                // Voice mapping per karakter (mirip JS lama)
-                var (langPref, rate) = GetVoiceSettings(_currentCharacter);
-                System.Speech.Synthesis.InstalledVoice? voice = null;
-
-                try
+                var cultures = new[]
                 {
-                    foreach (var v in _synthesizer.GetInstalledVoices())
+                    System.Globalization.CultureInfo.GetCultureInfo("id-ID"),
+                    System.Globalization.CultureInfo.GetCultureInfo("en-US")
+                };
+
+                _recognizer = null;
+                foreach (var c in cultures)
+                {
+                    try
                     {
-                        if (v.Enabled && (v.VoiceInfo.Culture?.Name ?? "").StartsWith(langPref, StringComparison.OrdinalIgnoreCase))
-                        {
-                            voice = v;
-                            break;
-                        }
+                        _recognizer = new System.Speech.Recognition.SpeechRecognitionEngine(c);
+                        break;
                     }
+                    catch { }
                 }
-                catch { }
 
-                _synthesizer.Rate = rate;
-                if (voice != null)
-                    _synthesizer.SelectVoice(voice.VoiceInfo.Name);
+                if (_recognizer == null)
+                {
+                    Console.WriteLine("[VA] STT: tidak ada recognizer yang tersedia (perlu language pack).");
+                    return;
+                }
 
-                if (GlHost != null) GlHost.IsSpeaking = true;
-                _synthesizer.SpeakAsync(text);
+                _recognizer.LoadGrammar(new System.Speech.Recognition.DictationGrammar());
+                _recognizer.SetInputToDefaultAudioDevice();
+                _recognizer.SpeechRecognized += (s, e) =>
+                {
+                    _isListening = false;
+                    string text = e.Result?.Text ?? "";
+                    Dispatcher.BeginInvoke(new Action(() => ProcessUserVoice(text)));
+                };
+                _recognizer.SpeechRecognitionRejected += (s, e) =>
+                {
+                    _isListening = false;
+                    Console.WriteLine("[VA] STT: tidak mendengar dengan jelas.");
+                };
+                _recognizer.RecognizeCompleted += (s, e) =>
+                {
+                    _isListening = false;
+                };
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"[VA] TTS speak error: {ex.Message}");
-                if (GlHost != null) GlHost.IsSpeaking = false;
+                Console.WriteLine($"[VA] STT init error: {ex.Message}");
             }
         }
 
-        private (string LangPrefix, int Rate) GetVoiceSettings(string character)
-        {
-            return character switch
-            {
-                "Fern"   => ("en", 1),
-                "Huohuo" => ("zh", 2),
-                "Jian"   => ("zh", 2),
-                _        => ("ja", 0) // Frieren
-            };
-        }
-
-        // ── STT native (pengganti startSpeech di JS) ──────────────────────
         private void StartListening()
         {
             try
@@ -528,9 +478,7 @@ namespace ZeroMix.Virtual_Assisten
                 ChatText.Text = aiResponse;
                 ChatBubble.Visibility = Visibility.Visible;
                 
-                // Speak the response!
-                SpeakText(aiResponse, _currentLang);
-
+                // Tanpa TTS — karakter balas pakai text saja (sesuai permintaan)
                 _hideChatTimer?.Stop();
                 _hideChatTimer?.Start();
             }
@@ -538,27 +486,24 @@ namespace ZeroMix.Virtual_Assisten
             App.OptimizeMemory();
         }
 
-        private async void ManualVision_Click(object sender, RoutedEventArgs e)
-        {
-            await PerformAiObservation();
-        }
-        
-        private void ManualChat_Click(object sender, RoutedEventArgs e)
-        {
-            // Toggle inline chat panel
-            ChatPanel.Visibility = ChatPanel.Visibility == Visibility.Visible
-                ? Visibility.Collapsed
-                : Visibility.Visible;
-            if (ChatPanel.Visibility == Visibility.Visible)
-            {
-                ChatInput.Text = "";
-                ChatInput.Focus();
-            }
-        }
-        
         private void ManualMic_Click(object sender, RoutedEventArgs e)
         {
             StartListening();
+        }
+        
+        private void MicButton_Click(object sender, MouseButtonEventArgs e)
+        {
+            StartListening();
+
+            // Visual feedback — pulse mic button
+            MicButton.Background = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromArgb(0x99, 0x00, 0xD4, 0xFF));
+            var resetTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(2000) };
+            resetTimer.Tick += (s2, e2) =>
+            {
+                resetTimer.Stop();
+                MicButton.Background = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromArgb(0x66, 0x00, 0x00, 0x00));
+            };
+            resetTimer.Start();
         }
         
         // ── Inline Chat Panel ────────────────────────────────────
@@ -642,21 +587,6 @@ namespace ZeroMix.Virtual_Assisten
                 _hideChatTimer?.Stop(); _hideChatTimer?.Start();
             }
         }
-        private void MicButton_Click(object sender, MouseButtonEventArgs e)
-        {
-            StartListening();
-
-            // Visual feedback — pulse mic button
-            MicButton.Background = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromArgb(0x99, 0x00, 0xD4, 0xFF));
-            var resetTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(2000) };
-            resetTimer.Tick += (s2, e2) =>
-            {
-                resetTimer.Stop();
-                MicButton.Background = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromArgb(0x66, 0x00, 0x00, 0x00));
-            };
-            resetTimer.Start();
-        }
-
         private void Close_Click(object sender, RoutedEventArgs e) => this.Close();
         private void HideChatBubble() => ChatBubble.Visibility = Visibility.Collapsed;
         private void OnMouseLeftButtonDown(object sender, MouseButtonEventArgs e) { _isDragging = true; _dragOffset = e.GetPosition(this); CaptureMouse(); }
@@ -665,10 +595,8 @@ namespace ZeroMix.Virtual_Assisten
         protected override void OnClosed(EventArgs e)
         {
             _eyeTrackingTimer?.Stop(); _autoTalkTimer?.Stop(); _visionTimer?.Stop(); _hideChatTimer?.Stop();
-            _fadeInCheckTimer?.Stop();
             _isHostDisposed = true;
-            try { _synthesizer?.SpeakAsyncCancelAll(); _synthesizer?.Dispose(); } catch { }
-            try { _recognizer?.RecognizeAsyncCancel(); _recognizer?.Dispose(); } catch { }
+            try { _recognizer?.RecognizeAsyncCancel(); _recognizer?.Dispose(); _recognizer = null; } catch { }
             try { GlHost?.Dispose(); } catch { }
             base.OnClosed(e);
             App.OptimizeMemory();
